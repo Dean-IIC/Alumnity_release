@@ -1,0 +1,252 @@
+{
+  "source": "Academic year 1998 to 2022 Batch Passout Details.xls",
+  "total": 9327,
+  "branches": {
+    "CSE": {
+      "name": "Computer Science & Engineering",
+      "count": 2536
+    },
+    "ECE": {
+      "name": "Electronics & Communication",
+      "count": 2096
+    },
+    "ISE": {
+      "name": "Information Science & Engineering",
+      "count": 1400
+    },
+    "MECH": {
+      "name": "Mechanical Engineering",
+      "count": 1531
+    },
+    "CIVIL": {
+      "name": "Civil Engineering",
+      "count": 438
+    },
+    "EEE": {
+      "name": "Electrical & Electronics",
+      "count": 695
+    },
+    "AIML": {
+      "name": "Artificial Intelligence & Machine Learning",
+      "count": 258
+    }
+  },
+  "by_year": {
+    "1998": {
+      "CSE": 37,
+      "ECE": 30,
+      "ISE": 38,
+      "MECH": 20
+    },
+    "1999": {
+      "CSE": 48,
+      "ECE": 30,
+      "ISE": 35,
+      "MECH": 13
+    },
+    "2000": {
+      "CSE": 51,
+      "ECE": 52,
+      "EEE": 1,
+      "ISE": 43,
+      "MECH": 32,
+      "AIML": 28
+    },
+    "2001": {
+      "CSE": 57,
+      "ECE": 55,
+      "ISE": 35,
+      "MECH": 34,
+      "AIML": 16
+    },
+    "2002": {
+      "CSE": 56,
+      "ECE": 54,
+      "EEE": 27,
+      "ISE": 32,
+      "MECH": 58,
+      "AIML": 23
+    },
+    "2003": {
+      "CSE": 86,
+      "ECE": 59,
+      "EEE": 71,
+      "ISE": 55,
+      "MECH": 78,
+      "AIML": 30
+    },
+    "2004": {
+      "CSE": 85,
+      "ECE": 54,
+      "EEE": 46,
+      "ISE": 51,
+      "MECH": 68,
+      "AIML": 18
+    },
+    "2005": {
+      "CSE": 82,
+      "ECE": 63,
+      "EEE": 69,
+      "ISE": 52,
+      "MECH": 70,
+      "AIML": 17
+    },
+    "2006": {
+      "CSE": 88,
+      "ECE": 86,
+      "EEE": 61,
+      "ISE": 57,
+      "MECH": 76,
+      "AIML": 13,
+      "GEN": 8
+    },
+    "2007": {
+      "CSE": 91,
+      "ECE": 112,
+      "EEE": 56,
+      "ISE": 53,
+      "MECH": 77,
+      "AIML": 1,
+      "GEN": 43
+    },
+    "2008": {
+      "CSE": 81,
+      "ECE": 118,
+      "EEE": 49,
+      "ISE": 46,
+      "MECH": 84,
+      "GEN": 46
+    },
+    "2009": {
+      "CSE": 64,
+      "ECE": 94,
+      "EEE": 37,
+      "ISE": 37,
+      "MECH": 86,
+      "GEN": 45
+    },
+    "2010": {
+      "CSE": 78,
+      "ECE": 83,
+      "EEE": 37,
+      "ISE": 37,
+      "MECH": 80,
+      "GEN": 37
+    },
+    "2011": {
+      "CSE": 106,
+      "ECE": 106,
+      "EEE": 38,
+      "ISE": 43,
+      "MECH": 89,
+      "GEN": 39
+    },
+    "2012": {
+      "CSE": 121,
+      "CIVIL": 41,
+      "ECE": 124,
+      "EEE": 36,
+      "ISE": 33,
+      "MECH": 105,
+      "GEN": 27
+    },
+    "2013": {
+      "CSE": 101,
+      "CIVIL": 56,
+      "ECE": 103,
+      "EEE": 35,
+      "ISE": 31,
+      "MECH": 101,
+      "GEN": 6
+    },
+    "2014": {
+      "CSE": 96,
+      "CIVIL": 69,
+      "ECE": 99,
+      "EEE": 39,
+      "ISE": 34,
+      "MECH": 85,
+      "GEN": 11
+    },
+    "2015": {
+      "CSE": 101,
+      "CIVIL": 84,
+      "ECE": 99,
+      "EEE": 33,
+      "ISE": 40,
+      "MECH": 83,
+      "GEN": 13
+    },
+    "2016": {
+      "CSE": 141,
+      "CIVIL": 75,
+      "ECE": 109,
+      "EEE": 27,
+      "ISE": 79,
+      "MECH": 98,
+      "GEN": 14
+    },
+    "2017": {
+      "CSE": 143,
+      "CIVIL": 41,
+      "ECE": 95,
+      "EEE": 17,
+      "ISE": 66,
+      "MECH": 73,
+      "GEN": 16
+    },
+    "2018": {
+      "CSE": 139,
+      "CIVIL": 33,
+      "ECE": 95,
+      "EEE": 15,
+      "ISE": 85,
+      "MECH": 55,
+      "GEN": 17
+    },
+    "2019": {
+      "CSE": 174,
+      "CIVIL": 24,
+      "ECE": 67,
+      "EEE": 1,
+      "ISE": 114,
+      "MECH": 29,
+      "GEN": 13
+    },
+    "2020": {
+      "CSE": 168,
+      "CIVIL": 13,
+      "ECE": 50,
+      "ISE": 91,
+      "MECH": 22,
+      "GEN": 38
+    },
+    "2021": {
+      "AIML": 50,
+      "CSE": 155,
+      "CIVIL": 2,
+      "ECE": 109,
+      "ISE": 94,
+      "MECH": 6
+    },
+    "2022": {
+      "AIML": 57,
+      "CSE": 176,
+      "ECE": 137,
+      "ISE": 117,
+      "MECH": 7
+    },
+    "2023": {
+      "AIML": 5,
+      "CSE": 11,
+      "ECE": 13,
+      "ISE": 2,
+      "MECH": 2
+    }
+  },
+  "first_year": 1998,
+  "last_year": 2023,
+  "unmapped_departments": {
+    "Physics": 1
+  }
+}

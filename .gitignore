@@ -1,0 +1,32 @@
+# dependencies and builds
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets: never commit
+.env
+.env.*
+!.env.example
+
+# personal data: never commit. The raw extracts name real people and carry their
+# email addresses (directory.csv: 7,034 rows with email). They are regenerable from
+# the committed scripts -- data/extract-records.py and data/extract-directory.py --
+# against the college's own spreadsheet, so nothing is lost by keeping them out.
+data/*.csv
+data/private/
+*.xls
+*.xlsx
+
+# local tooling
+supabase/.temp/
+supabase/.branches/
+.vercel
+test-results/
+playwright-report/
+*.log
+.DS_Store
+Thumbs.db

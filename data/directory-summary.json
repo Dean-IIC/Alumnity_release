@@ -1,0 +1,309 @@
+{
+  "source": "Parameterized_Report_01_Oct_2026.xls",
+  "members": 7034,
+  "matched_to_passout_records": 3247,
+  "match_rate": 0.462,
+  "with_current_employer": 3603,
+  "with_city": 6006,
+  "with_photo": 231,
+  "top_employers": [
+    [
+      "Accenture",
+      59
+    ],
+    [
+      "Tata Consultancy Services",
+      53
+    ],
+    [
+      "Capgemini",
+      49
+    ],
+    [
+      "Infosys",
+      43
+    ],
+    [
+      "Amazon",
+      38
+    ],
+    [
+      "Cranes Varsity Pvt. Ltd.",
+      38
+    ],
+    [
+      "Cognizant",
+      35
+    ],
+    [
+      "HKBK College of Engineering",
+      35
+    ],
+    [
+      "IBM",
+      28
+    ],
+    [
+      "DXC Technology",
+      25
+    ],
+    [
+      "Karunadu Technologies Private Limited",
+      24
+    ],
+    [
+      "HP",
+      18
+    ],
+    [
+      "Tech Mahindra",
+      18
+    ],
+    [
+      "Concentrix",
+      18
+    ],
+    [
+      "Dell technologies",
+      17
+    ],
+    [
+      "Deloitte",
+      16
+    ],
+    [
+      "Accenture in India",
+      16
+    ],
+    [
+      "HCLTECH",
+      15
+    ],
+    [
+      "Wipro",
+      14
+    ],
+    [
+      "EY",
+      13
+    ],
+    [
+      "Bosch Global Software Technologies",
+      13
+    ],
+    [
+      "Lumen Technologies",
+      13
+    ],
+    [
+      "KPMG",
+      12
+    ],
+    [
+      "Oracle",
+      12
+    ],
+    [
+      "HCL Technologies",
+      12
+    ],
+    [
+      "i-exceed",
+      12
+    ],
+    [
+      "Freelance",
+      11
+    ],
+    [
+      "Wells Fargo",
+      11
+    ],
+    [
+      "Varcons Technologies",
+      11
+    ],
+    [
+      "Microsoft",
+      10
+    ]
+  ],
+  "top_cities": [
+    [
+      "Bengaluru",
+      4804
+    ],
+    [
+      "Bangalore Urban",
+      143
+    ],
+    [
+      "Noida",
+      82
+    ],
+    [
+      "Riyadh",
+      33
+    ],
+    [
+      "Mumbai",
+      28
+    ],
+    [
+      "Hyderabad",
+      27
+    ],
+    [
+      "New Delhi",
+      27
+    ],
+    [
+      "Pune",
+      24
+    ],
+    [
+      "Ahmedabad",
+      24
+    ],
+    [
+      "Vancouver",
+      20
+    ],
+    [
+      "Chennai",
+      19
+    ],
+    [
+      "Kolar",
+      19
+    ],
+    [
+      "Kolkata",
+      17
+    ],
+    [
+      "Kottayam",
+      17
+    ],
+    [
+      "New York",
+      15
+    ],
+    [
+      "Dubai",
+      14
+    ],
+    [
+      "Devanahalli",
+      14
+    ],
+    [
+      "Bengaluru North",
+      12
+    ],
+    [
+      "Srinagar",
+      11
+    ],
+    [
+      "Patna",
+      10
+    ]
+  ],
+  "branches": [
+    [
+      "CSE",
+      1742
+    ],
+    [
+      "ECE",
+      706
+    ],
+    [
+      "ISE",
+      542
+    ],
+    [
+      "MECH",
+      539
+    ],
+    [
+      "EEE",
+      189
+    ],
+    [
+      "CIVIL",
+      171
+    ],
+    [
+      "GEN",
+      73
+    ],
+    [
+      "AIML",
+      56
+    ]
+  ],
+  "grad_years": [
+    [
+      "2013",
+      368
+    ],
+    [
+      "2014",
+      358
+    ],
+    [
+      "2016",
+      266
+    ],
+    [
+      "2021",
+      220
+    ],
+    [
+      2020,
+      217
+    ],
+    [
+      "2015",
+      215
+    ],
+    [
+      "2020",
+      209
+    ],
+    [
+      "2017",
+      209
+    ],
+    [
+      "2019",
+      205
+    ],
+    [
+      2021,
+      199
+    ],
+    [
+      2022,
+      196
+    ],
+    [
+      "2018",
+      189
+    ],
+    [
+      2023,
+      176
+    ],
+    [
+      2019,
+      173
+    ],
+    [
+      "2012",
+      164
+    ]
+  ]
+}
