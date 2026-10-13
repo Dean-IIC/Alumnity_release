@@ -3,55 +3,61 @@ export type CampusBlockId = "a-cse" | "admin" | "b" | "c" | "d";
 export type CampusBlock = {
   id: CampusBlockId;
   label: string;
-  illustration: string;
-  realImage: string;
-  x: number;
-  y: number;
+  /** Real colour photograph. */
+  photo: string;
+  /** The same photograph through the pencil-sketch filter (scripts/make-journey-photos.py). */
+  sketch: string;
+  orientation: "landscape" | "portrait";
+  /** Where the ink drop lands on the photo, as fractions of its width and height. */
+  inkOrigin: { x: number; y: number };
 };
 
-export const FINAL_BLOCK_ID: CampusBlockId = "d";
-export const D_BLOCK_REAL_IMAGE = "/assets/campus/growing-intro/d-block-real.jpg";
+const journey = (file: string) => `/assets/campus/journey/${file}`;
 
+export const FINAL_BLOCK_ID: CampusBlockId = "d";
+export const HERO_IMAGE = "/assets/campus/aerial.png";
+
+/** The physical route along the campus spine, east to west: A/CSE → Admin → B → C → D. */
 export const CAMPUS_BLOCKS: CampusBlock[] = [
   {
     id: "a-cse",
     label: "A block · CSE",
-    illustration: "/assets/campus/growing-intro/a-cse-ink.png",
-    realImage: "/assets/campus/cse-block.jpg",
-    x: 80,
-    y: 42
+    photo: journey("a-cse.jpg"),
+    sketch: journey("a-cse-sketch.jpg"),
+    orientation: "landscape",
+    inkOrigin: { x: 0.5, y: 0.5 }
   },
   {
     id: "admin",
     label: "Admin block",
-    illustration: "/assets/campus/growing-intro/admin-ink.png",
-    realImage: "/assets/campus/glass-block.png",
-    x: 64,
-    y: 55
+    photo: journey("admin.jpg"),
+    sketch: journey("admin-sketch.jpg"),
+    orientation: "landscape",
+    inkOrigin: { x: 0.5, y: 0.5 }
   },
   {
     id: "b",
     label: "B block",
-    illustration: "/assets/campus/growing-intro/b-ink.png",
-    realImage: "/assets/campus/front-building.jpg",
-    x: 48,
-    y: 46
+    photo: journey("b.jpg"),
+    sketch: journey("b-sketch.jpg"),
+    orientation: "landscape",
+    inkOrigin: { x: 0.5, y: 0.5 }
   },
   {
     id: "c",
     label: "C block",
-    illustration: "/assets/campus/growing-intro/c-ink.png",
-    realImage: "/assets/campus/tower.png",
-    x: 32,
-    y: 60
+    photo: journey("c.jpg"),
+    sketch: journey("c-sketch.jpg"),
+    orientation: "portrait",
+    inkOrigin: { x: 0.5, y: 0.5 }
   },
   {
     id: "d",
     label: "D block",
-    illustration: "/assets/campus/growing-intro/d-ink.png",
-    realImage: D_BLOCK_REAL_IMAGE,
-    x: 16,
-    y: 50
+    photo: journey("d.jpg"),
+    sketch: journey("d-sketch.jpg"),
+    orientation: "portrait",
+    inkOrigin: { x: 0.5, y: 0.5 }
   }
 ];
 
