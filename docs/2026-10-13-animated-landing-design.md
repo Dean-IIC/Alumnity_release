@@ -16,9 +16,12 @@ or wait for the default HKBK College of Engineering point. The camera moves into
 point; its pencil outline resolves into the matching real photograph. The landing hero
 then settles over that photo.
 
-The four locations must use the real assets supplied in
-`D:\college news letter HKBK\upload-to-canva\05-campus`; no generated campus imagery
-is used in the implementation.
+The four locations must use real HKBK assets selected from the full
+`D:\college news letter HKBK` archive, especially its 67-photo
+`claude-studio\original images` collection and the curated `newgen2\assets\campus`
+and `upload-to-canva\05-campus` sets. The initial implementation must inspect the
+full library first, deduplicate repeated exports, then choose the best distinct views.
+No generated campus imagery is used in the implementation.
 
 ## Sequence
 
