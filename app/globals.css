@@ -7,6 +7,7 @@
   --muted-ink: #73665c;
   --leaf: #788358;
   --blue: #143f68;
+  --route-red: #a83932;
   --line: rgba(57, 40, 32, 0.18);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-ink: cubic-bezier(0.77, 0, 0.175, 1);
@@ -67,42 +68,6 @@ a {
   box-shadow: inset 0 0 72px rgba(109, 85, 54, 0.1);
 }
 
-.ink-drop {
-  position: absolute;
-  z-index: 3;
-  left: calc(82% - 18px);
-  top: 11.5%;
-  width: 34px;
-  height: 46px;
-  opacity: 0;
-  transform: translateY(-170px) scale(0.45);
-  animation: ink-fall 720ms 260ms var(--ease-out) forwards;
-}
-
-.ink-drop::before,
-.ink-drop span {
-  position: absolute;
-  display: block;
-  background: var(--ink);
-}
-
-.ink-drop::before {
-  content: "";
-  width: 10px;
-  height: 24px;
-  top: -18px;
-  left: 12px;
-  border-radius: 70% 30% 62% 38%;
-  transform: rotate(18deg);
-}
-
-.ink-drop span {
-  inset: 4px 0 0;
-  border-radius: 54% 46% 58% 42% / 45% 42% 58% 55%;
-  transform: rotate(-12deg);
-  box-shadow: 4px 4px 0 rgba(57, 40, 32, 0.12);
-}
-
 .ink-route {
   position: absolute;
   z-index: 1;
@@ -115,14 +80,25 @@ a {
 
 .ink-route path {
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 3.6;
+  stroke: var(--route-red);
+  stroke-width: 3.2;
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.78;
   stroke-dasharray: 1320;
   stroke-dashoffset: 1320;
   animation: ink-route-draw 5600ms 910ms var(--ease-ink) forwards;
+}
+
+.route-beacon {
+  fill: var(--route-red);
+  stroke: #fffaf0;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 2px 5px rgba(168, 57, 50, 0.28));
+}
+
+.route-beacon__core {
+  fill: #fffaf0;
 }
 
 .ink-campus {
@@ -149,11 +125,71 @@ a {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.ink-block__drawing {
   opacity: 0;
   filter: grayscale(1) sepia(0.65) saturate(0.7) contrast(0.94);
   transform: translateY(18px) scale(0.965);
   transform-origin: 50% 100%;
   animation: ink-building-in 850ms calc(var(--delay) + 120ms) var(--ease-out) forwards;
+}
+
+.ink-block__real {
+  position: absolute !important;
+  z-index: 3 !important;
+  inset: 10% 9% 12%;
+  width: 82% !important;
+  height: 78% !important;
+  object-fit: cover;
+  opacity: 0;
+  filter: saturate(0.82) contrast(1.04);
+  clip-path: polygon(7% 15%, 89% 2%, 100% 80%, 83% 100%, 10% 91%, 0 28%);
+  transform: translateY(8px) scale(0.98);
+  transform-origin: 50% 50%;
+  animation: real-world-in 940ms calc(var(--delay) + 760ms) var(--ease-out) forwards;
+  box-shadow: 0 12px 21px rgba(57, 40, 32, 0.16);
+}
+
+.ink-block__terrain {
+  position: absolute;
+  z-index: 0;
+  inset: -17%;
+  border: 1px solid rgba(168, 57, 50, 0.32);
+  border-radius: 47% 53% 42% 58% / 53% 39% 61% 47%;
+  opacity: 0;
+  transform: rotate(-7deg) scale(0.91);
+  transform-origin: 50% 50%;
+  animation: contour-arrive 920ms calc(var(--delay) - 100ms) var(--ease-out) forwards;
+}
+
+.ink-block__terrain::before,
+.ink-block__terrain::after {
+  position: absolute;
+  content: "";
+  inset: 10%;
+  border: 1px solid rgba(168, 57, 50, 0.26);
+  border-radius: inherit;
+}
+
+.ink-block__terrain::after {
+  inset: 22%;
+  border-color: rgba(120, 131, 88, 0.32);
+}
+
+.ink-block__terrain--inner {
+  inset: -27% -11% -9% -24%;
+  border-color: rgba(120, 131, 88, 0.26);
+  border-radius: 58% 42% 51% 49% / 43% 58% 42% 57%;
+  animation-delay: calc(var(--delay) + 90ms);
+}
+
+.ink-block__terrain--inner::before {
+  inset: 14%;
+}
+
+.ink-block__terrain--inner::after {
+  inset: 29%;
 }
 
 .ink-block__leaves {
@@ -245,12 +281,6 @@ a {
   pointer-events: none;
 }
 
-.ink-intro--settled .ink-drop {
-  animation: none;
-  opacity: 0.7;
-  transform: none;
-}
-
 .ink-intro--settled .ink-route path {
   animation: none;
   opacity: 0.8;
@@ -262,10 +292,23 @@ a {
   opacity: 1;
 }
 
-.ink-intro--settled .ink-block img {
+.ink-intro--settled .ink-block__drawing {
   animation: none;
-  opacity: 1;
+  opacity: 0.35;
   transform: none;
+}
+
+.ink-intro--settled .ink-block__real {
+  animation: none;
+  opacity: 0.82;
+  clip-path: polygon(7% 15%, 89% 2%, 100% 80%, 83% 100%, 10% 91%, 0 28%);
+  transform: none;
+}
+
+.ink-intro--settled .ink-block__terrain {
+  animation: none;
+  opacity: 0.48;
+  transform: rotate(-7deg) scale(1);
 }
 
 .ink-intro--settled .ink-block__leaves {
@@ -377,7 +420,7 @@ a {
 .hero h1 {
   max-width: 610px;
   margin: 0;
-  color: var(--ink);
+  color: var(--route-red);
   font-family: "DM Serif Display", Georgia, serif;
   font-size: clamp(3.3rem, 6.1vw, 6.25rem);
   font-weight: 400;
@@ -522,21 +565,6 @@ a {
   transform: none;
 }
 
-@keyframes ink-fall {
-  0% {
-    opacity: 0;
-    transform: translateY(-170px) scale(0.45);
-  }
-  70% {
-    opacity: 1;
-    transform: translateY(2px) scale(1.08, 0.89);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 @keyframes ink-route-draw {
   to {
     stroke-dashoffset: 0;
@@ -553,6 +581,33 @@ a {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes real-world-in {
+  0% {
+    opacity: 0;
+    clip-path: polygon(7% 15%, 7% 15%, 7% 80%, 7% 80%, 7% 15%, 7% 15%);
+    transform: translateY(8px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    clip-path: polygon(7% 15%, 89% 2%, 100% 80%, 83% 100%, 10% 91%, 0 28%);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes contour-arrive {
+  0% {
+    opacity: 0;
+    transform: rotate(-7deg) scale(0.91);
+  }
+  65% {
+    opacity: 0.82;
+  }
+  100% {
+    opacity: 0.48;
+    transform: rotate(-7deg) scale(1);
   }
 }
 
@@ -637,11 +692,6 @@ a {
     display: none;
   }
 
-  .ink-drop {
-    left: calc(80% - 18px);
-    top: 9%;
-  }
-
   .ink-route {
     right: -35%;
     bottom: 15%;
@@ -653,28 +703,28 @@ a {
   }
 
   .ink-block--a-cse {
-    left: 76% !important;
-    top: 28% !important;
+    left: 75% !important;
+    top: 39% !important;
   }
 
   .ink-block--admin {
-    left: 63% !important;
-    top: 40% !important;
+    left: 61% !important;
+    top: 55% !important;
   }
 
   .ink-block--b {
-    left: 50% !important;
-    top: 48% !important;
+    left: 49% !important;
+    top: 44% !important;
   }
 
   .ink-block--c {
-    left: 35% !important;
-    top: 57% !important;
+    left: 34% !important;
+    top: 58% !important;
   }
 
   .ink-block--d {
-    left: 21% !important;
-    top: 66% !important;
+    left: 19% !important;
+    top: 50% !important;
   }
 }
 
@@ -699,7 +749,8 @@ a {
     scroll-behavior: auto !important;
   }
 
-  .ink-drop {
+  .route-beacon,
+  .route-beacon__core {
     display: none;
   }
 
@@ -714,10 +765,23 @@ a {
     opacity: 1;
   }
 
-  .ink-block img {
+  .ink-block__drawing {
     animation: none;
-    opacity: 1;
+    opacity: 0.35;
     transform: none;
+  }
+
+  .ink-block__real {
+    animation: none;
+    opacity: 0.82;
+    clip-path: polygon(7% 15%, 89% 2%, 100% 80%, 83% 100%, 10% 91%, 0 28%);
+    transform: none;
+  }
+
+  .ink-block__terrain {
+    animation: none;
+    opacity: 0.48;
+    transform: rotate(-7deg) scale(1);
   }
 
   .ink-block__leaves {

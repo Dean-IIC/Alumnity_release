@@ -4,6 +4,7 @@ export type CampusBlock = {
   id: CampusBlockId;
   label: string;
   illustration: string;
+  realImage: string;
   x: number;
   y: number;
 };
@@ -16,36 +17,41 @@ export const CAMPUS_BLOCKS: CampusBlock[] = [
     id: "a-cse",
     label: "A block · CSE",
     illustration: "/assets/campus/growing-intro/a-cse-ink.png",
-    x: 82,
-    y: 34
+    realImage: "/assets/campus/cse-block.jpg",
+    x: 80,
+    y: 42
   },
   {
     id: "admin",
     label: "Admin block",
     illustration: "/assets/campus/growing-intro/admin-ink.png",
-    x: 66,
-    y: 47
+    realImage: "/assets/campus/glass-block.png",
+    x: 64,
+    y: 55
   },
   {
     id: "b",
     label: "B block",
     illustration: "/assets/campus/growing-intro/b-ink.png",
-    x: 49,
-    y: 54
+    realImage: "/assets/campus/front-building.jpg",
+    x: 48,
+    y: 46
   },
   {
     id: "c",
     label: "C block",
     illustration: "/assets/campus/growing-intro/c-ink.png",
-    x: 31,
-    y: 63
+    realImage: "/assets/campus/tower.png",
+    x: 32,
+    y: 60
   },
   {
     id: "d",
     label: "D block",
     illustration: "/assets/campus/growing-intro/d-ink.png",
-    x: 14,
-    y: 72
+    realImage: D_BLOCK_REAL_IMAGE,
+    x: 16,
+    y: 50
   }
 ];
 

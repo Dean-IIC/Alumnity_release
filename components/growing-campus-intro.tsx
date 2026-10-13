@@ -33,9 +33,24 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
   return (
     <section className={`ink-intro ${isSettled ? "ink-intro--settled" : ""}`} aria-label="A growing illustration of the HKBK campus">
       <div className="ink-intro__paper" aria-hidden="true" />
-      <div className="ink-drop" aria-hidden="true"><span /></div>
       <svg className="ink-route" viewBox="0 0 1000 520" aria-hidden="true">
-        <path d="M836 162C780 212 735 214 670 238S552 268 500 291 398 318 328 340 209 364 136 388" />
+        <path d="M836 214C785 167 720 178 668 260S560 308 503 249 397 205 326 305 206 357 136 274" />
+        <circle className="route-beacon" r="8">
+          <animateMotion
+            begin="760ms"
+            dur="5600ms"
+            fill="freeze"
+            path="M836 214C785 167 720 178 668 260S560 308 503 249 397 205 326 305 206 357 136 274"
+          />
+        </circle>
+        <circle className="route-beacon__core" r="2.5">
+          <animateMotion
+            begin="760ms"
+            dur="5600ms"
+            fill="freeze"
+            path="M836 214C785 167 720 178 668 260S560 308 503 249 397 205 326 305 206 357 136 274"
+          />
+        </circle>
       </svg>
       <div className="ink-campus" aria-hidden="true">
         {CAMPUS_BLOCKS.map((block, index) => (
@@ -49,8 +64,11 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
               "--delay": `${1000 + index * 1180}ms`
             } as React.CSSProperties}
           >
+            <span className="ink-block__terrain" />
+            <span className="ink-block__terrain ink-block__terrain--inner" />
             <span className="ink-block__leaves" />
-            <img alt="" src={block.illustration} />
+            <img className="ink-block__drawing" alt="" src={block.illustration} />
+            <img className="ink-block__real" alt="" src={block.realImage} />
           </figure>
         ))}
       </div>

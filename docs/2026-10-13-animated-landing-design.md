@@ -10,16 +10,16 @@ together. It is not an admissions page or a generic social-network dashboard.
 
 **One ink drop grows the campus, then the campus becomes real.**
 
-The opening canvas is warm paper, not a map. A single sepia ink drop lands on the
-east/A-CSE edge and sends a root-like stroke westward. As it travels, small leaf
-sprigs and five individual pencil-and-wash building illustrations grow in the
+The opening canvas is warm paper, not a map. A small red route beacon explores from
+the east/A-CSE edge toward D on a wandering route. As it travels, dynamic topographic
+contours, leaf sprigs and five pencil-and-wash building illustrations grow in the
 physical campus order supplied by the team:
 
 **A/CSE → Admin → B → C → D**
 
-The finished drawing remains as a quiet memory under the landing. A local real
-HKBK building photograph resolves at the right of the welcome copy, rather than
-turning the scene into an interactive campus directory.
+When the beacon reaches each stop, that illustration is overtaken by a clipped local
+HKBK photograph. The complete route remains as a quiet memory under the landing,
+rather than turning the scene into an interactive campus directory.
 
 The visual assets live entirely in the repository under
 `public/assets/campus/growing-intro/`:
@@ -27,7 +27,8 @@ The visual assets live entirely in the repository under
 - `a-cse-ink.png`, `admin-ink.png`, `b-ink.png`, `c-ink.png`, `d-ink.png` —
   individual transparent pencil-and-wash illustrations; these are art, not CSS
   block geometry.
-- `d-block-real.jpg` — a local real HKBK photograph used in the welcome reveal.
+- `cse-block.jpg`, `glass-block.png`, `front-building.jpg`, `tower.png`, and
+  `d-block-real.jpg` — the local photographs that resolve each illustrated stop.
 
 The original drone video and all source photos remain outside the app; the browser
 never serves media from Downloads or the magazine archive.
@@ -35,9 +36,10 @@ never serves media from Downloads or the magazine archive.
 ## Sequence
 
 1. **Paper (0–260 ms).** A warm, lightly textured sheet appears.
-2. **Drop (260–1,000 ms).** One sepia ink drop lands above A/CSE.
-3. **Grow (1,000–6,700 ms).** A root/stroke draws from A/CSE through Admin, B,
-   C, and D. Each stop grows leaves and its own building illustration in order.
+2. **Explore (760–6,360 ms).** A red route beacon travels A/CSE → Admin → B → C → D
+   through topographic contour lines.
+3. **Resolve (at each arrival).** Each stop grows its leaves and pencil illustration,
+   then is overtaken by its own clipped real photograph.
 4. **Settle (at 8 s or by Skip intro).** The completed drawing becomes a low-contrast
    memory. The welcome header, purpose, two routes, and a real HKBK facade arrive.
 
@@ -48,9 +50,9 @@ directly to the welcome state.
 
 - Full-bleed ivory paper; no sidebar, pins, dashboard cards, aerial atlas, or SaaS
   metric grid.
-- Illustration palette: paper `#F8F4EA`, sepia ink `#3A2921`, and muted leaf wash
-  `#788358`. Campus blue `#143F68` is reserved for the Alumnity wordmark and primary
-  action once the welcome state arrives.
+- Illustration palette: paper `#F8F4EA`, sepia ink `#3A2921`, muted leaf wash
+  `#788358`, and route red `#A83932`. Campus blue `#143F68` is reserved for the
+  Alumnity wordmark and primary action once the welcome state arrives.
 - DM Serif Display carries the remembered, human headline; DM Sans keeps navigation
   and actions crisp.
 - The final hero makes just two routes visible: **Find your place** and **I’m already
@@ -59,8 +61,10 @@ directly to the welcome state.
 
 ## Motion and access rules
 
-- The ink route is SVG stroke drawing; building reveals use only opacity and transform.
-- The drop is the only dramatic movement. There is no looping ambient flourish.
+- The route is SVG stroke drawing; the beacon is a small SVG path-following marker;
+  building/photo reveals use opacity, transform, and clipping.
+- The animation serves first-visit explanation: it makes the physical route and each
+  drawing-to-photo transition legible. There is no looping ambient flourish.
 - `prefers-reduced-motion` skips the timed choreography and shows the settled welcome
   state immediately.
 - The welcome controls are ordinary links with clear labels. The decorative ink scene is
