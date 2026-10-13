@@ -23,6 +23,14 @@ and `upload-to-canva\05-campus` sets. The initial implementation must inspect th
 full library first, deduplicate repeated exports, then choose the best distinct views.
 No generated campus imagery is used in the implementation.
 
+The initial landing selection is copied into the repository at
+`public/assets/campus/` so the page has no runtime dependency on the magazine drive:
+
+- `aerial.png` — the drawn-campus reference and opening view.
+- `cse-block.jpg` — the default College of Engineering resolution.
+- `front-building.jpg`, `glass-block.png`, `tower.png` — the other three exploratory
+  building stops.
+
 ## Sequence
 
 1. **Sky (0–600 ms).** A pale watercolour sky fades in. The campus outline draws in
