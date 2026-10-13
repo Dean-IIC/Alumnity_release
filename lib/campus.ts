@@ -23,32 +23,32 @@ export const CAMPUS_STOPS: CampusStop[] = [
     label: "College of Engineering",
     eyebrow: "Where it all began",
     image: "/assets/campus/cse-block.jpg",
-    x: 48,
-    y: 58
+    x: 52,
+    y: 57
   },
   {
     id: "front-building",
     label: "The front block",
     eyebrow: "A familiar way in",
     image: "/assets/campus/front-building.jpg",
-    x: 28,
-    y: 68
+    x: 40,
+    y: 76
   },
   {
     id: "glass-block",
     label: "The glass block",
     eyebrow: "New conversations begin here",
     image: "/assets/campus/glass-block.png",
-    x: 74,
-    y: 42
+    x: 79,
+    y: 58
   },
   {
     id: "tower",
     label: "The tower",
     eyebrow: "Still part of your view",
     image: "/assets/campus/tower.png",
-    x: 68,
-    y: 76
+    x: 63,
+    y: 29
   }
 ];
 
