@@ -2,93 +2,76 @@
 
 ## Goal
 
-Make the first visit feel like returning to HKBK, then make the product purpose clear:
-this is a network where HKBK people ask, guide, and grow together. It is not an
-admissions page and not a generic social-network dashboard.
+The first visit should feel like a remembered walk across HKBK, then make the
+product purpose unmistakable: Alumnity is where HKBK people ask, guide, and grow
+together. It is not an admissions page or a generic social-network dashboard.
 
-## The one visual idea
+## The visual idea
 
-**A drawn campus becomes the real campus.**
+**One ink drop grows the campus, then the campus becomes real.**
 
-The opening is a lightly watercoloured sky and a hand-drawn aerial illustration of
-HKBK. Four labelled building points sit on the drawing. The visitor may choose one,
-or wait for the default HKBK College of Engineering point. The camera moves into that
-point; its pencil outline resolves into the matching real photograph. The landing hero
-then settles over that photo.
+The opening canvas is warm paper, not a map. A single sepia ink drop lands on the
+east/A-CSE edge and sends a root-like stroke westward. As it travels, small leaf
+sprigs and five individual pencil-and-wash building illustrations grow in the
+physical campus order supplied by the team:
 
-The four locations must use real HKBK assets selected from the full
-`D:\college news letter HKBK` archive, especially its 67-photo
-`claude-studio\original images` collection and the curated `newgen2\assets\campus`
-and `upload-to-canva\05-campus` sets. The initial implementation must inspect the
-full library first, deduplicate repeated exports, then choose the best distinct views.
-The map scene is an original watercolor-and-ink treatment derived from the real HKBK
-aerial photo and checked against the satellite layout. It is revealed in four spatial
-slices—arrival, west edge, engineering heart, and east wing—so the visitor first learns
-how the campus fits together. The resolution photographs remain real local HKBK assets.
+**A/CSE → Admin → B → C → D**
 
-The initial landing selection is copied into the repository at
-`public/assets/campus/` so the page has no runtime dependency on the magazine drive:
+The finished drawing remains as a quiet memory under the landing. A local real
+HKBK building photograph resolves at the right of the welcome copy, rather than
+turning the scene into an interactive campus directory.
 
-- `aerial.png` — the drawn-campus reference and opening view.
-- `hkbk-campus-atlas.png` — the locally stored, art-directed aerial atlas used for the
-  four progressive illustration slices.
-- `cse-block.jpg` — the default College of Engineering resolution.
-- `front-building.jpg`, `glass-block.png`, `tower.png` — the other three exploratory
-  building stops.
+The visual assets live entirely in the repository under
+`public/assets/campus/growing-intro/`:
+
+- `a-cse-ink.png`, `admin-ink.png`, `b-ink.png`, `c-ink.png`, `d-ink.png` —
+  individual transparent pencil-and-wash illustrations; these are art, not CSS
+  block geometry.
+- `d-block-real.jpg` — a local real HKBK photograph used in the welcome reveal.
+
+The original drone video and all source photos remain outside the app; the browser
+never serves media from Downloads or the magazine archive.
 
 ## Sequence
 
-1. **Sky (0–300 ms).** A pale watercolour sky fades in.
-2. **Map (80–1,700 ms).** Four actual illustrated campus slices reveal in their real
-   spatial relationship: arrival, west edge, engineering heart, then east wing.
-3. **Explore (1,700 ms onward).** Four actual building markers appear in a short
-   stagger. Hover/focus highlights a marker and shows its name. The initial scene is
-   interactive immediately; the animation never blocks navigation.
-4. **Choose (visitor action or 5 s idle).** Selecting a marker moves the shared map
-   location toward the viewport centre. A gold route draws to the selected building.
-5. **Resolve (about 700 ms).** The campus atlas crossfades and clips into that
-   building's real photograph. The photo remains still after it resolves.
-6. **Welcome.** The hero copy, "Stay connected to where it began.", and the two
-   primary paths appear: **Find your place** and **I'm already here**.
+1. **Paper (0–260 ms).** A warm, lightly textured sheet appears.
+2. **Drop (260–1,000 ms).** One sepia ink drop lands above A/CSE.
+3. **Grow (1,000–6,700 ms).** A root/stroke draws from A/CSE through Admin, B,
+   C, and D. Each stop grows leaves and its own building illustration in order.
+4. **Settle (at 8 s or by Skip intro).** The completed drawing becomes a low-contrast
+   memory. The welcome header, purpose, two routes, and a real HKBK facade arrive.
 
-The default idle choice should be HKBK College of Engineering. Selecting a different
-location preserves the same landing copy but uses that location's photo.
+The transition is deliberate, but it never traps a visitor: **Skip intro** moves
+directly to the welcome state.
 
 ## Layout and visual rules
 
-- Full-bleed, bright ivory canvas. No sidebar, dashboard, card grid or conventional
-  SaaS hero.
-- Watercolour sky sits at the top; the illustrated atlas sits at the lower half; real photo
-  occupies the lower/right edge after selection.
-- Campus blue (`#123E68`) structures text and controls. Gold (`#D59A2D`) belongs only
-  to the route, active marker and short underline. Ink is `#162430`.
-- Display type is expressive but limited to the hero headline. Navigation and body
-  copy are clear sans serif.
-- The final hero has just two actions. It does not show promotion statistics,
-  testimonials, admissions language, a carousel or a feed.
+- Full-bleed ivory paper; no sidebar, pins, dashboard cards, aerial atlas, or SaaS
+  metric grid.
+- Illustration palette: paper `#F8F4EA`, sepia ink `#3A2921`, and muted leaf wash
+  `#788358`. Campus blue `#143F68` is reserved for the Alumnity wordmark and primary
+  action once the welcome state arrives.
+- DM Serif Display carries the remembered, human headline; DM Sans keeps navigation
+  and actions crisp.
+- The final hero makes just two routes visible: **Find your place** and **I’m already
+  here**. It has no promotion statistics, testimonials, admissions language, carousel,
+  or feed.
 
-## Motion rules
+## Motion and access rules
 
-- Use transform and opacity for movement; keep motion at 60 fps.
-- Map line uses SVG stroke drawing; it is the only ambient/expressive movement.
-- Marker selection uses small press feedback, not bounce.
-- The photo handoff uses a continuity transition, not a flash or hard cut.
-- `prefers-reduced-motion` skips the drawing/travel and shows the final selected photo
-  with all content immediately.
-- Keyboard users can select every building marker; pointer and keyboard have the same
-  outcome.
-
-## First implementation boundary
-
-Create an isolated, runnable Alpha 4 frontend shell containing only this landing
-experience and local image assets. Do not bring Alpha 2 or Alpha 3's application shell,
-authentication, database, feed, Rooms or Roles into this slice.
+- The ink route is SVG stroke drawing; building reveals use only opacity and transform.
+- The drop is the only dramatic movement. There is no looping ambient flourish.
+- `prefers-reduced-motion` skips the timed choreography and shows the settled welcome
+  state immediately.
+- The welcome controls are ordinary links with clear labels. The decorative ink scene is
+  hidden from screen readers behind a concise section label.
+- Mobile keeps the same A-to-D order, with the illustration scaled and the colour photo
+  moved behind the hero copy.
 
 ## Acceptance checks
 
-- Desktop and mobile layouts remain readable at 1280 px and 390 px widths.
-- Exactly four real HKBK building markers are shown.
-- The default and every selectable marker resolves into a local, real image.
-- The motion sequence can be skipped, replayed and reduced safely.
-- The landing page tells a visitor what Alumnity is and provides distinct join/sign-in
-  routes, without reading as college promotion.
+- The data order is exactly A/CSE, Admin, B, C, D.
+- The intro runs in about eight seconds and can be skipped.
+- The final landing visibly explains Alumnity without turning into a college advert.
+- The desktop landing has been visually checked in the browser; it has no browser
+  console warnings or errors.
