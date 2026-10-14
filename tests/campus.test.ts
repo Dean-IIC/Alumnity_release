@@ -252,4 +252,22 @@ describe("landing copy", () => {
     expect(INTRO_PREFERENCE_SCRIPT).toContain('localStorage.getItem("alumnity:intro")==="skip"');
     expect(INTRO_PREFERENCE_SCRIPT).toContain('get("intro")==="1"');
   });
+
+  it("Skip intro works even when pressed before the page's scripts have loaded", () => {
+    const listeners: ((event: unknown) => void)[] = [];
+    const doc = {
+      documentElement: { dataset: {} as Record<string, string> },
+      addEventListener: (_type: string, fn: (event: unknown) => void) => listeners.push(fn)
+    };
+    // Run the <head> script as the browser would: the intro is set to play (?intro=1).
+    new Function("document", "location", "matchMedia", "localStorage", INTRO_PREFERENCE_SCRIPT)(
+      doc,
+      { search: "?intro=1" },
+      () => ({ matches: false }),
+      { getItem: () => null }
+    );
+    expect(doc.documentElement.dataset.intro).toBeUndefined();
+    listeners[0]({ target: { closest: (selector: string) => (selector === ".ink-intro__skip" ? {} : null) } });
+    expect(doc.documentElement.dataset.intro).toBe("skip");
+  });
 });

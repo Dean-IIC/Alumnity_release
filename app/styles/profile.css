@@ -1,0 +1,1068 @@
+/*
+ * A member's page, as a page of a sketchbook: ruled paper with a gold margin (like the
+ * register), their ink seal in place of a photo, their name in the serif voice, and entries
+ * under pencil-underlined headings. Also the editor and settings.
+ */
+
+.profile-page {
+  padding-bottom: var(--space-9);
+}
+
+.profile-page__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-7) 0 var(--space-5);
+}
+
+.profile-page__bar .kicker {
+  margin: 0;
+}
+
+.profile-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* ---------- The page ---------- */
+
+.profile {
+  max-width: 1120px;
+}
+
+.profile__name {
+  margin: 0;
+  color: var(--color-red);
+  font-family: var(--font-voice);
+  font-size: var(--text-page-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.profile__meta {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-body);
+}
+
+.profile__register {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-small);
+}
+
+.profile__register span {
+  color: var(--color-gold-text);
+  font-weight: var(--weight-bold);
+}
+
+/* ---------- The top: cover, photo, who they are ---------- */
+
+.profile__top {
+  margin-top: var(--space-6);
+}
+
+.cover {
+  position: relative;
+  height: clamp(200px, 26vw, 320px);
+  overflow: hidden;
+  border-radius: 24px 24px 0 0;
+  background: var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.cover__media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+/* Without a cover of their own: the campus the year they joined, on a golden-hour wash. */
+.cover--campus {
+  background:
+    radial-gradient(80% 120% at 75% 110%, rgba(198, 132, 42, 0.3), transparent 60%),
+    radial-gradient(60% 90% at 10% -20%, rgba(20, 63, 104, 0.14), transparent 65%),
+    var(--color-paper-raised);
+}
+
+.cover__campus {
+  position: absolute;
+  inset: -40% 6% -40% auto;
+  width: min(56%, 620px);
+}
+
+.cover__campus .ink-bloom {
+  object-fit: contain;
+}
+
+.cover__caption {
+  position: absolute;
+  top: var(--space-5);
+  left: var(--space-6);
+  display: grid;
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.cover__caption span {
+  margin-top: 2px;
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.profile__intro {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-6);
+  align-items: end;
+  padding: 0 var(--space-6) var(--space-6);
+  border-radius: 0 0 24px 24px;
+  background: var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+/* Their photo, or their seal, over the cover's edge on a ring of paper. */
+.profile__avatar {
+  display: grid;
+  width: 168px;
+  height: 168px;
+  margin-top: -84px;
+  overflow: hidden;
+  place-items: center;
+  align-self: start;
+  border-radius: 50%;
+  background: var(--color-paper-raised);
+  box-shadow: 0 0 0 6px var(--color-paper-raised), 0 0 0 7px var(--color-line);
+}
+
+.profile__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile__who {
+  min-width: 0;
+  padding-top: var(--space-4);
+}
+
+/* On their page the name is big, but not the size of a page headline. */
+.profile__who .profile__name {
+  font-size: clamp(2.2rem, 3.6vw, 3.3rem);
+  overflow-wrap: anywhere;
+}
+
+.profile__now {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+}
+
+.profile__who .profile__prompt {
+  margin-top: var(--space-2);
+}
+
+.profile__register {
+  flex-wrap: wrap;
+}
+
+.profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-self: end;
+  justify-content: flex-end;
+  max-width: 300px;
+  padding-bottom: var(--space-1);
+}
+
+@media (max-width: 900px) {
+  .profile__intro {
+    grid-template-columns: 1fr;
+    padding: 0 var(--space-5) var(--space-5);
+  }
+
+  .profile__avatar {
+    width: 124px;
+    height: 124px;
+    margin-top: -62px;
+  }
+
+  .profile__avatar .ink-seal {
+    width: 112px;
+    height: 112px;
+  }
+
+  .profile__who {
+    padding-top: 0;
+  }
+
+  .cover__campus {
+    width: 72%;
+  }
+}
+
+/* ---------- The journey: then, and the pen's road to now ---------- */
+
+.journey {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 9fr);
+  gap: var(--space-5);
+  align-items: center;
+  min-height: 360px;
+  padding: var(--space-6) var(--space-6) var(--space-6) var(--space-5);
+  overflow: hidden;
+  border-radius: 24px;
+  isolation: isolate;
+}
+
+/* A golden-hour sky in watercolour: warm low on the horizon, a cool wash above, soft clouds. */
+.journey__sky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 80% at 70% 115%, rgba(198, 132, 42, 0.28), transparent 60%),
+    radial-gradient(90% 70% at 15% -10%, rgba(20, 63, 104, 0.12), transparent 65%),
+    radial-gradient(60% 50% at 95% 10%, rgba(168, 57, 50, 0.07), transparent 70%),
+    var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.journey__cloud {
+  position: absolute;
+  width: 260px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255, 253, 247, 0.85);
+  filter: blur(14px);
+}
+
+.journey__cloud--a {
+  top: 8%;
+  left: 38%;
+}
+
+.journey__cloud--b {
+  top: 22%;
+  right: 4%;
+  width: 200px;
+  opacity: 0.7;
+}
+
+.journey__leaf {
+  position: absolute;
+  top: calc(12% + var(--i) * 18%);
+  left: -8%;
+  width: 34px;
+  opacity: 0;
+}
+
+.journey__leaf path {
+  fill: rgba(198, 132, 42, 0.2);
+  stroke: var(--color-gold);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .journey__leaf {
+    animation: leaf-drifts 6s cubic-bezier(0.35, 0.1, 0.4, 1) calc(1.2s + var(--i) * 0.9s) both;
+  }
+
+  .journey__cloud {
+    animation: cloud-drifts 40s linear infinite alternate;
+  }
+}
+
+@keyframes leaf-drifts {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-20deg);
+  }
+  10% {
+    opacity: 0.85;
+  }
+  55% {
+    transform: translate(55vw, -24px) rotate(140deg);
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(115vw, 18px) rotate(300deg);
+  }
+}
+
+@keyframes cloud-drifts {
+  to {
+    transform: translateX(60px);
+  }
+}
+
+/* Then: the campus the year they joined, blooming from pencil into colour, their seal stamped on. */
+.journey__then {
+  position: relative;
+  margin: 0;
+}
+
+.journey__photo {
+  aspect-ratio: 1;
+}
+
+/* contain, not cover: the splotch's irregular edge is the point. */
+.journey__photo .ink-bloom {
+  object-fit: contain;
+}
+
+/* The member's seal: blue ink, their initials ringed by branch and batch. */
+.ink-seal {
+  flex: none;
+  color: var(--color-blue);
+}
+
+.ink-seal__edge {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 4;
+}
+
+.ink-seal__inner {
+  fill: rgba(20, 63, 104, 0.06);
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.ink-seal__ring {
+  fill: currentColor;
+  font: var(--weight-bold) 10.5px / 1 var(--font-ui);
+  letter-spacing: 0.14em;
+}
+
+.ink-seal__initials {
+  fill: currentColor;
+  font: 38px / 1 var(--font-voice);
+}
+
+.journey__stamp {
+  position: absolute;
+  right: -6%;
+  bottom: 8%;
+  display: grid;
+  padding: 6px;
+  border-radius: 50%;
+  background: rgba(255, 253, 247, 0.92);
+}
+
+.journey__then figcaption {
+  display: grid;
+  margin-top: calc(-1 * var(--space-4));
+  color: var(--color-ink-soft);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-shadow: var(--halo-strong);
+}
+
+.journey__then figcaption span {
+  margin-top: 2px;
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* The road: the intro's red pen, drawn once from then to now; each stop blooms as it arrives. */
+.journey__road {
+  position: relative;
+  height: 280px;
+}
+
+.journey__line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.journey__line path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.journey__line-ink {
+  stroke: var(--color-red);
+  stroke-width: 5;
+}
+
+/* A little wet ink bleeding beside the line, as in the intro. */
+.journey__line-bleed {
+  stroke: rgba(168, 57, 50, 0.18);
+  stroke-width: 11;
+  transform: translate(1px, 2px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .journey__line path {
+    animation: pen-draws 3.2s cubic-bezier(0.45, 0.05, 0.4, 1) 0.9s both;
+  }
+}
+
+@keyframes pen-draws {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+.journey__stops {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.journey__stop {
+  position: absolute;
+  top: calc(var(--y) * 100%);
+  left: calc(var(--x) * 100%);
+  display: grid;
+  justify-items: center;
+  width: clamp(110px, 16vw, 170px);
+  text-align: center;
+  transform: translate(-50%, -14px);
+}
+
+/* The stop's ink blot: a dot that lands with a small ring around it. */
+.journey__dot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  margin-bottom: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-red);
+  box-shadow: 0 0 0 5px var(--color-paper-raised), 0 0 0 6.5px rgba(168, 57, 50, 0.35);
+}
+
+.journey__stop--prompt .journey__dot {
+  border: 2px dashed var(--color-ink-muted);
+  background: var(--color-paper-raised);
+  box-shadow: 0 0 0 5px var(--color-paper-raised);
+}
+
+.journey__year {
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-caption);
+  line-height: 1;
+  text-shadow: var(--halo-strong);
+}
+
+.journey__title {
+  margin-top: var(--space-1);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-compact);
+  text-shadow: var(--halo-strong);
+}
+
+.journey__detail {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+  line-height: var(--leading-compact);
+  text-shadow: var(--halo-strong);
+}
+
+.journey__stop--prompt .journey__year,
+.journey__stop--prompt .journey__title {
+  color: var(--color-ink-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .journey__stop {
+    animation: stop-blooms 700ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(0.9s + var(--x) * 3s) both;
+  }
+}
+
+@keyframes stop-blooms {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -14px) scale(0.6);
+  }
+}
+
+/* The optional road, when they've added stops. */
+.profile__since {
+  margin-top: var(--space-5);
+  padding: var(--space-5) var(--space-6) var(--space-4);
+  border-radius: 20px;
+  background: var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.journey--road-only {
+  display: block;
+  min-height: 0;
+  padding: 0;
+}
+
+.journey--road-only .journey__sky {
+  display: none;
+}
+
+/* ---------- The cards ---------- */
+
+.profile__body {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+.profile__main,
+.profile__side {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+
+.pcard {
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  border-radius: 20px;
+  background: var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.pcard__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.pcard__head h2 {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Who sees this part: an icon and a word, for the owner. */
+.pcard__who {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: 2px var(--space-2) 2px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.pcard__who svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* In their words: a quotation, in the serif voice. */
+.profile__about {
+  position: relative;
+  margin: 0;
+  padding-left: var(--space-6);
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.profile__about::before {
+  position: absolute;
+  top: -0.25em;
+  left: 0;
+  content: "\201C";
+  color: var(--color-gold);
+  font-size: 2.6em;
+  line-height: 1;
+}
+
+.profile__prompt {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+}
+
+.profile__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile__skills li {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: rgba(198, 132, 42, 0.13);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+
+/* Happy to help: three lanterns, lit gold when switched on. */
+.lanterns {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lantern {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  color: var(--color-ink-muted);
+}
+
+.lantern svg {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lantern > span {
+  display: grid;
+  gap: 2px;
+}
+
+.lantern b {
+  color: inherit;
+  font-weight: var(--weight-semibold);
+}
+
+.lantern > span span {
+  font-size: var(--text-fine);
+  line-height: var(--leading-compact);
+}
+
+.lantern--lit {
+  background: radial-gradient(70% 120% at 12% 50%, rgba(198, 132, 42, 0.26), rgba(198, 132, 42, 0.06) 70%);
+  box-shadow: inset 0 0 0 1px rgba(198, 132, 42, 0.35);
+  color: var(--color-ink);
+}
+
+.lantern--lit svg {
+  color: var(--color-blue);
+}
+
+.lantern:not(.lantern--lit) {
+  opacity: 0.75;
+}
+
+.profile__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile__links a {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.me-logout {
+  margin-top: var(--space-7);
+}
+
+/* ---------- Editing ---------- */
+
+.editor {
+  max-width: 760px;
+}
+
+.editor__part {
+  margin: 0 0 var(--space-6);
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.editor__part legend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--space-2);
+  padding: 0;
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-caption);
+}
+
+.editor__part legend + * {
+  clear: both;
+}
+
+/* Who can see this part: a small segmented choice. */
+.editor__who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.editor__who label {
+  position: relative;
+  cursor: pointer;
+}
+
+.editor__who input {
+  position: absolute;
+  opacity: 0;
+}
+
+.editor__who label span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+  color: var(--color-ink);
+}
+
+.editor__who input:checked + span {
+  background: var(--color-blue);
+  box-shadow: none;
+  color: var(--color-paper-raised);
+}
+
+.editor__who input:focus-visible + span {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.field textarea {
+  width: 100%;
+  padding: var(--space-2) 0;
+  border: 0;
+  border-bottom: 1.5px solid var(--color-border);
+  background: transparent;
+  color: var(--color-ink);
+  font: var(--weight-regular) var(--text-body) / var(--leading-body) var(--font-ui);
+  resize: vertical;
+}
+
+.field textarea:focus {
+  border-bottom-color: var(--color-blue);
+  outline: none;
+}
+
+.editor__check {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin-top: var(--space-4);
+  cursor: pointer;
+}
+
+.editor__check input {
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--color-blue);
+}
+
+.editor__check > span {
+  display: grid;
+  gap: 2px;
+}
+
+.editor__check > span span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.editor__media {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+}
+
+.picker {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.picker__preview {
+  display: grid;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.picker--photo .picker__preview {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+}
+
+.picker--cover .picker__preview {
+  aspect-ratio: 1120 / 320;
+}
+
+.picker__preview img,
+.picker__preview video,
+.picker__preview iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.picker__empty {
+  padding: var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+  text-align: center;
+}
+
+.picker__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+@media (max-width: 700px) {
+  .editor__media {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editor__stops {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.editor__stop {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  gap: 0 var(--space-4);
+  align-items: end;
+}
+
+.editor__add {
+  margin-top: var(--space-4);
+}
+
+.editor__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+/* ---------- Settings ---------- */
+
+.settings {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 640px;
+}
+
+.settings__section {
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  border-radius: var(--radius-card);
+  background: var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.settings__section h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-regular);
+}
+
+.settings__value {
+  margin: var(--space-3) 0 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  overflow-wrap: anywhere;
+}
+
+.settings__danger {
+  border-color: var(--color-red);
+  background: transparent;
+  color: var(--color-red);
+}
+
+.settings__danger:hover {
+  background: rgba(168, 57, 50, 0.08);
+}
+
+/* ---------- Narrow screens ---------- */
+
+@media (max-width: 900px) {
+  .profile__body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Phones: then above, and the road runs down the page instead of across it. */
+@media (max-width: 760px) {
+  .journey {
+    grid-template-columns: 1fr;
+    padding: var(--space-5) var(--space-4) var(--space-6);
+  }
+
+  .journey__then {
+    width: min(78%, 320px);
+  }
+
+  .journey__road {
+    height: auto;
+  }
+
+  .journey__line {
+    display: none;
+  }
+
+  .journey__stops {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    padding-left: var(--space-6);
+  }
+
+  /* The pen line, straight down the side. */
+  .journey__stops::before {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 10px;
+    width: 4px;
+    content: "";
+    border-radius: 2px;
+    background: var(--color-red);
+    transform-origin: top;
+  }
+
+  .journey__stop {
+    position: relative;
+    top: auto;
+    left: auto;
+    justify-items: start;
+    width: auto;
+    text-align: left;
+    transform: none;
+  }
+
+  .journey__dot {
+    position: absolute;
+    top: 2px;
+    left: calc(-1 * var(--space-6) + 1px);
+    width: 18px;
+    height: 18px;
+  }
+
+  .pcard {
+    padding: var(--space-4) var(--space-4) var(--space-5);
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  .journey__stops::before {
+    animation: pen-draws-down 2.4s cubic-bezier(0.45, 0.05, 0.4, 1) 0.6s both;
+  }
+
+  .journey__stop {
+    animation: stop-arrives 600ms var(--ease-out) calc(0.6s + var(--x) * 2.4s) both;
+  }
+}
+
+@keyframes pen-draws-down {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes stop-arrives {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

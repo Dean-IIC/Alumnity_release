@@ -25,12 +25,12 @@ export type HeroPhoto = {
 
 const hero = (file: string) => `/assets/campus/hero/${file}`;
 
-/** The hero's one photograph: the glass block at sunset, from the college's own photo archive. */
+/** The hero's one photograph: D Block at sunset, from the college's own photo archive. */
 export const HERO_PHOTO: HeroPhoto = {
   src: hero("glass-block.jpg"),
   sketch: hero("glass-block-sketch.jpg"),
   label: "Campus",
-  title: "The glass block at sunset",
+  title: "D Block at sunset",
   inkOrigin: { x: 0.5, y: 0.5 }
 };
 

@@ -7,7 +7,7 @@ import { SoonNotice } from "../../../components/coming-soon";
 import { InkBloom } from "../../../components/ink-bloom";
 import { AlbumCard } from "../../../components/gallery/album-card";
 import { PhotoGrid } from "../../../components/gallery/photo-grid";
-import { ALBUMS, albumBySlug, albumSources } from "../../../lib/gallery";
+import { ALBUMS, albumBySlug, albumSources, countLabel } from "../../../lib/gallery";
 import "../../styles/gallery.css";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -31,7 +31,8 @@ export default async function AlbumPage({ params }: Props) {
   const album = albumBySlug((await params).slug);
   if (!album) notFound();
   const others = ALBUMS.filter((other) => other !== album);
-  const count = album.photos.length;
+  // Times the event happened (a part just for videos, like a film, isn't one).
+  const events = album.parts.filter((part) => part.photos.length).length;
 
   return (
     <>
@@ -45,8 +46,8 @@ export default async function AlbumPage({ params }: Props) {
           <div className="album-hero__copy">
             <h1 className="page-title">{album.title}</h1>
             <p className="album__meta">
-              {album.when} · {count} {count === 1 ? "photo" : "photos"}
-              {album.parts.length > 1 && ` · ${album.parts.length} events`}
+              {album.when} · {countLabel(album.photos.length, album.videos.length)}
+              {events > 1 && ` · ${events} events`}
             </p>
             <p className="page-head__text">{album.description}</p>
             {albumSources(album).map((source) => (

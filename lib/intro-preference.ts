@@ -26,6 +26,9 @@ export function writeIntroPreference(preference: IntroPreference) {
 
 /** Should this page load play the intro? */
 export function shouldPlayIntro(): boolean {
+  // Skipped already: opted out (set in <head>), or "Skip intro" pressed before the page's
+  // scripts had loaded (the <head> script handles that press too).
+  if (document.documentElement.dataset.intro === "skip") return false;
   if (new URLSearchParams(window.location.search).get("intro") === "1") return true;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
   return readIntroPreference() === "play";
@@ -33,6 +36,9 @@ export function shouldPlayIntro(): boolean {
 
 /**
  * Runs in <head> before first paint: marks the page so CSS can hide the intro at once
- * for visitors who opted out, rather than flashing it until React catches up.
+ * for visitors who opted out, rather than flashing it until React catches up. It also
+ * makes "Skip intro" work from the very first moment: on a slow connection the button is
+ * on screen seconds before the page's scripts arrive, and a press then would do nothing.
+ * Marking the page hides the intro (in CSS) and tells the intro, once it loads, not to play.
  */
-export const INTRO_PREFERENCE_SCRIPT = `(function(){try{var q=new URLSearchParams(location.search).get("intro")==="1";var m=matchMedia("(prefers-reduced-motion: reduce)").matches;if(!q&&(m||localStorage.getItem("${KEY}")==="skip"))document.documentElement.dataset.intro="skip"}catch(e){}})()`;
+export const INTRO_PREFERENCE_SCRIPT = `(function(){var d=document.documentElement;try{var q=new URLSearchParams(location.search).get("intro")==="1";var m=matchMedia("(prefers-reduced-motion: reduce)").matches;if(!q&&(m||localStorage.getItem("${KEY}")==="skip"))d.dataset.intro="skip"}catch(e){}document.addEventListener("click",function(e){var t=e.target;if(t&&t.closest&&t.closest(".ink-intro__skip"))d.dataset.intro="skip"},true)})()`;

@@ -14,7 +14,7 @@ describe("gallery", () => {
 
   it("keeps an event that happened more than once in one album, a part for each time", () => {
     const meets = ALBUMS.find((album) => album.slug === "alumni-meets");
-    expect(meets?.parts.map((part) => part.when)).toEqual(["2009", "2008"]);
+    expect(meets?.parts.filter((part) => part.photos.length).map((part) => part.when)).toEqual(["2009", "2008"]);
     const drives = ALBUMS.find((album) => album.slug === "job-drives");
     expect(drives?.parts.map((part) => part.title)).toEqual(["Indian Air Force", "Indian Army"]);
     for (const album of ALBUMS) if (album.parts.length > 1) for (const part of album.parts) expect(part.title).toBeTruthy();
@@ -44,5 +44,19 @@ describe("gallery", () => {
   it("keeps out events that weren't the engineering college's own (checked on hkbk.edu.in)", () => {
     const slugs = ALBUMS.map((album) => album.slug).join(" ");
     expect(slugs).not.toMatch(/abhinandana|mega-job-fair|mega-pool/);
+  });
+
+  it("puts videos in albums: after a part's photos, or in a part of their own", () => {
+    const around = ALBUMS.find((album) => album.slug === "around-campus-2024-25");
+    const films = around?.parts.find((part) => part.title === "Films about the college");
+    expect(films?.photos).toHaveLength(0);
+    expect(films?.videos.map((v) => v.provider)).toEqual(["youtube", "youtube"]);
+    // YouTube stills are saved with the site, so the page asks YouTube for nothing before play.
+    for (const v of films?.videos ?? []) {
+      expect(v.poster?.src).toMatch(/^\/assets\/gallery\//);
+      expect(existsSync(publicFile(v.poster!.src))).toBe(true);
+    }
+    const stories = ALBUMS.find((album) => album.slug === "alumni-meets")?.parts.find((part) => part.title === "Alumni stories");
+    expect(stories?.videos[0].provider).toBe("instagram");
   });
 });

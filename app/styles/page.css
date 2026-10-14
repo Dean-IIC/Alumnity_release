@@ -77,3 +77,10 @@
 .page-title__gold {
   color: var(--color-gold-text);
 }
+
+/* A photograph in the intro's ink (components/ink-bloom.tsx): it fills the box it's given. */
+.ink-bloom {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

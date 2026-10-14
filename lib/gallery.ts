@@ -1,10 +1,14 @@
 import manifest from "./gallery-photos.json";
+import videoList from "./gallery-videos.json";
+import videoPosters from "./gallery-video-posters.json";
+import { parseVideoLink, type VideoLink } from "./video";
 
 /*
  * The public gallery: albums of the college's own photographs. An album is one kind of
  * event; when it happened more than once (the alumni meets, the job drives) each time is a
  * part of it. The files and their sizes come from scripts/make-gallery.py (into
  * public/assets/gallery and gallery-photos.json); what everything is, is written here.
+ * Videos are links, listed in gallery-videos.json (see lib/video.ts).
  */
 
 export type GalleryPhoto = {
@@ -20,12 +24,22 @@ export type GalleryPhoto = {
   caption?: string;
 };
 
+export type GalleryVideo = VideoLink & {
+  title: string;
+  /** A still for its tile: a YouTube thumbnail saved by scripts/fetch-video-posters.py, or one we were given. */
+  poster?: { src: string; width: number; height: number };
+};
+
+export const isVideo = (item: GalleryPhoto | GalleryVideo): item is GalleryVideo => "embed" in item;
+
 export type AlbumPart = {
   /** Only albums with more than one part name them. */
   title?: string;
   when: string;
   source: keyof typeof SOURCES;
   photos: GalleryPhoto[];
+  /** Shown after the part's photos. */
+  videos: GalleryVideo[];
 };
 
 export type Album = {
@@ -39,6 +53,7 @@ export type Album = {
   parts: AlbumPart[];
   /** Every photo, in order, across the parts. */
   photos: GalleryPhoto[];
+  videos: GalleryVideo[];
   /** The album's card: its cover large, then two more (from other parts, where it has them). */
   mosaic: GalleryPhoto[];
   /** The cover again, at 1000 px with its pencil sketch: it blooms in as the album opens. */
@@ -48,10 +63,11 @@ export type Album = {
 export const SOURCES = {
   "old-site": "From the college’s old website (a copy saved in 2014).",
   portal: "From the old HKBK alumni website.",
-  "college-site": "From the college’s news pages, hkbk.edu.in."
+  "college-site": "From the college’s news pages, hkbk.edu.in.",
+  socials: "Videos from the college’s own YouTube, Instagram, Facebook and LinkedIn."
 } as const;
 
-type PartCopy = Omit<AlbumPart, "photos"> & {
+type PartCopy = Omit<AlbumPart, "photos" | "videos"> & {
   /** One per photo, in order, where we know what each shows. */
   captions?: string[];
 };
@@ -155,7 +171,7 @@ const COPY: Record<Slug, AlbumCopy> = {
     title: "Around campus",
     date: "2025-06-21",
     when: "2024 – 2025",
-    description: "Yoga Day, a poster competition, mock interviews, a food carnival and a road safety show.",
+    description: "Yoga Day, a poster competition, mock interviews, a food carnival and a road safety show, and two films about the college.",
     parts: {
       "yoga-day-2025": {
         title: "International Yoga Day",
@@ -206,6 +222,27 @@ const COPY: Record<Slug, AlbumCopy> = {
 };
 
 const BASE = "/assets/gallery";
+
+type VideoEntry = {
+  album: string;
+  /** A part of the album's photos ("all" when it has one), or a new part just for videos. */
+  part: string;
+  url: string;
+  title: string;
+  /** For a part just for videos: its name and when. */
+  partTitle?: string;
+  when?: string;
+};
+const POSTERS: Record<string, { src: string; width: number; height: number }> = videoPosters;
+
+/** A video from its entry: the link read, its poster attached if one was saved. */
+export const makeVideo = (entry: Pick<VideoEntry, "url" | "title">): GalleryVideo => ({
+  ...parseVideoLink(entry.url),
+  title: entry.title,
+  poster: POSTERS[entry.url]
+});
+
+const VIDEOS: VideoEntry[] = videoList.videos;
 const file = (slug: string, n: number, suffix = "") => `${BASE}/${slug}/${String(n).padStart(2, "0")}${suffix}.jpg`;
 
 function buildAlbum(slug: Slug): Album {
@@ -221,6 +258,7 @@ function buildAlbum(slug: Slug): Album {
     const name = rest.title ?? copy.title;
     return {
       ...rest,
+      videos: VIDEOS.filter((v) => v.album === slug && v.part === part.key).map(makeVideo),
       photos: part.photos.map((p, i) => ({
         src: file(slug, p.n),
         width: p.w,
@@ -232,6 +270,19 @@ function buildAlbum(slug: Slug): Album {
       }))
     };
   });
+  // Parts with only videos (a film about the campus, an alumni story) come after the photos.
+  const photoKeys = new Set(built.parts.map((part) => part.key));
+  const videoOnly = VIDEOS.filter((v) => v.album === slug && !photoKeys.has(v.part));
+  for (const key of [...new Set(videoOnly.map((v) => v.part))]) {
+    const entries = videoOnly.filter((v) => v.part === key);
+    parts.push({
+      title: entries[0].partTitle,
+      when: entries[0].when ?? "",
+      source: "socials",
+      photos: [],
+      videos: entries.map(makeVideo)
+    });
+  }
   const photos = parts.flatMap((part) => part.photos);
   const lead = photos[built.cover - 1];
   // The rest of the mosaic: the first photo of each other part, then whatever comes next.
@@ -244,6 +295,7 @@ function buildAlbum(slug: Slug): Album {
     description: copy.description,
     parts,
     photos,
+    videos: parts.flatMap((part) => part.videos),
     mosaic: [lead, ...others.slice(0, 2)],
     cover: {
       src: `${BASE}/${slug}/cover.jpg`,
@@ -255,11 +307,27 @@ function buildAlbum(slug: Slug): Album {
   };
 }
 
+// Every video must name an album that exists, and either one of its parts or a new part
+// with a name and a date, so a typo fails the build.
+for (const v of VIDEOS) {
+  const album = manifest[v.album as Slug];
+  if (!album) throw new Error(`gallery-videos.json: no album "${v.album}" for ${v.url}`);
+  if (!album.parts.some((part) => part.key === v.part) && !(v.partTitle && v.when)) {
+    throw new Error(`gallery-videos.json: "${v.album}" has no part "${v.part}"; a new part needs a partTitle and a when (${v.url})`);
+  }
+}
+
 export const ALBUMS: Album[] = (Object.keys(COPY) as Slug[]).map(buildAlbum).sort((a, b) => b.date.localeCompare(a.date));
 
 export const albumBySlug = (slug: string) => ALBUMS.find((album) => album.slug === slug);
 
 export const PHOTO_COUNT = ALBUMS.reduce((sum, album) => sum + album.photos.length, 0);
+
+/** "9 photos", "9 photos · 2 videos", "1 video". */
+export function countLabel(photos: number, videos: number) {
+  const say = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
+  return [photos && say(photos, "photo"), videos && say(videos, "video")].filter(Boolean).join(" · ");
+}
 
 /** Where an album's photos came from: one line per source (the job drives have two). */
 export const albumSources = (album: Album) => [...new Set(album.parts.map((part) => SOURCES[part.source]))];

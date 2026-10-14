@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { BrandLockup } from "./brand-lockup";
 import { soon } from "./coming-soon";
 
@@ -18,6 +19,15 @@ const LINKS = [
 
 /** The one header every page shares: the lockup home, the sections, and Log in. */
 export function SiteHeader({ landing = false, current }: SiteHeaderProps) {
+  // Who's signed in, asked once the page is up (so every page can stay static and fast).
+  const [me, setMe] = useState<{ firstName: string } | null>(null);
+  useEffect(() => {
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => setMe(d.user))
+      .catch(() => undefined);
+  }, []);
+
   return (
     <header className={`site-nav container ${landing ? "site-nav--over-hero" : ""}`}>
       <a className="site-nav__brand" href={landing ? "#welcome" : "/"} aria-label="Alumnity by HKBK College of Engineering, home">
@@ -35,9 +45,15 @@ export function SiteHeader({ landing = false, current }: SiteHeaderProps) {
           </a>
         ))}
       </nav>
-      <a className="sign-in" href="/login" onClick={soon}>
-        Log in <span aria-hidden="true">↗</span>
-      </a>
+      {me ? (
+        <a className="sign-in" href="/me">
+          {me.firstName} <span aria-hidden="true">→</span>
+        </a>
+      ) : (
+        <a className="sign-in" href="/login" onClick={soon}>
+          Log in <span aria-hidden="true">↗</span>
+        </a>
+      )}
     </header>
   );
 }

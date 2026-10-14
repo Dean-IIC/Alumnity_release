@@ -91,24 +91,25 @@
   mask-image: linear-gradient(to right, transparent, #000 45%);
 }
 
-.album-card__vine-stem,
-.album-card__vine-leaf {
+/* The leaf vine (components/gallery/leaf-vine.tsx): pencil stem, gold leaves, a blue dot or two. */
+.leaf-vine__stem,
+.leaf-vine__leaf {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.album-card__vine-stem {
+.leaf-vine__stem {
   stroke: var(--color-ink-soft);
   stroke-width: 2;
 }
 
-.album-card__vine-leaf {
+.leaf-vine__leaf {
   stroke: var(--color-gold);
   stroke-width: 3;
 }
 
-.album-card__vine-dot {
+.leaf-vine__dot {
   fill: var(--color-blue);
 }
 
@@ -226,6 +227,11 @@
   list-style: none;
 }
 
+/* A part that's only videos (films, stories): fewer things, so each is larger. */
+.photo-grid--videos {
+  --row: 300px;
+}
+
 /* Each photo grows in proportion to its shape, so every photo in a row is the same height. */
 .photo-grid li {
   flex: calc(var(--ratio) * 100) 1 calc(var(--ratio) * var(--row));
@@ -259,12 +265,32 @@
   bottom: var(--space-2);
   left: var(--space-2);
   max-width: calc(100% - 2 * var(--space-2));
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-photo);
+  overflow: hidden;
   background: var(--color-paper-veil);
   color: var(--color-ink);
   font-size: var(--text-fine);
   line-height: var(--leading-compact);
+}
+
+/* The vine behind a photo's name, as on the album cards: in from the right, fading out
+   before the words begin. */
+.photo-grid__vine {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60%;
+  min-width: 140px;
+  height: 100%;
+  opacity: 0.55;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 55%);
+  mask-image: linear-gradient(to right, transparent, #000 55%);
+}
+
+.photo-grid__caption-text {
+  position: relative;
 }
 
 .album__meta {
@@ -319,11 +345,6 @@
   transform: translateY(-50%);
 }
 
-.ink-bloom {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
 
 /* An event that happened more than once: each time gets its own heading. */
 .album-part + .album-part {
@@ -351,6 +372,65 @@
   margin: 0;
   color: var(--color-ink-muted);
   font-size: var(--text-small);
+}
+
+/* ---------- Videos: a tile waiting to be played ---------- */
+
+/* Without a still, a video is a sheet of paper with its name: no picture from YouTube or
+   Meta is fetched until someone presses play. */
+.video-tile__paper {
+  display: grid;
+  width: 100%;
+  aspect-ratio: var(--ratio);
+  align-content: end;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background: var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  border-radius: var(--radius-photo);
+}
+
+.video-tile__source {
+  color: var(--color-ink-soft);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.video-tile__title {
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-card);
+  line-height: var(--leading-snug);
+}
+
+/* The play mark: the cards' round blue arrow, as a triangle. */
+.video-tile__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: var(--space-8);
+  height: var(--space-8);
+  place-items: center;
+  padding-left: var(--space-1); /* a triangle looks centred a little right of centre */
+  border-radius: var(--radius-pill);
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+  font-size: var(--text-icon-large);
+  transform: translate(-50%, -50%);
+  transition: background var(--duration-instant) ease, transform var(--duration-instant) ease;
+}
+
+.video-tile:hover .video-tile__play {
+  background: var(--color-blue-deep);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+/* On a paper tile the mark sits above the name, not over it. */
+.video-tile__paper + .video-tile__play {
+  top: 38%;
 }
 
 /* ---------- The lightbox ---------- */
@@ -455,6 +535,52 @@ html:has(.lightbox[open]) {
   right: var(--space-5);
 }
 
+/* A video's player, sized to its shape within the screen. */
+.lightbox__figure:has(.lightbox__video) {
+  width: 100%; /* a player has no size of its own: give it the screen to size against */
+}
+
+.lightbox__video {
+  --room: calc(100dvh - 2 * var(--space-6) - var(--space-8));
+  margin-inline: auto;
+}
+
+.lightbox__video iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: var(--radius-photo);
+  background: var(--color-night);
+}
+
+.lightbox__video--wide {
+  width: min(100%, var(--room) * 16 / 9);
+  aspect-ratio: 16 / 9;
+}
+
+.lightbox__video--tall {
+  width: min(100%, var(--room) * 9 / 16);
+  aspect-ratio: 9 / 16;
+}
+
+/* Instagram and LinkedIn send a framed post (account, caption, buttons), not a bare video. */
+.lightbox__video--post {
+  width: min(100%, 520px);
+  height: var(--room);
+}
+
+.lightbox__video--post iframe {
+  background: var(--color-paper-raised);
+}
+
+.lightbox__source {
+  color: var(--color-paper-raised);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @keyframes lightbox-in {
   from {
     opacity: 0;
@@ -503,6 +629,42 @@ html:has(.lightbox[open]) {
     gap: var(--space-2);
   }
 
+  .photo-grid--videos {
+    --row: 200px;
+  }
+
+  /* Phones: a photo's name goes under it, not over it (on a small photo it would hide it). */
+  .photo-grid a:not(.video-tile) {
+    overflow: visible;
+    background: none;
+  }
+
+  .photo-grid a:not(.video-tile) img {
+    border-radius: var(--radius-photo);
+  }
+
+  .photo-grid a:not(.video-tile) .photo-grid__caption {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    display: block;
+    max-width: none;
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-paper-raised);
+    box-shadow: inset 0 0 0 1px var(--color-line);
+    color: var(--color-ink-soft);
+  }
+
+  /* The cards are narrow here: the vine keeps to their right edge, clear of the words. */
+  .photo-grid a:not(.video-tile) .photo-grid__vine {
+    width: 45%;
+    min-width: 0;
+    opacity: 0.35;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 80%);
+    mask-image: linear-gradient(to right, transparent, #000 80%);
+  }
+
   /* Phones: the photo uses the whole width; prev and next sit below it, within thumb reach. */
   .lightbox {
     padding: var(--space-9) 0;
@@ -515,6 +677,10 @@ html:has(.lightbox[open]) {
   .lightbox__figure img {
     max-height: calc(100dvh - 2 * var(--space-9) - var(--space-8));
     border-radius: 0;
+  }
+
+  .lightbox__video {
+    --room: calc(100dvh - 2 * var(--space-9) - var(--space-8));
   }
 
   .lightbox__prev,

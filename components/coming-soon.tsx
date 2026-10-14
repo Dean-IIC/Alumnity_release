@@ -7,8 +7,6 @@ import { useEffect, useState, type MouseEvent } from "react";
  * leading nowhere; delete an entry once its page exists.
  */
 const COMING_SOON: Record<string, string> = {
-  "/join": "Joining",
-  "/login": "Logging in",
   "/how-it-works": "How it works",
   "/people": "Exploring people"
 };

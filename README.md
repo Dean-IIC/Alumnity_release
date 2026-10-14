@@ -86,8 +86,12 @@ One loop, done properly:
 > answer it → one **backs** it → they talk → both sign the outcome → it lands on the
 > senior's **Record** → the college sees what is answered and what is not.
 
-**Cut:** Roles (jobs board). Rooms (chat groups). Global feed. Connections, followers,
-endorsements, profile views, streaks.
+**Cut:** Roles (jobs board). Rooms (chat groups). Global feed. Followers, endorsements,
+profile views, streaks.
+
+> **Changed, Oct 2026:** connections are in (requests with a note, suggestions from your
+> own batch), and the feed is in, scoped to your connections, batch and department. The
+> full plan, merged with the ChatGPT feature blueprint, is in [`docs/plan.md`](docs/plan.md).
 
 **The student is the hero.** Not the principal. The Record and the principal's letter
 are the *alumni-supply engine* — they exist to make seniors show up, not to be the

@@ -1,0 +1,262 @@
+/* The design lab (development only). Uses the real tokens; cards echo the hero. */
+
+.lab {
+  padding: var(--space-8) 0 var(--space-10);
+}
+
+.lab__intro h1 {
+  margin: var(--space-2) 0;
+  font-family: var(--font-voice);
+  font-size: var(--text-title);
+  font-weight: var(--weight-regular);
+}
+
+.lab__intro p,
+.lab__eyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.lab__eyebrow {
+  color: var(--color-red);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-size: var(--text-label);
+}
+
+.lab__section {
+  margin-top: var(--space-8);
+}
+
+.lab__section-head {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  padding: var(--space-4) 0;
+  background: var(--color-paper);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.lab__section-head h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-caption);
+}
+
+.lab__section-head p {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.lab-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.lab-chip {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: var(--weight-medium) var(--text-label) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.lab-chip[aria-checked="true"] {
+  border-color: var(--color-blue);
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+}
+
+.lab-card {
+  margin-top: var(--space-6);
+}
+
+.lab-card > header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+  margin-bottom: var(--space-3);
+  font-size: var(--text-small);
+}
+
+.lab-card > header span {
+  color: var(--color-ink-muted);
+}
+
+/* ---------- The hero, in miniature ---------- */
+
+.lab-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  min-height: 420px;
+  padding: var(--space-7) var(--space-7) var(--space-6);
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  font-family: var(--ui);
+}
+
+.lab-hero__copy {
+  position: relative;
+  z-index: 1;
+}
+
+.lab-hero__kicker {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink-soft);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.lab-hero__headline {
+  max-width: 7.4em;
+  margin: 0;
+  color: var(--color-red);
+  font-family: var(--voice);
+  font-size: clamp(2.6rem, 4.6vw, 4.4rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-shadow: var(--halo);
+}
+
+.lab-hero__text {
+  max-width: 36ch;
+  margin: var(--space-4) 0 0;
+  color: var(--color-ink-muted);
+  font-size: 1.0625rem;
+  line-height: var(--leading-body);
+}
+
+.lab-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.lab-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-button);
+  font-weight: var(--weight-bold);
+}
+
+.lab-button--primary {
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+  box-shadow: var(--shadow-button);
+}
+
+.lab-button--secondary {
+  border-color: var(--color-border);
+  color: var(--color-ink);
+}
+
+/* The photo, softened to suggest the ink splotch. */
+.lab-hero__photo {
+  position: relative;
+  justify-self: end;
+  width: min(100%, 360px);
+  margin: 0 0 0 -15%;
+}
+
+.lab-hero__photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+}
+
+.lab-hero__photo figcaption {
+  display: grid;
+  justify-items: end;
+  margin-top: calc(-1 * var(--space-5));
+  text-shadow: var(--halo);
+}
+
+.lab-hero__photo figcaption span {
+  color: var(--color-red);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.lab-hero__photo figcaption em {
+  font-family: var(--voice);
+  font-size: 1.3rem;
+}
+
+@media (max-width: 760px) {
+  .lab-hero {
+    grid-template-columns: 1fr;
+    padding: var(--space-6) var(--space-5);
+  }
+
+  .lab-hero__photo {
+    display: none;
+  }
+}
+
+/* ---------- At a glance: all pairings on one screen ---------- */
+
+.lab-glance {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.lab-glance__tile {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  font-family: var(--ui);
+}
+
+.lab-glance__tile .lab-hero__kicker,
+.lab-glance__tile .lab-button {
+  display: none;
+}
+
+.lab-glance__name {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-ink-muted);
+  font: var(--weight-bold) 0.7rem / 1.3 var(--font-ui);
+}
+
+.lab-glance__headline {
+  margin: 0;
+  color: var(--color-red);
+  font-family: var(--voice);
+  font-size: 1.65rem;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+
+.lab-glance__text {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}

@@ -34,3 +34,12 @@ Thumbs.db
 
 # Python bytecode from the photo scripts
 __pycache__/
+
+# Accounts database and the development mail outbox
+data/*.db*
+.mail-outbox/
+.env*.local
+data/uploads/
+
+# Local test logins and the demo code: never in git
+docs/dev-test-accounts.md

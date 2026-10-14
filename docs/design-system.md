@@ -96,6 +96,18 @@ opening paragraph at most `--measure-page` (46).
 - An event that happened more than once is one album, with a part for each time.
 - Photos of people need the college's sign-off before they go public.
 
+## Videos
+
+- Albums can hold videos from the college's own YouTube, Instagram, Facebook and LinkedIn:
+  paste the link into `lib/gallery-videos.json` (album, part, link, title). A part can
+  be just videos (a film about the campus, an alumni story). `lib/video.ts` reads the
+  link; one it can't read fails the build.
+- Nothing from those sites loads until someone presses play: a tile shows a still saved
+  with the site (`scripts/fetch-video-posters.py` saves YouTube's own thumbnail), or a
+  sheet of paper with the video's name. YouTube plays in its no-cookies player.
+- Videos open in the lightbox with the photos, never autoplay on the page, and stop when
+  the lightbox closes or moves on. Every video links to its original ("Watch on …").
+
 ## Files
 
 ```

@@ -41,9 +41,11 @@ type InkBloomProps = {
   /** True when the bloom may start (the hero waits for the intro to hand over). */
   active: boolean;
   className?: string;
+  /** How far the sketch and colour spread (fractions of the photo's longer side); defaults to the hero's. */
+  spread?: { sketch: number; colour: number };
 };
 
-export function InkBloom({ src, sketch, origin = { x: 0.5, y: 0.5 }, seed, alt, active, className = "" }: InkBloomProps) {
+export function InkBloom({ src, sketch, origin = { x: 0.5, y: 0.5 }, seed, alt, active, className = "", spread }: InkBloomProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inkRef = useRef<InkPhoto | null>(null);
   const bloomed = useRef(false);
@@ -55,7 +57,10 @@ export function InkBloom({ src, sketch, origin = { x: 0.5, y: 0.5 }, seed, alt, 
       .then(([sketchImage, photo]) => {
         const canvas = canvasRef.current;
         if (cancelled || !canvas) return;
-        const ink = new InkPhoto(canvas, sketchImage, photo, origin, seed, SPREAD);
+        const reach = spread
+          ? { sketch: { ...SKETCH_SPREAD, extent: spread.sketch }, colour: { ...COLOUR_SPREAD, extent: spread.colour } }
+          : SPREAD;
+        const ink = new InkPhoto(canvas, sketchImage, photo, origin, seed, reach);
         inkRef.current = ink;
         const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         ink.draw(1, still || bloomed.current ? 1 : 0);
@@ -66,7 +71,7 @@ export function InkBloom({ src, sketch, origin = { x: 0.5, y: 0.5 }, seed, alt, 
       cancelled = true;
     };
     // origin is usually a literal: its values matter, not its identity.
-  }, [src, sketch, seed, origin.x, origin.y]);
+  }, [src, sketch, seed, origin.x, origin.y, spread?.sketch, spread?.colour]);
 
   // Once active, bloom the colour in, once.
   useEffect(() => {

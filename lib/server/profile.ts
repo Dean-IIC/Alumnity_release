@@ -1,0 +1,196 @@
+import { database } from "./db";
+import type { User } from "./auth";
+import { mediaById, removeMedia, type MediaKind } from "./media";
+
+/*
+ * A member's page: what they're doing now, a few lines about them, what they're good at,
+ * what they're happy to do for others, and where to find them. Every part has its own
+ * "who can see this": everyone on Alumnity, their batch (same branch and joining year),
+ * or only them. Their email is never shown on it.
+ */
+
+export const FIELDS = ["now", "journey", "about", "skills", "happyTo", "links"] as const;
+export type Field = (typeof FIELDS)[number];
+export type Visibility = "everyone" | "connections" | "batch" | "me";
+
+/** A stop on the way since HKBK: "2006 · Moved to Pune for my first job". */
+export type Milestone = { year: number; text: string };
+
+/** An upload in use on a page: its id (served at /media/<id>) and what it is. */
+export type MediaRef = { id: string; kind: MediaKind };
+
+export type Profile = {
+  /** Their own photo; without one, their ink seal. */
+  photo: MediaRef | null;
+  /** Their cover: an image, a video or an HTML file; without one, the campus of their year. */
+  cover: MediaRef | null;
+  title: string;
+  company: string;
+  city: string;
+  /** The stops between leaving HKBK and now, oldest first. */
+  journey: Milestone[];
+  about: string;
+  skills: string[];
+  happyTo: { mentor: boolean; refer: boolean; talk: boolean };
+  links: { linkedin: string; website: string };
+  visibility: Record<Field, Visibility>;
+};
+
+export const EMPTY_PROFILE: Profile = {
+  photo: null,
+  cover: null,
+  title: "",
+  company: "",
+  city: "",
+  journey: [],
+  about: "",
+  skills: [],
+  happyTo: { mentor: false, refer: false, talk: false },
+  links: { linkedin: "", website: "" },
+  visibility: { now: "everyone", journey: "everyone", about: "everyone", skills: "everyone", happyTo: "everyone", links: "batch" }
+};
+
+export const LIMITS = { title: 80, company: 80, city: 60, about: 600, skill: 30, skills: 12, link: 200, stop: 90, stops: 8 } as const;
+
+const ensureTable = () =>
+  database().exec(`create table if not exists profiles (
+    user_id integer primary key references users(id) on delete cascade,
+    data text not null,
+    updated_at integer not null
+  )`);
+
+export function profileOf(userId: number): Profile {
+  ensureTable();
+  const row = database().prepare("select data from profiles where user_id = ?").get(userId) as { data: string } | undefined;
+  if (!row) return structuredClone(EMPTY_PROFILE);
+  const saved = JSON.parse(row.data) as Partial<Profile>;
+  return {
+    ...structuredClone(EMPTY_PROFILE),
+    ...saved,
+    happyTo: { ...EMPTY_PROFILE.happyTo, ...saved.happyTo },
+    links: { ...EMPTY_PROFILE.links, ...saved.links },
+    visibility: { ...EMPTY_PROFILE.visibility, ...saved.visibility }
+  };
+}
+
+const clean = (value: unknown, max: number) => (typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : "");
+
+/** A link we'll show: only http(s), and LinkedIn links must be LinkedIn's. */
+function cleanLink(value: unknown, linkedinOnly = false): string | null {
+  const raw = clean(value, LIMITS.link);
+  if (!raw) return "";
+  try {
+    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    if (linkedinOnly && !/(^|\.)linkedin\.com$/i.test(url.hostname)) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+/** Reads what the edit form sent, keeping only what's allowed; says what's wrong if anything is. */
+/** An upload the owner may put on their page: theirs, and the right kind (a photo must be an image). */
+function ownMedia(value: unknown, ownerId: number | undefined, imageOnly: boolean): MediaRef | null | false {
+  const id = typeof value === "object" && value ? (value as { id?: unknown }).id : value;
+  if (!id) return null;
+  if (typeof id !== "string" || ownerId === undefined) return false;
+  const media = mediaById(id);
+  if (!media || media.userId !== ownerId || (imageOnly && media.kind !== "image")) return false;
+  return { id: media.id, kind: media.kind };
+}
+
+export function parseProfile(input: Record<string, unknown>, ownerId?: number): { profile: Profile } | { error: string } {
+  const visibility = { ...EMPTY_PROFILE.visibility };
+  const sent = (input.visibility ?? {}) as Record<string, unknown>;
+  for (const field of FIELDS) {
+    const v = sent[field];
+    if (v === "everyone" || v === "connections" || v === "batch" || v === "me") visibility[field] = v;
+  }
+  const skills = (Array.isArray(input.skills) ? input.skills : String(input.skills ?? "").split(","))
+    .map((s) => clean(s, LIMITS.skill))
+    .filter(Boolean)
+    .filter((s, i, all) => all.findIndex((t) => t.toLowerCase() === s.toLowerCase()) === i)
+    .slice(0, LIMITS.skills);
+  const happy = (input.happyTo ?? {}) as Record<string, unknown>;
+  const links = (input.links ?? {}) as Record<string, unknown>;
+  const linkedin = cleanLink(links.linkedin, true);
+  if (linkedin === null) return { error: "That LinkedIn link doesn’t look like a LinkedIn profile." };
+  const website = cleanLink(links.website);
+  if (website === null) return { error: "That website link doesn’t look right." };
+  const photo = ownMedia(input.photo, ownerId, true);
+  const cover = ownMedia(input.cover, ownerId, false);
+  if (photo === false || cover === false) return { error: "That upload isn’t yours, or has gone. Upload it again." };
+  const about = typeof input.about === "string" ? input.about.trim().slice(0, LIMITS.about) : "";
+  const thisYear = new Date().getFullYear();
+  const journey = (Array.isArray(input.journey) ? input.journey : [])
+    .map((m) => ({ year: Math.round(Number((m as Milestone)?.year)), text: clean((m as Milestone)?.text, LIMITS.stop) }))
+    .filter((m) => m.text && m.year >= 1998 && m.year <= thisYear)
+    .sort((a, b) => a.year - b.year)
+    .slice(0, LIMITS.stops);
+  return {
+    profile: {
+      photo,
+      cover,
+      title: clean(input.title, LIMITS.title),
+      company: clean(input.company, LIMITS.company),
+      city: clean(input.city, LIMITS.city),
+      journey,
+      about,
+      skills,
+      happyTo: { mentor: happy.mentor === true, refer: happy.refer === true, talk: happy.talk === true },
+      links: { linkedin, website },
+      visibility
+    }
+  };
+}
+
+export function saveProfile(userId: number, profile: Profile) {
+  ensureTable();
+  // Uploads it no longer uses are deleted, not left lying about.
+  const before = profileOf(userId);
+  for (const old of [before.photo, before.cover]) {
+    if (old && old.id !== profile.photo?.id && old.id !== profile.cover?.id) removeMedia(userId, old.id);
+  }
+  database()
+    .prepare("insert into profiles (user_id, data, updated_at) values (?, ?, ?) on conflict(user_id) do update set data = excluded.data, updated_at = excluded.updated_at")
+    .run(userId, JSON.stringify(profile), Date.now());
+}
+
+/** Who sees what: the owner sees everything; connections see "connections" and "batch" parts; their batch sees "batch" parts; every member sees "everyone" parts. */
+export function canSee(
+  viewer: Pick<User, "id" | "branch" | "joined"> | null,
+  owner: Pick<User, "id" | "branch" | "joined">,
+  visibility: Visibility,
+  isConnection = false
+) {
+  if (viewer?.id === owner.id) return true;
+  if (!viewer) return false; // pages are for members only
+  if (visibility === "everyone") return true;
+  if (visibility === "connections") return isConnection;
+  if (visibility === "batch") return isConnection || (viewer.branch === owner.branch && viewer.joined === owner.joined);
+  return false;
+}
+
+/** The profile as `viewer` may see it: hidden parts are emptied out on the server, never sent. */
+export function profileFor(
+  viewer: Pick<User, "id" | "branch" | "joined"> | null,
+  owner: Pick<User, "id" | "branch" | "joined">,
+  profile: Profile,
+  isConnection = false
+): Profile {
+  const show = (field: Field) => canSee(viewer, owner, profile.visibility[field], isConnection);
+  return {
+    photo: profile.photo,
+    cover: profile.cover,
+    title: show("now") ? profile.title : "",
+    company: show("now") ? profile.company : "",
+    city: show("now") ? profile.city : "",
+    journey: show("journey") ? profile.journey : [],
+    about: show("about") ? profile.about : "",
+    skills: show("skills") ? profile.skills : [],
+    happyTo: show("happyTo") ? profile.happyTo : { mentor: false, refer: false, talk: false },
+    links: show("links") ? profile.links : { linkedin: "", website: "" },
+    visibility: viewer?.id === owner.id ? profile.visibility : EMPTY_PROFILE.visibility
+  };
+}

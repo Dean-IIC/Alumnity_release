@@ -1,0 +1,29 @@
+{
+  "_how": "Add a video to an album: its album and part (\"all\" for albums with one part; see lib/gallery.ts for the names), the link as copied from YouTube, Instagram, Facebook or LinkedIn, and a short title. Optionally a poster: a still photo from the video, as a file in the folder you give scripts/fetch-video-posters.py. Then run that script so YouTube videos get their thumbnail.",
+  "videos": [
+    {
+      "album": "around-campus-2024-25",
+      "part": "films",
+      "partTitle": "Films about the college",
+      "when": "2019 and 2025",
+      "url": "https://www.youtube.com/watch?v=GnUL3E4oDRs",
+      "title": "More than just a degree: the college’s film"
+    },
+    {
+      "album": "around-campus-2024-25",
+      "part": "films",
+      "partTitle": "Films about the college",
+      "when": "2019 and 2025",
+      "url": "https://www.youtube.com/watch?v=Ma5MbZ-Y9wM",
+      "title": "The campus"
+    },
+    {
+      "album": "alumni-meets",
+      "part": "stories",
+      "partTitle": "Alumni stories",
+      "when": "2026",
+      "url": "https://www.instagram.com/hkbkgroupofficial/reel/DeQqbNPDHXE/",
+      "title": "From the first AIML batch to V2SOFT: Mohammed Hussein Junaid"
+    }
+  ]
+}
