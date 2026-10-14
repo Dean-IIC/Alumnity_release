@@ -1,0 +1,96 @@
+/*
+ * Hand-drawn margin patterns. They grow in during the intro, then stay as the page's
+ * margins: faint, and only as far aside as the text needs.
+ */
+
+.side-patterns-host {
+  --p: 0;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.side-patterns {
+  position: absolute;
+  inset: 0;
+  transition: opacity var(--duration-slow) var(--ease-out);
+}
+
+.side-pattern {
+  /* Width of a pattern column, and how far it must step aside to clear the page's text. */
+  --w: min(30vw, 34vh);
+  --clear: max(0px, min(var(--w) * 0.52, var(--w) - (100vw - var(--container)) / 2 + var(--space-5)));
+  position: absolute;
+  top: 0;
+  width: var(--w);
+  height: 100%;
+  overflow: hidden;
+  opacity: min(1, calc(var(--p) * 3));
+}
+
+.side-pattern--left {
+  left: 0;
+  transform: translateX(calc((1 - var(--p)) * -70px));
+}
+
+.side-pattern--right {
+  right: 0;
+  transform: translateX(calc((1 - var(--p)) * 70px)) scaleX(-1);
+}
+
+.ink-intro--revealing .side-patterns,
+.ink-intro--settled .side-patterns {
+  opacity: 0.4;
+}
+
+.ink-intro--revealing .side-pattern,
+.ink-intro--settled .side-pattern {
+  transition: transform var(--duration-slow) var(--ease-ink);
+}
+
+.ink-intro--revealing .side-pattern--left,
+.ink-intro--settled .side-pattern--left {
+  transform: translateX(calc(-1 * var(--clear)));
+}
+
+.ink-intro--revealing .side-pattern--right,
+.ink-intro--settled .side-pattern--right {
+  transform: translateX(var(--clear)) scaleX(-1);
+}
+
+.side-pattern__mark {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: calc(1 - clamp(0, (var(--p) - var(--d)) * 2.2, 1));
+}
+
+.side-pattern__mark--red {
+  stroke: var(--color-red);
+}
+
+.side-pattern__mark--blue {
+  stroke: var(--color-blue);
+}
+
+.side-pattern__mark--gold {
+  stroke: var(--color-gold);
+}
+
+.side-pattern__dot {
+  fill: var(--color-red);
+  opacity: clamp(0, (var(--p) - var(--d)) * 4, 1);
+}
+
+@media (max-width: 700px) {
+  .side-pattern {
+    width: 24vw;
+  }
+
+  .ink-intro--revealing .side-patterns,
+  .ink-intro--settled .side-patterns {
+    opacity: 0.18;
+  }
+}

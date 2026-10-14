@@ -1,4 +1,4 @@
-export type CampusBlockId = "a-cse" | "admin" | "b" | "c" | "d";
+export type CampusBlockId = "a-cse" | "c";
 
 export type CampusBlock = {
   id: CampusBlockId;
@@ -14,10 +14,27 @@ export type CampusBlock = {
 
 const journey = (file: string) => `/assets/campus/journey/${file}`;
 
-export const FINAL_BLOCK_ID: CampusBlockId = "d";
-export const HERO_IMAGE = "/assets/campus/aerial.png";
+export type HeroPhoto = {
+  src: string;
+  sketch: string;
+  label: string;
+  title: string;
+  /** Where the ink drop lands, as fractions of width and height: on the subject, not the sky. */
+  inkOrigin: { x: number; y: number };
+};
 
-/** The physical route along the campus spine, east to west: A/CSE → Admin → B → C → D. */
+const hero = (file: string) => `/assets/campus/hero/${file}`;
+
+/** The hero's one photograph: the glass block at sunset, from the college's own photo archive. */
+export const HERO_PHOTO: HeroPhoto = {
+  src: hero("glass-block.jpg"),
+  sketch: hero("glass-block-sketch.jpg"),
+  label: "Campus",
+  title: "The glass block at sunset",
+  inkOrigin: { x: 0.5, y: 0.5 }
+};
+
+/** Campus photographs the eras use (today's campus, standing in for the place). */
 export const CAMPUS_BLOCKS: CampusBlock[] = [
   {
     id: "a-cse",
@@ -28,34 +45,10 @@ export const CAMPUS_BLOCKS: CampusBlock[] = [
     inkOrigin: { x: 0.5, y: 0.5 }
   },
   {
-    id: "admin",
-    label: "Admin block",
-    photo: journey("admin.jpg"),
-    sketch: journey("admin-sketch.jpg"),
-    orientation: "landscape",
-    inkOrigin: { x: 0.5, y: 0.5 }
-  },
-  {
-    id: "b",
-    label: "B block",
-    photo: journey("b.jpg"),
-    sketch: journey("b-sketch.jpg"),
-    orientation: "landscape",
-    inkOrigin: { x: 0.5, y: 0.5 }
-  },
-  {
     id: "c",
     label: "C block",
     photo: journey("c.jpg"),
     sketch: journey("c-sketch.jpg"),
-    orientation: "portrait",
-    inkOrigin: { x: 0.5, y: 0.5 }
-  },
-  {
-    id: "d",
-    label: "D block",
-    photo: journey("d.jpg"),
-    sketch: journey("d-sketch.jpg"),
     orientation: "portrait",
     inkOrigin: { x: 0.5, y: 0.5 }
   }

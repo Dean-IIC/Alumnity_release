@@ -1,16 +1,17 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { CAMPUS_BLOCKS, FINAL_BLOCK_ID, HERO_IMAGE, WELCOME_COPY, findCampusBlock } from "../lib/campus";
-import { ERAS, STUDENTS_SINCE_1998 } from "../lib/eras";
+import { CAMPUS_BLOCKS, HERO_PHOTO, WELCOME_COPY, findCampusBlock } from "../lib/campus";
+import { BATCHES, ERAS, STUDENTS_SINCE_1998 } from "../lib/eras";
+import { INTRO_PREFERENCE_SCRIPT } from "../lib/intro-preference";
 import { blobOutline, blobRadius, COLOUR_SPREAD, makeInkBlobs, SKETCH_SPREAD, windowProgress } from "../lib/ink";
-import { cameraAt, FINALE, focusOn, INTRO_END, overview, segmentTiming, stopTiming, STOPS, worldLayout } from "../lib/journey";
+import { batchMarks, cameraAt, captionBox, FINALE, focusOn, framing, GHOST_OPACITY, INTRO_END, overview, penProgress, segmentTiming, stopTiming, STOPS, worldLayout, type WorldLayout } from "../lib/journey";
+import { momentum, passing, settle } from "../lib/motion";
 
 describe("campus blocks", () => {
-  it("follows the physical route A/CSE → Admin → B → C → D", () => {
-    expect(CAMPUS_BLOCKS.map((block) => block.id)).toEqual(["a-cse", "admin", "b", "c", "d"]);
-    expect(FINAL_BLOCK_ID).toBe("d");
-    expect(findCampusBlock("d")?.label).toBe("D block");
+  it("lists the campus photos the eras use", () => {
+    expect(CAMPUS_BLOCKS.map((block) => block.id)).toEqual(["a-cse", "c"]);
+    expect(findCampusBlock("c")?.label).toBe("C block");
     expect(findCampusBlock("unknown")).toBeUndefined();
   });
 
@@ -21,7 +22,9 @@ describe("campus blocks", () => {
       expect(block.inkOrigin.x).toBeGreaterThan(0);
       expect(block.inkOrigin.x).toBeLessThan(1);
     }
-    expect(HERO_IMAGE.startsWith("/assets/campus/")).toBe(true);
+    // The hero is one campus photo, with a sketch for its ink bloom.
+    expect(HERO_PHOTO.src).toBe("/assets/campus/hero/glass-block.jpg");
+    expect(HERO_PHOTO.sketch).toBe("/assets/campus/hero/glass-block-sketch.jpg");
   });
 });
 
@@ -78,30 +81,124 @@ describe("eras", () => {
   });
 });
 
+describe("the line as a timeline", () => {
+  it("adds up to the register's total", () => {
+    expect(Object.values(BATCHES).reduce((a, b) => a + b, 0)).toBe(8838);
+    expect(STUDENTS_SINCE_1998).toBe(8838);
+  });
+
+  it("marks every full batch between the eras, in order, clear of the photos", () => {
+    const marks = batchMarks();
+    const eraYears = new Set(ERAS.map((era) => era.year));
+    const expected = Object.keys(BATCHES).map(Number).filter((y) => y > 1998 && y <= 2022 && !eraYears.has(y));
+    expect(marks.map((m) => m.year)).toEqual(expected);
+    for (const mark of marks) {
+      expect(mark.along).toBeGreaterThanOrEqual(0.24);
+      expect(mark.along).toBeLessThanOrEqual(0.8);
+      expect(ERAS[mark.segment - 1].year).toBeLessThan(mark.year);
+      expect(ERAS[mark.segment].year).toBeGreaterThan(mark.year);
+    }
+  });
+});
+
 describe("journey timeline", () => {
   const wide = { width: 1440, height: 900 };
   const layout = worldLayout(wide);
+  /** The pen's head, measured along straight lines between each stroke's ends. */
+  const penAtFor = (route: WorldLayout) => (t: number) => {
+    let i = route.segments.length - 1;
+    while (i > 0 && t < segmentTiming(i)[0]) i -= 1;
+    const [x0, y0] = route.segments[i].slice(1).split(/[ C]/).map(Number);
+    const nums = route.segments[i].split(/[ MC]/).filter(Boolean).map(Number);
+    const [x1, y1] = nums.slice(-2);
+    const p = penProgress(i, t);
+    return { x: x0 + (x1 - x0) * p, y: y0 + (y1 - y0) * p };
+  };
+  const penAt = penAtFor(layout);
 
   it("lays out one shot per era and a line from the edge, through each, and out", () => {
     expect(layout.shots).toHaveLength(STOPS);
     expect(layout.segments).toHaveLength(STOPS + 1);
   });
 
-  it("keeps the pen moving: it leaves each era just after landing there", () => {
+  it("climbs on tall screens: each era sits higher than the one before", () => {
+    const tall = worldLayout({ width: 390, height: 844 });
+    const heights = tall.shots.map((shot) => shot.centre.y);
+    expect(heights).toEqual([...heights].sort((a, b) => b - a));
+  });
+
+  it("never stops the pen: each stroke starts the moment the last one ends", () => {
     for (let i = 1; i <= STOPS; i += 1) {
-      const [start, end] = segmentTiming(i);
-      expect(start).toBe(stopTiming(i - 1).arrive + 100);
-      expect(end).toBe(stopTiming(i).arrive);
+      expect(segmentTiming(i)[0]).toBe(segmentTiming(i - 1)[1]);
+      if (i < STOPS) expect(segmentTiming(i)[1]).toBe(stopTiming(i).arrive);
     }
   });
 
-  it("shows one transformation at a time: each bloom ends before the camera leaves", () => {
-    for (let i = 0; i < STOPS - 1; i += 1) {
-      const bloomEnd = stopTiming(i).ink[1];
-      const held = cameraAt(bloomEnd, layout, wide);
+  it("slows the pen through each photo and hurries between them", () => {
+    const speed = (u: number) => passing(u + 0.01) - passing(u);
+    expect(speed(0.5)).toBeGreaterThan(speed(0) * 4);
+    expect(speed(0)).toBeGreaterThan(0); // slow, not stopped
+  });
+
+  it("lets each photo be seen: it firms up as the pen nears, colours while framed", () => {
+    expect(GHOST_OPACITY).toBeGreaterThanOrEqual(0.2);
+    expect(GHOST_OPACITY).toBeLessThanOrEqual(0.3);
+    for (let i = 0; i < STOPS; i += 1) {
+      const timing = stopTiming(i);
+      expect(timing.firm[0]).toBeLessThan(timing.arrive);
+      expect(timing.framed[1] - timing.framed[0]).toBeGreaterThanOrEqual(1100);
+      expect(timing.framed[1] - timing.ink[1]).toBeGreaterThanOrEqual(300); // seen, finished, before the camera moves
+      // Framed for the whole time it colours: no arriving at a photo that's already done.
+      for (let t = timing.ink[0] + 150; t <= timing.ink[1]; t += 50) expect(framing(t, i)).toBeCloseTo(1);
+    }
+  });
+
+  it("routes the line around every caption, never through the text", () => {
+    for (const viewport of [wide, { width: 390, height: 844 }]) {
+      const route = worldLayout(viewport);
+      const tall = viewport.width < viewport.height;
+      const boxes = route.shots.map((shot) => captionBox(shot, tall));
+      for (const d of route.segments) {
+        const [x0, y0, x1, y1, x2, y2, x3, y3] = d.split(/[ MC]/).filter(Boolean).map(Number);
+        for (let i = 0; i <= 200; i += 1) {
+          const t = i / 200;
+          const m = 1 - t;
+          const x = m * m * m * x0 + 3 * m * m * t * x1 + 3 * m * t * t * x2 + t * t * t * x3;
+          const y = m * m * m * y0 + 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t * y3;
+          for (const box of boxes) {
+            const inside = x > box.left && x < box.right && y > box.top && y < box.bottom;
+            expect(inside, `${tall ? "tall" : "wide"} line at (${x.toFixed(0)}, ${y.toFixed(0)}) crosses a caption`).toBe(false);
+          }
+        }
+      }
+    }
+  });
+
+  it("brings the pen in from the side, at the photos' height, not across the bottom", () => {
+    for (const viewport of [wide, { width: 390, height: 844 }]) {
+      const route = worldLayout(viewport);
+      const [start] = route.segments[0].slice(1).split(/[ C]/).map(Number);
+      expect(start).toBeGreaterThan(route.width); // off the right-hand edge
+    }
+  });
+
+  it("follows the pen between photos rather than jumping to the next", () => {
+    for (let i = 1; i < STOPS; i += 1) {
+      // Between letting go of one photo and easing into the next.
+      const t = stopTiming(i - 1).framed[1] + 650;
+      const camera = cameraAt(t, layout, wide, penAt);
+      const pen = penAt(t - 220);
+      expect(Math.hypot(camera.x - pen.x, camera.y - pen.y)).toBeLessThan(5);
+    }
+  });
+
+  it("frames each photo while it colours", () => {
+    for (let i = 0; i < STOPS; i += 1) {
+      const t = stopTiming(i).ink[0] + 500;
+      const camera = cameraAt(t, layout, wide, penAt);
       const focus = focusOn(layout.shots[i], wide);
-      expect(held.x).toBeCloseTo(focus.x);
-      expect(held.y).toBeCloseTo(focus.y);
+      expect(camera.x).toBeCloseTo(focus.x);
+      expect(camera.y).toBeCloseTo(focus.y);
     }
   });
 
@@ -111,9 +208,31 @@ describe("journey timeline", () => {
     expect(FINALE.zoomOut[0]).toBeGreaterThanOrEqual(stopTiming(STOPS - 1).ink[1]);
     expect(FINALE.shrink[0] - FINALE.zoomOut[1]).toBeGreaterThanOrEqual(1000);
     const all = overview(layout, wide);
-    const atHold = cameraAt(FINALE.shrink[0], layout, wide);
+    const atHold = cameraAt(FINALE.shrink[0], layout, wide, penAt);
     expect(atHold.scale).toBeCloseTo(all.scale);
     expect(INTRO_END).toBeGreaterThan(FINALE.reveal[1]);
+  });
+});
+
+describe("motion with weight", () => {
+  it("starts at rest and lands exactly", () => {
+    for (const curve of [momentum, settle]) {
+      expect(curve(0)).toBe(0);
+      expect(curve(1)).toBe(1);
+    }
+  });
+
+  it("moves the pen with momentum: quick to get going, then decelerating into place", () => {
+    expect(momentum(0.25)).toBeGreaterThan(0.25);
+    const late = momentum(0.95) - momentum(0.9);
+    const early = momentum(0.15) - momentum(0.1);
+    expect(late).toBeLessThan(early);
+  });
+
+  it("lets the camera overshoot a touch, then settle", () => {
+    const peak = Math.max(...Array.from({ length: 101 }, (_, i) => settle(i / 100)));
+    expect(peak).toBeGreaterThan(1);
+    expect(peak).toBeLessThan(1.03);
   });
 });
 
@@ -123,9 +242,14 @@ describe("landing copy", () => {
     expect(WELCOME_COPY.secondaryAction).toBe("I’m already here");
   });
 
-  it("intro can be skipped and respects reduced motion", () => {
+  it("intro can be skipped, opted out of, and respects reduced motion", () => {
     const source = readFileSync(resolve(process.cwd(), "components/growing-campus-intro.tsx"), "utf8");
     expect(source).toContain(">Skip intro <");
-    expect(source).toContain("prefers-reduced-motion: reduce");
+    expect(source).toContain("Don’t play the intro next time");
+    expect(source).toContain("shouldPlayIntro()");
+    // The pre-paint script honours both the stored opt-out and reduced motion, and ?intro=1 overrides.
+    expect(INTRO_PREFERENCE_SCRIPT).toContain("prefers-reduced-motion: reduce");
+    expect(INTRO_PREFERENCE_SCRIPT).toContain('localStorage.getItem("alumnity:intro")==="skip"');
+    expect(INTRO_PREFERENCE_SCRIPT).toContain('get("intro")==="1"');
   });
 });

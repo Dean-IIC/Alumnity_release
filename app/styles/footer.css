@@ -1,0 +1,48 @@
+/* The page's foot: who it's for, and the intro setting. */
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) 0 var(--space-6);
+  border-top: 1px solid var(--color-line);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.site-footer__for {
+  margin: 0;
+}
+
+.site-footer__intro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-5);
+  align-items: center;
+}
+
+.site-footer__intro label,
+.site-footer__intro a {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--tap-target);
+}
+
+.site-footer__intro label {
+  cursor: pointer;
+}
+
+.site-footer__intro input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-blue);
+}
+
+.site-footer__intro a {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}

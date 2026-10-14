@@ -1,13 +1,14 @@
 """Build the intro's photo pairs: a pencil-sketch version and a colour version of
 each real campus photograph, cropped identically so the ink reveal lines up.
 
-    python scripts/make-journey-photos.py <photo-dir> [name=file ...]
+    python scripts/make-journey-photos.py <photo-dir> [name=file ...] [--out=<dir>]
 
 <photo-dir> is the folder of original photographs. With no name=file pairs it
 builds the campus set below (from the archive that used to live in
 prototype/assets/photos); otherwise it builds just the named pairs, e.g.
     era-2008-alumni-meet=2008-alumni-meet.jpg
-Output goes to public/assets/campus/journey/<name>.jpg and <name>-sketch.jpg.
+Output goes to public/assets/campus/journey/<name>.jpg and <name>-sketch.jpg, or to
+--out=<dir> (relative to public/assets/campus/), e.g. --out=hero for the hero photos.
 """
 
 import sys
@@ -16,16 +17,13 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-# block id -> source photograph. Order is the physical route, A/CSE -> D.
+# campus photo id -> source photograph (the eras use these two).
 SOURCES = {
     "a-cse": "hero-main-entrance-morning.jpg",
-    "admin": "glass-sunset.jpg",
-    "b": "corner.jpg",
     "c": "hero-blue-block-golden.jpg",
-    "d": "facade.jpg",
 }
 
-MAX_EDGE = 1400
+MAX_EDGE = 1000  # the intro never draws a photo wider than this (components/ink-photo.ts); the hero photo was built at 1100
 PAPER = np.array([231, 241, 247], np.float32)  # BGR of #f7f1e7
 GRAPHITE = np.array([44, 50, 58], np.float32)  # BGR of #3a322c
 
@@ -72,8 +70,10 @@ def pencil(img: np.ndarray, seed: int) -> np.ndarray:
 
 def main() -> None:
     src_dir = Path(sys.argv[1])
-    pairs = dict(arg.split("=", 1) for arg in sys.argv[2:]) or SOURCES
-    out_dir = Path(__file__).resolve().parent.parent / "public" / "assets" / "campus" / "journey"
+    options = [arg for arg in sys.argv[2:] if arg.startswith("--")]
+    pairs = dict(arg.split("=", 1) for arg in sys.argv[2:] if not arg.startswith("--")) or SOURCES
+    out_name = next((o.split("=", 1)[1] for o in options if o.startswith("--out=")), "journey")
+    out_dir = Path(__file__).resolve().parent.parent / "public" / "assets" / "campus" / out_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for seed, (block, name) in enumerate(pairs.items()):

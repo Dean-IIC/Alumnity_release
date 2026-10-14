@@ -1,0 +1,276 @@
+/*
+ * The intro. It covers the site, which is painted beneath it from the first frame, and
+ * hands over by opening a widening hole in its paper. Its stage — paper, line, photos —
+ * unmounts once it ends; only the side patterns stay, as the page's margins.
+ */
+
+.ink-intro {
+  position: fixed;
+  z-index: var(--z-intro);
+  inset: 0;
+  overflow: hidden;
+}
+
+/* While the hole opens, the site below takes the pointer; once settled, the intro sits under it. */
+.ink-intro--revealing {
+  pointer-events: none;
+}
+
+.ink-intro--settled {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ink-intro__stage {
+  position: absolute;
+  inset: 0;
+}
+
+.ink-intro--revealing .ink-intro__stage {
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent calc(var(--hole-r, 0px) - var(--hole-feather, 160px)), #000 var(--hole-r, 0px));
+  mask-image: radial-gradient(circle at 50% 50%, transparent calc(var(--hole-r, 0px) - var(--hole-feather, 160px)), #000 var(--hole-r, 0px));
+}
+
+.ink-intro__paper {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(255, 253, 247, 0.9), transparent 70%),
+    var(--color-paper);
+}
+
+/* ---------- Background: every year since the founding, huge and faint ---------- */
+
+/* World units, like the photos, but moved more slowly by the camera: depth. */
+.journey-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
+.journey-backdrop span {
+  position: absolute;
+  color: var(--color-ink-soft);
+  font-family: var(--font-voice);
+  font-size: 220px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  opacity: 0.06;
+  transform: translate(-50%, -50%);
+}
+
+/* ---------- The world: eras along the pen's line ---------- */
+
+.journey-world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.journey-ink-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.journey-measure {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.journey-shot {
+  /* Captions live in the world, so they're sized in world units, not page type. */
+  --world-year: 88px;
+  --world-title: 38px;
+  --world-detail: 21px;
+  position: absolute;
+  margin: 0;
+}
+
+.journey-shot__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.journey-shot figcaption {
+  position: absolute;
+  top: 96%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  width: max-content;
+  max-width: 120%;
+  color: var(--color-ink);
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, 10px);
+  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+}
+
+.journey-shot--captioned figcaption {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.journey-shot__year {
+  color: var(--color-red);
+  font-family: var(--font-voice);
+  font-size: var(--world-year);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.journey-shot__title {
+  margin-top: 6px;
+  font-family: var(--font-voice);
+  font-size: var(--world-title);
+  font-style: italic;
+  line-height: var(--leading-snug);
+}
+
+.journey-shot__detail {
+  margin-top: 8px;
+  color: var(--color-ink-muted);
+  font-size: var(--world-detail);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+}
+
+.journey-total {
+  position: absolute;
+  bottom: 7vh;
+  left: 50%;
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-title);
+  font-style: italic;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 14px);
+}
+
+/* ---------- The lockup that floats into the nav ---------- */
+
+.intro-lockup {
+  position: fixed;
+  z-index: var(--z-lockup);
+  top: 50%;
+  left: 50%;
+  width: max-content;
+  font-size: clamp(72px, 13vw, 168px);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transform-origin: 0 0;
+}
+
+/* A block, not inline: no line box above it, so the wordmark's corner is the float's origin. */
+.intro-lockup > .brand {
+  display: grid;
+}
+
+.intro-lockup .brand__swoosh-reveal {
+  stroke-dashoffset: 1;
+}
+
+.intro-lockup .brand__name {
+  clip-path: inset(-20% 100% -20% -5%);
+}
+
+.intro-lockup .brand__by,
+.intro-lockup .brand__by-short {
+  opacity: 0;
+}
+
+.intro-lockup--settled {
+  display: none;
+}
+
+/* ---------- Skip, and "don't play it next time" ---------- */
+
+.ink-intro__controls {
+  position: fixed;
+  z-index: var(--z-controls);
+  right: var(--space-5);
+  bottom: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.ink-intro__remember,
+.ink-intro__skip {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-glass);
+  color: var(--color-ink);
+  font: var(--weight-medium) var(--text-label) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.ink-intro__remember input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-blue);
+  cursor: pointer;
+}
+
+.ink-intro__skip {
+  border: 1px solid var(--color-border);
+  font-weight: var(--weight-semibold);
+  transition: background var(--duration-instant) ease;
+}
+
+.ink-intro__skip:hover {
+  background: var(--color-paper-raised);
+}
+
+/* ---------- Visitors who opted out (set before first paint: lib/intro-preference.ts) ---------- */
+
+html[data-intro="skip"] .ink-intro__stage,
+html[data-intro="skip"] .intro-lockup,
+html[data-intro="skip"] .ink-intro__controls {
+  display: none;
+}
+
+html[data-intro="skip"] .ink-intro {
+  z-index: 1;
+  pointer-events: none;
+}
+
+@media (max-width: 700px) {
+  /* The camera shows the world smaller on a phone, so captions are set larger in it. */
+  .journey-shot {
+    --world-year: 150px;
+    --world-title: 64px;
+    --world-detail: 40px;
+  }
+
+  .intro-lockup {
+    font-size: 19vw;
+  }
+
+  .journey-backdrop span {
+    font-size: 270px;
+  }
+}

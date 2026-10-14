@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { ERAS, STUDENTS_SINCE_1998 } from "../lib/eras";
 import { blobOutline, COLOUR_SPREAD, easeInOutCubic, easeOutCubic, makeInkBlobs, outlineToPath, windowProgress } from "../lib/ink";
-import { cameraAt, FINALE, INTRO_END, segmentTiming, stopTiming, worldLayout, type WorldLayout } from "../lib/journey";
+import { readIntroPreference, shouldPlayIntro, writeIntroPreference } from "../lib/intro-preference";
+import { BACKDROP_PARALLAX, backdropYears, batchDotRadius, batchMarks, cameraAt, inkSplats, FINALE, GHOST_OPACITY, INTRO_END, penProgress, segmentTiming, stopTiming, worldLayout, type WorldLayout } from "../lib/journey";
 import { BrandLockup } from "./brand-lockup";
 import { InkPhoto } from "./ink-photo";
 import { SidePatterns } from "./side-patterns";
@@ -22,6 +23,10 @@ import { SidePatterns } from "./side-patterns";
  */
 
 const INK = "#a83932";
+/** The batch labels on the timeline: --color-ink-muted. */
+const MARK_LABEL = "#73665c";
+/** Ink flicked off the pen: a soft brown, behind the line. */
+const SPLAT = "rgba(111, 93, 69, 0.3)";
 const LINE_WIDTH = 13;
 /** The camera never shows the world much above this scale, so the line bitmap needn't be larger. */
 const LINE_TEXTURE_SCALE = 0.8;
@@ -78,12 +83,15 @@ type GrowingCampusIntroProps = {
 export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
   const [isSettled, setIsSettled] = useState(false);
   const [layout, setLayout] = useState<WorldLayout | null>(null);
+  const [skipNextTime, setSkipNextTime] = useState(false);
   const settledRef = useRef(false);
   /** Survives a resize, so re-laying out the world doesn't restart the intro. */
   const startRef = useRef<number | null>(null);
 
   const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const lineCanvasRef = useRef<HTMLCanvasElement>(null);
   const totalRef = useRef<HTMLParagraphElement>(null);
   const patternsRef = useRef<HTMLDivElement>(null);
@@ -95,20 +103,28 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
   const settle = useCallback(() => {
     if (settledRef.current) return;
     settledRef.current = true;
+    document.documentElement.classList.remove("intro-playing");
     patternsRef.current?.style.setProperty("--p", "1");
     setIsSettled(true);
     onComplete();
   }, [onComplete]);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // Opted out, or prefers reduced motion: straight to the site.
+    if (!shouldPlayIntro()) {
       settle();
       return;
     }
+    setSkipNextTime(readIntroPreference() === "skip");
+    // No scrolling under the intro: the page below it isn't revealed yet.
+    document.documentElement.classList.add("intro-playing");
     const update = () => setLayout(worldLayout(viewport()));
     update();
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      document.documentElement.classList.remove("intro-playing");
+    };
   }, [settle]);
 
   useEffect(() => {
@@ -116,12 +132,14 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
     let frame = 0;
     let cancelled = false;
 
-    Promise.all([
-      lineTexture(layout),
-      ...layout.shots.map((shot) => Promise.all([loadImage(shot.era.photo.sketch), loadImage(shot.era.photo.photo)]))
-    ])
-      .then(([texture, ...images]) => {
+    const loadEra = (i: number) =>
+      Promise.all([loadImage(layout.shots[i].era.photo.sketch), loadImage(layout.shots[i].era.photo.photo)]);
+
+    // Start as soon as the line and the first era are ready; the rest arrive while it plays.
+    Promise.all([lineTexture(layout), loadEra(0)])
+      .then(([texture, firstEra]) => {
         const section = sectionRef.current;
+        const stage = stageRef.current;
         const world = worldRef.current;
         const lineCanvas = lineCanvasRef.current;
         const line = lineCanvas?.getContext("2d");
@@ -129,7 +147,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         const patterns = patternsRef.current;
         const revealRoot = document.querySelector<HTMLElement>("[data-reveal-root]");
         const brandTarget = document.querySelector<HTMLElement>("[data-brand-target]");
-        if (cancelled || !section || !world || !lineCanvas || !line || !lockup || !patterns) return;
+        if (cancelled || !section || !stage || !world || !lineCanvas || !line || !lockup || !patterns) return;
 
         const swoosh = lockup.querySelector<SVGPathElement>(".brand__swoosh-reveal");
         const name = lockup.querySelector<HTMLElement>(".brand__name");
@@ -137,15 +155,84 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         const bylineFull = lockup.querySelector<HTMLElement>(".brand__by-full");
         const bylineShort = lockup.querySelector<HTMLElement>(".brand__by-short");
 
-        const inks = layout.shots.map((shot, i) => {
+        const inks: (InkPhoto | null)[] = layout.shots.map(() => null);
+        const makeInk = (i: number, [sketch, photo]: HTMLImageElement[]) => {
           const canvas = canvasRefs.current[i];
-          return canvas ? new InkPhoto(canvas, images[i][0], images[i][1], shot.era.photo.inkOrigin, 11 + i * 17) : null;
-        });
+          if (canvas && !cancelled) inks[i] = new InkPhoto(canvas, sketch, photo, layout.shots[i].era.photo.inkOrigin, 11 + i * 17);
+        };
+        makeInk(0, firstEra);
+
         const segments = layout.segments.map((d, i) => ({
           path: new Path2D(d),
+          measure: measureRefs.current[i],
           length: measureRefs.current[i]?.getTotalLength() ?? 0,
           window: segmentTiming(i)
         }));
+        // Every batch between the eras, placed on its stroke once: where, which way is "out".
+        const tall = layout.height > layout.width;
+        const labelFont = `600 ${tall ? 50 : 28}px ${getComputedStyle(document.body).fontFamily}`;
+        const marks = batchMarks().map((mark) => {
+          const { measure, length } = segments[mark.segment];
+          const at = measure?.getPointAtLength(length * mark.along);
+          const ahead = measure?.getPointAtLength(Math.min(length, length * mark.along + 4));
+          const tx = (ahead?.x ?? 0) - (at?.x ?? 0);
+          const ty = (ahead?.y ?? 0) - (at?.y ?? 0);
+          const len = Math.hypot(tx, ty) || 1;
+          let nx = -ty / len;
+          let ny = tx / len;
+          // Labels go outward: above the line when it runs across, away from the middle when it climbs.
+          if (tall ? Math.sign(nx) !== Math.sign((at?.x ?? 0) - 730) : ny > 0) {
+            nx = -nx;
+            ny = -ny;
+          }
+          return { ...mark, x: at?.x ?? 0, y: at?.y ?? 0, nx, ny, r: batchDotRadius(mark.students), label: `${mark.year} · ${mark.students}` };
+        });
+
+        // A point on a stroke, pushed out to one side of it.
+        const beside = (segment: number, along: number, offset: number) => {
+          const { measure, length } = segments[segment];
+          const at = measure?.getPointAtLength(length * Math.min(1, Math.max(0, along)));
+          const ahead = measure?.getPointAtLength(Math.min(length, length * along + 4));
+          const tx = (ahead?.x ?? 0) - (at?.x ?? 0);
+          const ty = (ahead?.y ?? 0) - (at?.y ?? 0);
+          const len = Math.hypot(tx, ty) || 1;
+          return { x: (at?.x ?? 0) + (-ty / len) * offset, y: (at?.y ?? 0) + (tx / len) * offset };
+        };
+
+        // Every year since the founding, faint, in an even grid on a slower layer.
+        const backdrop = backdropRef.current;
+        if (backdrop) {
+          backdrop.replaceChildren(
+            ...backdropYears(layout).map(({ year, x, y }) => {
+              const numeral = document.createElement("span");
+              numeral.textContent = String(year);
+              numeral.style.left = `${x}px`;
+              numeral.style.top = `${y}px`;
+              return numeral;
+            })
+          );
+        }
+
+        // A few ink spatters flicked off the pen as it passes.
+        const splats = inkSplats().map((splat) => {
+          const { x, y } = beside(splat.segment, splat.along, splat.offset);
+          const path = new Path2D();
+          const scale = splat.radius / 30;
+          for (const blob of makeInkBlobs(100, { x: 0.5, y: 0.5 }, splat.seed, { extent: 0.3, fingers: 5, drops: 3, spatter: 7, roughness: 0.35 })) {
+            const outline = blobOutline({ ...blob, x: (blob.x - 50) * scale, y: (blob.y - 50) * scale, radius: blob.radius * scale }, 1, 28);
+            if (outline.length > 2) path.addPath(new Path2D(outlineToPath(outline)), new DOMMatrix().translate(x, y));
+          }
+          return { ...splat, path };
+        });
+
+        // Where the pen's head is at any moment: the camera follows this.
+        const penAt = (time: number) => {
+          let i = segments.length - 1;
+          while (i > 0 && time < segments[i].window[0]) i -= 1;
+          const { measure, length } = segments[i];
+          const point = measure?.getPointAtLength(length * penProgress(i, time));
+          return { x: point?.x ?? 0, y: point?.y ?? 0 };
+        };
         const blots = layout.shots.map((shot, i) => {
           const blob = makeInkBlobs(100, { x: 0.5, y: 0.5 }, 5 + i, COLOUR_SPREAD)[0];
           return {
@@ -155,8 +242,10 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           };
         });
 
-        // Measured once, when the float begins: how far the lockup travels and shrinks.
-        let float: { dx: number; dy: number; scale: number } | null = null;
+        // Where the wordmark starts, measured once as the float begins. Its destination is
+        // re-read every frame, so it lands exactly even if the nav is still settling.
+        let floatFrom: DOMRect | null = null;
+        const targetName = brandTarget?.querySelector<HTMLElement>(".brand__name") ?? brandTarget;
 
         // Dev aid: ?t=2900 freezes the intro at 2.9 s so a single frame can be inspected.
         const frozenParam = new URLSearchParams(window.location.search).get("t");
@@ -174,10 +263,16 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           }
 
           /* --- 1. Eras --- */
-          const camera = cameraAt(t, layout, view);
+          const camera = cameraAt(t, layout, view, penAt);
           const ox = view.width / 2 - camera.x * camera.scale;
           const oy = view.height / 2 - camera.y * camera.scale;
           world.style.transform = `translate(${ox}px, ${oy}px) scale(${camera.scale})`;
+          if (backdrop) {
+            // Slower than the world: the years drift past behind the photos.
+            const k = camera.scale * BACKDROP_PARALLAX;
+            backdrop.style.transform = `translate(${view.width / 2 - camera.x * k}px, ${view.height / 2 - camera.y * k}px) scale(${k})`;
+            backdrop.style.opacity = `${windowProgress(t, 0, 900) * (1 - windowProgress(t, ...FINALE.shrink))}`;
+          }
 
           // The line: stroke as far as the pen has got, then fill that with the textured ink.
           line.setTransform(1, 0, 0, 1, 0, 0);
@@ -187,8 +282,9 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           line.lineCap = "round";
           line.lineWidth = LINE_WIDTH * 3.6;
           line.strokeStyle = "#000";
-          for (const segment of segments) {
-            const p = easeInOutCubic(windowProgress(t, ...segment.window));
+          for (const [i, segment] of segments.entries()) {
+            // Slow through each photo, quick between them, never stopping.
+            const p = penProgress(i, t);
             if (p <= 0) continue;
             line.setLineDash([segment.length * p, segment.length + 1]);
             line.stroke(segment.path);
@@ -211,12 +307,49 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
             line.restore();
           }
 
+          // Spatters land beneath the line as the pen flicks past.
+          line.globalCompositeOperation = "destination-over";
+          line.fillStyle = SPLAT;
+          for (const splat of splats) {
+            const pop = windowProgress(penProgress(splat.segment, t), splat.along, splat.along + 0.02);
+            if (pop <= 0) continue;
+            line.globalAlpha = easeOutCubic(pop);
+            line.fill(splat.path);
+          }
+          line.globalAlpha = 1;
+          line.globalCompositeOperation = "source-over";
+
+          // Each batch drops onto the line as the pen passes it: a tick, a dot sized by its
+          // intake, and its year. By the pull-back the line reads as the whole timeline.
+          line.font = labelFont;
+          line.textBaseline = "middle";
+          for (const mark of marks) {
+            const pop = windowProgress(penProgress(mark.segment, t), mark.along, mark.along + 0.03);
+            if (pop <= 0) continue;
+            const grow = easeOutCubic(pop) + Math.sin(pop * Math.PI) * 0.2;
+            // A bead on the line, sized by the batch…
+            line.fillStyle = INK;
+            line.beginPath();
+            line.arc(mark.x, mark.y, mark.r * grow, 0, Math.PI * 2);
+            line.fill();
+            // …and its year, set clear of the line on the outward side, reading away from it.
+            line.globalAlpha = Math.min(1, pop * 1.4);
+            line.fillStyle = MARK_LABEL;
+            line.textAlign = Math.abs(mark.nx) > 0.5 ? (mark.nx > 0 ? "left" : "right") : "center";
+            const out = mark.r + (tall ? 30 : 22);
+            line.fillText(mark.label, mark.x + mark.nx * out, mark.y + mark.ny * out);
+            line.globalAlpha = 1;
+          }
+
           layout.shots.forEach((shot, i) => {
             const timing = stopTiming(i);
-            inks[i]?.draw(windowProgress(t, ...timing.sketch), windowProgress(t, ...timing.ink));
+            // Waiting faintly in black and white from the start; firm as the pen arrives.
+            const appear = windowProgress(t, 0, 600);
+            const firm = easeInOutCubic(windowProgress(t, ...timing.firm));
+            inks[i]?.draw(appear * (GHOST_OPACITY + (1 - GHOST_OPACITY) * firm), windowProgress(t, ...timing.ink));
             const figure = shotRefs.current[i];
             if (!figure) return;
-            figure.classList.toggle("journey-shot--captioned", t > timing.sketch[1]);
+            figure.classList.toggle("journey-shot--captioned", t > timing.arrive);
 
             /* --- 2. Every era shrinks away, one after another --- */
             const gone = windowProgress(t, FINALE.shrink[0] + i * 90, FINALE.shrink[0] + i * 90 + 560);
@@ -253,30 +386,33 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
 
           /* --- 4. Float to the corner, reveal the site from the centre out --- */
           const floatP = windowProgress(t, ...FINALE.float);
-          if (floatP > 0 && !float && brandTarget && revealRoot) {
+          if (floatP > 0 && !floatFrom && targetName && revealRoot) {
             revealRoot.classList.add("landing-ui--revealing");
-            revealRoot.style.setProperty("--reveal-r", "0px");
-            const from = lockup.getBoundingClientRect();
-            const to = brandTarget.getBoundingClientRect();
-            float = { dx: to.left - from.left, dy: to.top - from.top, scale: to.width / from.width };
+            // Match the wordmarks themselves: the bylines differ in width, the wordmark doesn't.
+            // It sits at the lockup's top-left, which is also the transform's origin.
+            floatFrom = (name ?? lockup).getBoundingClientRect();
           }
-          if (float) {
+          if (floatFrom && targetName) {
+            const to = targetName.getBoundingClientRect();
             const e = easeInOutCubic(floatP);
+            const scale = to.width / floatFrom.width;
+            lockup.style.transform = `translate(-50%, -50%) translate(${(to.left - floatFrom.left) * e}px, ${(to.top - floatFrom.top) * e}px) scale(${1 + (scale - 1) * e})`;
             // The full college name gives way to "HKBK CE" as the lockup shrinks into the nav.
             const swap = easeInOutCubic(windowProgress(floatP, 0.42, 0.62));
             if (bylineFull) bylineFull.style.opacity = `${1 - swap}`;
             if (bylineShort) bylineShort.style.opacity = `${swap}`;
-            lockup.style.transform = `translate(-50%, -50%) translate(${float.dx * e}px, ${float.dy * e}px) scale(${1 + (float.scale - 1) * e})`;
           }
 
           const revealP = windowProgress(t, ...FINALE.reveal);
-          if (revealP > 0 && revealRoot) {
-            section.classList.add("ink-intro--revealing");
+          if (revealP > 0) {
+            // The site has been painted beneath the intro all along (so it counts as shown
+            // at once); the reveal opens a widening hole in the intro's paper over it.
             const feather = Math.min(view.width, view.height) * 0.22;
             const radius = easeInOutCubic(revealP) * (Math.hypot(view.width, view.height) / 2 + feather * 1.2);
-            revealRoot.style.setProperty("--reveal-r", `${radius}px`);
-            revealRoot.style.setProperty("--reveal-feather", `${feather}px`);
-            revealRoot.style.setProperty("--reveal-p", `${easeOutCubic(revealP)}`);
+            stage.style.setProperty("--hole-r", `${radius}px`);
+            stage.style.setProperty("--hole-feather", `${feather}px`);
+            section.classList.add("ink-intro--revealing");
+            revealRoot?.style.setProperty("--reveal-p", `${easeOutCubic(revealP)}`);
           }
 
           if (t >= INTRO_END && !Number.isFinite(frozen)) {
@@ -286,6 +422,17 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           if (!Number.isFinite(frozen)) frame = requestAnimationFrame(tick);
         };
         frame = requestAnimationFrame(tick);
+
+        // An era that hasn't arrived yet simply isn't drawn until it has. (A frozen frame,
+        // which draws only once, draws again as each one arrives.)
+        layout.shots.slice(1).forEach((_, k) =>
+          void loadEra(k + 1)
+            .then((images) => {
+              makeInk(k + 1, images);
+              if (Number.isFinite(frozen)) frame = requestAnimationFrame(tick);
+            })
+            .catch(() => undefined)
+        );
       })
       .catch(settle);
 
@@ -302,45 +449,52 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         ref={sectionRef}
         aria-label="HKBK through the years, 1998 to today"
       >
-        <div className="ink-intro__paper" aria-hidden="true" />
-        {/* Drawn in screen space, behind the photos. */}
-        <canvas className="journey-ink-line" ref={lineCanvasRef} aria-hidden="true" />
-        {layout && (
-          <>
-            {/* Only used to measure the line's segments. */}
-            <svg className="journey-measure" aria-hidden="true">
-              {layout.segments.map((d, i) => (
-                <path d={d} key={i} ref={(el) => { measureRefs.current[i] = el; }} />
-              ))}
-            </svg>
-            <div className="journey-world" ref={worldRef} style={{ width: layout.width, height: layout.height }} aria-hidden="true">
-              {layout.shots.map((shot, i) => (
-                <figure
-                  className="journey-shot"
-                  key={shot.era.year}
-                  ref={(el) => { shotRefs.current[i] = el; }}
-                  style={{
-                    left: shot.centre.x - shot.width / 2,
-                    top: shot.centre.y - shot.height / 2,
-                    width: shot.width,
-                    height: shot.height,
-                    transform: `rotate(${shot.rotation}deg)`
-                  } as CSSProperties}
-                >
-                  <canvas className="journey-shot__canvas" ref={(el) => { canvasRefs.current[i] = el; }} />
-                  <figcaption>
-                    <span className="journey-shot__year">{shot.era.year}</span>
-                    <span className="journey-shot__title">{shot.era.title}</span>
-                    <span className="journey-shot__detail">{shot.era.detail}</span>
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          </>
+        {/* Everything the intro draws. Unmounted once it ends, which frees its canvases. */}
+        {!isSettled && (
+          <div className="ink-intro__stage" ref={stageRef}>
+          <div className="ink-intro__paper" aria-hidden="true" />
+          {/* Huge faint years behind everything, moving slower than the world (parallax). */}
+          <div className="journey-backdrop" ref={backdropRef} aria-hidden="true" />
+          {/* Drawn in screen space, behind the photos. */}
+          <canvas className="journey-ink-line" ref={lineCanvasRef} aria-hidden="true" />
+          {layout && (
+            <>
+              {/* Only used to measure the line's segments. */}
+              <svg className="journey-measure" aria-hidden="true">
+                {layout.segments.map((d, i) => (
+                  <path d={d} key={i} ref={(el) => { measureRefs.current[i] = el; }} />
+                ))}
+              </svg>
+              <div className="journey-world" ref={worldRef} style={{ width: layout.width, height: layout.height }} aria-hidden="true">
+                {layout.shots.map((shot, i) => (
+                  <figure
+                    className="journey-shot"
+                    key={shot.era.year}
+                    ref={(el) => { shotRefs.current[i] = el; }}
+                    style={{
+                      left: shot.centre.x - shot.width / 2,
+                      top: shot.centre.y - shot.height / 2,
+                      width: shot.width,
+                      height: shot.height,
+                      transform: `rotate(${shot.rotation}deg)`
+                    } as CSSProperties}
+                  >
+                    <canvas className="journey-shot__canvas" ref={(el) => { canvasRefs.current[i] = el; }} />
+                    <figcaption>
+                      <span className="journey-shot__year">{shot.era.year}</span>
+                      <span className="journey-shot__title">{shot.era.title}</span>
+                      <span className="journey-shot__detail">{shot.era.detail}</span>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </>
+          )}
+          <p className="journey-total" ref={totalRef} aria-hidden="true">
+            {STUDENTS_SINCE_1998.toLocaleString("en-IN")} students since 1998.
+          </p>
+          </div>
         )}
-        <p className="journey-total" ref={totalRef} aria-hidden="true">
-          {STUDENTS_SINCE_1998.toLocaleString("en-IN")} students since 1998.
-        </p>
         <div ref={patternsRef} className="side-patterns-host">
           <SidePatterns />
         </div>
@@ -356,7 +510,22 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         <BrandLockup byline="both" />
       </div>
 
-      {!isSettled && <button className="ink-intro__skip" type="button" onClick={settle}>Skip intro <span aria-hidden="true">→</span></button>}
+      {!isSettled && (
+        <div className="ink-intro__controls">
+          <label className="ink-intro__remember">
+            <input
+              type="checkbox"
+              checked={skipNextTime}
+              onChange={(event) => {
+                setSkipNextTime(event.target.checked);
+                writeIntroPreference(event.target.checked ? "skip" : "play");
+              }}
+            />
+            Don’t play the intro next time
+          </label>
+          <button className="ink-intro__skip" type="button" onClick={settle}>Skip intro <span aria-hidden="true">→</span></button>
+        </div>
+      )}
     </>
   );
 }

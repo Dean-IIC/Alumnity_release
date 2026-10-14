@@ -1,0 +1,100 @@
+/*
+ * Alumnity design tokens: the one place colours, type, space, shape, motion and layout
+ * are decided. Components use these and nothing else; a value that isn't here yet
+ * should be added here, not written into a component.
+ *
+ * Contrast (on --color-paper): ink 12.8 : 1 · red 5.8 · ink-muted 5.1 · ink-soft 5.8 ·
+ * blue 9.9. Every text colour clears WCAG AA (4.5 : 1).
+ */
+:root {
+  /* ---------- Colour ---------- */
+  --color-paper: #f8f4ea;
+  --color-paper-raised: #fffdf7;
+  --color-paper-glass: rgba(255, 253, 247, 0.8);
+  --color-ink: #392820;
+  --color-ink-muted: #73665c;
+  --color-ink-soft: #6f5d45; /* kickers and notes */
+  --color-red: #a83932; /* the pen, the headline, the swoosh */
+  --color-blue: #143f68; /* the wordmark, primary actions, links */
+  --color-blue-deep: #0c3155;
+  --color-gold: #c6842a;
+  --color-line: rgba(57, 40, 32, 0.18);
+  --color-border: rgba(57, 40, 32, 0.22);
+  --color-focus: var(--color-blue);
+
+  /* ---------- Type ---------- */
+  /* --font-sans and --font-serif are set by next/font in app/layout.tsx. */
+  --font-ui: var(--font-sans), Arial, sans-serif; /* DM Sans: interface */
+  --font-voice: var(--font-serif), Georgia, serif; /* DM Serif Display: the human voice */
+
+  --text-icon: 1rem; /* arrows and glyphs beside text */
+  --text-label: 0.75rem; /* 12 px, uppercase and tracked */
+  --text-small: 0.875rem; /* 14 px: navigation, notes, footer */
+  --text-button: 0.9375rem; /* 15 px */
+  --text-body: clamp(1.0625rem, 1.25vw, 1.1875rem); /* 17–19 px */
+  --text-caption: 1.5rem; /* 24 px, serif italic */
+  --text-title: clamp(1.5rem, 3vw, 2.5rem);
+  --text-display: clamp(3rem, 6vw, 6rem); /* 48–96 px */
+  --text-display-narrow: clamp(3rem, 14vw, 4.75rem);
+
+  --leading-display: 0.98;
+  --leading-snug: 1.1;
+  --leading-body: 1.6;
+  --tracking-label: 0.14em;
+  --tracking-display: -0.035em;
+  --tracking-wordmark: -0.075em;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --measure-body: 34ch;
+
+  /* ---------- Space: an 8 px grid (4 for fine adjustments) ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 120px;
+
+  /* ---------- Shape and depth ---------- */
+  --radius-pill: 999px;
+  --radius-card: 14px;
+  --shadow-button: 0 12px 28px rgba(20, 63, 104, 0.2);
+  --shadow-button-hover: 0 16px 30px rgba(20, 63, 104, 0.28);
+  /* Text laid over a photo's edge: a paper halo keeps it crisp. */
+  --halo: 0 0 2px var(--color-paper), 0 0 18px rgba(248, 244, 234, 0.9), 0 0 36px rgba(248, 244, 234, 0.7);
+  --halo-strong: 0 0 2px var(--color-paper), 0 0 6px var(--color-paper), 0 0 12px var(--color-paper), 0 0 20px var(--color-paper);
+
+  /* ---------- Motion ---------- */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* arrivals */
+  --ease-ink: cubic-bezier(0.77, 0, 0.175, 1); /* slow, deliberate moves */
+  --duration-instant: 160ms; /* hovers */
+  --duration-quick: 220ms; /* notices */
+  --duration-base: 600ms; /* captions, entrances */
+  --duration-slow: 1300ms; /* things stepping aside */
+
+  /* ---------- Layout ---------- */
+  /* One grid for everything: nav, hero, footer and every page to come. */
+  --container: 1200px;
+  --gutter: clamp(20px, 5vw, 64px);
+  --nav-height: 96px;
+  --tap-target: 44px;
+
+  /* ---------- Layers ---------- */
+  --z-site: 3;
+  --z-intro: 10;
+  --z-lockup: 20;
+  --z-controls: 30;
+  --z-notice: 40;
+}
+
+@media (max-width: 700px) {
+  :root {
+    --nav-height: 76px;
+  }
+}

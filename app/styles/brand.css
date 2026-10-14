@@ -1,0 +1,79 @@
+/*
+ * The Alumnity lockup: wordmark, red swoosh, crest and college name. Sized entirely in
+ * em, so the intro's big copy and the nav's small one are the same shape at two sizes.
+ */
+
+.brand {
+  display: inline-grid;
+  justify-items: start;
+  line-height: 1;
+}
+
+.brand__name {
+  color: var(--color-blue);
+  font-family: var(--font-ui);
+  font-size: 1em;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wordmark);
+}
+
+.brand__dot {
+  color: var(--color-gold);
+}
+
+.brand__swoosh {
+  display: block;
+  width: 104%;
+  height: 0.2em;
+  margin: -0.05em 0 0 -2%;
+  overflow: visible;
+}
+
+.brand__swoosh-reveal {
+  fill: none;
+  stroke: #fff; /* a mask: white shows the ink */
+  stroke-linecap: round;
+  stroke-width: 42;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 0;
+}
+
+.brand__swoosh-ink {
+  fill: var(--color-red);
+}
+
+.brand__by {
+  display: grid;
+  justify-self: end;
+  justify-items: end;
+  margin-top: 0.12em;
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Both bylines share one cell, so the intro can crossfade between them. */
+.brand__by > span {
+  display: flex;
+  gap: 0.4em;
+  align-items: center;
+  grid-area: 1 / 1;
+}
+
+.brand__by-full {
+  font-size: 0.185em;
+  letter-spacing: -0.01em;
+}
+
+.brand__by-short {
+  font-size: 0.36em;
+  letter-spacing: -0.01em;
+}
+
+.brand__crest {
+  width: 1.7em;
+  height: 1.7em;
+  flex: none;
+}

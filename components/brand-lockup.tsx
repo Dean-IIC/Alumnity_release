@@ -13,6 +13,8 @@ export const SWOOSH_CENTRELINE = "M10 40C92 14 200 8 290 26S372 38 392 16";
 
 export const COLLEGE_NAME = "HKBK College of Engineering";
 export const COLLEGE_SHORT_NAME = "HKBK CE";
+/** The college's own crest ("HKBK College of Engineering · Estd 1997"). Only a 180 px copy exists so far. */
+const CREST = "/assets/brand/hkbk-crest.png";
 
 type BrandLockupProps = HTMLAttributes<HTMLSpanElement> & {
   "data-brand-target"?: boolean;
@@ -36,8 +38,18 @@ export function BrandLockup({ byline = "short", ...props }: BrandLockupProps) {
         />
       </svg>
       <span className="brand__by">
-        {byline !== "short" && <span className="brand__by-full">by {COLLEGE_NAME}</span>}
-        {byline !== "full" && <span className="brand__by-short">by {COLLEGE_SHORT_NAME}</span>}
+        {byline !== "short" && (
+          <span className="brand__by-full">
+            <img className="brand__crest" src={CREST} alt="" width={180} height={180} />
+            by {COLLEGE_NAME}
+          </span>
+        )}
+        {byline !== "full" && (
+          <span className="brand__by-short">
+            <img className="brand__crest" src={CREST} alt="" width={180} height={180} />
+            by {COLLEGE_SHORT_NAME}
+          </span>
+        )}
       </span>
     </span>
   );

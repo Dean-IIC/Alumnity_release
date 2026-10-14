@@ -1,4 +1,4 @@
-import { blobOutline, COLOUR_SPREAD, makeInkBlobs, SKETCH_SPREAD, type InkBlob, type Point } from "../lib/ink";
+import { blobOutline, COLOUR_SPREAD, makeInkBlobs, SKETCH_SPREAD, type InkBlob, type InkSpread, type Point } from "../lib/ink";
 
 /** Masks are drawn small and scaled up: the upscale is what makes the ink edge soft. */
 const MASK_SCALE = 0.25;
@@ -38,10 +38,18 @@ export class InkPhoto {
   private readonly sketchBlobs: InkBlob[];
   private readonly inkBlobs: InkBlob[];
   private lastKey = "";
-  /** The fully developed sketch, kept once it stops changing. */
-  private sketchDone: Surface | null = null;
+  /** The black-and-white sketch in its final, soft-edged shape: drawn once, shown at any opacity. */
+  private readonly sketchShape: Surface;
 
-  constructor(canvas: HTMLCanvasElement, sketch: HTMLImageElement, photo: HTMLImageElement, origin: Point, seed: number) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    sketch: HTMLImageElement,
+    photo: HTMLImageElement,
+    origin: Point,
+    seed: number,
+    /** How far the sketch and the colour spread; defaults to the intro's. */
+    spread: { sketch?: InkSpread; colour?: InkSpread } = {}
+  ) {
     const fit = Math.min(1, MAX_WIDTH / photo.naturalWidth);
     this.width = Math.round(photo.naturalWidth * fit);
     this.height = Math.round(photo.naturalHeight * fit);
@@ -60,8 +68,12 @@ export class InkPhoto {
     this.maskB = surface(mw, mh);
     this.scratch = surface(mw, mh);
     this.square = Math.max(mw, mh);
-    this.sketchBlobs = makeInkBlobs(this.square, origin, seed + 101, SKETCH_SPREAD);
-    this.inkBlobs = makeInkBlobs(this.square, origin, seed, COLOUR_SPREAD);
+    this.sketchBlobs = makeInkBlobs(this.square, origin, seed + 101, spread.sketch ?? SKETCH_SPREAD);
+    this.inkBlobs = makeInkBlobs(this.square, origin, seed, spread.colour ?? COLOUR_SPREAD);
+
+    this.sketchShape = surface(this.width, this.height);
+    this.mask(this.maskA, this.sketchBlobs, 1, 6);
+    this.paint(this.sketch, this.maskA.canvas, 1, this.sketchShape.ctx);
   }
 
   private mask(target: Surface, blobs: InkBlob[], p: number, blur: number) {
@@ -97,8 +109,8 @@ export class InkPhoto {
     target.ctx.restore();
   }
 
-  /** Paint `source` (or a flat tint) through `mask` onto the visible canvas. */
-  private paint(source: HTMLImageElement | string, mask: HTMLCanvasElement, alpha = 1) {
+  /** Paint `source` (or a flat tint) through `mask` onto the visible canvas (or `target`). */
+  private paint(source: HTMLImageElement | string, mask: HTMLCanvasElement, alpha = 1, target = this.ctx) {
     const { ctx } = this.layer;
     ctx.globalCompositeOperation = "source-over";
     ctx.clearRect(0, 0, this.width, this.height);
@@ -111,29 +123,35 @@ export class InkPhoto {
     ctx.globalCompositeOperation = "destination-in";
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(mask, 0, 0, this.width, this.height);
-    this.ctx.globalAlpha = alpha;
-    this.ctx.drawImage(this.layer.canvas, 0, 0);
-    this.ctx.globalAlpha = 1;
+    target.globalAlpha = alpha;
+    target.drawImage(this.layer.canvas, 0, 0);
+    target.globalAlpha = 1;
   }
 
-  /** `sketchP` and `inkP` both run 0 → 1. */
-  draw(sketchP: number, inkP: number) {
-    const key = `${sketchP.toFixed(4)}:${inkP.toFixed(4)}`;
+  /**
+   * `sketchAlpha`: how strongly the black-and-white sketch shows (the intro keeps every
+   * photo waiting faintly, then firms it up as the pen arrives). `inkP`: how far the
+   * colour has spread, 0 → 1.
+   */
+  draw(sketchAlpha: number, inkP: number) {
+    const key = `${sketchAlpha.toFixed(3)}:${inkP.toFixed(4)}`;
     if (key === this.lastKey) return;
     this.lastKey = key;
 
     this.ctx.clearRect(0, 0, this.width, this.height);
-    if (sketchP <= 0) return;
+    if (inkP >= 1) {
+      // Done: the colour covers its splotch, with the sketch's soft edge around it.
+      this.ctx.drawImage(this.sketchShape.canvas, 0, 0);
+      this.mask(this.maskA, this.inkBlobs, 1, 0.9);
+      this.paint(this.photo, this.maskA.canvas);
+      return;
+    }
 
-    // 1. The pencil sketch develops from the centre, its edge melting into the paper.
-    if (this.sketchDone) this.ctx.drawImage(this.sketchDone.canvas, 0, 0);
-    else {
-      this.mask(this.maskA, this.sketchBlobs, sketchP, 6);
-      this.paint(this.sketch, this.maskA.canvas, Math.min(1, sketchP * 1.6));
-      if (sketchP >= 1) {
-        this.sketchDone = surface(this.width, this.height);
-        this.sketchDone.ctx.drawImage(this.ctx.canvas, 0, 0);
-      }
+    // 1. The sketch, at whatever strength the timeline asks for.
+    if (sketchAlpha > 0) {
+      this.ctx.globalAlpha = sketchAlpha;
+      this.ctx.drawImage(this.sketchShape.canvas, 0, 0);
+      this.ctx.globalAlpha = 1;
     }
     if (inkP <= 0) return;
 

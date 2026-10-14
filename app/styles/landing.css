@@ -1,0 +1,402 @@
+/*
+ * The landing page: nav, hero, its photo, and the "coming soon" notice.
+ * Painted from the first frame (the intro covers it, then opens over it), so the
+ * headline counts as shown at once.
+ */
+
+.landing {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--color-paper);
+}
+
+.landing-ui {
+  position: relative;
+  z-index: var(--z-site);
+}
+
+/* Returning visitors who skip the intro get a short fade instead. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-intro="skip"] .landing-ui {
+    animation: site-in 400ms var(--ease-out) both;
+  }
+}
+
+@keyframes site-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Nav ---------- */
+
+.landing-nav {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--nav-height);
+}
+
+.landing-nav__brand {
+  font-size: clamp(1.75rem, 2.4vw, 2.1rem);
+}
+
+/* The nav's lockup appears once the intro's copy has landed on it. */
+.landing:not(.landing--intro-complete) .landing-nav__brand .brand {
+  visibility: hidden;
+}
+
+.landing-nav nav {
+  display: flex;
+  gap: clamp(var(--space-5), 3vw, var(--space-7));
+  margin-left: 11%;
+}
+
+.landing-nav nav a,
+.sign-in {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.landing-nav nav a {
+  color: var(--color-ink-muted);
+  transition: color var(--duration-instant) ease;
+}
+
+.landing-nav nav a:hover {
+  color: var(--color-ink);
+}
+
+.sign-in {
+  gap: var(--space-2);
+  color: var(--color-blue);
+}
+
+.sign-in span {
+  font-size: var(--text-icon);
+}
+
+/* ---------- Hero: copy on the left, the photo a design element behind it ---------- */
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100svh;
+  padding: var(--space-10) 0 var(--space-8);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 640px;
+}
+
+/* Revealed from the centre: the copy and photo slide in from the middle as the hole opens. */
+.landing-ui--revealing .hero-copy {
+  transform: translateX(calc((1 - var(--reveal-p, 1)) * 56px));
+}
+
+.hero-kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+  color: var(--color-ink-soft);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-shadow: 0 0 2px var(--color-paper), 0 0 12px var(--color-paper);
+}
+
+.hero-kicker::before {
+  width: var(--space-5);
+  height: 1px;
+  content: "";
+  background: var(--color-gold);
+}
+
+.hero h1 {
+  /* Measured in em so the headline keeps the same line breaks at every size. */
+  max-width: 6.9em;
+  margin: 0;
+  color: var(--color-red);
+  font-family: var(--font-voice);
+  font-size: var(--text-display);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  text-shadow: var(--halo);
+}
+
+.hero-text {
+  max-width: var(--measure-body);
+  margin: var(--space-5) 0 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.hero-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-6) 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-small);
+}
+
+.hero-note span {
+  color: var(--color-gold);
+  font-size: var(--text-icon);
+}
+
+/* ---------- Buttons ---------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: 0 26px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-button);
+  font-weight: var(--weight-bold);
+  transition:
+    transform var(--duration-instant) ease,
+    background var(--duration-instant) ease,
+    color var(--duration-instant) ease,
+    box-shadow var(--duration-instant) ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button--primary {
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+  box-shadow: var(--shadow-button);
+}
+
+.button--primary:hover {
+  background: var(--color-blue-deep);
+  box-shadow: var(--shadow-button-hover);
+}
+
+.button--secondary {
+  border-color: var(--color-border);
+  color: var(--color-ink);
+  background: var(--color-paper-glass);
+}
+
+.button--secondary:hover {
+  background: var(--color-paper-raised);
+}
+
+/* ---------- The hero photo: one ink splotch ---------- */
+
+.photo-reveal {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  /* Starts under the headline's last words, so the two overlap. */
+  left: 40%;
+  width: min(62%, 880px, 92svh * 0.8);
+  margin: 0;
+  transform: translateY(-46%);
+}
+
+.landing-ui--revealing .photo-reveal {
+  transform: translate(calc((var(--reveal-p, 1) - 1) * -56px), -46%);
+}
+
+.hero-ink {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 880 / 1100;
+}
+
+.hero-ink__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Tucked into the photo's lower corner, haloed in paper so it reads over the photo's edge. */
+.hero-ink__caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  justify-items: end;
+  margin: 0;
+  color: var(--color-ink);
+  text-align: right;
+  white-space: nowrap;
+  text-shadow: 0 0 2px var(--color-paper), 0 0 12px var(--color-paper), 0 0 24px rgba(248, 244, 234, 0.9);
+  animation: hero-ink-caption var(--duration-base) var(--ease-out) both;
+}
+
+.hero-ink__caption span {
+  color: var(--color-red);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.hero-ink__caption strong {
+  margin-top: var(--space-1);
+  font-family: var(--font-voice);
+  font-size: var(--text-caption);
+  font-style: italic;
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-snug);
+}
+
+.hero-ink__explore {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: var(--tap-target);
+  color: var(--color-blue);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.hero-ink__explore span {
+  transition: transform var(--duration-instant) ease;
+}
+
+.hero-ink__explore:hover span {
+  transform: translateX(3px);
+}
+
+@keyframes hero-ink-caption {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ---------- "Coming soon" notice ---------- */
+
+.soon-notice {
+  position: fixed;
+  z-index: var(--z-notice);
+  bottom: var(--space-5);
+  left: 50%;
+  max-width: min(92vw, 460px);
+  margin: 0;
+  padding: var(--space-3) 18px;
+  border-radius: var(--radius-card);
+  background: var(--color-ink);
+  color: var(--color-paper-raised);
+  font-size: var(--text-small);
+  line-height: 1.45;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity var(--duration-quick) var(--ease-out), transform var(--duration-quick) var(--ease-out);
+}
+
+.soon-notice--shown {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- Narrow screens ---------- */
+
+@media (max-width: 900px) {
+  /* The photo stays a background element behind the top of the page; the copy settles
+     at the bottom and the headline lies over the photo's lower half. */
+  .hero {
+    align-items: flex-end;
+    padding: 104px 0 var(--space-7);
+  }
+
+  .photo-reveal,
+  .landing-ui--revealing .photo-reveal {
+    top: 72px;
+    right: -12vw;
+    left: auto;
+    width: min(96vw, 600px, 60svh * 0.8);
+    transform: none;
+  }
+
+  /* The kicker is small and sits over the photo here: a fuller halo. */
+  .hero-kicker {
+    text-shadow: var(--halo-strong);
+  }
+
+  /* Only the gallery link stays, in the photo's paper corner, clear of the headline. */
+  .hero-ink__caption {
+    top: 4%;
+    right: auto;
+    bottom: auto;
+    left: 6%;
+    justify-items: start;
+  }
+
+  .hero-ink__caption span,
+  .hero-ink__caption strong {
+    display: none;
+  }
+
+  .hero-ink__explore {
+    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-paper-glass);
+  }
+}
+
+@media (max-width: 700px) {
+  .landing-nav nav {
+    display: none;
+  }
+
+  .hero {
+    padding: var(--space-9) 0 var(--space-6);
+  }
+
+  .hero h1 {
+    font-size: var(--text-display-narrow);
+  }
+
+  .hero-text {
+    margin-top: var(--space-4);
+  }
+
+  .hero-actions,
+  .hero-note {
+    margin-top: var(--space-5);
+  }
+}
+
+@media (max-width: 420px) {
+  .button {
+    width: 100%;
+  }
+}

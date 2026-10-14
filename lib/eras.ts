@@ -83,5 +83,19 @@ export const ERAS: Era[] = [
   }
 ];
 
+/**
+ * Students per batch (joining year), from the same UG sheet. 2023 has only 33 rows — an
+ * incomplete year in the register — so it counts toward the total but gets no mark.
+ */
+export const BATCHES: Record<number, number> = {
+  1998: 125, 1999: 126, 2000: 207, 2001: 197, 2002: 250, 2003: 379, 2004: 322, 2005: 353,
+  2006: 381, 2007: 390, 2008: 378, 2009: 318, 2010: 315, 2011: 382, 2012: 420, 2013: 387,
+  2014: 402, 2015: 430, 2016: 527, 2017: 432, 2018: 422, 2019: 409, 2020: 343, 2021: 416,
+  2022: 494, 2023: 33
+};
+
+/** The last batch the register has in full. */
+export const LAST_FULL_BATCH = 2022;
+
 /** Undergraduate rows across every batch in the sheet, 1998–2023. */
-export const STUDENTS_SINCE_1998 = 8838;
+export const STUDENTS_SINCE_1998 = Object.values(BATCHES).reduce((sum, n) => sum + n, 0);
