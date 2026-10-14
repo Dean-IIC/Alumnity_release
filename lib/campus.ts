@@ -56,8 +56,8 @@ export const CAMPUS_BLOCKS: CampusBlock[] = [
 
 export const WELCOME_COPY = {
   title: "Stay connected to where it began.",
-  primaryAction: "Find your place",
-  secondaryAction: "I’m already here"
+  primaryAction: "Join now",
+  secondaryAction: "Log in"
 } as const;
 
 export function findCampusBlock(id: string): CampusBlock | undefined {

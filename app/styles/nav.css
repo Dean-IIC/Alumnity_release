@@ -1,0 +1,107 @@
+/* The header every page shares, and the "coming soon" notice its links raise. */
+
+.site-nav {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--nav-height);
+}
+
+/* On the landing page it lies over the hero. */
+.site-nav--over-hero {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+.site-nav__brand {
+  font-size: clamp(1.75rem, 2.4vw, 2.1rem);
+}
+
+/* The landing nav's lockup appears once the intro's copy has landed on it. */
+.landing:not(.landing--intro-complete) .site-nav__brand .brand {
+  visibility: hidden;
+}
+
+.site-nav nav {
+  display: flex;
+  gap: clamp(var(--space-5), 3vw, var(--space-7));
+  margin-left: 11%;
+}
+
+.site-nav nav a,
+.sign-in {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.site-nav nav a {
+  position: relative;
+  color: var(--color-ink-muted);
+  transition: color var(--duration-instant) ease;
+}
+
+.site-nav nav a:hover,
+.site-nav nav a[aria-current] {
+  color: var(--color-ink);
+}
+
+/* The current section: a gold rule under it (the page's headline is its one red thing). */
+.site-nav nav a[aria-current]::after {
+  position: absolute;
+  right: 0;
+  bottom: 8px;
+  left: 0;
+  height: 2px;
+  content: "";
+  border-radius: 2px;
+  background: var(--color-gold);
+}
+
+.sign-in {
+  gap: var(--space-2);
+  color: var(--color-blue);
+}
+
+.sign-in span {
+  font-size: var(--text-icon);
+}
+
+@media (max-width: 700px) {
+  .site-nav nav {
+    display: none;
+  }
+}
+
+/* ---------- "Coming soon" notice ---------- */
+
+.soon-notice {
+  position: fixed;
+  z-index: var(--z-notice);
+  bottom: var(--space-5);
+  left: 50%;
+  max-width: min(92vw, 460px);
+  margin: 0;
+  padding: var(--space-3) 18px;
+  border-radius: var(--radius-card);
+  background: var(--color-ink);
+  color: var(--color-paper-raised);
+  font-size: var(--text-small);
+  line-height: 1.45;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity var(--duration-quick) var(--ease-out), transform var(--duration-quick) var(--ease-out);
+}
+
+.soon-notice--shown {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}

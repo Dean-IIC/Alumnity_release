@@ -1,0 +1,534 @@
+/* The gallery: album cards, an album's page (its cover blooming in, its photos), the lightbox. */
+
+.gallery,
+.album {
+  padding-bottom: var(--space-9);
+}
+
+/* ---------- Album cards: three photos, the title, when ---------- */
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.album-card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-paper-raised);
+  /* A hairline edge, not a shadow: it darkens on hover, and the arrow nudges forward. */
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  transition: box-shadow var(--duration-instant) ease;
+}
+
+.album-card:hover {
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+/* The cover large on the left, two more stacked beside it. */
+.album-card__mosaic {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--seam);
+  aspect-ratio: 4 / 3;
+  background: var(--color-paper);
+}
+
+.album-card__mosaic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+}
+
+.album-card__mosaic img:first-child {
+  grid-row: 1 / 3;
+}
+
+/* Albums with fewer photos: two side by side, or one alone. */
+.album-card__mosaic img:nth-child(2):last-child {
+  grid-row: 1 / 3;
+}
+
+.album-card__mosaic img:only-child {
+  grid-column: 1 / 3;
+}
+
+/* The album's name sits on the photos, on a band of see-through paper (like tracing paper,
+   not frosted glass) with a vine of leaves. */
+.album-card__band {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  overflow: hidden;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border-radius: var(--radius-photo);
+  background: var(--color-paper-veil);
+}
+
+/* The vine grows in from the right, behind the arrow, clear of the album's name. */
+.album-card__vine {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 58%;
+  height: 100%;
+  opacity: 0.42;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 45%);
+  mask-image: linear-gradient(to right, transparent, #000 45%);
+}
+
+.album-card__vine-stem,
+.album-card__vine-leaf {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.album-card__vine-stem {
+  stroke: var(--color-ink-soft);
+  stroke-width: 2;
+}
+
+.album-card__vine-leaf {
+  stroke: var(--color-gold);
+  stroke-width: 3;
+}
+
+.album-card__vine-dot {
+  fill: var(--color-blue);
+}
+
+.album-card__words {
+  position: relative;
+  display: grid;
+  flex: 1;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.album-card__title {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-voice);
+  font-size: var(--text-card);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-snug);
+}
+
+/* ink-soft, not ink-muted: over a dark photo, through the veil, it keeps 4.5 : 1. */
+.album-card__meta {
+  color: var(--color-ink-soft);
+  font-size: var(--text-small);
+}
+
+.album__meta {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+/* The way in: a round arrow on the right. */
+.album-card__open {
+  position: relative;
+  display: grid;
+  flex: none;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+  font-size: var(--text-icon);
+  transition:
+    transform var(--duration-instant) ease,
+    background var(--duration-instant) ease;
+}
+
+.album-card:hover .album-card__open {
+  background: var(--color-blue-deep);
+  transform: translateX(3px);
+}
+
+/* "More albums": the cover alone, the band smaller. */
+.album-grid--compact {
+  gap: var(--space-4);
+}
+
+.album-card--compact .album-card__mosaic {
+  display: block;
+  aspect-ratio: 3 / 2;
+}
+
+.album-card--compact .album-card__mosaic img:not(:first-child) {
+  display: none;
+}
+
+.album-card--compact .album-card__band {
+  right: var(--space-2);
+  bottom: var(--space-2);
+  left: var(--space-2);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+}
+
+.album-card--compact .album-card__title {
+  font-size: var(--text-body);
+}
+
+.album-card--compact .album-card__meta {
+  font-size: var(--text-fine);
+}
+
+/* Smaller than a tap target, which is fine: the whole card is the link, not the arrow. */
+.album-card--compact .album-card__open {
+  width: var(--space-6);
+  height: var(--space-6);
+}
+
+/* ---------- The index ---------- */
+
+.gallery__more {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: var(--space-8) 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-small);
+}
+
+.gallery__more span {
+  color: var(--color-gold);
+  font-size: var(--text-icon);
+}
+
+/* ---------- An album: its photos in justified rows ---------- */
+
+.photo-grid {
+  --row: 250px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each photo grows in proportion to its shape, so every photo in a row is the same height. */
+.photo-grid li {
+  flex: calc(var(--ratio) * 100) 1 calc(var(--ratio) * var(--row));
+}
+
+/* The last row keeps its natural height instead of stretching to fill. */
+.photo-grid::after {
+  flex-grow: 1000000;
+  content: "";
+}
+
+.photo-grid a {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-photo);
+  background: var(--color-paper-raised);
+}
+
+.photo-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--ratio);
+  object-fit: cover;
+}
+
+/* What a photo shows, on a slip of paper in its corner (the cards' veil, not a dark gradient). */
+.photo-grid__caption {
+  position: absolute;
+  bottom: var(--space-2);
+  left: var(--space-2);
+  max-width: calc(100% - 2 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--space-1);
+  background: var(--color-paper-veil);
+  color: var(--color-ink);
+  font-size: var(--text-fine);
+  line-height: var(--leading-compact);
+}
+
+.album__meta {
+  margin: var(--space-3) 0 0;
+}
+
+.album__others {
+  margin-top: var(--space-9);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-line);
+}
+
+.album__others h2 {
+  margin: 0 0 var(--space-5);
+  font-family: var(--font-voice);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-regular);
+}
+
+/* ---------- Opening an album: its cover blooms in, as on the landing page ---------- */
+
+.album-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: min(560px, 70svh);
+  padding: var(--space-6) 0 var(--space-7);
+}
+
+.album-hero__copy {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+}
+
+/* Words may lie over the splotch's pale pencil rim; a paper halo keeps them crisp. */
+.album-hero__copy .page-title,
+.album-hero__copy p {
+  text-shadow: var(--halo);
+}
+
+.album__back {
+  margin-top: var(--space-5);
+}
+
+.album-hero__ink {
+  position: absolute;
+  top: 50%;
+  right: -3%;
+  width: min(62%, 780px);
+  max-height: 100%;
+  transform: translateY(-50%);
+}
+
+.ink-bloom {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* An event that happened more than once: each time gets its own heading. */
+.album-part + .album-part {
+  margin-top: var(--space-8);
+}
+
+.album-part__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.album-part__head h2 {
+  margin: 0;
+  font-family: var(--font-voice);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-regular);
+}
+
+.album-part__head p {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+/* ---------- The lightbox ---------- */
+
+html:has(.lightbox[open]) {
+  overflow: hidden;
+}
+
+.lightbox {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: var(--space-6) var(--space-9);
+  border: 0;
+  background: var(--color-night); /* solid: the page behind would only distract */
+  color: var(--color-paper-raised);
+}
+
+.lightbox::backdrop {
+  background: transparent;
+}
+
+.lightbox[open] {
+  display: grid;
+  place-items: center;
+  animation: lightbox-in var(--duration-quick) var(--ease-out);
+}
+
+.lightbox :focus-visible {
+  outline-color: var(--color-paper-raised);
+}
+
+.lightbox__figure {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.lightbox__figure img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(100dvh - 2 * var(--space-6) - var(--space-8)); /* room for the caption */
+  margin-inline: auto;
+  border-radius: var(--radius-photo);
+  object-fit: contain;
+}
+
+.lightbox__figure figcaption {
+  display: flex;
+  gap: var(--space-5);
+  justify-content: space-between;
+  color: var(--color-night-text);
+  font-size: var(--text-small);
+  line-height: var(--leading-compact);
+}
+
+.lightbox__count {
+  flex: none;
+  color: var(--color-night-quiet);
+  font-variant-numeric: tabular-nums;
+}
+
+.lightbox__button {
+  position: fixed;
+  display: grid;
+  width: var(--space-7);
+  height: var(--space-7);
+  place-items: center;
+  border: 1px solid var(--color-night-line);
+  border-radius: var(--radius-pill);
+  background: var(--color-night-fill);
+  color: var(--color-paper-raised);
+  font: var(--weight-medium) var(--text-icon-large) / 1 var(--font-ui);
+  cursor: pointer;
+  transition: background var(--duration-instant) ease;
+}
+
+.lightbox__button:hover {
+  background: var(--color-night-fill-hover);
+}
+
+.lightbox__close {
+  top: var(--space-5);
+  right: var(--space-5);
+}
+
+.lightbox__prev,
+.lightbox__next {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox__prev {
+  left: var(--space-5);
+}
+
+.lightbox__next {
+  right: var(--space-5);
+}
+
+@keyframes lightbox-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Narrow screens ---------- */
+
+@media (max-width: 900px) {
+  .album-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* The splotch sits above the words, and the title overlaps its pale lower rim. */
+  .album-hero {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    padding-top: 0;
+  }
+
+  .album-hero__ink {
+    position: relative;
+    top: auto;
+    right: auto;
+    order: -1;
+    width: min(100% + 2 * var(--gutter), 640px);
+    margin: 0 calc(-1 * var(--gutter)) calc(-1 * var(--space-5)) auto; /* the title overlaps only the pale rim */
+    transform: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .album-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  .album-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .photo-grid {
+    --row: 100px; /* two landscape photos to a row */
+    gap: var(--space-2);
+  }
+
+  /* Phones: the photo uses the whole width; prev and next sit below it, within thumb reach. */
+  .lightbox {
+    padding: var(--space-9) 0;
+  }
+
+  .lightbox__figure figcaption {
+    padding-inline: var(--space-4);
+  }
+
+  .lightbox__figure img {
+    max-height: calc(100dvh - 2 * var(--space-9) - var(--space-8));
+    border-radius: 0;
+  }
+
+  .lightbox__prev,
+  .lightbox__next {
+    top: auto;
+    bottom: var(--space-5);
+    transform: none;
+  }
+
+  .lightbox__prev {
+    left: calc(50% - var(--space-8));
+  }
+
+  .lightbox__next {
+    right: calc(50% - var(--space-8));
+  }
+}

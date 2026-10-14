@@ -238,8 +238,8 @@ describe("motion with weight", () => {
 
 describe("landing copy", () => {
   it("keeps the two welcome routes", () => {
-    expect(WELCOME_COPY.primaryAction).toBe("Find your place");
-    expect(WELCOME_COPY.secondaryAction).toBe("I’m already here");
+    expect(WELCOME_COPY.primaryAction).toBe("Join now");
+    expect(WELCOME_COPY.secondaryAction).toBe("Log in");
   });
 
   it("intro can be skipped, opted out of, and respects reduced motion", () => {

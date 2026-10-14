@@ -11,6 +11,9 @@
   --color-paper: #f8f4ea;
   --color-paper-raised: #fffdf7;
   --color-paper-glass: rgba(255, 253, 247, 0.8);
+  /* Paper laid over a photo (an album's name band, a caption): ink-soft on it stays above
+     4.5 : 1 even over a black photo. */
+  --color-paper-veil: rgba(248, 244, 234, 0.92);
   --color-ink: #392820;
   --color-ink-muted: #73665c;
   --color-ink-soft: #6f5d45; /* kickers and notes */
@@ -18,36 +21,51 @@
   --color-blue: #143f68; /* the wordmark, primary actions, links */
   --color-blue-deep: #0c3155;
   --color-gold: #c6842a;
+  --color-gold-text: #a86a1c; /* gold for large text: 4.0 : 1 on paper (the brand gold is only 2.8) */
   --color-line: rgba(57, 40, 32, 0.18);
   --color-border: rgba(57, 40, 32, 0.22);
   --color-focus: var(--color-blue);
+  /* The lightbox: photos are seen on a dark ground, not on paper. */
+  --color-night: #1c1410;
+  --color-night-text: rgba(255, 253, 247, 0.85);
+  --color-night-quiet: rgba(255, 253, 247, 0.6);
+  --color-night-line: rgba(255, 253, 247, 0.28);
+  --color-night-fill: rgba(255, 253, 247, 0.06);
+  --color-night-fill-hover: rgba(255, 253, 247, 0.18);
 
   /* ---------- Type ---------- */
   /* --font-sans and --font-serif are set by next/font in app/layout.tsx. */
-  --font-ui: var(--font-sans), Arial, sans-serif; /* DM Sans: interface */
-  --font-voice: var(--font-serif), Georgia, serif; /* DM Serif Display: the human voice */
+  --font-ui: var(--font-sans), Arial, sans-serif; /* Figtree: interface */
+  --font-voice: var(--font-serif), Georgia, serif; /* Young Serif: the human voice (upright only: it has no italic) */
+  --font-wordmark: var(--font-wordmark-face), var(--font-ui); /* DM Sans Bold: the "alumnity." logo only */
 
   --text-icon: 1rem; /* arrows and glyphs beside text */
+  --text-icon-large: 1.25rem; /* arrows on their own, in round buttons */
+  --text-fine: 0.8125rem; /* 13 px: captions on photos, small card details */
   --text-label: 0.75rem; /* 12 px, uppercase and tracked */
   --text-small: 0.875rem; /* 14 px: navigation, notes, footer */
   --text-button: 0.9375rem; /* 15 px */
   --text-body: clamp(1.0625rem, 1.25vw, 1.1875rem); /* 17–19 px */
-  --text-caption: 1.5rem; /* 24 px, serif italic */
+  --text-caption: 1.5rem; /* 24 px, serif: captions and section names */
+  --text-card: 1.3rem; /* 21 px, serif: a card's name */
   --text-title: clamp(1.5rem, 3vw, 2.5rem);
   --text-display: clamp(3rem, 6vw, 6rem); /* 48–96 px */
-  --text-display-narrow: clamp(3rem, 14vw, 4.75rem);
+  --text-page-title: clamp(2.5rem, 5vw, 4.5rem); /* 40–72 px: every inner page */
+  --text-display-narrow: clamp(2.6rem, 12.5vw, 4.5rem);
 
   --leading-display: 0.98;
   --leading-snug: 1.1;
   --leading-body: 1.6;
+  --leading-compact: 1.4; /* short lines: captions, notices */
   --tracking-label: 0.14em;
-  --tracking-display: -0.035em;
+  --tracking-display: -0.02em;
   --tracking-wordmark: -0.075em;
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
-  --measure-body: 34ch;
+  --measure-body: 34ch; /* the hero's line */
+  --measure-page: 46ch; /* an inner page's opening paragraph */
 
   /* ---------- Space: an 8 px grid (4 for fine adjustments) ---------- */
   --space-1: 4px;
@@ -64,6 +82,8 @@
   /* ---------- Shape and depth ---------- */
   --radius-pill: 999px;
   --radius-card: 14px;
+  --radius-photo: 10px; /* a photo inside a card or grid */
+  --seam: 3px; /* the paper showing between photos in a mosaic */
   --shadow-button: 0 12px 28px rgba(20, 63, 104, 0.2);
   --shadow-button-hover: 0 16px 30px rgba(20, 63, 104, 0.28);
   /* Text laid over a photo's edge: a paper halo keeps it crisp. */

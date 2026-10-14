@@ -136,7 +136,6 @@
   margin-top: 6px;
   font-family: var(--font-voice);
   font-size: var(--world-title);
-  font-style: italic;
   line-height: var(--leading-snug);
 }
 
@@ -156,7 +155,6 @@
   color: var(--color-ink);
   font-family: var(--font-voice);
   font-size: var(--text-title);
-  font-style: italic;
   white-space: nowrap;
   opacity: 0;
   transform: translate(-50%, 14px);

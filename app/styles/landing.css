@@ -1,5 +1,5 @@
 /*
- * The landing page: nav, hero, its photo, and the "coming soon" notice.
+ * The landing page: the hero and its photo.
  * Painted from the first frame (the intro covers it, then opens over it), so the
  * headline counts as shown at once.
  */
@@ -27,62 +27,6 @@
   from {
     opacity: 0;
   }
-}
-
-/* ---------- Nav ---------- */
-
-.landing-nav {
-  position: absolute;
-  z-index: 4;
-  top: 0;
-  right: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--nav-height);
-}
-
-.landing-nav__brand {
-  font-size: clamp(1.75rem, 2.4vw, 2.1rem);
-}
-
-/* The nav's lockup appears once the intro's copy has landed on it. */
-.landing:not(.landing--intro-complete) .landing-nav__brand .brand {
-  visibility: hidden;
-}
-
-.landing-nav nav {
-  display: flex;
-  gap: clamp(var(--space-5), 3vw, var(--space-7));
-  margin-left: 11%;
-}
-
-.landing-nav nav a,
-.sign-in {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--tap-target);
-  font-size: var(--text-small);
-  font-weight: var(--weight-semibold);
-}
-
-.landing-nav nav a {
-  color: var(--color-ink-muted);
-  transition: color var(--duration-instant) ease;
-}
-
-.landing-nav nav a:hover {
-  color: var(--color-ink);
-}
-
-.sign-in {
-  gap: var(--space-2);
-  color: var(--color-blue);
-}
-
-.sign-in span {
-  font-size: var(--text-icon);
 }
 
 /* ---------- Hero: copy on the left, the photo a design element behind it ---------- */
@@ -127,8 +71,9 @@
 }
 
 .hero h1 {
-  /* Measured in em so the headline keeps the same line breaks at every size. */
-  max-width: 6.9em;
+  /* Measured in em so the headline keeps the same line breaks at every size
+     (three lines in Young Serif: "Stay connected / to where it / began."). */
+  max-width: 7.4em;
   margin: 0;
   color: var(--color-red);
   font-family: var(--font-voice);
@@ -270,7 +215,6 @@
   margin-top: var(--space-1);
   font-family: var(--font-voice);
   font-size: var(--text-caption);
-  font-style: italic;
   font-weight: var(--weight-regular);
   line-height: var(--leading-snug);
 }
@@ -298,33 +242,6 @@
     opacity: 0;
     transform: translateY(6px);
   }
-}
-
-/* ---------- "Coming soon" notice ---------- */
-
-.soon-notice {
-  position: fixed;
-  z-index: var(--z-notice);
-  bottom: var(--space-5);
-  left: 50%;
-  max-width: min(92vw, 460px);
-  margin: 0;
-  padding: var(--space-3) 18px;
-  border-radius: var(--radius-card);
-  background: var(--color-ink);
-  color: var(--color-paper-raised);
-  font-size: var(--text-small);
-  line-height: 1.45;
-  text-align: center;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, 12px);
-  transition: opacity var(--duration-quick) var(--ease-out), transform var(--duration-quick) var(--ease-out);
-}
-
-.soon-notice--shown {
-  opacity: 1;
-  transform: translate(-50%, 0);
 }
 
 /* ---------- Narrow screens ---------- */
@@ -373,10 +290,6 @@
 }
 
 @media (max-width: 700px) {
-  .landing-nav nav {
-    display: none;
-  }
-
   .hero {
     padding: var(--space-9) 0 var(--space-6);
   }
