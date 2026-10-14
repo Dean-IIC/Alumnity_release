@@ -128,12 +128,28 @@ export class InkPhoto {
     target.globalAlpha = 1;
   }
 
+  private released = false;
+
+  /**
+   * Gives back the memory of the working canvases (the visible one stays as it is). Phones
+   * cap the memory all canvases may use, and Safari only reclaims it long after a canvas
+   * is dropped; past the cap, new canvases fail. Shrinking them to nothing frees it now.
+   */
+  release() {
+    this.released = true;
+    for (const { canvas } of [this.layer, this.maskA, this.maskB, this.scratch, this.sketchShape]) {
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+  }
+
   /**
    * `sketchAlpha`: how strongly the black-and-white sketch shows (the intro keeps every
    * photo waiting faintly, then firms it up as the pen arrives). `inkP`: how far the
    * colour has spread, 0 → 1.
    */
   draw(sketchAlpha: number, inkP: number) {
+    if (this.released) return;
     const key = `${sketchAlpha.toFixed(3)}:${inkP.toFixed(4)}`;
     if (key === this.lastKey) return;
     this.lastKey = key;

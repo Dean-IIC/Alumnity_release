@@ -69,6 +69,8 @@ export function InkBloom({ src, sketch, origin = { x: 0.5, y: 0.5 }, seed, alt, 
       .catch(() => undefined);
     return () => {
       cancelled = true;
+      inkRef.current?.release();
+      inkRef.current = null;
     };
     // origin is usually a literal: its values matter, not its identity.
   }, [src, sketch, seed, origin.x, origin.y, spread?.sketch, spread?.colour]);

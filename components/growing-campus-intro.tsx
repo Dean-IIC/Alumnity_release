@@ -28,7 +28,7 @@ const MARK_LABEL = "#73665c";
 /** Ink flicked off the pen: a soft brown, behind the line. */
 const SPLAT = "rgba(111, 93, 69, 0.3)";
 const LINE_WIDTH = 13;
-/** The camera never shows the world much above this scale, so the line bitmap needn't be larger. */
+/** The line bitmap's size against the world's: sharp enough at the camera's zoom, and any larger costs memory and setup time. */
 const LINE_TEXTURE_SCALE = 0.8;
 
 const loadImage = (src: string) =>
@@ -40,6 +40,13 @@ const loadImage = (src: string) =>
   });
 
 const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
+
+/** Two layouts that would draw the same world. */
+const sameWorld = (a: WorldLayout, b: WorldLayout) =>
+  a.width === b.width &&
+  a.height === b.height &&
+  a.segments.join() === b.segments.join() &&
+  a.shots.every((shot, i) => shot.centre.x === b.shots[i]?.centre.x && shot.centre.y === b.shots[i]?.centre.y && shot.width === b.shots[i]?.width);
 const easeInCubic = (t: number) => t * t * t;
 const easeInBack = (t: number) => 2.4 * t * t * t - 1.4 * t * t;
 
@@ -50,7 +57,11 @@ const easeInBack = (t: number) => 2.4 * t * t * t - 1.4 * t * t;
  */
 async function lineTexture(layout: WorldLayout): Promise<HTMLCanvasElement> {
   const paths = layout.segments.map((d) => `<path d="${d}"/>`).join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${layout.width}" height="${layout.height}" viewBox="0 0 ${layout.width} ${layout.height}">
+  const width = Math.round(layout.width * LINE_TEXTURE_SCALE);
+  const height = Math.round(layout.height * LINE_TEXTURE_SCALE);
+  // Rasterised straight at the texture's size: the filters (the slow part, ~10 million
+  // pixels of world on a phone) never run at full size only to be shrunk afterwards.
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${layout.width} ${layout.height}">
     <filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
       <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="4" result="wobble"/>
       <feDisplacementMap in="SourceGraphic" in2="wobble" scale="9" xChannelSelector="R" yChannelSelector="G" result="wobbly"/>
@@ -67,9 +78,12 @@ async function lineTexture(layout: WorldLayout): Promise<HTMLCanvasElement> {
   try {
     const image = await loadImage(url);
     const canvas = document.createElement("canvas");
-    canvas.width = Math.round(layout.width * LINE_TEXTURE_SCALE);
-    canvas.height = Math.round(layout.height * LINE_TEXTURE_SCALE);
-    canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height);
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    // A refused canvas would give an invisible line; failing lets the plain line stand in.
+    if (!ctx) throw new Error("No canvas for the line texture");
+    ctx.drawImage(image, 0, 0, width, height);
     return canvas;
   } finally {
     URL.revokeObjectURL(url);
@@ -118,11 +132,23 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
     setSkipNextTime(readIntroPreference() === "skip");
     // No scrolling under the intro: the page below it isn't revealed yet.
     document.documentElement.classList.add("intro-playing");
-    const update = () => setLayout(worldLayout(viewport()));
+    // Re-lay out the world only when it really changes shape (a rotation, a resized window).
+    // On phones the address bar sliding in and out fires resizes that leave the world as it
+    // was; rebuilding then would redraw the whole ink line mid-intro and stall it.
+    const update = () => setLayout((current) => {
+      const next = worldLayout(viewport());
+      return current && sameWorld(current, next) ? current : next;
+    });
     update();
-    window.addEventListener("resize", update);
+    let wait = 0;
+    const onResize = () => {
+      window.clearTimeout(wait);
+      wait = window.setTimeout(update, 150);
+    };
+    window.addEventListener("resize", onResize);
     return () => {
-      window.removeEventListener("resize", update);
+      window.clearTimeout(wait);
+      window.removeEventListener("resize", onResize);
       document.documentElement.classList.remove("intro-playing");
     };
   }, [settle]);
@@ -135,9 +161,20 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
     const loadEra = (i: number) =>
       Promise.all([loadImage(layout.shots[i].era.photo.sketch), loadImage(layout.shots[i].era.photo.photo)]);
 
+    // Everything this run makes that holds canvas memory, freed when it ends (see InkPhoto.release).
+    let texture: HTMLCanvasElement | null = null;
+    const inks: (InkPhoto | null)[] = layout.shots.map(() => null);
+    const free = () => {
+      inks.forEach((ink) => ink?.release());
+      if (texture) texture.width = texture.height = 0;
+    };
+
     // Start as soon as the line and the first era are ready; the rest arrive while it plays.
-    Promise.all([lineTexture(layout), loadEra(0)])
-      .then(([texture, firstEra]) => {
+    // Neither is essential: without the texture the line is plain ink, and a photo that
+    // fails is simply left out. The intro carries on rather than vanishing.
+    Promise.all([lineTexture(layout).catch(() => null), loadEra(0).catch(() => null)])
+      .then(([lineBitmap, firstEra]) => {
+        texture = lineBitmap;
         const section = sectionRef.current;
         const stage = stageRef.current;
         const world = worldRef.current;
@@ -147,7 +184,12 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         const patterns = patternsRef.current;
         const revealRoot = document.querySelector<HTMLElement>("[data-reveal-root]");
         const brandTarget = document.querySelector<HTMLElement>("[data-brand-target]");
-        if (cancelled || !section || !stage || !world || !lineCanvas || !line || !lockup || !patterns) return;
+        if (cancelled) return;
+        // Nothing to draw on (the phone refused the canvas): straight to the site, rather than blank paper.
+        if (!section || !stage || !world || !lineCanvas || !line || !lockup || !patterns) {
+          settle();
+          return;
+        }
 
         const swoosh = lockup.querySelector<SVGPathElement>(".brand__swoosh-reveal");
         const name = lockup.querySelector<HTMLElement>(".brand__name");
@@ -155,12 +197,16 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         const bylineFull = lockup.querySelector<HTMLElement>(".brand__by-full");
         const bylineShort = lockup.querySelector<HTMLElement>(".brand__by-short");
 
-        const inks: (InkPhoto | null)[] = layout.shots.map(() => null);
         const makeInk = (i: number, [sketch, photo]: HTMLImageElement[]) => {
           const canvas = canvasRefs.current[i];
-          if (canvas && !cancelled) inks[i] = new InkPhoto(canvas, sketch, photo, layout.shots[i].era.photo.inkOrigin, 11 + i * 17);
+          if (!canvas || cancelled) return;
+          try {
+            inks[i] = new InkPhoto(canvas, sketch, photo, layout.shots[i].era.photo.inkOrigin, 11 + i * 17);
+          } catch {
+            // Out of canvas memory, most likely: this era goes without its photo.
+          }
         };
-        makeInk(0, firstEra);
+        if (firstEra) makeInk(0, firstEra);
 
         const segments = layout.segments.map((d, i) => ({
           path: new Path2D(d),
@@ -253,7 +299,10 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         startRef.current ??= performance.now();
 
         const tick = (now: number) => {
-          if (settledRef.current) return;
+          if (settledRef.current) {
+            free();
+            return;
+          }
           const t = Number.isFinite(frozen) ? frozen : now - (startRef.current ?? now);
           const view = viewport();
           const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -280,8 +329,10 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           line.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
           line.setTransform(dpr * camera.scale, 0, 0, dpr * camera.scale, dpr * ox, dpr * oy);
           line.lineCap = "round";
-          line.lineWidth = LINE_WIDTH * 3.6;
-          line.strokeStyle = "#000";
+          // With the texture, a wide stroke only says how far the pen has got; without it,
+          // the stroke is the ink itself.
+          line.lineWidth = texture ? LINE_WIDTH * 3.6 : LINE_WIDTH;
+          line.strokeStyle = texture ? "#000" : INK;
           for (const [i, segment] of segments.entries()) {
             // Slow through each photo, quick between them, never stopping.
             const p = penProgress(i, t);
@@ -290,8 +341,20 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
             line.stroke(segment.path);
           }
           line.setLineDash([]);
-          line.globalCompositeOperation = "source-in";
-          line.drawImage(texture, 0, 0, layout.width, layout.height);
+          if (texture) {
+            line.globalCompositeOperation = "source-in";
+            // Only the part of the world on screen: on a phone the camera sees a sliver of a
+            // tall world, and copying all of it every frame is most of a frame's work.
+            const left = Math.max(0, -ox / camera.scale);
+            const top = Math.max(0, -oy / camera.scale);
+            const right = Math.min(layout.width, (view.width - ox) / camera.scale);
+            const bottom = Math.min(layout.height, (view.height - oy) / camera.scale);
+            if (right > left && bottom > top) {
+              const kx = texture.width / layout.width;
+              const ky = texture.height / layout.height;
+              line.drawImage(texture, left * kx, top * ky, (right - left) * kx, (bottom - top) * ky, left, top, right - left, bottom - top);
+            }
+          }
 
           // Each blot drops where the pen lands, under the photo.
           line.globalCompositeOperation = "source-over";
@@ -439,6 +502,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
     return () => {
       cancelled = true;
       cancelAnimationFrame(frame);
+      free();
     };
   }, [layout, settle]);
 

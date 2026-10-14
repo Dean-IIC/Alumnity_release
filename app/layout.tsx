@@ -5,7 +5,9 @@ import "./globals.css";
 
 // Self-hosted by Next at build time: no render-blocking request to Google on load.
 // Figtree for the interface, Young Serif for the human voice (chosen in the /lab comparison).
-const sans = Figtree({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans", display: "swap" });
+// Figtree as its one variable font (every weight in one file) rather than four static ones:
+// a phone decodes one font on first paint instead of four.
+const sans = Figtree({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const serif = Young_Serif({ subsets: ["latin"], weight: "400", variable: "--font-serif", display: "swap" });
 // The wordmark keeps its own face: the logo shouldn't change when the body font does.
 const wordmark = DM_Sans({ subsets: ["latin"], weight: "700", variable: "--font-wordmark-face", display: "swap" });
