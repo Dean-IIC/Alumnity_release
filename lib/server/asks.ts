@@ -1,8 +1,7 @@
-import { database } from "./db";
+import { db } from "./db";
 import type { User } from "./auth";
 import { toUser } from "./auth";
 import { blockedEitherWay, blockIds, connectionIds, memberById } from "./people";
-import { profileOf } from "./profile";
 import { isSenior } from "./roles";
 import { notify, type Result } from "./social";
 import { PAUSED, settings } from "./settings";
@@ -55,19 +54,21 @@ type AskRow = {
 const words = (s: string) => s.toLowerCase().split(/[^a-z0-9+#.]+/).filter((w) => w.length > 1);
 
 /** The seniors a question should go to, best first, each with why. */
-export function routeFor(author: User, title: string, topics: string[]): { user: User; reason: string }[] {
+export async function routeFor(author: User, title: string, topics: string[]): Promise<{ user: User; reason: string }[]> {
   const wanted = new Set([...topics.flatMap(words), ...words(title)]);
   // Only those who said they're happy to mentor: found by the database, not by reading every page.
   // Each mentor and their page in one read, rather than two queries per mentor.
-  const rows = database()
-    .prepare(
+  const [rows, blocked, circle] = await Promise.all([
+    db().all(
       `select users.*, profiles.data as profile_data from users join profiles on profiles.user_id = users.id
        where users.id != ? and users.suspended_at is null and users.role != 'student'
-       and json_extract(profiles.data, '$.happyTo.mentor') = 1`
-    )
-    .all(author.id) as Record<string, unknown>[];
-  const blocked = blockIds(author.id);
-  const circle = connectionIds(author.id);
+       and (profiles.data::jsonb -> 'happyTo' ->> 'mentor') = 'true'
+       limit 5000`,
+      author.id
+    ),
+    blockIds(author.id),
+    connectionIds(author.id)
+  ]);
   const scored: { user: User; score: number; reason: string }[] = [];
   for (const row of rows) {
     const id = Number(row.id);
@@ -97,37 +98,42 @@ export function routeFor(author: User, title: string, topics: string[]): { user:
   return pool.sort((a, b) => b.score - a.score).slice(0, ROUTE_TO).map(({ user, reason }) => ({ user, reason }));
 }
 
-export function createAsk(me: User, input: { title: string; body: string; topics: string }): Result & { id?: number } {
-  if (!settings().features.asks) return no(PAUSED);
+export async function createAsk(me: User, input: { title: string; body: string; topics: string }): Promise<Result & { id?: number }> {
+  if (!(await settings()).features.asks) return no(PAUSED);
   const title = input.title.trim().slice(0, ASK_LIMITS.title);
   const body = input.body.trim().slice(0, ASK_LIMITS.body);
   const topics = [...new Set(input.topics.split(",").map((t) => t.trim().slice(0, ASK_LIMITS.topic)).filter(Boolean))].slice(0, ASK_LIMITS.topics);
   if (!title) return no("Say what you'd like to ask, in a line.");
   if (!body) return no("Add a few lines: what you've tried, what you're stuck on.");
-  if (!withinLimit(`ask:${me.id}`, 5, DAY)) return no("That's five Asks today: the most in a day. Try again tomorrow.");
-  const db = database();
-  const { lastInsertRowid } = db
-    .prepare("insert into asks (author, title, body, topics, status, created_at) values (?, ?, ?, ?, 'open', ?)")
-    .run(me.id, title, body, JSON.stringify(topics), Date.now());
-  const id = Number(lastInsertRowid);
-  for (const { user, reason } of routeFor(me, title, topics)) {
-    db.prepare("insert or ignore into ask_routes (ask_id, user_id, reason) values (?, ?, ?)").run(id, user.id, reason);
-    notify(user.id, { actor: me.id, kind: "ask", text: `${me.name} has a question that fits you: “${title}”`, link: `/ask/${id}` });
-  }
+  if (!(await withinLimit(`ask:${me.id}`, 5, DAY))) return no("That's five Asks today: the most in a day. Try again tomorrow.");
+  const routes = await routeFor(me, title, topics);
+  const id = await db().tx(async (t) => {
+    const row = await t.one<{ id: number }>(
+      "insert into asks (author, title, body, topics, status, created_at) values (?, ?, ?, ?, 'open', ?) returning id",
+      me.id,
+      title,
+      body,
+      JSON.stringify(topics),
+      Date.now()
+    );
+    for (const { user, reason } of routes) await t.run("insert into ask_routes (ask_id, user_id, reason) values (?, ?, ?) on conflict do nothing", row!.id, user.id, reason);
+    return row!.id;
+  });
+  for (const { user } of routes) await notify(user.id, { actor: me.id, kind: "ask", text: `${me.name} has a question that fits you: “${title}”`, link: `/ask/${id}` });
   return { ok: true, id };
 }
 
-const routedTo = (askId: number, userId: number) =>
-  (database().prepare("select reason from ask_routes where ask_id = ? and user_id = ?").get(askId, userId) as { reason: string } | undefined)?.reason ?? null;
+const routedTo = async (askId: number, userId: number) =>
+  (await db().one<{ reason: string }>("select reason from ask_routes where ask_id = ? and user_id = ?", askId, userId))?.reason ?? null;
 
 /** A member by id even if paused: an Ask they were part of stays readable to the other side. */
-const anyMember = (id: number): User | null => {
-  const row = database().prepare("select * from users where id = ?").get(id) as Record<string, unknown> | undefined;
+const anyMember = async (id: number): Promise<User | null> => {
+  const row = await db().one("select * from users where id = ?", id);
   return row ? toUser(row) : null;
 };
 
-function toAsk(row: AskRow, viewer: User): Ask | null {
-  const author = anyMember(row.author);
+async function toAsk(row: AskRow, viewer: User): Promise<Ask | null> {
+  const [author, taker, reason] = await Promise.all([anyMember(row.author), row.taker ? anyMember(row.taker) : null, routedTo(row.id, viewer.id)]);
   if (!author) return null;
   return {
     id: row.id,
@@ -136,107 +142,123 @@ function toAsk(row: AskRow, viewer: User): Ask | null {
     body: row.body,
     topics: JSON.parse(row.topics) as string[],
     status: row.status,
-    taker: row.taker ? anyMember(row.taker) : null,
+    taker,
     thanks: row.thanks,
     createdAt: row.created_at,
-    reason: routedTo(row.id, viewer.id)
+    reason
   };
 }
 
-const rowById = (id: number) => database().prepare("select * from asks where id = ?").get(id) as AskRow | undefined;
+const rowById = (id: number) => (Number.isSafeInteger(id) ? db().one<AskRow>("select * from asks where id = ?", id) : Promise.resolve(undefined));
+
+/** Whether the asker and the senior on it have blocked each other: then the thread is closed to both. */
+const pairBlocked = async (row: AskRow) => row.taker !== null && (await blockedEitherWay(row.author, row.taker));
 
 /**
  * Whether `viewer` may see an Ask. Its author always; the senior who took it; before
  * anyone has, the seniors it went to, or any senior if it went to nobody (an open Ask).
  */
-/** Whether the asker and the senior on it have blocked each other: then the thread is closed to both. */
-const pairBlocked = (row: AskRow) => row.taker !== null && blockedEitherWay(row.author, row.taker);
-
-function mayView(viewer: User, row: AskRow): boolean {
+async function mayView(viewer: User, row: AskRow): Promise<boolean> {
   if (row.author === viewer.id) return true;
-  if (row.taker === viewer.id) return !pairBlocked(row);
-  if (!memberById(row.author) || blockedEitherWay(viewer.id, row.author)) return false;
+  if (row.taker === viewer.id) return !(await pairBlocked(row));
+  if (!(await memberById(row.author)) || (await blockedEitherWay(viewer.id, row.author))) return false;
   if (row.status !== "open") return false;
-  if (routedTo(row.id, viewer.id) !== null) return true;
-  const routes = (database().prepare("select count(*) as n from ask_routes where ask_id = ?").get(row.id) as { n: number }).n;
-  return routes === 0 && isSenior(viewer);
+  if ((await routedTo(row.id, viewer.id)) !== null) return true;
+  const routes = await db().one<{ n: number }>("select count(*) as n from ask_routes where ask_id = ?", row.id);
+  return routes!.n === 0 && isSenior(viewer);
 }
 
-export function askFor(viewer: User, id: number): Ask | null {
-  const row = rowById(id);
-  return row && mayView(viewer, row) ? toAsk(row, viewer) : null;
+export async function askFor(viewer: User, id: number): Promise<Ask | null> {
+  const row = await rowById(id);
+  return row && (await mayView(viewer, row)) ? toAsk(row, viewer) : null;
 }
 
-export function asksFor(viewer: User): { mine: Ask[]; forMe: Ask[]; taken: Ask[]; open: Ask[] } {
-  const db = database();
-  const list = (sql: string, ...args: (number | string)[]) =>
-    (db.prepare(sql).all(...args) as AskRow[]).filter((r) => mayView(viewer, r)).map((r) => toAsk(r, viewer)).filter((a): a is Ask => a !== null);
-  return {
-    mine: list("select * from asks where author = ? order by created_at desc", viewer.id),
-    forMe: list(
-      "select asks.* from asks join ask_routes on ask_routes.ask_id = asks.id where ask_routes.user_id = ? and asks.status = 'open' order by asks.created_at desc",
+export async function asksFor(viewer: User): Promise<{ mine: Ask[]; forMe: Ask[]; taken: Ask[]; open: Ask[] }> {
+  const list = async (sql: string, ...args: (number | string)[]) => {
+    const asks: Ask[] = [];
+    for (const r of await db().all<AskRow>(sql, ...args)) {
+      if (!(await mayView(viewer, r))) continue;
+      const ask = await toAsk(r, viewer);
+      if (ask) asks.push(ask);
+    }
+    return asks;
+  };
+  const [mine, forMe, taken, open] = await Promise.all([
+    list("select * from asks where author = ? order by created_at desc limit 100", viewer.id),
+    list(
+      "select asks.* from asks join ask_routes on ask_routes.ask_id = asks.id where ask_routes.user_id = ? and asks.status = 'open' order by asks.created_at desc limit 100",
       viewer.id
     ),
-    taken: list("select * from asks where taker = ? order by created_at desc", viewer.id),
-    open: isSenior(viewer)
+    list("select * from asks where taker = ? order by created_at desc limit 100", viewer.id),
+    isSenior(viewer)
       ? list(
           "select * from asks where status = 'open' and author != ? and not exists (select 1 from ask_routes where ask_routes.ask_id = asks.id) order by created_at desc limit 30",
           viewer.id
         )
-      : []
-  };
+      : Promise.resolve([])
+  ]);
+  return { mine, forMe, taken, open };
 }
 
-export function takeAsk(me: User, id: number): Result {
-  const row = rowById(id);
-  if (!row || !mayView(me, row)) return no("That Ask isn't here.");
+export async function takeAsk(me: User, id: number): Promise<Result> {
+  const row = await rowById(id);
+  if (!row || !(await mayView(me, row))) return no("That Ask isn't here.");
   if (!isSenior(me)) return no("Asks are taken on by alumni and faculty.");
   if (row.author === me.id) return no("You can't take your own Ask.");
-  const result = database().prepare("update asks set status = 'taken', taker = ?, taken_at = ? where id = ? and status = 'open'").run(me.id, Date.now(), id);
-  if (!result.changes) return no("Someone has just taken this one on.");
-  notify(row.author, { actor: me.id, kind: "ask-taken", text: `${me.name} took on your question “${row.title}”.`, link: `/ask/${id}` });
+  const changes = await db().run("update asks set status = 'taken', taker = ?, taken_at = ? where id = ? and status = 'open'", me.id, Date.now(), id);
+  if (!changes) return no("Someone has just taken this one on.");
+  await notify(row.author, { actor: me.id, kind: "ask-taken", text: `${me.name} took on your question “${row.title}”.`, link: `/ask/${id}` });
   return { ok: true };
 }
 
 /** The thread: between the asker and the senior who took it on. */
-export function askThread(viewer: User, id: number): AskMessage[] {
-  const row = rowById(id);
-  if (!row || (row.author !== viewer.id && row.taker !== viewer.id) || pairBlocked(row)) return [];
-  return (
-    database().prepare("select * from ask_messages where ask_id = ? order by created_at").all(id) as { id: number; author: number; body: string; created_at: number }[]
-  ).flatMap((m) => {
-    const author = anyMember(m.author);
-    return author ? [{ id: m.id, author, body: m.body, createdAt: m.created_at, mine: author.id === viewer.id }] : [];
+export async function askThread(viewer: User, id: number): Promise<AskMessage[]> {
+  const row = await rowById(id);
+  if (!row || (row.author !== viewer.id && row.taker !== viewer.id) || (await pairBlocked(row))) return [];
+  const [rows, author, taker] = await Promise.all([
+    db().all<{ id: number; author: number; body: string; created_at: number }>("select * from ask_messages where ask_id = ? order by created_at, id", id),
+    anyMember(row.author),
+    row.taker ? anyMember(row.taker) : null
+  ]);
+  const people = new Map([author, taker].filter((u): u is User => u !== null).map((u) => [u.id, u]));
+  return rows.flatMap((m) => {
+    const by = people.get(m.author);
+    return by ? [{ id: m.id, author: by, body: m.body, createdAt: m.created_at, mine: by.id === viewer.id }] : [];
   });
 }
 
-export function replyToAsk(me: User, id: number, body: string): Result {
-  const row = rowById(id);
+export async function replyToAsk(me: User, id: number, body: string): Promise<Result> {
+  const row = await rowById(id);
   if (!row || (row.author !== me.id && row.taker !== me.id)) return no("Only the asker and the senior who took it on can write here.");
   if (row.status !== "taken" && row.status !== "answered") return no("This Ask isn't open for replies.");
-  if (pairBlocked(row)) return no("This conversation is closed.");
+  if (await pairBlocked(row)) return no("This conversation is closed.");
   const text = body.trim().slice(0, ASK_LIMITS.reply);
   if (!text) return no("Write something first.");
-  if (!withinLimit(`ask-reply:${me.id}`, 120, 60 * 60_000)) return no("That's a lot of replies in an hour. Take a breather and try again.");
-  database().prepare("insert into ask_messages (ask_id, author, body, created_at) values (?, ?, ?, ?)").run(id, me.id, text, Date.now());
+  if (!(await withinLimit(`ask-reply:${me.id}`, 120, 60 * 60_000))) return no("That's a lot of replies in an hour. Take a breather and try again.");
+  await db().run("insert into ask_messages (ask_id, author, body, created_at) values (?, ?, ?, ?)", id, me.id, text, Date.now());
   const other = me.id === row.author ? row.taker : row.author;
-  if (other) notify(other, { actor: me.id, kind: "ask-reply", text: `${me.name} replied on “${row.title}”.`, link: `/ask/${id}` });
+  if (other) await notify(other, { actor: me.id, kind: "ask-reply", text: `${me.name} replied on “${row.title}”.`, link: `/ask/${id}` });
   return { ok: true };
 }
 
 /** The asker marks it answered, with a line of thanks that goes on the senior's Record. */
-export function markAnswered(me: User, id: number, thanks: string): Result {
-  const row = rowById(id);
+export async function markAnswered(me: User, id: number, thanks: string): Promise<Result> {
+  const row = await rowById(id);
   if (!row || row.author !== me.id) return no("Only the asker can mark it answered.");
   if (row.status !== "taken" || !row.taker) return no("A senior has to take it on first.");
   const note = thanks.trim().slice(0, 300) || null;
-  database().prepare("update asks set status = 'answered', thanks = ?, answered_at = ? where id = ?").run(note, Date.now(), id);
-  notify(row.taker, { actor: me.id, kind: "ask-answered", text: `${me.name} marked “${row.title}” answered${note ? ", with thanks" : ""}. It's on your Record.`, link: `/ask/${id}` });
+  await db().run("update asks set status = 'answered', thanks = ?, answered_at = ? where id = ?", note, Date.now(), id);
+  await notify(row.taker, {
+    actor: me.id,
+    kind: "ask-answered",
+    text: `${me.name} marked “${row.title}” answered${note ? ", with thanks" : ""}. It's on your Record.`,
+    link: `/ask/${id}`
+  });
   return { ok: true };
 }
 
-export function closeAsk(me: User, id: number): Result {
-  database().prepare("update asks set status = 'closed' where id = ? and author = ? and status in ('open', 'taken')").run(id, me.id);
+export async function closeAsk(me: User, id: number): Promise<Result> {
+  await db().run("update asks set status = 'closed' where id = ? and author = ? and status in ('open', 'taken')", id, me.id);
   return { ok: true };
 }
 
@@ -245,11 +267,10 @@ export function closeAsk(me: User, id: number): Result {
  * thanks (which the asker wrote to be shown): never the question, which may be private,
  * nor who asked. Paused askers' thanks drop out.
  */
-export function recordOf(userId: number): { count: number; thanks: string[] } {
-  const rows = database()
-    .prepare(
-      "select asks.thanks from asks join users on users.id = asks.author where asks.taker = ? and asks.status = 'answered' and users.suspended_at is null order by asks.answered_at desc"
-    )
-    .all(userId) as { thanks: string | null }[];
+export async function recordOf(userId: number): Promise<{ count: number; thanks: string[] }> {
+  const rows = await db().all<{ thanks: string | null }>(
+    "select asks.thanks from asks join users on users.id = asks.author where asks.taker = ? and asks.status = 'answered' and users.suspended_at is null order by asks.answered_at desc",
+    userId
+  );
   return { count: rows.length, thanks: rows.flatMap((r) => (r.thanks ? [r.thanks] : [])).slice(0, 10) };
 }

@@ -38,9 +38,9 @@ function AskList({ asks, empty }: { asks: Ask[]; empty: string }) {
 /** Ask a question; see yours; seniors see what's come to them. */
 export default async function AskPage() {
   const me = await requireUser("/ask");
-  const { mine, forMe, taken, open } = asksFor(me);
+  const { mine, forMe, taken, open } = await asksFor(me);
   const senior = isSenior(me);
-  const mentoring = profileOf(me.id).happyTo.mentor;
+  const mentoring = (await profileOf(me.id)).happyTo.mentor;
 
   return (
     <AppPage
@@ -51,8 +51,8 @@ export default async function AskPage() {
     >
       <section aria-labelledby="new-ask">
         <h2 id="new-ask">Ask something</h2>
-        {!settings().features.asks && <p className="wf-empty">{PAUSED}</p>}
-        {settings().features.asks && <ActionForm action={askAction} className="wf-stack">
+        {!(await settings()).features.asks && <p className="wf-empty">{PAUSED}</p>}
+        {(await settings()).features.asks && <ActionForm action={askAction} className="wf-stack">
           <label className="field">
             <span className="field__label">Your question, in a line</span>
             <input name="title" required maxLength={140} placeholder="e.g. How did you prepare for campus placements?" />

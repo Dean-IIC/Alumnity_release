@@ -4,7 +4,7 @@ import { AppPage } from "../../components/app/app-page";
 import { MemberLine } from "../../components/app/member-line";
 import { acceptAction, connectAction, declineAction, unblockAction, withdrawAction } from "../../lib/actions/social";
 import { timeAgo } from "../../lib/format";
-import { batchmates, relation } from "../../lib/server/people";
+import { batchmates, relationsOf } from "../../lib/server/people";
 import { blockedBy, connectionsOf, requestsFor } from "../../lib/server/social";
 import { requireUser } from "../../lib/server/session";
 
@@ -17,11 +17,9 @@ const PAGE = 50;
 export default async function ConnectionsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const me = await requireUser("/connections");
   const page = Math.max(1, Math.min(1000, Math.floor(Number((await searchParams).page)) || 1));
-  const { received, sent } = requestsFor(me);
-  const mine = connectionsOf(me.id);
-  const blocked = blockedBy(me.id);
-  const suggestions = batchmates(me)
-    .filter((u) => relation(me.id, u.id) === "none")
+  const [{ received, sent }, mine, blocked, mates, relationTo] = await Promise.all([requestsFor(me), connectionsOf(me.id), blockedBy(me.id), batchmates(me), relationsOf(me.id)]);
+  const suggestions = mates
+    .filter((u) => relationTo(u.id) === "none")
     .slice(0, 6);
 
   return (

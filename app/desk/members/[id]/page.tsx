@@ -17,7 +17,7 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
   const me = await requireUser(`/desk/members/${raw}`);
   if (!isModerator(me)) notFound();
   const id = Number(raw);
-  const m = Number.isSafeInteger(id) && id > 0 ? memberDetail(me, id) : null;
+  const m = Number.isSafeInteger(id) && id > 0 ? await memberDetail(me, id) : null;
   if (!m) notFound();
   const self = m.id === me.id;
   const above = outranks(me, m);

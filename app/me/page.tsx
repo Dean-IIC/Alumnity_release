@@ -7,7 +7,7 @@ import { LogOutButton } from "../../components/join/log-out-button";
 import { ProfileSheet } from "../../components/profile/profile-sheet";
 import { profileOf } from "../../lib/server/profile";
 import { currentUser } from "../../lib/server/session";
-import { batchSizeOf, loadRegister } from "../../lib/register";
+import { batchSizeOf } from "../../lib/server/register";
 import "../styles/join.css";
 import "../styles/profile.css";
 
@@ -23,8 +23,8 @@ export default async function MePage() {
     <>
       <SiteHeader />
       <main className="profile-page container">
-        <ProfileSheet person={user} profile={profileOf(user.id)} isOwner
-          batchSize={user.usn ? batchSizeOf(loadRegister() ?? [], user.usn) : undefined}
+        <ProfileSheet person={user} profile={await profileOf(user.id)} isOwner
+          batchSize={user.usn ? await batchSizeOf(user.usn) : undefined}
           actions={
             <>
               <a className="button button--primary" href="/me/edit">

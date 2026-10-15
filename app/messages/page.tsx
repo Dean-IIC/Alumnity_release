@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 /** Your conversations, newest first. */
 export default async function MessagesPage() {
   const me = await requireUser("/messages");
-  const list = conversations(me);
+  const list = await conversations(me);
   return (
     <AppPage user={me} current="messages" title="Messages" intro="Letters between connections. To write to someone new, connect first, or Ask a senior.">
       {list.length === 0 ? (

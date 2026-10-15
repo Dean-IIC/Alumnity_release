@@ -13,7 +13,7 @@ import { activeAnnouncements } from "../../lib/server/announcements";
 import { asksFor, isSenior } from "../../lib/server/asks";
 import { eventsFor } from "../../lib/server/events";
 import { followCounts } from "../../lib/server/follows";
-import { batchmates, relation } from "../../lib/server/people";
+import { batchmates, relationsOf } from "../../lib/server/people";
 import { feedFor, type FeedScope } from "../../lib/server/posts";
 import { photoIdsOf, profileOf } from "../../lib/server/profile";
 import { requireUser } from "../../lib/server/session";
@@ -34,21 +34,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const before = Number.isSafeInteger(beforeParam) && beforeParam > 0 ? beforeParam : undefined;
   const scope: FeedScope = params.view === "following" ? "following" : "all";
 
-  const profile = profileOf(me.id);
-  const posts = feedFor(me, { limit: PAGE, before, scope });
-  const reels = storyBar(me);
-  const suggestions = batchmates(me)
-    .filter((u) => relation(me.id, u.id) === "none")
-    .slice(0, 4);
-  const { upcoming } = eventsFor(me);
-  const asks = isSenior(me) ? asksFor(me).forMe : [];
-  const announcements = activeAnnouncements();
-  const notesOn = settings().features.notes;
-  const connections = connectionCount(me.id);
-  const follows = followCounts(me.id);
-  const unread = unreadNotifications(me.id);
+  const [profile, posts, reels, mates, relationTo, { upcoming }, asks, announcements, site, connections, follows, unread] = await Promise.all([
+    profileOf(me.id),
+    feedFor(me, { limit: PAGE, before, scope }),
+    storyBar(me),
+    batchmates(me),
+    relationsOf(me.id),
+    eventsFor(me),
+    isSenior(me) ? asksFor(me).then((a) => a.forMe) : Promise.resolve([]),
+    activeAnnouncements(),
+    settings(),
+    connectionCount(me.id),
+    followCounts(me.id),
+    unreadNotifications(me.id)
+  ]);
+  const suggestions = mates.filter((u) => relationTo(u.id) === "none").slice(0, 4);
+  const notesOn = site.features.notes;
 
-  const photos = photoIdsOf([me.id, ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)]), ...reels.map((r) => r.author.id), ...suggestions.map((s) => s.id)]);
+  const photos = await photoIdsOf([me.id, ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)]), ...reels.map((r) => r.author.id), ...suggestions.map((s) => s.id)]);
   const first = (name: string) => name.split(" ")[0];
   const reelData: ReelData[] = reels.map((r) => ({
     author: { id: r.author.id, name: r.author.name, first: first(r.author.name), photoId: photos.get(r.author.id) ?? null, initials: initialsOf(r.author.name) },

@@ -1,4 +1,4 @@
-import { database } from "./db";
+import { db } from "./db";
 
 /*
  * The site's switches. Super administrators change them in the college desk (every
@@ -21,18 +21,21 @@ export const DEFAULT_SETTINGS: Settings = {
   dailyRequests: 25
 };
 
-export function settings(): Settings {
-  const row = database().prepare("select value from settings where key = 'site'").get() as { value: string } | undefined;
+export async function settings(): Promise<Settings> {
+  const row = await db().one<{ value: string }>("select value from settings where key = 'site'");
   if (!row) return structuredClone(DEFAULT_SETTINGS);
   const saved = JSON.parse(row.value) as Partial<Settings>;
   return { ...DEFAULT_SETTINGS, ...saved, features: { ...DEFAULT_SETTINGS.features, ...saved.features } };
 }
 
 /** Only the desk calls this, after checking the super administrator; it audits too. */
-export function saveSettings(next: Settings, by: number) {
-  database()
-    .prepare("insert into settings (key, value, updated_by, updated_at) values ('site', ?, ?, ?) on conflict(key) do update set value = excluded.value, updated_by = excluded.updated_by, updated_at = excluded.updated_at")
-    .run(JSON.stringify(next), by, Date.now());
+export async function saveSettings(next: Settings, by: number) {
+  await db().run(
+    "insert into settings (key, value, updated_by, updated_at) values ('site', ?, ?, ?) on conflict(key) do update set value = excluded.value, updated_by = excluded.updated_by, updated_at = excluded.updated_at",
+    JSON.stringify(next),
+    by,
+    Date.now()
+  );
 }
 
 export const FEATURE_LABEL: Record<keyof Settings["features"], string> = {

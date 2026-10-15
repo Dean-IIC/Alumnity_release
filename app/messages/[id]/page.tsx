@@ -18,10 +18,10 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
   const { id: raw } = await params;
   const me = await requireUser(`/messages/${raw}`);
   const id = Number(raw);
-  const other = Number.isSafeInteger(id) && id > 0 && id !== me.id ? memberById(id) : null;
-  const rel = other ? relation(me.id, other.id) : "none";
+  const other = Number.isSafeInteger(id) && id > 0 && id !== me.id ? await memberById(id) : null;
+  const rel = other ? await relation(me.id, other.id) : "none";
   if (!other || rel === "blocked" || rel === "blocked-by") notFound();
-  const messages = thread(me, other.id);
+  const messages = await thread(me, other.id);
   const first = other.name.split(" ")[0];
 
   return (
@@ -43,7 +43,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
           </div>
         ))}
       </div>
-      {!settings().features.messages ? (
+      {!(await settings()).features.messages ? (
         <p className="wf-empty">{PAUSED}</p>
       ) : rel === "connected" ? (
         <ActionForm action={messageAction} resetOnSuccess className="wf-stack" showDone={false}>

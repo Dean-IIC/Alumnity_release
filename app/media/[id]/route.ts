@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server";
-import { userForSession } from "../../../lib/server/auth";
-import { mediaById, mediaSize, readMedia } from "../../../lib/server/media";
+import { signedInUser } from "../../../lib/server/auth";
+import { mediaById, mediaLink, readMedia } from "../../../lib/server/media";
 import { canSeePostMedia } from "../../../lib/server/posts";
 import { canSeeStoryMedia } from "../../../lib/server/stories";
-import { sessionToken } from "../../../lib/server/http";
 
 /*
  * A member's upload, for signed-in members only. Each kind is served so it can only be
  * what it is: never sniffed as something else, never run against the site. HTML covers
  * get a sandbox even when opened on their own: an opaque origin, inline scripts and styles
  * only, and no network at all (so nothing can be fetched, sent, or tracked).
+ *
+ * Photos and videos, once the viewer is allowed, are fetched straight from Storage by a
+ * link that works for an hour (so videos stream from there, not through here). HTML is
+ * always served from here, so its sandbox goes with it.
  */
+
+/** How long a direct link works; the browser keeps the redirect a little less. */
+const LINK_LIFE = 60 * 60;
 
 const HTML_POLICY = [
   "sandbox allow-scripts",
@@ -23,14 +29,14 @@ const HTML_POLICY = [
 ].join("; ");
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const viewer = userForSession(sessionToken(request));
+  const viewer = await signedInUser();
   if (!viewer) return new NextResponse("Log in to see this.", { status: 401 });
-  const media = mediaById((await params).id);
+  const media = await mediaById((await params).id);
   if (!media) return new NextResponse("Not found.", { status: 404 });
   // A photo on a post or a story is only for those who may see that post or story (the
   // same "not found" either way, so its existence isn't given away).
-  const onPost = canSeePostMedia(viewer, media.id);
-  const onStory = onPost === null ? canSeeStoryMedia(viewer, media.id) : null;
+  const onPost = await canSeePostMedia(viewer, media.id);
+  const onStory = onPost === null ? await canSeeStoryMedia(viewer, media.id) : null;
   if (onPost === false || onStory === false) return new NextResponse("Not found.", { status: 404 });
 
   const headers: Record<string, string> = {
@@ -43,17 +49,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     "cross-origin-resource-policy": "same-origin"
   };
 
+  if (media.kind !== "html") {
+    const link = await mediaLink(media, LINK_LIFE);
+    if (link) return NextResponse.redirect(link, { status: 302, headers: { "cache-control": `private, max-age=${LINK_LIFE - 600}`, "referrer-policy": "no-referrer" } });
+  }
+
+  const bytes = await readMedia(media);
+  if (!bytes) return new NextResponse("Not found.", { status: 404 });
   // Videos are fetched in pieces as they play (and as you skip about).
-  const size = mediaSize(media);
+  const size = bytes.length;
   const range = request.headers.get("range")?.match(/bytes=(\d*)-(\d*)/);
   if (media.kind === "video" && range) {
     const start = range[1] ? Number(range[1]) : Math.max(0, size - Number(range[2]));
     const end = range[1] && range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
     if (start >= size || start > end) return new NextResponse(null, { status: 416, headers: { "content-range": `bytes */${size}` } });
-    return new NextResponse(new Uint8Array(readMedia(media, start, end)), {
+    return new NextResponse(bytes.slice(start, end + 1), {
       status: 206,
       headers: { ...headers, "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${size}`, "content-length": String(end - start + 1) }
     });
   }
-  return new NextResponse(new Uint8Array(readMedia(media)), { headers: { ...headers, "accept-ranges": media.kind === "video" ? "bytes" : "none", "content-length": String(size) } });
+  return new NextResponse(new Uint8Array(bytes), { headers: { ...headers, "accept-ranges": media.kind === "video" ? "bytes" : "none", "content-length": String(size) } });
 }

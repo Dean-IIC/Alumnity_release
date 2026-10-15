@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function DevSeed() {
   if (!(await isLocalDev())) notFound();
   const me = await currentUser();
-  const count = sampleCount();
+  const count = await sampleCount();
   return (
     <main className="wf container">
       <header className="wf-head">

@@ -2,6 +2,7 @@
 
 import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { removeStoryAction, seenStoryAction, storyAction } from "../../lib/actions/content";
+import { uploadFile } from "../../lib/client/upload";
 import { mediaUrl } from "../../lib/media-url";
 import { Icon } from "./icons";
 
@@ -292,12 +293,7 @@ function AddStory({ onClose }: { onClose: () => void }) {
     const preview = URL.createObjectURL(f);
     const kind = f.type.startsWith("video/") ? "video" : "image";
     setFile({ preview, kind });
-    const body = new FormData();
-    body.set("use", "story");
-    body.set("file", f);
-    const answer = await fetch("/api/media", { method: "POST", body })
-      .then((r) => r.json())
-      .catch(() => ({ ok: false, error: "That didn't upload. Try again." }));
+    const answer = await uploadFile(f, "story");
     setFile({ preview, kind, ...(answer.ok ? { id: answer.id } : { error: answer.error }) });
   };
 

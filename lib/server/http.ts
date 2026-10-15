@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { SESSION_LIFE, userForSession, type Outcome, type User } from "./auth";
+import { signedInUser, type Outcome, type User } from "./auth";
 
-/* What every account endpoint shares: same-site only, JSON in, the session cookie out. */
-
-export const SESSION_COOKIE = "alumnity_session";
+/*
+ * What every account endpoint shares: same-site only, JSON in. The session itself is
+ * Supabase's cookies, set by lib/server/auth-provider.ts as each endpoint signs in or out.
+ */
 
 /**
  * Only this site may call these (a form on another site can't log someone in or out):
@@ -25,31 +26,17 @@ export const clientIp = (request: Request) => request.headers.get("x-forwarded-f
 /** What the browser may know about who's signed in: no email, no USN. */
 export const publicUser = (user: User) => ({ name: user.name, firstName: user.name.split(" ")[0], role: user.role, branchName: user.branchName, joined: user.joined });
 
-export function respond<T extends object>(outcome: Outcome<T>, session?: { token: string; expires: Date }) {
+export function respond<T extends object>(outcome: Outcome<T>) {
   const { ok } = outcome;
-  const body = ok ? Object.fromEntries(Object.entries(outcome).filter(([k]) => !["token", "expires", "user"].includes(k))) : outcome;
+  const body = ok ? Object.fromEntries(Object.entries(outcome).filter(([k]) => k !== "user")) : outcome;
   if (ok && "user" in outcome) Object.assign(body, { user: publicUser(outcome.user as User) });
-  const response = NextResponse.json(body, { status: ok ? 200 : 400 });
-  if (session) {
-    response.cookies.set(SESSION_COOKIE, session.token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: Math.floor(SESSION_LIFE / 1000)
-    });
-  }
-  return response;
+  return NextResponse.json(body, { status: ok ? 200 : 400 });
 }
 
-/** The session cookie on a request, if any. */
-export const sessionToken = (request: Request) => request.headers.get("cookie")?.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`))?.[1];
-
 /** Who's signed in on this request, or a 401 to send back. */
-export function signedIn(request: Request): { user: User; token: string } | NextResponse {
-  const token = sessionToken(request);
-  const user = userForSession(token);
-  return user && token ? { user, token } : NextResponse.json({ ok: false, error: "Please log in again." }, { status: 401 });
+export async function signedIn(): Promise<{ user: User } | NextResponse> {
+  const user = await signedInUser();
+  return user ? { user } : NextResponse.json({ ok: false, error: "Please log in again." }, { status: 401 });
 }
 
 /** Only from this site: the browser's Origin must be our own (for uploads, which aren't JSON). */

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { ActionState } from "../../lib/action-state";
 import { postAction } from "../../lib/actions/content";
+import { uploadFile } from "../../lib/client/upload";
 import { Icon } from "./icons";
 import { MentionInput } from "./mention-input";
 
@@ -53,12 +54,7 @@ export function Composer({ firstName, avatar, hasBatch, startOpen = false }: { f
       const kind = file.type.startsWith("video/") ? "video" : "image";
       const preview = URL.createObjectURL(file);
       setUploads((u) => [...u, { key, kind, preview }]);
-      const body = new FormData();
-      body.set("use", "post");
-      body.set("file", file);
-      const answer = await fetch("/api/media", { method: "POST", body })
-        .then((r) => r.json())
-        .catch(() => ({ ok: false, error: "That didn't upload. Check your connection and try again." }));
+      const answer = await uploadFile(file, "post");
       setUploads((u) => u.map((x) => (x.key === key ? (answer.ok ? { ...x, id: answer.id } : { ...x, error: answer.error }) : x)));
     }
     if (files.current) files.current.value = "";

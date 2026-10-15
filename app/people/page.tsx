@@ -24,7 +24,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
     help: params.help === "mentor" || params.help === "refer" || params.help === "talk" ? params.help : undefined
   };
   const searched = Boolean(query.q || query.branch || query.year || query.help);
-  const found = searchMembers(me, query);
+  const found = await searchMembers(me, query);
 
   return (
     <AppPage user={me} current="people" title="People" intro="Everyone on Alumnity from HKBK. You only see what each person chose to show.">

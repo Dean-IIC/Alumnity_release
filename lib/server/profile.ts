@@ -1,4 +1,4 @@
-import { database } from "./db";
+import { db } from "./db";
 import type { User } from "./auth";
 import { mediaById, removeMedia, type MediaKind } from "./media";
 
@@ -52,8 +52,8 @@ export const EMPTY_PROFILE: Profile = {
 
 export const LIMITS = { title: 80, company: 80, city: 60, about: 600, skill: 30, skills: 12, link: 200, stop: 90, stops: 8 } as const;
 
-export function profileOf(userId: number): Profile {
-  const row = database().prepare("select data from profiles where user_id = ?").get(userId) as { data: string } | undefined;
+export async function profileOf(userId: number): Promise<Profile> {
+  const row = await db().one<{ data: string }>("select data from profiles where user_id = ?", userId);
   return profileFromData(row?.data ?? null);
 }
 
@@ -88,16 +88,16 @@ function cleanLink(value: unknown, linkedinOnly = false): string | null {
 
 /** Reads what the edit form sent, keeping only what's allowed; says what's wrong if anything is. */
 /** An upload the owner may put on their page: theirs, and the right kind (a photo must be an image). */
-function ownMedia(value: unknown, ownerId: number | undefined, imageOnly: boolean): MediaRef | null | false {
+async function ownMedia(value: unknown, ownerId: number | undefined, imageOnly: boolean): Promise<MediaRef | null | false> {
   const id = typeof value === "object" && value ? (value as { id?: unknown }).id : value;
   if (!id) return null;
   if (typeof id !== "string" || ownerId === undefined) return false;
-  const media = mediaById(id);
+  const media = await mediaById(id);
   if (!media || media.userId !== ownerId || (imageOnly && media.kind !== "image")) return false;
   return { id: media.id, kind: media.kind };
 }
 
-export function parseProfile(input: Record<string, unknown>, ownerId?: number): { profile: Profile } | { error: string } {
+export async function parseProfile(input: Record<string, unknown>, ownerId?: number): Promise<{ profile: Profile } | { error: string }> {
   const visibility = { ...EMPTY_PROFILE.visibility };
   const sent = (input.visibility ?? {}) as Record<string, unknown>;
   for (const field of FIELDS) {
@@ -115,8 +115,7 @@ export function parseProfile(input: Record<string, unknown>, ownerId?: number): 
   if (linkedin === null) return { error: "That LinkedIn link doesn’t look like a LinkedIn profile." };
   const website = cleanLink(links.website);
   if (website === null) return { error: "That website link doesn’t look right." };
-  const photo = ownMedia(input.photo, ownerId, true);
-  const cover = ownMedia(input.cover, ownerId, false);
+  const [photo, cover] = await Promise.all([ownMedia(input.photo, ownerId, true), ownMedia(input.cover, ownerId, false)]);
   if (photo === false || cover === false) return { error: "That upload isn’t yours, or has gone. Upload it again." };
   const about = typeof input.about === "string" ? input.about.trim().slice(0, LIMITS.about) : "";
   const thisYear = new Date().getFullYear();
@@ -142,15 +141,18 @@ export function parseProfile(input: Record<string, unknown>, ownerId?: number): 
   };
 }
 
-export function saveProfile(userId: number, profile: Profile) {
+export async function saveProfile(userId: number, profile: Profile) {
   // Uploads it no longer uses are deleted, not left lying about.
-  const before = profileOf(userId);
+  const before = await profileOf(userId);
   for (const old of [before.photo, before.cover]) {
-    if (old && old.id !== profile.photo?.id && old.id !== profile.cover?.id) removeMedia(userId, old.id);
+    if (old && old.id !== profile.photo?.id && old.id !== profile.cover?.id) await removeMedia(userId, old.id);
   }
-  database()
-    .prepare("insert into profiles (user_id, data, updated_at) values (?, ?, ?) on conflict(user_id) do update set data = excluded.data, updated_at = excluded.updated_at")
-    .run(userId, JSON.stringify(profile), Date.now());
+  await db().run(
+    "insert into profiles (user_id, data, updated_at) values (?, ?, ?) on conflict (user_id) do update set data = excluded.data, updated_at = excluded.updated_at",
+    userId,
+    JSON.stringify(profile),
+    Date.now()
+  );
 }
 
 /** Who sees what: the owner sees everything; connections see "connections" and "batch" parts; their batch sees "batch" parts; every member sees "everyone" parts. */
@@ -192,11 +194,12 @@ export function profileFor(
 }
 
 /** Members' profile photos (upload ids), for avatars in lists: one query for many people. */
-export function photoIdsOf(ids: number[]): Map<number, string> {
-  const unique = [...new Set(ids)].slice(0, 2000);
+export async function photoIdsOf(ids: number[]): Promise<Map<number, string>> {
+  const unique = [...new Set(ids)].filter(Number.isSafeInteger).slice(0, 2000);
   if (!unique.length) return new Map();
-  const rows = database()
-    .prepare(`select user_id, json_extract(data, '$.photo.id') as photo from profiles where user_id in (${unique.map(() => "?").join(",")})`)
-    .all(...unique) as { user_id: number; photo: string | null }[];
+  const rows = await db().all<{ user_id: number; photo: string | null }>(
+    `select user_id, data::jsonb -> 'photo' ->> 'id' as photo from profiles where user_id in (${unique.map(() => "?").join(",")})`,
+    ...unique
+  );
   return new Map(rows.filter((r) => r.photo).map((r) => [r.user_id, r.photo!]));
 }

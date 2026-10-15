@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { uploadFile } from "../../lib/client/upload";
 import { mediaUrl } from "../../lib/media-url";
 import type { MediaRef } from "../../lib/server/profile";
 
@@ -10,15 +11,8 @@ import type { MediaRef } from "../../lib/server/profile";
  */
 
 async function upload(file: File, use: "photo" | "cover"): Promise<{ ok: true; ref: MediaRef } | { ok: false; error: string }> {
-  const form = new FormData();
-  form.set("file", file);
-  form.set("use", use);
-  try {
-    const answer = await (await fetch("/api/media", { method: "POST", body: form })).json();
-    return answer.ok ? { ok: true, ref: { id: answer.id, kind: answer.kind } } : { ok: false, error: answer.error };
-  } catch {
-    return { ok: false, error: "The upload didn’t get through. Check your connection and try again." };
-  }
+  const answer = await uploadFile(file, use);
+  return answer.ok ? { ok: true, ref: { id: answer.id, kind: answer.kind } } : answer;
 }
 
 function Preview({ value, use }: { value: MediaRef | null; use: "photo" | "cover" }) {

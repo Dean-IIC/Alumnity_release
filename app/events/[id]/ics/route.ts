@@ -6,10 +6,10 @@ import { signedIn } from "../../../../lib/server/http";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = signedIn(request);
+  const session = await signedIn();
   if (session instanceof NextResponse) return session;
   const id = Number((await params).id);
-  const event = Number.isSafeInteger(id) && id > 0 ? eventById(session.user, id) : null;
+  const event = Number.isSafeInteger(id) && id > 0 ? await eventById(session.user, id) : null;
   if (!event) return new NextResponse("Not found", { status: 404 });
   return new NextResponse(eventIcs(event, new URL(request.url).origin), {
     headers: {

@@ -24,13 +24,13 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
   const me = await requireUser(`/people/${raw}`);
   if (!Number.isSafeInteger(id) || id <= 0) notFound();
   if (id === me.id) redirect("/me");
-  const page = pageFor(me, id);
+  const page = await pageFor(me, id);
   // Blocked by them, paused or gone: the same "not here" either way, so a block isn't revealed.
   if (!page) notFound();
   const { owner, profile, relation } = page;
   const first = owner.name.split(" ")[0];
-  const record = recordOf(owner.id);
-  const notes = relation === "blocked" ? [] : feedFor(me, { authorId: owner.id, limit: 10 });
+  const record = await recordOf(owner.id);
+  const notes = relation === "blocked" ? [] : await feedFor(me, { authorId: owner.id, limit: 10 });
   const hidden = <input type="hidden" name="id" value={owner.id} />;
 
   const actions =
@@ -111,7 +111,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
     );
 
   return (
-    <AppPage user={me} current="people" title={owner.name} intro={`${connectionCount(owner.id)} connections${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
+    <AppPage user={me} current="people" title={owner.name} intro={`${await connectionCount(owner.id)} connections${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
       <div className="profile-page" style={{ padding: 0 }}>
         <ProfileSheet person={owner} profile={profile} isOwner={false} actions={actions} />
       </div>

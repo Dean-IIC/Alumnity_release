@@ -10,8 +10,8 @@ import { FEATURE_LABEL } from "../../lib/server/settings";
 
 /* The college desk's sections. Each checks the viewer's role again on the server (lib/server/desk.ts). */
 
-export function Overview({ me }: { me: User }) {
-  const s = stats(me);
+export async function Overview({ me }: { me: User }) {
+  const s = await stats(me);
   if (!s) return null;
   const peak = Math.max(1, ...s.joinsByWeek);
   const items: [string, number, string?][] = [
@@ -52,8 +52,8 @@ export function Overview({ me }: { me: User }) {
   );
 }
 
-export function Reports({ me, closed }: { me: User; closed: boolean }) {
-  const list = reports(me, closed ? "closed" : "open");
+export async function Reports({ me, closed }: { me: User; closed: boolean }) {
+  const list = await reports(me, closed ? "closed" : "open");
   return (
     <>
       <p>
@@ -118,8 +118,8 @@ const CONTENT_TABS: [ContentKind, string][] = [
   ["ask", "Asks"]
 ];
 
-export function Content({ me, kind, q }: { me: User; kind: ContentKind; q: string }) {
-  const list = recentContent(me, kind, q);
+export async function Content({ me, kind, q }: { me: User; kind: ContentKind; q: string }) {
+  const list = await recentContent(me, kind, q);
   const admin = isAdmin(me);
   return (
     <>
@@ -178,8 +178,8 @@ export function Content({ me, kind, q }: { me: User; kind: ContentKind; q: strin
   );
 }
 
-export function Members({ me, filter }: { me: User; filter: MemberFilter }) {
-  const list = deskMembers(me, filter);
+export async function Members({ me, filter }: { me: User; filter: MemberFilter }) {
+  const list = await deskMembers(me, filter);
   return (
     <>
       <form action="/desk" className="wf-filters" role="search">
@@ -248,8 +248,8 @@ export function Members({ me, filter }: { me: User; filter: MemberFilter }) {
   );
 }
 
-export function Announcements({ me }: { me: User }) {
-  const list = allAnnouncements(me);
+export async function Announcements({ me }: { me: User }) {
+  const list = await allAnnouncements(me);
   return (
     <>
       <ActionForm action={announceAction} resetOnSuccess className="wf-stack">
@@ -310,8 +310,8 @@ export function Announcements({ me }: { me: User }) {
   );
 }
 
-export function Team({ me }: { me: User }) {
-  const list = team(me);
+export async function Team({ me }: { me: User }) {
+  const list = await team(me);
   return (
     <>
       <p className="wf-muted">
@@ -340,8 +340,8 @@ export function Team({ me }: { me: User }) {
   );
 }
 
-export function SiteSettings({ me }: { me: User }) {
-  const s = deskSettings(me);
+export async function SiteSettings({ me }: { me: User }) {
+  const s = await deskSettings(me);
   if (!s) return null;
   const canEdit = isSuperAdmin(me);
   return (
@@ -385,8 +385,8 @@ export function SiteSettings({ me }: { me: User }) {
   );
 }
 
-export function Audit({ me, q }: { me: User; q: string }) {
-  const log = auditLog(me, { q });
+export async function Audit({ me, q }: { me: User; q: string }) {
+  const log = await auditLog(me, { q });
   return (
     <>
       <div className="wf-actions" style={{ justifyContent: "space-between" }}>

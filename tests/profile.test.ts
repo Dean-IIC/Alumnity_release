@@ -1,9 +1,6 @@
-import { mkdtempSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-process.env.ALUMNITY_DB = join(mkdtempSync(join(tmpdir(), "alumnity-profile-")), "test.db");
+process.env.ALUMNITY_DB = "pglite";
 
 const { canSee, parseProfile, profileFor, EMPTY_PROFILE } = await import("../lib/server/profile");
 
@@ -12,8 +9,8 @@ const batchmate = { id: 2, branch: "CSE", joined: 2012 };
 const stranger = { id: 3, branch: "ECE", joined: 2015 };
 
 describe("member pages", () => {
-  it("shows each part only to who it's meant for, and hides the rest on the server", () => {
-    const parsed = parseProfile({
+  it("shows each part only to who it's meant for, and hides the rest on the server", async () => {
+    const parsed = await parseProfile({
       title: "Engineer",
       company: "Example Co",
       about: "Hello",
@@ -40,14 +37,14 @@ describe("member pages", () => {
     expect(canSee(null, owner, "everyone")).toBe(false); // pages are for members
   });
 
-  it("refuses links that aren't what they say, and anything but http(s)", () => {
-    expect(parseProfile({ links: { linkedin: "https://evil.example/in/x" } })).toHaveProperty("error");
-    expect(parseProfile({ links: { website: "javascript:alert(1)" } })).toHaveProperty("error");
-    expect(parseProfile({ links: { website: "mysite.dev" } })).toMatchObject({ profile: { links: { website: "https://mysite.dev/" } } });
+  it("refuses links that aren't what they say, and anything but http(s)", async () => {
+    expect(await parseProfile({ links: { linkedin: "https://evil.example/in/x" } })).toHaveProperty("error");
+    expect(await parseProfile({ links: { website: "javascript:alert(1)" } })).toHaveProperty("error");
+    expect(await parseProfile({ links: { website: "mysite.dev" } })).toMatchObject({ profile: { links: { website: "https://mysite.dev/" } } });
   });
 
-  it("keeps text within its limits", () => {
-    const parsed = parseProfile({ title: "x".repeat(500), about: "y".repeat(5000), skills: Array.from({ length: 30 }, (_, i) => `skill ${i}`) });
+  it("keeps text within its limits", async () => {
+    const parsed = await parseProfile({ title: "x".repeat(500), about: "y".repeat(5000), skills: Array.from({ length: 30 }, (_, i) => `skill ${i}`) });
     if ("error" in parsed) throw new Error(parsed.error);
     expect(parsed.profile.title).toHaveLength(80);
     expect(parsed.profile.about).toHaveLength(600);

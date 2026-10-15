@@ -16,11 +16,11 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
   const { id: raw } = await params;
   const me = await requireUser(`/ask/${raw}`);
   const id = Number(raw);
-  const ask = Number.isSafeInteger(id) && id > 0 ? askFor(me, id) : null;
+  const ask = Number.isSafeInteger(id) && id > 0 ? await askFor(me, id) : null;
   if (!ask) notFound();
   const asker = ask.author.id === me.id;
   const taker = ask.taker?.id === me.id;
-  const messages = askThread(me, ask.id);
+  const messages = await askThread(me, ask.id);
   const hidden = <input type="hidden" name="id" value={ask.id} />;
 
   return (

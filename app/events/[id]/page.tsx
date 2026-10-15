@@ -17,11 +17,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const { id: raw } = await params;
   const me = await requireUser(`/events/${raw}`);
   const id = Number(raw);
-  const event = Number.isSafeInteger(id) && id > 0 ? eventById(me, id) : null;
+  const event = Number.isSafeInteger(id) && id > 0 ? await eventById(me, id) : null;
   if (!event) notFound();
   const over = (event.endsAt ?? event.startsAt) < Date.now();
   const full = event.capacity !== null && event.going >= event.capacity;
-  const people = attendees(me, event.id);
+  const people = await attendees(me, event.id);
   const manage = event.mine || isModerator(me);
   const hidden = <input type="hidden" name="id" value={event.id} />;
 

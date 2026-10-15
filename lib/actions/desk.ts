@@ -17,32 +17,32 @@ export async function resolveReportAction(_: ActionState, form: FormData): Promi
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const action = textFrom(form, "action", 10) === "remove" ? "remove" : "dismiss";
-  return answer(resolveReport(me, idFrom(form), action), action === "remove" ? "Taken down." : "Dismissed.");
+  return answer(await resolveReport(me, idFrom(form), action), action === "remove" ? "Taken down." : "Dismissed.");
 }
 
 export async function pauseAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const paused = textFrom(form, "paused", 5) === "1";
-  return answer(suspend(me, idFrom(form), paused), paused ? "Paused, and signed out everywhere." : "Unpaused.");
+  return answer(await suspend(me, idFrom(form), paused), paused ? "Paused, and signed out everywhere." : "Unpaused.");
 }
 
 export async function signOutAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(signOutEverywhere(me, idFrom(form)), "Signed out on every device.");
+  return answer(await signOutEverywhere(me, idFrom(form)), "Signed out on every device.");
 }
 
 export async function roleAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(setRole(me, idFrom(form), textFrom(form, "role", 20)), "Role changed.");
+  return answer(await setRole(me, idFrom(form), textFrom(form, "role", 20)), "Role changed.");
 }
 
 export async function deleteMemberAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  const result = deleteMember(me, idFrom(form), textFrom(form, "confirm", 200));
+  const result = await deleteMember(me, idFrom(form), textFrom(form, "confirm", 200));
   if (!result.ok) return answer(result);
   answer(result);
   redirect("/desk?tab=members");
@@ -53,7 +53,7 @@ export async function takeDownAction(_: ActionState, form: FormData): Promise<Ac
   if (!me) return SIGNED_OUT;
   const kind = contentKind(form);
   if (!kind) return { ok: false, error: "That can't be taken down here." };
-  return answer(takeDown(me, kind, idFrom(form)), "Taken down. Its author was told.");
+  return answer(await takeDown(me, kind, idFrom(form)), "Taken down. Its author was told.");
 }
 
 export async function restoreAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -61,14 +61,14 @@ export async function restoreAction(_: ActionState, form: FormData): Promise<Act
   if (!me) return SIGNED_OUT;
   const kind = contentKind(form);
   if (!kind) return { ok: false, error: "That can't be brought back." };
-  return answer(restore(me, kind, idFrom(form)), "Brought back.");
+  return answer(await restore(me, kind, idFrom(form)), "Brought back.");
 }
 
 export async function announceAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
   return answer(
-    createAnnouncement(me, {
+    await createAnnouncement(me, {
       title: textFrom(form, "title", ANNOUNCEMENT_LIMITS.title),
       body: textFrom(form, "body", ANNOUNCEMENT_LIMITS.body),
       days: Number(textFrom(form, "days", 4))
@@ -80,7 +80,7 @@ export async function announceAction(_: ActionState, form: FormData): Promise<Ac
 export async function removeAnnouncementAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(removeAnnouncement(me, idFrom(form)), "Taken down.");
+  return answer(await removeAnnouncement(me, idFrom(form)), "Taken down.");
 }
 
 export async function settingsAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -88,7 +88,7 @@ export async function settingsAction(_: ActionState, form: FormData): Promise<Ac
   if (!me) return SIGNED_OUT;
   const on = (key: string) => form.get(key) === "on";
   return answer(
-    updateSettings(me, {
+    await updateSettings(me, {
       joiningOpen: on("joiningOpen"),
       features: { notes: on("notes"), asks: on("asks"), events: on("events"), messages: on("messages") },
       dailyRequests: Number(textFrom(form, "dailyRequests", 4))

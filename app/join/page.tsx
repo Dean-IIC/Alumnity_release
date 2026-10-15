@@ -3,7 +3,7 @@ import { SiteHeader } from "../../components/site-header";
 import { SiteFooter } from "../../components/site-footer";
 import { SoonNotice } from "../../components/coming-soon";
 import { JoinFlow } from "../../components/join/join-flow";
-import { loadRegister, registerFacts } from "../../lib/register";
+import { registerFacts } from "../../lib/server/register";
 import "../styles/join.css";
 
 export const metadata: Metadata = {
@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 // Reads the register on the server at request time (it isn't part of the build).
 export const dynamic = "force-dynamic";
 
-export default function JoinPage() {
-  const register = loadRegister();
-  const facts = register ? registerFacts(register) : { count: 0, from: 1998, to: new Date().getFullYear(), branches: [] };
+export default async function JoinPage() {
+  const known = await registerFacts();
+  const facts = known ?? { count: 0, from: 1998, to: new Date().getFullYear(), branches: [] };
   return (
     <>
       <SiteHeader />

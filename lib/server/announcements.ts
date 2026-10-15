@@ -1,4 +1,4 @@
-import { database } from "./db";
+import { db } from "./db";
 import type { User } from "./auth";
 import { audit } from "./desk";
 import { isModerator } from "./roles";
@@ -24,22 +24,18 @@ const toAnnouncement = (r: Record<string, unknown>): Announcement => ({
 });
 
 /** What's showing now, newest first. */
-export function activeAnnouncements(now = Date.now()): Announcement[] {
-  return (
-    database().prepare("select * from announcements where removed_at is null and (ends_at is null or ends_at > ?) order by created_at desc limit 3").all(now) as Record<string, unknown>[]
-  ).map(toAnnouncement);
+export async function activeAnnouncements(now = Date.now()): Promise<Announcement[]> {
+  return (await db().all("select * from announcements where removed_at is null and (ends_at is null or ends_at > ?) order by created_at desc limit 3", now)).map(toAnnouncement);
 }
 
-export function allAnnouncements(me: User): Announcement[] {
+export async function allAnnouncements(me: User): Promise<Announcement[]> {
   if (!isModerator(me)) return [];
   return (
-    database()
-      .prepare("select announcements.*, users.name as author_name from announcements left join users on users.id = announcements.author order by announcements.created_at desc limit 50")
-      .all() as Record<string, unknown>[]
+    await db().all("select announcements.*, users.name as author_name from announcements left join users on users.id = announcements.author order by announcements.created_at desc limit 50")
   ).map(toAnnouncement);
 }
 
-export function createAnnouncement(me: User, input: { title: string; body: string; days: number }): Result & { id?: number } {
+export async function createAnnouncement(me: User, input: { title: string; body: string; days: number }): Promise<Result & { id?: number }> {
   if (!isModerator(me)) return { ok: false, error: "Only the college desk can do that." };
   const title = input.title.trim().slice(0, ANNOUNCEMENT_LIMITS.title);
   const body = input.body.trim().slice(0, ANNOUNCEMENT_LIMITS.body);
@@ -47,16 +43,21 @@ export function createAnnouncement(me: User, input: { title: string; body: strin
   if (!body) return { ok: false, error: "Say what it's about." };
   const days = Number.isInteger(input.days) && input.days > 0 && input.days <= 365 ? input.days : null;
   const now = Date.now();
-  const { lastInsertRowid } = database()
-    .prepare("insert into announcements (author, title, body, ends_at, created_at) values (?, ?, ?, ?, ?)")
-    .run(me.id, title, body, days ? now + days * 24 * 60 * 60_000 : null, now);
-  audit(me, "announced", `announcement ${lastInsertRowid}`, title);
-  return { ok: true, id: Number(lastInsertRowid) };
+  const row = await db().one<{ id: number }>(
+    "insert into announcements (author, title, body, ends_at, created_at) values (?, ?, ?, ?, ?) returning id",
+    me.id,
+    title,
+    body,
+    days ? now + days * 24 * 60 * 60_000 : null,
+    now
+  );
+  await audit(me, "announced", `announcement ${row!.id}`, title);
+  return { ok: true, id: row!.id };
 }
 
-export function removeAnnouncement(me: User, id: number): Result {
+export async function removeAnnouncement(me: User, id: number): Promise<Result> {
   if (!isModerator(me)) return { ok: false, error: "Only the college desk can do that." };
-  const { changes } = database().prepare("update announcements set removed_at = ? where id = ? and removed_at is null").run(Date.now(), id);
-  if (changes) audit(me, "took down announcement", `announcement ${id}`);
+  const changes = await db().run("update announcements set removed_at = ? where id = ? and removed_at is null", Date.now(), id);
+  if (changes) await audit(me, "took down announcement", `announcement ${id}`);
   return { ok: true };
 }

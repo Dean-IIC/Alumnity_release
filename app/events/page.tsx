@@ -44,13 +44,13 @@ function EventLine({ event, past = false }: { event: Event; past?: boolean }) {
 /** What's coming up, what's been, and (for organisers) a form to put one up. */
 export default async function EventsPage() {
   const me = await requireUser("/events");
-  const { upcoming, past } = eventsFor(me);
+  const { upcoming, past } = await eventsFor(me);
   return (
     <AppPage user={me} current="events" title="Events" intro="Reunions, talks and college days.">
       <h2>Coming up</h2>
       {upcoming.length === 0 ? <p className="wf-empty">Nothing planned yet.</p> : <ul className="wf-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>}
 
-      {canOrganise(me) && settings().features.events && (
+      {canOrganise(me) && (await settings()).features.events && (
         <section aria-labelledby="new-event">
           <h2 id="new-event">Put up an event</h2>
           <ActionForm action={eventAction} className="wf-stack">

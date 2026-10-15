@@ -134,8 +134,11 @@ composer, Ask thread, backing, the Record, people directory, Desk), then the Nex
 Supabase build on a fresh schema.
 ## 7. What's built (October 2026)
 
-Every feature works end to end on its own SQLite database (`data/alumnity.db`). The
-members' pages are plain wireframes on purpose (`app/styles/wire.css`): each gets its own
+Every feature works end to end on **Supabase** (Postgres, Auth and Storage) and deploys
+to **Vercel**: see [docs/deploy.md](docs/deploy.md) for the setup, the environment
+variables and how sign-in and uploads fit together. The tests run on PGlite (the same
+Postgres, in memory) with a stand-in for Supabase Auth, so `npm test` needs no network.
+The members' pages are plain wireframes on purpose (`app/styles/wire.css`): each gets its own
 design next, page by page.
 
 | Page | What it does | Rules (in `lib/server/`) |
@@ -146,7 +149,7 @@ design next, page by page.
 | `/messages`, `/messages/[id]` | Conversations and threads, between connections only; report a message | `social.ts`: 120 an hour; one notification until read |
 | `/ask`, `/ask/[id]` | Ask a question; it goes to the few seniors who fit (shared topics, branch, connection) and mentor; one takes it on; a private thread; mark answered with thanks (their Record) | `asks.ts`: 5 a day; only seniors take Asks; the thread is private to the two |
 | `/events`, `/events/[id]` | Upcoming and past; faculty, coordinators and admins put them up; RSVP with capacity; Add to calendar (`.ics`); the organiser sees who's coming and can cancel | `events.ts` |
-| `/batch/[branch]/[year]` | How many joined that year (a count from the register, never names), who's here, their notes | `register.ts` `batchCount` |
+| `/batch/[branch]/[year]` | How many joined that year (a count from the register, never names), who's here, their notes | `lib/server/register.ts` `batchCount` |
 | `/notifications` | Everything that concerns you | |
 | `/desk` | Coordinators and admins only (404 for everyone else): reports (take down / dismiss), members (pause / unpause, roles for admins), audit log (admins), totals | `desk.ts`: everything here is audited |
 | `/how-it-works` | Public: joining, and how members are kept safe | |
@@ -181,9 +184,11 @@ only, enforced on the server) · Audit log (admins; search; CSV download, formul
 
 ### How it holds up (measured, October 2026)
 
-`SCALE=1 npx vitest run tests/scale.test.ts` fills a throwaway database with 15,000
-members, 150,000 connections, 30,000 notes, 60,000 comments and 50,000 messages, and times
-each page's main work: everything is under ~50 ms except routing a new Ask (~30 ms) and
-search (~35–55 ms). Load-tested end to end on a laptop: one server process serves about
-55 pages a second; four processes sharing the one database file, about 105. That is ample
-for HKBK (9,327 on the register). Hundreds of thousands of members would need a database server (PostgreSQL) and several app servers.
+`SCALE=1 npx vitest run tests/scale.test.ts` fills a throwaway Postgres (PGlite) with
+15,000 members, 150,000 connections, 30,000 notes, 60,000 comments and 50,000 messages, and
+times each page's main work, leaving out the network. (Measured before the move to
+Postgres, on SQLite: everything under ~50 ms; one laptop process served about 55 pages a
+second.) On Supabase each query also costs a round trip, so pages read in a few batched
+queries (the feed: five for a whole page of posts, whatever its length), and Vercel and
+the database should sit in the same region (Mumbai). Vercel adds server instances as
+traffic grows; Supabase's pooler shares database connections between them.

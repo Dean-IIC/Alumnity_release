@@ -25,12 +25,9 @@ const Count = ({ n }: { n: number }) =>
  * each), the page, the footer; on a phone, a tab bar at the bottom instead of the sections.
  * `bare`: the page lays itself out (the feed), with no heading of ours.
  */
-export function AppPage({ user, current, title, intro, children, bare = false }: { user: User; current: Section; title?: string; intro?: ReactNode; children: ReactNode; bare?: boolean }) {
-  const counts = {
-    connections: waitingRequests(user.id),
-    messages: unreadMessages(user.id),
-    notifications: unreadNotifications(user.id)
-  };
+export async function AppPage({ user, current, title, intro, children, bare = false }: { user: User; current: Section; title?: string; intro?: ReactNode; children: ReactNode; bare?: boolean }) {
+  const [connections, messages, notifications] = await Promise.all([waitingRequests(user.id), unreadMessages(user.id), unreadNotifications(user.id)]);
+  const counts = { connections, messages, notifications };
   const links: { key: Section; href: string; label: string; count?: number }[] = [
     { key: "home", href: "/home", label: "Home" },
     { key: "people", href: "/people", label: "People" },

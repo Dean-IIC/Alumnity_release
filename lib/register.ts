@@ -1,16 +1,14 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 /*
  * The college register: every student who has joined HKBK College of Engineering since
- * 1998 (data/college-records.csv, from the Department of Examination; never committed,
- * never sent to the browser). Joining Alumnity means finding your line in it.
+ * 1998 (from the Department of Examination; never committed, never sent to the browser).
+ * It lives in the database's `register` table (scripts/import-register.mjs loads it, and
+ * lib/server/register.ts reads it). Joining Alumnity means finding your line in it.
  *
  * A match needs two things that agree, USN and name, or name, branch and the year you
  * joined, and the answer is only "that's you" or "not found". USNs are sequential, so a
  * lookup by USN alone would let anyone list every name in the register.
  *
- * Server only: import it from route handlers (app/api/…), never from a component.
+ * These are the rules alone, with no data: the matching, and reading the CSV.
  */
 
 export type RegisterRow = { name: string; usn: string; branch: string; branchName: string; programme: string; year: number };
@@ -121,21 +119,6 @@ export function lookup(rows: RegisterRow[], query: Lookup): LookupResult {
   };
 }
 
-let cached: RegisterRow[] | null | undefined;
-
-/** The real register, read once; null where it isn't installed (it's never committed). */
-export function loadRegister(): RegisterRow[] | null {
-  if (cached !== undefined) return cached;
-  try {
-    // ALUMNITY_REGISTER points elsewhere when it's kept outside the project (as in production).
-    const path = process.env.ALUMNITY_REGISTER || join(process.cwd(), "data", "college-records.csv");
-    cached = parseRegister(readFileSync(path, "utf8"));
-  } catch {
-    cached = null;
-  }
-  return cached;
-}
-
 /** What may be said about the register in public: its size, span and branches. */
 export function registerFacts(rows: RegisterRow[]) {
   const years = rows.map((r) => r.year);
@@ -143,15 +126,4 @@ export function registerFacts(rows: RegisterRow[]) {
     .map(([code, name]) => ({ code, name, count: rows.filter((r) => r.branch === code).length }))
     .sort((a, b) => b.count - a.count);
   return { count: rows.length, from: Math.min(...years), to: Math.max(...years), branches };
-}
-
-/** How many are on the register in someone's batch (same branch, course and joining year), them included. */
-export function batchSizeOf(rows: RegisterRow[], usn: string): number | undefined {
-  const me = rows.find((r) => r.usn === usn);
-  return me ? rows.filter((r) => r.branch === me.branch && r.year === me.year && r.programme === me.programme).length : undefined;
-}
-
-/** How many are on the register in one batch (a branch's intake on one course in one year): a count, never names. */
-export function batchCount(rows: RegisterRow[], branch: string, year: number, programme = "B.Tech"): number {
-  return rows.filter((r) => r.branch === branch && r.year === year && r.programme === programme).length;
 }

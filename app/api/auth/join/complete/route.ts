@@ -6,6 +6,5 @@ import { readJson, respond, text } from "../../../../../lib/server/http";
 export async function POST(request: Request) {
   const body = await readJson(request);
   if (body instanceof NextResponse) return body;
-  const outcome = await completeJoin(text(body.ticket, 64), text(body.password, 400));
-  return respond(outcome, outcome.ok ? outcome : undefined);
+  return respond(await completeJoin(text(body.ticket, 64), text(body.password, 400)));
 }

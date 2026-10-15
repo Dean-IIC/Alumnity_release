@@ -14,7 +14,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
   const { id: raw } = await params;
   const me = await requireUser(`/notes/${raw}`);
   const id = Number(raw);
-  const post = Number.isSafeInteger(id) && id > 0 ? postFor(me, id) : null;
+  const post = Number.isSafeInteger(id) && id > 0 ? await postFor(me, id) : null;
   if (!post) notFound();
   return (
     <AppPage user={me} current="home" bare>
@@ -24,7 +24,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
             ← Home
           </a>
           <h1 className="sr-only">A post by {post.author.name}</h1>
-          <Post post={post} full me={me} photos={photoIdsOf([me.id, post.author.id, ...post.comments.map((c) => c.author.id)])} />
+          <Post post={post} full me={me} photos={await photoIdsOf([me.id, post.author.id, ...post.comments.map((c) => c.author.id)])} />
         </div>
       </div>
     </AppPage>

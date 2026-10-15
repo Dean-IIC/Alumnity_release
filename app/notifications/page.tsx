@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 /** What's happened that concerns you. New ones are marked until you mark them read. */
 export default async function NotificationsPage() {
   const me = await requireUser("/notifications");
-  const list = notificationsFor(me.id);
+  const list = await notificationsFor(me.id);
   // Only links within Alumnity: a stored link can never send someone off-site.
   const safe = (link: string) => safeNext(link);
   const unread = list.filter((n) => !n.read).length;

@@ -1,12 +1,16 @@
-import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { database } from "./db";
+import { db } from "./db";
 import { randomToken } from "./secrets";
+import { storage } from "./storage";
 
 /*
- * What members upload for their page: a photo, and a cover that's an image, a video or an
- * HTML file. Kept in data/uploads (never committed), served only to signed-in members by
+ * What members upload: a photo and a cover for their page (an image, a video or an HTML
+ * file), and the photos and videos on posts and stories. Kept in Supabase Storage's
+ * private bucket (lib/server/storage.ts), served only to signed-in members by
  * app/media/[id]/route.ts.
+ *
+ * The browser sends a file straight to Storage (startUpload gives it a one-time link),
+ * then asks us to finish: only then is it checked and taken in. Until it is, nothing can
+ * show it.
  *
  * A file's type is read from its first bytes, never from its name or what the browser
  * says. JPEG photos lose their EXIF block (which can hold the GPS spot it was taken). HTML
@@ -23,19 +27,6 @@ export const LIMITS: Record<MediaKind, number> = {
 };
 
 export type Media = { id: string; userId: number; kind: MediaKind; mime: string; size: number; path: string };
-
-const root = () => process.env.ALUMNITY_UPLOADS || join(process.cwd(), "data", "uploads");
-
-const ensureTable = () =>
-  database().exec(`create table if not exists media (
-    id text primary key,
-    user_id integer not null references users(id) on delete cascade,
-    kind text not null,
-    mime text not null,
-    size integer not null,
-    path text not null,
-    created_at integer not null
-  )`);
 
 const starts = (bytes: Uint8Array, signature: number[], at = 0) => signature.every((b, i) => bytes[at + i] === b);
 
@@ -81,51 +72,135 @@ export type Saved = { ok: true; media: Media } | { ok: false; error: string };
 
 export type UploadUse = "photo" | "cover" | "post" | "story";
 
-/**
- * Checks and keeps an upload, for `use`: a profile photo is an image; a post or a story is
- * an image or a video; only a cover may also be an HTML file.
- */
-export function saveUpload(userId: number, use: UploadUse, bytes: Uint8Array): Saved {
+const DAY = 24 * 60 * 60_000;
+/** How much one member may upload in a day: plenty for photos and short videos, not enough to fill the store. */
+export const DAILY_BYTES = 200 * 1024 * 1024;
+/** A started upload not finished in this long is forgotten. */
+const UPLOAD_LIFE = 2 * 60 * 60_000;
+const ID = /^[\w-]{1,64}$/;
+
+const tooBig = (kind: MediaKind) =>
+  `That’s too big: ${kind === "video" ? "videos" : kind === "html" ? "HTML files" : "images"} can be up to ${LIMITS[kind] / 1024 / 1024} MB.`;
+
+/** Where a started upload's bytes land, before they're checked. */
+export const pendingUploadPath = (userId: number, id: string) => `pending/${userId}/${id}`;
+
+type Checked = { ok: true; kind: MediaKind; mime: string; ext: string; data: Uint8Array } | { ok: false; error: string };
+
+/** What a file is, and whether it may be used for `use`: a photo is an image; posts and stories take images and videos; only a cover may be HTML. */
+function check(use: UploadUse, bytes: Uint8Array): Checked {
   const found = sniff(bytes);
   if (!found) return { ok: false, error: "That file isn’t one we can use. Photos: JPEG, PNG, WebP or GIF. Videos: MP4 or WebM." };
   if (use === "photo" && found.kind !== "image") return { ok: false, error: "Your photo needs to be an image (JPEG, PNG, WebP or GIF)." };
   if ((use === "post" || use === "story") && found.kind === "html") return { ok: false, error: "Posts and stories take photos and videos." };
-  if (bytes.length > LIMITS[found.kind]) {
-    return { ok: false, error: `That’s too big: ${found.kind === "video" ? "videos" : found.kind === "html" ? "HTML files" : "images"} can be up to ${LIMITS[found.kind] / 1024 / 1024} MB.` };
+  if (bytes.length > LIMITS[found.kind]) return { ok: false, error: tooBig(found.kind) };
+  return { ok: true, ...found, data: found.mime === "image/jpeg" ? withoutExif(bytes) : bytes };
+}
+
+async function keep(userId: number, id: string, file: Extract<Checked, { ok: true }>): Promise<Media> {
+  const path = `${userId}/${id}.${file.ext}`;
+  await storage().write(path, file.data, file.mime);
+  await db().run(
+    "insert into media (id, user_id, kind, mime, size, path, created_at) values (?, ?, ?, ?, ?, ?, ?)",
+    id,
+    userId,
+    file.kind,
+    file.mime,
+    file.data.length,
+    path,
+    Date.now()
+  );
+  return { id, userId, kind: file.kind, mime: file.mime, size: file.data.length, path };
+}
+
+/** Checks and keeps an upload whose bytes are already here (the tests; small files). */
+export async function saveUpload(userId: number, use: UploadUse, bytes: Uint8Array): Promise<Saved> {
+  const file = check(use, bytes);
+  if (!file.ok) return file;
+  return { ok: true, media: await keep(userId, randomToken(15), file) };
+}
+
+/** Bytes uploaded (and on their way) in the last day. */
+async function uploadedToday(userId: number): Promise<number> {
+  const since = Date.now() - DAY;
+  const row = await db().one<{ bytes: number }>(
+    "select (select coalesce(sum(size), 0) from media where user_id = ? and created_at > ?) + (select coalesce(sum(size), 0) from uploads where user_id = ? and created_at > ?) as bytes",
+    userId,
+    since,
+    userId,
+    since
+  );
+  return row?.bytes ?? 0;
+}
+
+export type Started = { ok: true; id: string; url: string } | { ok: false; error: string; status: number };
+
+/** The first step of an upload: a one-time link the browser sends the file to. */
+export async function startUpload(userId: number, use: UploadUse, size: number): Promise<Started> {
+  if (!Number.isSafeInteger(size) || size <= 0) return { ok: false, error: "Choose a file first.", status: 400 };
+  if (size > (use === "photo" ? LIMITS.image : LIMITS.video)) {
+    return { ok: false, error: use === "photo" ? tooBig("image") : "That’s too big: videos can be up to 25 MB, images 5 MB.", status: 413 };
   }
-  const data = found.mime === "image/jpeg" ? withoutExif(bytes) : bytes;
-  ensureTable();
+  if ((await uploadedToday(userId)) + size > DAILY_BYTES) return { ok: false, error: "That's a lot of uploading today. Try again tomorrow.", status: 429 };
   const id = randomToken(15);
-  const path = join(String(userId), `${id}.${found.ext}`);
-  const file = join(root(), path);
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, data);
-  database()
-    .prepare("insert into media (id, user_id, kind, mime, size, path, created_at) values (?, ?, ?, ?, ?, ?, ?)")
-    .run(id, userId, found.kind, found.mime, data.length, path, Date.now());
-  return { ok: true, media: { id, userId, kind: found.kind, mime: found.mime, size: data.length, path } };
+  await db().run("delete from uploads where created_at < ?", Date.now() - UPLOAD_LIFE);
+  await db().run("insert into uploads (id, user_id, use, size, created_at) values (?, ?, ?, ?, ?)", id, userId, use, size, Date.now());
+  return { ok: true, id, url: await storage().uploadUrl(pendingUploadPath(userId, id)) };
 }
 
-export function mediaById(id: string): Media | null {
-  ensureTable();
-  const row = database().prepare("select * from media where id = ?").get(id) as Record<string, unknown> | undefined;
-  if (!row) return null;
-  return { id: String(row.id), userId: Number(row.user_id), kind: row.kind as MediaKind, mime: String(row.mime), size: Number(row.size), path: String(row.path) };
+/** An upload `userId` started that's still waiting for its bytes, or null. */
+export async function pendingUpload(userId: number, id: string): Promise<{ size: number } | null> {
+  if (!ID.test(id)) return null;
+  return (await db().one<{ size: number }>("select size from uploads where id = ? and user_id = ? and created_at > ?", id, userId, Date.now() - UPLOAD_LIFE)) ?? null;
 }
 
-export const mediaFile = (media: Media) => join(root(), media.path);
+/** The last step: the file has arrived. Check it, and take it in (or throw it away). */
+export async function finishUpload(userId: number, id: string): Promise<Saved> {
+  if (!ID.test(id)) return { ok: false, error: "That upload has expired. Choose the file again." };
+  const row = await db().one<{ use: UploadUse }>("select use from uploads where id = ? and user_id = ? and created_at > ?", id, userId, Date.now() - UPLOAD_LIFE);
+  if (!row) return { ok: false, error: "That upload has expired. Choose the file again." };
+  const path = pendingUploadPath(userId, id);
+  const bytes = await storage().read(path);
+  await db().run("delete from uploads where id = ?", id);
+  if (!bytes) return { ok: false, error: "The file didn’t arrive. Try again." };
+  await storage().remove([path]);
+  const file = check(row.use, bytes);
+  if (!file.ok) return file;
+  return { ok: true, media: await keep(userId, id, file) };
+}
 
-export const readMedia = (media: Media, start?: number, end?: number) => {
-  const all = readFileSync(mediaFile(media));
-  return start === undefined ? all : all.subarray(start, end === undefined ? undefined : end + 1);
-};
+const toMedia = (row: Record<string, unknown>): Media => ({
+  id: String(row.id),
+  userId: Number(row.user_id),
+  kind: row.kind as MediaKind,
+  mime: String(row.mime),
+  size: Number(row.size),
+  path: String(row.path)
+});
 
-export const mediaSize = (media: Media) => statSync(mediaFile(media)).size;
+export async function mediaById(id: string): Promise<Media | null> {
+  if (typeof id !== "string" || !ID.test(id)) return null;
+  const row = await db().one("select * from media where id = ?", id);
+  return row ? toMedia(row) : null;
+}
+
+/** Several uploads at once, by id. */
+export async function mediaByIds(ids: string[]): Promise<Map<string, Media>> {
+  const wanted = [...new Set(ids)].filter((id) => ID.test(id));
+  if (!wanted.length) return new Map();
+  const rows = await db().all(`select * from media where id in (${wanted.map(() => "?").join(",")})`, ...wanted);
+  return new Map(rows.map((r) => [String(r.id), toMedia(r)]));
+}
+
+export const readMedia = (media: Media) => storage().read(media.path);
+
+/** A short-lived direct link to the file, where the store gives those (null: serve it ourselves). */
+export const mediaLink = (media: Media, seconds: number) => storage().link(media.path, seconds);
 
 /** Removes an upload the member no longer uses (only their own). */
-export function removeMedia(userId: number, id: string) {
-  const media = mediaById(id);
+export async function removeMedia(userId: number, id: string) {
+  const media = await mediaById(id);
   if (!media || media.userId !== userId) return;
-  rmSync(mediaFile(media), { force: true });
-  database().prepare("delete from media where id = ?").run(id);
+  await storage().remove([media.path]);
+  await db().run("delete from media where id = ?", id);
 }

@@ -38,6 +38,8 @@ __pycache__/
 # Accounts database and the development mail outbox
 data/*.db*
 .mail-outbox/
+# A local PGlite database (ALUMNITY_DB=pglite:data/pglite), if used.
+data/pglite/
 .env*.local
 data/uploads/
 

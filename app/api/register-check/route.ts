@@ -1,27 +1,18 @@
 import { NextResponse } from "next/server";
-import { loadRegister, lookup, type Lookup } from "../../../lib/register";
+import type { Lookup } from "../../../lib/register";
+import { clientIp } from "../../../lib/server/http";
+import { findInRegister } from "../../../lib/server/register";
+import { withinLimit } from "../../../lib/server/throttle";
 
 /*
  * "Is this me in the register?" Answers only found (with your own line), not found, or
  * "tell us your USN" when a name, branch and year fit more than one person. A visitor gets
- * a handful of tries every ten minutes, so the register can't be combed through.
+ * a handful of tries every ten minutes (counted in the database, so every server agrees),
+ * so the register can't be combed through.
  */
 
-const WINDOW = 10 * 60_000;
-const TRIES = 8;
-const tries = new Map<string, number[]>();
-
-function allowed(who: string) {
-  const now = Date.now();
-  const recent = (tries.get(who) ?? []).filter((t) => now - t < WINDOW);
-  recent.push(now);
-  tries.set(who, recent);
-  return recent.length <= TRIES;
-}
-
 export async function POST(request: Request) {
-  const who = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
-  if (!allowed(who)) return NextResponse.json({ status: "slow-down" }, { status: 429 });
+  if (!(await withinLimit(`register:${clientIp(request)}`, 8, 10 * 60_000))) return NextResponse.json({ status: "slow-down" }, { status: 429 });
 
   const body = (await request.json().catch(() => null)) as Partial<Lookup> | null;
   const name = typeof body?.name === "string" ? body.name.slice(0, 120) : "";
@@ -30,10 +21,8 @@ export async function POST(request: Request) {
   const year = Number(body?.year) || undefined;
   if (!name.trim() || (!usn && !(branch && year))) return NextResponse.json({ status: "incomplete" }, { status: 400 });
 
-  const register = loadRegister();
-  if (!register) return NextResponse.json({ status: "unavailable" }, { status: 503 });
-
-  const result = lookup(register, { name, usn, branch, year });
+  const result = await findInRegister({ name, usn, branch, year });
+  if (!result) return NextResponse.json({ status: "unavailable" }, { status: 503 });
   // Found by name, branch and year: don't hand out a USN the visitor didn't type.
   if (result.status === "found" && !usn) result.usn = `${result.usn.slice(0, 7)}•••`;
   return NextResponse.json(result);

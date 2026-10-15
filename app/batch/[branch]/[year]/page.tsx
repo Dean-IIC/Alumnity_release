@@ -6,9 +6,9 @@ import { MemberLine } from "../../../../components/app/member-line";
 import { PostCard } from "../../../../components/app/post-card";
 import { connectAction } from "../../../../lib/actions/social";
 import { BRANCHES, isBranch } from "../../../../lib/branches";
-import { batchCount, loadRegister } from "../../../../lib/register";
-import { batchMembers, blockedEitherWay, relation } from "../../../../lib/server/people";
+import { batchMembers, blockIds, relationsOf } from "../../../../lib/server/people";
 import { feedFor } from "../../../../lib/server/posts";
+import { batchCount } from "../../../../lib/server/register";
 import { requireUser } from "../../../../lib/server/session";
 
 export const metadata: Metadata = { title: "A batch · Alumnity", robots: { index: false } };
@@ -28,10 +28,10 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
   if (!isBranch(branch) || !Number.isInteger(year) || year < 1997 || year > new Date().getFullYear()) notFound();
   const name = BRANCHES.find(([c]) => c === branch)![1];
   const course = me.branch === branch && me.joined === year && me.programme ? me.programme : branch === "GEN" ? "MBA" : "B.Tech";
-  const onRegister = batchCount(loadRegister() ?? [], branch, year, course);
-  const members = batchMembers(branch, year).filter((u) => u.id === me.id || !blockedEitherWay(me.id, u.id));
+  const [onRegister, everyone, blocked, relationTo] = await Promise.all([batchCount(branch, year, course), batchMembers(branch, year), blockIds(me.id), relationsOf(me.id)]);
+  const members = everyone.filter((u) => u.id === me.id || !blocked.has(u.id));
   const ids = new Set(members.map((u) => u.id));
-  const notes = feedFor(me, { authorIds: [...ids], limit: 10 });
+  const notes = await feedFor(me, { authorIds: [...ids], limit: 10 });
   const mine = me.branch === branch && me.joined === year;
 
   return (
@@ -52,7 +52,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
       ) : (
         <ul className="wf-list">
           {members.slice((page - 1) * PAGE, page * PAGE).map((u) => {
-            const rel = relation(me.id, u.id);
+            const rel = relationTo(u.id);
             return (
               <MemberLine key={u.id} member={u}>
                 {RELATION_LABEL[rel] ? (

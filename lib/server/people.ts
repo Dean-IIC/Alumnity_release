@@ -1,4 +1,4 @@
-import { database } from "./db";
+import { db, type Row } from "./db";
 import { toUser, type User } from "./auth";
 import { profileFor, profileFromData, profileOf, type Profile } from "./profile";
 
@@ -11,22 +11,36 @@ import { profileFor, profileFromData, profileOf, type Profile } from "./profile"
 export type Relation = "self" | "none" | "sent" | "received" | "connected" | "blocked" | "blocked-by";
 
 /** An active member (not paused), or null. */
-export function memberById(id: number): User | null {
-  const row = database().prepare("select * from users where id = ? and suspended_at is null").get(id) as Record<string, unknown> | undefined;
+export async function memberById(id: number): Promise<User | null> {
+  if (!Number.isSafeInteger(id)) return null;
+  const row = await db().one("select * from users where id = ? and suspended_at is null", id);
   return row ? toUser(row) : null;
 }
 
-export const isSample = (id: number) =>
-  Boolean((database().prepare("select sample from users where id = ?").get(id) as { sample: number } | undefined)?.sample);
+/** Several members at once (active ones only), by id. */
+export async function membersByIds(ids: number[]): Promise<Map<number, User>> {
+  const wanted = [...new Set(ids)].filter(Number.isSafeInteger);
+  if (!wanted.length) return new Map();
+  const rows = await db().all(`select * from users where suspended_at is null and id in (${wanted.map(() => "?").join(",")})`, ...wanted);
+  return new Map(rows.map((r) => [Number(r.id), toUser(r)]));
+}
 
-export function relation(viewerId: number, otherId: number): Relation {
+export const isSample = async (id: number) => Boolean((await db().one<{ sample: number }>("select sample from users where id = ?", id))?.sample);
+
+export async function relation(viewerId: number, otherId: number): Promise<Relation> {
   if (viewerId === otherId) return "self";
-  const db = database();
-  if (db.prepare("select 1 from blocks where blocker = ? and blocked = ?").get(viewerId, otherId)) return "blocked";
-  if (db.prepare("select 1 from blocks where blocker = ? and blocked = ?").get(otherId, viewerId)) return "blocked-by";
-  const link = db
-    .prepare("select requester, status from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)")
-    .get(viewerId, otherId, otherId, viewerId) as { requester: number; status: string } | undefined;
+  const [blocks, link] = await Promise.all([
+    db().all<{ blocker: number }>("select blocker from blocks where (blocker = ? and blocked = ?) or (blocker = ? and blocked = ?)", viewerId, otherId, otherId, viewerId),
+    db().one<{ requester: number; status: string }>(
+      "select requester, status from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)",
+      viewerId,
+      otherId,
+      otherId,
+      viewerId
+    )
+  ]);
+  if (blocks.some((b) => b.blocker === viewerId)) return "blocked";
+  if (blocks.length) return "blocked-by";
   if (!link) return "none";
   // A declined request still looks sent to whoever sent it (they aren't told), so they
   // can't simply ask again; to the one who declined, it's as if there were none.
@@ -35,15 +49,15 @@ export function relation(viewerId: number, otherId: number): Relation {
   return link.requester === viewerId ? "sent" : "received";
 }
 
-export const connected = (a: number, b: number) => relation(a, b) === "connected";
+export const connected = async (a: number, b: number) => (await relation(a, b)) === "connected";
 
 /** Everyone `userId` is connected to, as a set: one query, for pages that check many people. */
-export function connectionIds(userId: number): Set<number> {
-  const rows = database()
-    .prepare(
-      "select addressee as id from connections where requester = ? and status = 'accepted' union select requester from connections where addressee = ? and status = 'accepted'"
-    )
-    .all(userId, userId) as { id: number }[];
+export async function connectionIds(userId: number): Promise<Set<number>> {
+  const rows = await db().all<{ id: number }>(
+    "select addressee as id from connections where requester = ? and status = 'accepted' union select requester from connections where addressee = ? and status = 'accepted'",
+    userId,
+    userId
+  );
   return new Set(rows.map((r) => r.id));
 }
 
@@ -51,13 +65,14 @@ export function connectionIds(userId: number): Set<number> {
  * How `viewerId` stands to everyone, read in three queries: for lists (search) that would
  * otherwise ask about each person separately. Gives the same answers as relation().
  */
-export function relationsOf(viewerId: number): (otherId: number) => Relation {
-  const db = database();
-  const iBlocked = new Set((db.prepare("select blocked as id from blocks where blocker = ?").all(viewerId) as { id: number }[]).map((r) => r.id));
-  const blockedMe = new Set((db.prepare("select blocker as id from blocks where blocked = ?").all(viewerId) as { id: number }[]).map((r) => r.id));
-  const links = db
-    .prepare("select requester, addressee, status from connections where requester = ? or addressee = ?")
-    .all(viewerId, viewerId) as { requester: number; addressee: number; status: string }[];
+export async function relationsOf(viewerId: number): Promise<(otherId: number) => Relation> {
+  const [iBlockedRows, blockedMeRows, links] = await Promise.all([
+    db().all<{ id: number }>("select blocked as id from blocks where blocker = ?", viewerId),
+    db().all<{ id: number }>("select blocker as id from blocks where blocked = ?", viewerId),
+    db().all<{ requester: number; addressee: number; status: string }>("select requester, addressee, status from connections where requester = ? or addressee = ?", viewerId, viewerId)
+  ]);
+  const iBlocked = new Set(iBlockedRows.map((r) => r.id));
+  const blockedMe = new Set(blockedMeRows.map((r) => r.id));
   const byOther = new Map<number, Relation>();
   for (const l of links) {
     const mine = l.requester === viewerId;
@@ -73,23 +88,23 @@ export function relationsOf(viewerId: number): (otherId: number) => Relation {
 }
 
 /** Everyone `userId` has blocked or been blocked by, as a set. */
-export function blockIds(userId: number): Set<number> {
-  const rows = database().prepare("select blocked as id from blocks where blocker = ? union select blocker from blocks where blocked = ?").all(userId, userId) as { id: number }[];
+export async function blockIds(userId: number): Promise<Set<number>> {
+  const rows = await db().all<{ id: number }>("select blocked as id from blocks where blocker = ? union select blocker from blocks where blocked = ?", userId, userId);
   return new Set(rows.map((r) => r.id));
 }
 
 /** Whether either has blocked the other: then they don't see each other anywhere. */
-export function blockedEitherWay(a: number, b: number) {
-  return Boolean(database().prepare("select 1 from blocks where (blocker = ? and blocked = ?) or (blocker = ? and blocked = ?)").get(a, b, b, a));
+export async function blockedEitherWay(a: number, b: number): Promise<boolean> {
+  return Boolean(await db().one("select 1 from blocks where (blocker = ? and blocked = ?) or (blocker = ? and blocked = ?)", a, b, b, a));
 }
 
 /** A member's page as `viewer` may see it (null if they mustn't see it at all). */
-export function pageFor(viewer: User, ownerId: number): { owner: User; profile: Profile; relation: Relation } | null {
-  const owner = memberById(ownerId);
+export async function pageFor(viewer: User, ownerId: number): Promise<{ owner: User; profile: Profile; relation: Relation } | null> {
+  const owner = await memberById(ownerId);
   if (!owner) return null;
-  const rel = relation(viewer.id, ownerId);
+  const rel = await relation(viewer.id, ownerId);
   if (rel === "blocked-by") return null;
-  return { owner, profile: profileFor(viewer, owner, profileOf(owner.id), rel === "connected"), relation: rel };
+  return { owner, profile: profileFor(viewer, owner, await profileOf(owner.id), rel === "connected"), relation: rel };
 }
 
 export type SearchQuery = { q?: string; branch?: string; year?: number; help?: "mentor" | "refer" | "talk" };
@@ -100,30 +115,29 @@ const words = (s: string) => s.toLowerCase().split(/[^a-z0-9+#.]+/).filter(Boole
 
 /**
  * Members matching a search: every word must appear in their name, or in what the viewer
- * is allowed to see of their page (what they do, where, city, skills). Newest members last.
+ * is allowed to see of their page (what they do, where, city, skills). Newest members first.
  */
-export function searchMembers(viewer: User, query: SearchQuery, limit = 60): Found[] {
+export async function searchMembers(viewer: User, query: SearchQuery, limit = 60): Promise<Found[]> {
   const terms = words(query.q ?? "").slice(0, 6);
   // A cheap first pass in SQL (each word somewhere in their name or page), then the exact
   // match below, against only what the viewer may see. Bounded, so no search is expensive.
   const like = terms.map(() => "and lower(users.name || ' ' || coalesce(users.branch_name, '') || ' ' || coalesce(profiles.data, '')) like ?").join(" ");
-  const rows = database()
-    .prepare(
+  const [rows, relationTo] = await Promise.all([
+    db().all(
       `select users.*, profiles.data as profile_data from users left join profiles on profiles.user_id = users.id
        where users.suspended_at is null and users.id != ?
        and users.id not in (select blocked from blocks where blocker = ?) and users.id not in (select blocker from blocks where blocked = ?)
        ${query.branch ? "and users.branch = ?" : ""} ${query.year ? "and users.joined = ?" : ""} ${like}
-       order by +users.created_at desc limit 400`
-    )
-    .all(
+       order by users.created_at desc limit 400`,
       viewer.id,
       viewer.id,
       viewer.id,
       ...(query.branch ? [query.branch] : []),
       ...(query.year ? [query.year] : []),
-      ...terms.map((t) => `%${t.replace(/[%_]/g, "")}%`)
-    ) as Record<string, unknown>[];
-  const relationTo = relationsOf(viewer.id);
+      ...terms.map((t) => `%${t.replace(/[%_\\]/g, "")}%`)
+    ),
+    relationsOf(viewer.id)
+  ]);
   const found: Found[] = [];
   for (const row of rows) {
     const member = toUser(row);
@@ -140,19 +154,23 @@ export function searchMembers(viewer: User, query: SearchQuery, limit = 60): Fou
   return found;
 }
 
+const users = (rows: Row[]) => rows.map(toUser);
+
 /** The viewer's batch on Alumnity (same branch, course and year), them excluded. */
-export function batchmates(person: User): User[] {
+export async function batchmates(person: User): Promise<User[]> {
   if (!person.branch || !person.joined) return [];
-  return (
-    database()
-      .prepare("select * from users where branch = ? and joined = ? and programme is ? and id != ? and suspended_at is null order by name")
-      .all(person.branch, person.joined, person.programme, person.id) as Record<string, unknown>[]
-  ).map(toUser);
+  return users(
+    await db().all(
+      "select * from users where branch = ? and joined = ? and programme is not distinct from ? and id != ? and suspended_at is null order by name",
+      person.branch,
+      person.joined,
+      person.programme,
+      person.id
+    )
+  );
 }
 
 /** Everyone on Alumnity from one batch (for its page). */
-export function batchMembers(branch: string, joined: number): User[] {
-  return (
-    database().prepare("select * from users where branch = ? and joined = ? and suspended_at is null order by name").all(branch, joined) as Record<string, unknown>[]
-  ).map(toUser);
+export async function batchMembers(branch: string, joined: number): Promise<User[]> {
+  return users(await db().all("select * from users where branch = ? and joined = ? and suspended_at is null order by name", branch, joined));
 }

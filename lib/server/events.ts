@@ -1,6 +1,6 @@
-import { database } from "./db";
+import { db } from "./db";
 import type { User } from "./auth";
-import { memberById } from "./people";
+import { membersByIds } from "./people";
 import { canOrganise, isModerator } from "./roles";
 import { notify, type Result } from "./social";
 import { PAUSED, settings } from "./settings";
@@ -46,12 +46,21 @@ type EventRow = {
   cancelled_at: number | null;
 };
 
-const goingCount = (id: number) => (database().prepare("select count(*) as n from rsvps where event_id = ?").get(id) as { n: number }).n;
-
-function toEvent(row: EventRow, viewer: User): Event {
-  return {
+/** Events with who's organising, how many are going and whether the viewer is: four queries for any number. */
+async function toEvents(rows: EventRow[], viewer: User): Promise<Event[]> {
+  if (!rows.length) return [];
+  const ids = rows.map((r) => r.id);
+  const q = ids.map(() => "?").join(",");
+  const [organisers, counts, mine] = await Promise.all([
+    membersByIds(rows.map((r) => r.organiser)),
+    db().all<{ event_id: number; n: number }>(`select event_id, count(*) as n from rsvps where event_id in (${q}) group by event_id`, ...ids),
+    db().all<{ event_id: number }>(`select event_id from rsvps where user_id = ? and event_id in (${q})`, viewer.id, ...ids)
+  ]);
+  const going = new Map(counts.map((c) => [c.event_id, c.n]));
+  const imGoing = new Set(mine.map((r) => r.event_id));
+  return rows.map((row) => ({
     id: row.id,
-    organiser: memberById(row.organiser),
+    organiser: organisers.get(row.organiser) ?? null,
     title: row.title,
     body: row.body,
     startsAt: row.starts_at,
@@ -60,10 +69,10 @@ function toEvent(row: EventRow, viewer: User): Event {
     onlineLink: row.online_link,
     capacity: row.capacity,
     cancelled: row.cancelled_at != null,
-    going: goingCount(row.id),
-    imGoing: Boolean(database().prepare("select 1 from rsvps where event_id = ? and user_id = ?").get(row.id, viewer.id)),
+    going: going.get(row.id) ?? 0,
+    imGoing: imGoing.has(row.id),
     mine: row.organiser === viewer.id
-  };
+  }));
 }
 
 /** A datetime-local value ("2026-11-02T18:30"), read as India time. */
@@ -82,12 +91,12 @@ const safeLink = (s: string) => {
   }
 };
 
-export function createEvent(
+export async function createEvent(
   me: User,
   input: { title: string; body: string; startsAt: string; endsAt: string; place: string; onlineLink: string; capacity: string }
-): Result & { id?: number } {
+): Promise<Result & { id?: number }> {
   if (!canOrganise(me)) return no("Events are put up by faculty and the alumni coordinators.");
-  if (!settings().features.events) return no(PAUSED);
+  if (!(await settings()).features.events) return no(PAUSED);
   const title = input.title.trim().slice(0, EVENT_LIMITS.title);
   const body = input.body.trim().slice(0, EVENT_LIMITS.body);
   const place = input.place.trim().slice(0, EVENT_LIMITS.place);
@@ -102,59 +111,80 @@ export function createEvent(
   if (input.endsAt && (!ends || ends <= starts)) return no("It should end after it starts.");
   if (input.onlineLink.trim() && !link) return no("The online link should start with https://");
   if (capacity !== null && !(capacity > 0 && capacity <= 100_000)) return no("Capacity should be a number of people, or empty.");
-  if (!withinLimit(`event:${me.id}`, 10, DAY)) return no("That's ten events today: the most in a day.");
-  const { lastInsertRowid } = database()
-    .prepare("insert into events (organiser, title, body, starts_at, ends_at, place, online_link, capacity, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    .run(me.id, title, body, starts, ends, place, link, capacity, Date.now());
-  return { ok: true, id: Number(lastInsertRowid) };
+  if (!(await withinLimit(`event:${me.id}`, 10, DAY))) return no("That's ten events today: the most in a day.");
+  const row = await db().one<{ id: number }>(
+    "insert into events (organiser, title, body, starts_at, ends_at, place, online_link, capacity, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?) returning id",
+    me.id,
+    title,
+    body,
+    starts,
+    ends,
+    place,
+    link,
+    capacity,
+    Date.now()
+  );
+  return { ok: true, id: row!.id };
 }
 
-export function eventsFor(viewer: User): { upcoming: Event[]; past: Event[] } {
+export async function eventsFor(viewer: User): Promise<{ upcoming: Event[]; past: Event[] }> {
   const now = Date.now();
-  const db = database();
-  const upcoming = (db.prepare("select * from events where coalesce(ends_at, starts_at) >= ? order by starts_at").all(now) as EventRow[]).map((r) => toEvent(r, viewer));
-  const past = (db.prepare("select * from events where coalesce(ends_at, starts_at) < ? order by starts_at desc limit 20").all(now) as EventRow[]).map((r) => toEvent(r, viewer));
-  return { upcoming, past };
+  const [upcoming, past] = await Promise.all([
+    db().all<EventRow>("select * from events where coalesce(ends_at, starts_at) >= ? order by starts_at limit 200", now),
+    db().all<EventRow>("select * from events where coalesce(ends_at, starts_at) < ? order by starts_at desc limit 20", now)
+  ]);
+  const [u, p] = await Promise.all([toEvents(upcoming, viewer), toEvents(past, viewer)]);
+  return { upcoming: u, past: p };
 }
 
-export function eventById(viewer: User, id: number): Event | null {
-  const row = database().prepare("select * from events where id = ?").get(id) as EventRow | undefined;
-  return row ? toEvent(row, viewer) : null;
+export async function eventById(viewer: User, id: number): Promise<Event | null> {
+  if (!Number.isSafeInteger(id)) return null;
+  const row = await db().one<EventRow>("select * from events where id = ?", id);
+  return row ? (await toEvents([row], viewer))[0] : null;
 }
 
 /** Who's coming, for the organiser (and the college desk). */
-export function attendees(viewer: User, id: number): User[] {
-  const row = database().prepare("select organiser from events where id = ?").get(id) as { organiser: number } | undefined;
+export async function attendees(viewer: User, id: number): Promise<User[]> {
+  const row = await db().one<{ organiser: number }>("select organiser from events where id = ?", id);
   if (!row || (row.organiser !== viewer.id && !isModerator(viewer))) return [];
-  return (database().prepare("select user_id from rsvps where event_id = ? order by created_at").all(id) as { user_id: number }[])
-    .map((r) => memberById(r.user_id))
-    .filter((u): u is User => u !== null);
+  const rows = await db().all<{ user_id: number }>("select user_id from rsvps where event_id = ? order by created_at", id);
+  const members = await membersByIds(rows.map((r) => r.user_id));
+  return rows.flatMap((r) => members.get(r.user_id) ?? []);
 }
 
-export function toggleRsvp(me: User, id: number): Result {
-  const event = eventById(me, id);
+export async function toggleRsvp(me: User, id: number): Promise<Result> {
+  const event = await eventById(me, id);
   if (!event) return no("That event isn't here.");
-  const db = database();
   if (event.imGoing) {
-    db.prepare("delete from rsvps where event_id = ? and user_id = ?").run(id, me.id);
+    await db().run("delete from rsvps where event_id = ? and user_id = ?", id, me.id);
     return { ok: true };
   }
   if (event.cancelled) return no("This event was cancelled.");
   if ((event.endsAt ?? event.startsAt) < Date.now()) return no("This event is over.");
-  if (event.capacity !== null && event.going >= event.capacity) return no("It's full, sorry.");
-  db.prepare("insert or ignore into rsvps (event_id, user_id, created_at) values (?, ?, ?)").run(id, me.id, Date.now());
+  // The capacity is checked in the same statement, so two people can't take the last place.
+  const added = await db().run(
+    "insert into rsvps (event_id, user_id, created_at) select ?, ?, ? where (select capacity from events where id = ?) is null or (select count(*) from rsvps where event_id = ?) < (select capacity from events where id = ?) on conflict do nothing",
+    id,
+    me.id,
+    Date.now(),
+    id,
+    id,
+    id
+  );
+  if (!added && event.capacity !== null) return no("It's full, sorry.");
   return { ok: true };
 }
 
-export function cancelEvent(me: User, id: number): Result {
-  const event = eventById(me, id);
+export async function cancelEvent(me: User, id: number): Promise<Result> {
+  const event = await eventById(me, id);
   if (!event) return no("That event isn't here.");
   if (!event.mine && !isModerator(me)) return no("Only its organiser can cancel it.");
-  const { changes } = database().prepare("update events set cancelled_at = ? where id = ? and cancelled_at is null").run(Date.now(), id);
+  const changes = await db().run("update events set cancelled_at = ? where id = ? and cancelled_at is null", Date.now(), id);
   if (!changes) return { ok: true }; // already cancelled: everyone was told then
-  for (const u of attendees(me, id)) notify(u.id, { actor: me.id, kind: "event-cancelled", text: `“${event.title}” was cancelled.`, link: `/events/${id}` });
+  for (const u of await attendees(me, id)) await notify(u.id, { actor: me.id, kind: "event-cancelled", text: `“${event.title}” was cancelled.`, link: `/events/${id}` });
   return { ok: true };
 }
+
 
 const icsText = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r\n|\r|\n/g, "\\n");
 

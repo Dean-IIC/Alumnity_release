@@ -1,7 +1,7 @@
-import { database } from "./db";
+import { db } from "./db";
 import type { User } from "./auth";
 import { toUser } from "./auth";
-import { blockedEitherWay, blockIds, memberById, relation } from "./people";
+import { blockedEitherWay, blockIds, memberById, membersByIds, relation } from "./people";
 import { PAUSED, settings } from "./settings";
 import { withinLimit } from "./throttle";
 
@@ -15,39 +15,45 @@ export type Result = { ok: true } | { ok: false; error: string };
 const no = (error: string): Result => ({ ok: false, error });
 const DAY = 24 * 60 * 60_000;
 const firstName = (u: Pick<User, "name">) => u.name.split(" ")[0];
+const count = async (sql: string, ...params: unknown[]) => (await db().one<{ n: number }>(sql, ...params))?.n ?? 0;
 
 // ---------- Notifications ----------
 
 export type Notification = { id: number; kind: string; text: string; link: string; read: boolean; createdAt: number; actor: number | null };
 
-export function notify(userId: number, n: { actor?: number; kind: string; text: string; link: string }) {
-  if (n.actor && blockedEitherWay(userId, n.actor)) return;
-  database()
-    .prepare("insert into notifications (user_id, actor, kind, text, link, created_at) values (?, ?, ?, ?, ?, ?)")
-    .run(userId, n.actor ?? null, n.kind, n.text, n.link, Date.now());
+export async function notify(userId: number, n: { actor?: number; kind: string; text: string; link: string }) {
+  if (n.actor && (await blockedEitherWay(userId, n.actor))) return;
+  await db().run("insert into notifications (user_id, actor, kind, text, link, created_at) values (?, ?, ?, ?, ?, ?)", userId, n.actor ?? null, n.kind, n.text, n.link, Date.now());
 }
 
 /**
  * Leaves out anyone blocked either way, even what came before the block. The block list
  * (usually empty) is read once, not checked again for every notification.
  */
-function notBlocked(userId: number): { sql: string; args: number[] } {
-  const ids = [...blockIds(userId)];
+async function notBlocked(userId: number): Promise<{ sql: string; args: number[] }> {
+  const ids = [...(await blockIds(userId))];
   return ids.length ? { sql: `and (actor is null or actor not in (${ids.map(() => "?").join(",")}))`, args: ids } : { sql: "", args: [] };
 }
 
-export function notificationsFor(userId: number, limit = 50): Notification[] {
-  const nb = notBlocked(userId);
-  return (
-    database().prepare(`select * from notifications where user_id = ? ${nb.sql} order by created_at desc limit ?`).all(userId, ...nb.args, limit) as Record<string, unknown>[]
-  ).map((r) => ({ id: Number(r.id), kind: String(r.kind), text: String(r.text), link: String(r.link), read: r.read_at != null, createdAt: Number(r.created_at), actor: r.actor == null ? null : Number(r.actor) }));
+export async function notificationsFor(userId: number, limit = 50): Promise<Notification[]> {
+  const nb = await notBlocked(userId);
+  return (await db().all(`select * from notifications where user_id = ? ${nb.sql} order by created_at desc limit ?`, userId, ...nb.args, limit)).map((r) => ({
+    id: Number(r.id),
+    kind: String(r.kind),
+    text: String(r.text),
+    link: String(r.link),
+    read: r.read_at != null,
+    createdAt: Number(r.created_at),
+    actor: r.actor == null ? null : Number(r.actor)
+  }));
 }
 
-export const unreadNotifications = (userId: number) =>
-  ((nb) => (database().prepare(`select count(*) as n from notifications where user_id = ? and read_at is null ${nb.sql}`).get(userId, ...nb.args) as { n: number }).n)(notBlocked(userId));
+export async function unreadNotifications(userId: number): Promise<number> {
+  const nb = await notBlocked(userId);
+  return count(`select count(*) as n from notifications where user_id = ? and read_at is null ${nb.sql}`, userId, ...nb.args);
+}
 
-export const markNotificationsRead = (userId: number) =>
-  database().prepare("update notifications set read_at = ? where user_id = ? and read_at is null").run(Date.now(), userId);
+export const markNotificationsRead = (userId: number) => db().run("update notifications set read_at = ? where user_id = ? and read_at is null", Date.now(), userId);
 
 // ---------- Connections ----------
 
@@ -55,114 +61,120 @@ export const NOTE_LIMIT = 300;
 /** Requests a member may send in a day, by default: plenty for real people, too few for spam (a setting). */
 export const DAILY_REQUESTS = 25;
 
-export function requestConnection(from: User, toId: number, note: string): Result {
-  const to = memberById(toId);
+export async function requestConnection(from: User, toId: number, note: string): Promise<Result> {
+  const to = await memberById(toId);
   if (!to || to.id === from.id) return no("That member isn’t here.");
-  const rel = relation(from.id, to.id);
+  const rel = await relation(from.id, to.id);
   if (rel === "blocked" || rel === "blocked-by") return no("You can’t connect with this member.");
   if (rel === "connected") return no("You’re already connected.");
   if (rel === "sent") return no("Your request is already waiting for them.");
   if (rel === "received") return acceptConnection(from, to.id);
-  const daily = settings().dailyRequests;
-  if (!withinLimit(`connect:${from.id}`, daily, DAY)) return no(`That’s ${daily} requests today: the most in a day. Try again tomorrow.`);
-  const db = database();
-  db.prepare("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)").run(from.id, to.id, to.id, from.id);
-  db.prepare("insert into connections (requester, addressee, status, note, created_at) values (?, ?, 'pending', ?, ?)").run(
-    from.id,
-    to.id,
-    note.trim().slice(0, NOTE_LIMIT),
-    Date.now()
-  );
+  const daily = (await settings()).dailyRequests;
+  if (!(await withinLimit(`connect:${from.id}`, daily, DAY))) return no(`That’s ${daily} requests today: the most in a day. Try again tomorrow.`);
+  await db().tx(async (t) => {
+    await t.run("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)", from.id, to.id, to.id, from.id);
+    await t.run("insert into connections (requester, addressee, status, note, created_at) values (?, ?, 'pending', ?, ?)", from.id, to.id, note.trim().slice(0, NOTE_LIMIT), Date.now());
+  });
   // Withdrawing and asking again doesn't ping them again within a week.
-  const recently = db
-    .prepare("select 1 from notifications where user_id = ? and actor = ? and kind = 'connect-request' and created_at > ?")
-    .get(to.id, from.id, Date.now() - 7 * DAY);
-  if (!recently) notify(to.id, { actor: from.id, kind: "connect-request", text: `${from.name} would like to connect.`, link: "/connections" });
+  const recently = await db().one(
+    "select 1 from notifications where user_id = ? and actor = ? and kind = 'connect-request' and created_at > ?",
+    to.id,
+    from.id,
+    Date.now() - 7 * DAY
+  );
+  if (!recently) await notify(to.id, { actor: from.id, kind: "connect-request", text: `${from.name} would like to connect.`, link: "/connections" });
   return { ok: true };
 }
 
-export function acceptConnection(me: User, fromId: number): Result {
-  const db = database();
-  const result = db
-    .prepare("update connections set status = 'accepted', responded_at = ? where requester = ? and addressee = ? and status = 'pending'")
-    .run(Date.now(), fromId, me.id);
-  if (!result.changes) return no("That request isn’t waiting any more.");
-  notify(fromId, { actor: me.id, kind: "connect-accepted", text: `${me.name} accepted your request. You’re connected.`, link: `/people/${me.id}` });
+export async function acceptConnection(me: User, fromId: number): Promise<Result> {
+  const changes = await db().run(
+    "update connections set status = 'accepted', responded_at = ? where requester = ? and addressee = ? and status = 'pending'",
+    Date.now(),
+    fromId,
+    me.id
+  );
+  if (!changes) return no("That request isn’t waiting any more.");
+  await notify(fromId, { actor: me.id, kind: "connect-accepted", text: `${me.name} accepted your request. You’re connected.`, link: `/people/${me.id}` });
   return { ok: true };
 }
 
-export function declineConnection(me: User, fromId: number): Result {
-  database().prepare("update connections set status = 'declined', responded_at = ? where requester = ? and addressee = ? and status = 'pending'").run(Date.now(), fromId, me.id);
+export async function declineConnection(me: User, fromId: number): Promise<Result> {
+  await db().run("update connections set status = 'declined', responded_at = ? where requester = ? and addressee = ? and status = 'pending'", Date.now(), fromId, me.id);
   return { ok: true }; // they aren't told
 }
 
-export function withdrawRequest(me: User, toId: number): Result {
-  database().prepare("delete from connections where requester = ? and addressee = ? and status in ('pending', 'declined')").run(me.id, toId);
+export async function withdrawRequest(me: User, toId: number): Promise<Result> {
+  await db().run("delete from connections where requester = ? and addressee = ? and status in ('pending', 'declined')", me.id, toId);
   return { ok: true };
 }
 
-export function removeConnection(me: User, otherId: number): Result {
-  database().prepare("delete from connections where ((requester = ? and addressee = ?) or (requester = ? and addressee = ?)) and status = 'accepted'").run(me.id, otherId, otherId, me.id);
+export async function removeConnection(me: User, otherId: number): Promise<Result> {
+  await db().run("delete from connections where ((requester = ? and addressee = ?) or (requester = ? and addressee = ?)) and status = 'accepted'", me.id, otherId, otherId, me.id);
   return { ok: true };
 }
 
-export function block(me: User, otherId: number): Result {
+export async function block(me: User, otherId: number): Promise<Result> {
   if (me.id === otherId) return no("You can’t block yourself.");
-  const db = database();
-  db.prepare("insert or ignore into blocks (blocker, blocked, created_at) values (?, ?, ?)").run(me.id, otherId, Date.now());
-  db.prepare("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)").run(me.id, otherId, otherId, me.id);
-  // Nor does either follow the other any more.
-  db.prepare("delete from follows where (follower = ? and followee = ?) or (follower = ? and followee = ?)").run(me.id, otherId, otherId, me.id);
+  if (!(await db().one("select 1 from users where id = ?", otherId))) return no("That member isn’t here.");
+  await db().tx(async (t) => {
+    await t.run("insert into blocks (blocker, blocked, created_at) values (?, ?, ?) on conflict do nothing", me.id, otherId, Date.now());
+    await t.run("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)", me.id, otherId, otherId, me.id);
+    // Nor does either follow the other any more.
+    await t.run("delete from follows where (follower = ? and followee = ?) or (follower = ? and followee = ?)", me.id, otherId, otherId, me.id);
+  });
   return { ok: true };
 }
 
-export function unblock(me: User, otherId: number): Result {
-  database().prepare("delete from blocks where blocker = ? and blocked = ?").run(me.id, otherId);
+export async function unblock(me: User, otherId: number): Promise<Result> {
+  await db().run("delete from blocks where blocker = ? and blocked = ?", me.id, otherId);
   return { ok: true };
 }
 
 export type Pending = { member: User; note: string; createdAt: number };
 
-export function requestsFor(me: User): { received: Pending[]; sent: Pending[] } {
-  const db = database();
-  const load = (sql: string) =>
-    (db.prepare(sql).all(me.id) as { other: number; note: string; created_at: number }[])
-      .map((r) => ({ member: memberById(r.other), note: r.note, createdAt: r.created_at }))
-      .filter((p): p is Pending => p.member !== null);
-  return {
-    received: load("select requester as other, note, created_at from connections where addressee = ? and status = 'pending' order by created_at desc"),
-    sent: load("select addressee as other, note, created_at from connections where requester = ? and status = 'pending' order by created_at desc")
+export async function requestsFor(me: User): Promise<{ received: Pending[]; sent: Pending[] }> {
+  const load = async (sql: string) => {
+    const rows = await db().all<{ other: number; note: string; created_at: number }>(sql, me.id);
+    const members = await membersByIds(rows.map((r) => r.other));
+    return rows.flatMap((r) => {
+      const member = members.get(r.other);
+      return member ? [{ member, note: r.note, createdAt: r.created_at }] : [];
+    });
   };
+  const [received, sent] = await Promise.all([
+    load("select requester as other, note, created_at from connections where addressee = ? and status = 'pending' order by created_at desc"),
+    load("select addressee as other, note, created_at from connections where requester = ? and status = 'pending' order by created_at desc")
+  ]);
+  return { received, sent };
 }
 
-export function connectionsOf(userId: number): User[] {
+export async function connectionsOf(userId: number): Promise<User[]> {
   return (
-    database()
-      .prepare(
-        `select users.* from (
-           select addressee as other, responded_at from connections where requester = ? and status = 'accepted'
-           union all
-           select requester as other, responded_at from connections where addressee = ? and status = 'accepted'
-         ) as c join users on users.id = c.other and users.suspended_at is null
-         order by c.responded_at desc limit 1000`
-      )
-      .all(userId, userId) as Record<string, unknown>[]
+    await db().all(
+      `select users.* from (
+         select addressee as other, responded_at from connections where requester = ? and status = 'accepted'
+         union all
+         select requester as other, responded_at from connections where addressee = ? and status = 'accepted'
+       ) as c join users on users.id = c.other and users.suspended_at is null
+       order by c.responded_at desc limit 1000`,
+      userId,
+      userId
+    )
   ).map(toUser);
 }
 
 /** Requests waiting for `userId`: a count for the nav (from active members only). */
 export const waitingRequests = (userId: number) =>
-  (
-    database()
-      .prepare("select count(*) as n from connections join users on users.id = connections.requester where connections.addressee = ? and connections.status = 'pending' and users.suspended_at is null")
-      .get(userId) as { n: number }
-  ).n;
+  count(
+    "select count(*) as n from connections join users on users.id = connections.requester where connections.addressee = ? and connections.status = 'pending' and users.suspended_at is null",
+    userId
+  );
 
-export const connectionCount = (userId: number) =>
-  (database().prepare("select count(*) as n from connections where (requester = ? or addressee = ?) and status = 'accepted'").get(userId, userId) as { n: number }).n;
+export const connectionCount = (userId: number) => count("select count(*) as n from connections where (requester = ? or addressee = ?) and status = 'accepted'", userId, userId);
 
-export const blockedBy = (userId: number): User[] =>
-  (database().prepare("select blocked from blocks where blocker = ?").all(userId) as { blocked: number }[]).map((r) => memberById(r.blocked)).filter((u): u is User => u !== null);
+export async function blockedBy(userId: number): Promise<User[]> {
+  return (await db().all("select users.* from blocks join users on users.id = blocks.blocked where blocks.blocker = ? and users.suspended_at is null", userId)).map(toUser);
+}
 
 // ---------- Messages ----------
 
@@ -170,58 +182,62 @@ export const MESSAGE_LIMIT = 2000;
 
 export type Message = { id: number; mine: boolean; body: string; createdAt: number };
 
-export function sendMessage(from: User, toId: number, body: string): Result {
-  if (!settings().features.messages) return no(PAUSED);
+export async function sendMessage(from: User, toId: number, body: string): Promise<Result> {
+  if (!(await settings()).features.messages) return no(PAUSED);
   const text = body.trim().slice(0, MESSAGE_LIMIT);
   if (!text) return no("Write something first.");
-  if (!memberById(toId)) return no("That member isn't here any more.");
-  if (relation(from.id, toId) !== "connected") return no("You can message your connections. Connect first, or Ask.");
-  if (!withinLimit(`message:${from.id}`, 120, 60 * 60_000)) return no("That’s a lot of messages in an hour. Take a breather and try again.");
-  const db = database();
+  if (!(await memberById(toId))) return no("That member isn't here any more.");
+  if ((await relation(from.id, toId)) !== "connected") return no("You can message your connections. Connect first, or Ask.");
+  if (!(await withinLimit(`message:${from.id}`, 120, 60 * 60_000))) return no("That’s a lot of messages in an hour. Take a breather and try again.");
   // One notification per conversation until it's read, not one per message.
-  const unread = db.prepare("select 1 from messages where sender = ? and recipient = ? and read_at is null").get(from.id, toId);
-  db.prepare("insert into messages (sender, recipient, body, created_at) values (?, ?, ?, ?)").run(from.id, toId, text, Date.now());
-  if (!unread) notify(toId, { actor: from.id, kind: "message", text: `New message from ${firstName(from)}.`, link: `/messages/${from.id}` });
+  const unread = await db().one("select 1 from messages where sender = ? and recipient = ? and read_at is null", from.id, toId);
+  await db().run("insert into messages (sender, recipient, body, created_at) values (?, ?, ?, ?)", from.id, toId, text, Date.now());
+  if (!unread) await notify(toId, { actor: from.id, kind: "message", text: `New message from ${firstName(from)}.`, link: `/messages/${from.id}` });
   return { ok: true };
 }
 
-export function thread(me: User, otherId: number, limit = 200): Message[] {
-  const db = database();
-  db.prepare("update messages set read_at = ? where sender = ? and recipient = ? and read_at is null").run(Date.now(), otherId, me.id);
+export async function thread(me: User, otherId: number, limit = 200): Promise<Message[]> {
+  await db().run("update messages set read_at = ? where sender = ? and recipient = ? and read_at is null", Date.now(), otherId, me.id);
   return (
-    db
-      .prepare("select * from (select * from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?) order by created_at desc limit ?) order by created_at")
-      .all(me.id, otherId, otherId, me.id, limit) as Record<string, unknown>[]
+    await db().all(
+      "select * from (select * from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?) order by created_at desc, id desc limit ?) as recent order by created_at, id",
+      me.id,
+      otherId,
+      otherId,
+      me.id,
+      limit
+    )
   ).map((r) => ({ id: Number(r.id), mine: Number(r.sender) === me.id, body: String(r.body), createdAt: Number(r.created_at) }));
 }
 
 export type Conversation = { with: User; last: string; lastAt: number; mine: boolean; unread: number };
 
-export function conversations(me: User): Conversation[] {
-  const rows = database()
-    .prepare(
+export async function conversations(me: User): Promise<Conversation[]> {
+  const [rows, unreadRows, blocked] = await Promise.all([
+    db().all<{ other: number; body: string; created_at: number; sender: number }>(
       `select * from (
-         select recipient as other, body, created_at, sender from messages where sender = ?
+         select recipient as other, body, created_at, sender, id from messages where sender = ?
          union all
-         select sender as other, body, created_at, sender from messages where recipient = ?
-       ) order by created_at desc limit 2000`
-    )
-    .all(me.id, me.id) as { other: number; body: string; created_at: number; sender: number }[];
-  const unread = new Map(
-    (database().prepare("select sender, count(*) as n from messages where recipient = ? and read_at is null group by sender").all(me.id) as { sender: number; n: number }[]).map(
-      (r) => [r.sender, r.n]
-    )
-  );
-  const seen = new Map<number, Conversation>();
-  for (const r of rows) {
-    if (seen.has(r.other)) continue;
-    const other = memberById(r.other);
-    if (!other || blockedEitherWay(me.id, other.id)) continue;
-    seen.set(r.other, { with: other, last: r.body, lastAt: r.created_at, mine: r.sender === me.id, unread: unread.get(r.other) ?? 0 });
-    if (seen.size >= 100) break;
+         select sender as other, body, created_at, sender, id from messages where recipient = ?
+       ) as m order by created_at desc, id desc limit 2000`,
+      me.id,
+      me.id
+    ),
+    db().all<{ sender: number; n: number }>("select sender, count(*) as n from messages where recipient = ? and read_at is null group by sender", me.id),
+    blockIds(me.id)
+  ]);
+  const unread = new Map(unreadRows.map((r) => [r.sender, r.n]));
+  const latest = new Map<number, (typeof rows)[number]>();
+  for (const r of rows) if (!latest.has(r.other) && !blocked.has(r.other)) latest.set(r.other, r);
+  const members = await membersByIds([...latest.keys()].slice(0, 150));
+  const list: Conversation[] = [];
+  for (const [other, r] of latest) {
+    const member = members.get(other);
+    if (!member) continue;
+    list.push({ with: member, last: r.body, lastAt: r.created_at, mine: r.sender === me.id, unread: unread.get(other) ?? 0 });
+    if (list.length >= 100) break;
   }
-  return [...seen.values()];
+  return list;
 }
 
-export const unreadMessages = (userId: number) =>
-  (database().prepare("select count(*) as n from messages where recipient = ? and read_at is null").get(userId) as { n: number }).n;
+export const unreadMessages = (userId: number) => count("select count(*) as n from messages where recipient = ? and read_at is null", userId);

@@ -5,10 +5,10 @@ import { signedIn } from "../../../lib/server/http";
 /** The audit log as a spreadsheet: administrators only. */
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  const session = signedIn(request);
+export async function GET() {
+  const session = await signedIn();
   if (session instanceof NextResponse) return session;
-  const csv = auditCsv(session.user);
+  const csv = await auditCsv(session.user);
   if (csv === null) return new NextResponse("Not found", { status: 404 });
   const day = new Date().toISOString().slice(0, 10);
   return new NextResponse(csv, {
