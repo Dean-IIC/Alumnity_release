@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 
 /* The fields the account pages share: a six-digit code, and a password you can reveal. */
 
@@ -25,16 +25,33 @@ export function CodeField({ email }: { email: string }) {
 
 export function PasswordField({ label = "Choose a password", autoComplete = "new-password" }: { label?: string; autoComplete?: string }) {
   const [shown, setShown] = useState(false);
+  // Its own label, tied by id: a Show button inside a <label> muddles the field's name for screen readers.
+  const id = useId();
+  const isNew = autoComplete === "new-password";
   return (
-    <label className="field">
-      <span className="field__label">{label}</span>
+    <div className="field">
+      <label className="field__label" htmlFor={id}>
+        {label}
+      </label>
       <span className="field__with-action">
-        <input name="password" type={shown ? "text" : "password"} required minLength={autoComplete === "new-password" ? 10 : undefined} autoComplete={autoComplete} />
-        <button type="button" className="field__action" onClick={() => setShown((s) => !s)} aria-pressed={shown}>
+        <input
+          id={id}
+          name="password"
+          type={shown ? "text" : "password"}
+          required
+          minLength={isNew ? 10 : undefined}
+          autoComplete={autoComplete}
+          aria-describedby={isNew ? `${id}-hint` : undefined}
+        />
+        <button type="button" className="field__action" onClick={() => setShown((s) => !s)} aria-pressed={shown} aria-label={shown ? "Hide password" : "Show password"}>
           {shown ? "Hide" : "Show"}
         </button>
       </span>
-      {autoComplete === "new-password" && <span className="field__hint">At least 10 characters. A few words you’ll remember works well.</span>}
-    </label>
+      {isNew && (
+        <span className="field__hint" id={`${id}-hint`}>
+          At least 10 characters. A few words you’ll remember works well.
+        </span>
+      )}
+    </div>
   );
 }

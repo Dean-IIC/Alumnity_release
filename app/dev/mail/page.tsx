@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { notFound } from "next/navigation";
+import { isLocalDev } from "../../../lib/server/dev-only";
 import { outboxDir } from "../../../lib/server/mail";
 
 /*
@@ -9,8 +10,8 @@ import { outboxDir } from "../../../lib/server/mail";
  */
 export const dynamic = "force-dynamic";
 
-export default function DevMail() {
-  if (process.env.NODE_ENV === "production") notFound();
+export default async function DevMail() {
+  if (!(await isLocalDev())) notFound();
   let mails: { file: string; to: string; subject: string; html: string; at: string }[] = [];
   try {
     const dir = outboxDir();

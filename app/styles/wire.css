@@ -1,0 +1,439 @@
+/*
+ * Wireframe styles for the members' pages: plain and readable, on the site's tokens, so
+ * every feature works now and gets its own design later, page by page.
+ */
+
+.wf-sections {
+  /* Positioned, so hidden labels inside it (.sr-only) scroll with it, not widen the page. */
+  position: relative;
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  scrollbar-width: none;
+}
+
+.wf-sections a {
+  display: inline-flex;
+  flex: none;
+  gap: 6px;
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.wf-sections a:hover {
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+}
+
+.wf-sections a[aria-current="page"] {
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+}
+
+.wf-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-red);
+  color: #fff;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.wf {
+  max-width: 880px;
+  padding-block: var(--space-6) var(--space-9);
+}
+
+.wf-head h1 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-voice);
+  font-size: clamp(30px, 6vw, 44px);
+  font-weight: var(--weight-regular);
+  line-height: 1.1;
+}
+
+.wf-head {
+  margin-bottom: var(--space-6);
+}
+
+.wf h2 {
+  margin: var(--space-7) 0 var(--space-3);
+  font-family: var(--font-voice);
+  font-size: 24px;
+  font-weight: var(--weight-regular);
+}
+
+.wf-muted {
+  color: var(--color-ink-muted);
+}
+
+.wf-small {
+  min-height: 36px;
+  padding-inline: var(--space-3);
+  font-size: var(--text-small);
+}
+
+.wf-card {
+  margin-block: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card, 14px);
+  background: var(--color-paper-raised);
+}
+
+.wf-card p {
+  margin: 0 0 var(--space-2);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.wf-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--space-3);
+  margin-bottom: var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.wf-card__meta a {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+
+.wf-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wf-member {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wf-member__who {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wf-member__name {
+  color: var(--color-blue);
+  font-weight: var(--weight-bold);
+}
+
+.wf-member__detail {
+  font-size: var(--text-small);
+}
+
+.wf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* A field beside its button: line the button up with the field, not its label. */
+.wf-actions:has(> .field) {
+  align-items: flex-end;
+}
+
+.wf-form {
+  margin: 0;
+}
+
+.wf-form__body {
+  display: contents;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.wf-stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.wf textarea,
+.wf .field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: inherit;
+  resize: vertical;
+}
+
+.wf textarea:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.wf-note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-small);
+}
+
+.wf-note--error {
+  color: var(--color-red);
+}
+
+.wf-note--ok {
+  color: #2d6a3e;
+}
+
+.wf-empty {
+  padding: var(--space-5);
+  border: 1px dashed var(--color-border);
+  border-radius: 14px;
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.wf-empty a {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.wf-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+}
+
+.wf-tag--red {
+  border-color: var(--color-red);
+  color: var(--color-red);
+}
+
+.wf-report summary,
+.wf-link-button {
+  /* Looks like a link, but a full fingertip tall: easy to hit on a phone. */
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.wf-report[open] {
+  flex-basis: 100%;
+}
+
+.wf-report[open] summary {
+  margin-bottom: var(--space-2);
+}
+
+.wf-thread {
+  display: grid;
+  gap: var(--space-2);
+  margin-block: var(--space-4);
+}
+
+.wf-bubble {
+  max-width: min(560px, 88%);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 14px;
+  background: var(--color-paper-raised);
+  border: 1px solid var(--color-border);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.wf-bubble--mine {
+  justify-self: end;
+  background: #e8eef5;
+}
+
+.wf-bubble small {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-ink-muted);
+}
+
+.wf-checklist {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wf-checklist li::before {
+  content: "○ ";
+  color: var(--color-ink-muted);
+}
+
+.wf-checklist li.done::before {
+  content: "● ";
+  color: #2d6a3e;
+}
+
+.wf-checklist a {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.wf-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.wf-stat {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-paper-raised);
+}
+
+.wf-stat strong {
+  display: block;
+  font-family: var(--font-voice);
+  font-size: 30px;
+  font-weight: var(--weight-regular);
+}
+
+.wf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-small);
+}
+
+.wf-table th,
+.wf-table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.wf-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.wf-tabs a {
+  padding: 6px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.wf-tabs a[aria-current="page"] {
+  border-color: var(--color-blue);
+  background: var(--color-blue);
+  color: #fff;
+}
+
+.wf-filters {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  align-items: end;
+}
+
+@media (max-width: 700px) {
+  .wf-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wf-filters > :first-child,
+  .wf-filters > button {
+    grid-column: 1 / -1;
+  }
+
+  .wf-card {
+    padding: var(--space-4);
+  }
+}
+
+/* The college desk */
+
+.wf-bars {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+  height: 140px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-paper-raised);
+}
+
+.wf-bars__bar {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border-radius: 6px 6px 0 0;
+  background: var(--color-blue);
+}
+
+.wf-bars__bar span {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  right: 0;
+  font-size: 12px;
+  text-align: center;
+}
+
+.wf-check {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--tap-target);
+}
+
+.wf-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-blue);
+}
+
+.wf fieldset.wf-card {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.wf fieldset.wf-card legend {
+  padding: 0 var(--space-1);
+}
+
+.wf-announcement {
+  border-color: var(--color-gold);
+}

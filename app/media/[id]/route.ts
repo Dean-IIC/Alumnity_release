@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { userForSession } from "../../../lib/server/auth";
 import { mediaById, mediaSize, readMedia } from "../../../lib/server/media";
+import { canSeePostMedia } from "../../../lib/server/posts";
+import { canSeeStoryMedia } from "../../../lib/server/stories";
 import { sessionToken } from "../../../lib/server/http";
 
 /*
@@ -21,9 +23,15 @@ const HTML_POLICY = [
 ].join("; ");
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!userForSession(sessionToken(request))) return new NextResponse("Log in to see this.", { status: 401 });
+  const viewer = userForSession(sessionToken(request));
+  if (!viewer) return new NextResponse("Log in to see this.", { status: 401 });
   const media = mediaById((await params).id);
   if (!media) return new NextResponse("Not found.", { status: 404 });
+  // A photo on a post or a story is only for those who may see that post or story (the
+  // same "not found" either way, so its existence isn't given away).
+  const onPost = canSeePostMedia(viewer, media.id);
+  const onStory = onPost === null ? canSeeStoryMedia(viewer, media.id) : null;
+  if (onPost === false || onStory === false) return new NextResponse("Not found.", { status: 404 });
 
   const headers: Record<string, string> = {
     "content-type": media.kind === "html" ? "text/html; charset=utf-8" : media.mime,

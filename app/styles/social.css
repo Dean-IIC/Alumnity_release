@@ -1,0 +1,1603 @@
+/*
+ * The social pages: the feed, posts, stories, the composer, and the phone's tab bar.
+ * Familiar shapes from the apps people already use (a stories row, a three-column feed,
+ * reactions under a post), drawn in Alumnity's own hand: paper, ink, a red pen line,
+ * photos as prints, reactions as ink stamps.
+ */
+
+/* ---------- Layout: three columns on a desk, one on a phone ---------- */
+
+.feed-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 600px) 290px;
+  gap: var(--space-6);
+  justify-content: center;
+  align-items: start;
+  padding-block: var(--space-5) var(--space-9);
+}
+
+.feed-layout__side {
+  position: sticky;
+  top: var(--space-5);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.feed-layout__main {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.feed-layout--single {
+  grid-template-columns: minmax(0, 640px);
+}
+
+@media (max-width: 1180px) {
+  .feed-layout:not(.feed-layout--single) {
+    grid-template-columns: minmax(0, 600px) 290px;
+  }
+
+  .feed-layout__side--left {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .feed-layout,
+  .feed-layout:not(.feed-layout--single) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    padding-block: var(--space-3) var(--space-9);
+  }
+
+  .feed-layout__side--right {
+    display: none;
+  }
+}
+
+/* A sheet of paper laid on the page: the one surface everything here sits on. */
+.sheet {
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+}
+
+@media (max-width: 640px) {
+  /* On a phone the feed runs edge to edge, sheets separated by rules (as the apps do). */
+  .feed-layout__main > .sheet,
+  .feed-layout__main > .post,
+  .feed-layout__main > .composer {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .feed-layout {
+    margin-inline: calc(-1 * var(--gutter));
+  }
+}
+
+/* ---------- Avatars ---------- */
+
+.avatar {
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-paper);
+}
+
+.avatar--seal .avatar__edge {
+  fill: var(--color-paper-raised);
+  stroke: var(--color-blue);
+  stroke-width: 2;
+}
+
+.avatar--seal .avatar__inner {
+  fill: var(--color-fill-blue);
+  stroke: var(--color-blue);
+  stroke-width: 0.8;
+  stroke-dasharray: 1.4 1.6;
+}
+
+.avatar--seal .avatar__initials {
+  fill: var(--color-blue);
+  font: 15px / 1 var(--font-voice);
+}
+
+/* ---------- Icons ---------- */
+
+.icon--gold {
+  color: var(--color-gold-small);
+}
+
+.icon--blue {
+  color: var(--color-blue);
+}
+
+.icon--red {
+  color: var(--color-red);
+}
+
+/* ---------- Stamps (reactions) ---------- */
+
+.stamp {
+  flex: none;
+  overflow: visible;
+  border-radius: 50%;
+}
+
+.stamp__ink {
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stamp--cheer {
+  background: var(--color-wash-red);
+}
+
+.stamp--cheer .stamp__ink {
+  stroke: var(--color-red);
+}
+
+.stamp--proud {
+  background: var(--color-wash-gold);
+}
+
+.stamp--proud .stamp__ink {
+  stroke: var(--color-gold-text);
+}
+
+.stamp--congrats {
+  background: var(--color-wash-blue);
+}
+
+.stamp--congrats .stamp__ink {
+  stroke: var(--color-blue);
+}
+
+.stamp--insightful {
+  background: var(--color-wash-amber);
+}
+
+.stamp--insightful .stamp__ink {
+  stroke: var(--color-ink-amber);
+}
+
+.stamp--support {
+  background: var(--color-wash-red);
+}
+
+.stamp--support .stamp__ink {
+  stroke: var(--color-red);
+  fill: var(--color-fill-red);
+}
+
+/* Not yet reacted: the cheer stamp in pencil. */
+.stamp--blank {
+  background: transparent;
+}
+
+.stamp--blank .stamp__ink {
+  stroke: var(--color-ink-muted);
+}
+
+/* ---------- The composer ---------- */
+
+.composer {
+  padding: var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+}
+
+.composer--folded {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.composer__prompt {
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  font: inherit;
+  font-size: var(--text-button);
+  text-align: left;
+  cursor: text;
+}
+
+.composer__prompt:hover {
+  border-color: var(--color-ink-muted);
+}
+
+.composer__quick {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: var(--space-1);
+  justify-content: space-around;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-line);
+}
+
+.composer__chip {
+  display: inline-flex;
+  flex: 1 1 0;
+  justify-content: center;
+  min-width: 0;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--color-ink-muted);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.composer__chip:hover {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.composer--open {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.composer__head {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.composer__audience {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.composer__who {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.composer__who input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.composer__who:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.composer__who--on {
+  border-color: var(--color-blue);
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+}
+
+.composer__text textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: var(--text-body) / var(--leading-body) var(--font-ui);
+  resize: none;
+}
+
+.composer__text textarea:focus {
+  outline: none;
+}
+
+.composer__media {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.composer__media--2,
+.composer__media--3,
+.composer__media--4 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.composer__media li {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--color-paper);
+  aspect-ratio: 4 / 3;
+}
+
+.composer__media--1 li {
+  aspect-ratio: auto;
+  max-height: 420px;
+}
+
+.composer__media img,
+.composer__media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.composer__media--loading img,
+.composer__media--loading video {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.composer__media--failed {
+  outline: 2px solid var(--color-red);
+}
+
+.composer__media-error {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--space-2);
+  background: var(--color-paper-veil);
+  color: var(--color-red);
+  font-size: var(--text-fine);
+}
+
+.composer__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-paper-veil);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.composer__foot {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-line);
+}
+
+.composer__tool {
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+}
+
+.composer__tool:hover {
+  background: var(--color-paper);
+}
+
+.composer__hint {
+  flex: 1;
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.composer__cancel {
+  min-height: var(--tap-target);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--color-ink-muted);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.composer__post {
+  min-height: var(--tap-target);
+  padding-inline: var(--space-5);
+}
+
+/* ---------- @mentions ---------- */
+
+.mention-input {
+  position: relative;
+}
+
+.mention-input__people {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  max-width: 340px;
+  margin: 4px 0 0;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-pop);
+  list-style: none;
+}
+
+.mention-input__people button {
+  display: grid;
+  width: 100%;
+  min-height: var(--tap-target);
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mention-input__people [aria-selected="true"] button,
+.mention-input__people button:hover {
+  background: var(--color-paper);
+}
+
+.mention-input__people span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.mention {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.mention:hover {
+  text-decoration: underline;
+}
+
+/* ---------- A post ---------- */
+
+.post {
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+}
+
+.post__head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+.post__who {
+  display: grid;
+  min-width: 0;
+}
+
+.post__name {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-weight: var(--weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post__name:hover {
+  text-decoration: underline;
+}
+
+.post__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  align-items: center;
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.post__meta > * + *::before {
+  content: "·";
+  margin-right: 6px;
+}
+
+.post__meta a:hover {
+  text-decoration: underline;
+}
+
+.post__audience {
+  display: inline-flex;
+  align-items: center;
+}
+
+.post__menu {
+  position: relative;
+}
+
+.post__menu summary {
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border-radius: 50%;
+  color: var(--color-ink-muted);
+  list-style: none;
+  cursor: pointer;
+}
+
+.post__menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.post__menu summary:hover {
+  background: var(--color-paper);
+}
+
+.post__menu-list {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  display: grid;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-pop);
+}
+
+.post__menu-list a,
+.post__menu-list button {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-ink);
+  font: var(--text-small) / 1 var(--font-ui);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.post__menu-list a:hover,
+.post__menu-list button:hover {
+  background: var(--color-paper);
+}
+
+.post__menu-list .wf-form__body {
+  display: contents;
+}
+
+.post__body {
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-3);
+  color: var(--color-ink);
+  font-size: var(--text-button);
+  line-height: var(--leading-body);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+/* A short post without photos is said a little louder, in the human voice. */
+.post__body--large {
+  font: var(--text-caption) / 1.3 var(--font-voice);
+}
+
+/* Photos as prints: a thin paper margin, slightly rounded, never edge to edge. */
+.post__media {
+  display: grid;
+  gap: 6px;
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.post__print {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: var(--color-paper);
+  object-fit: cover;
+}
+
+.post__media--1 .post__print {
+  height: auto;
+  max-height: 560px;
+  object-fit: contain;
+}
+
+.post__media--2 {
+  grid-template-columns: 1fr 1fr;
+  aspect-ratio: 2 / 1.2;
+}
+
+.post__media--3 {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  aspect-ratio: 4 / 3;
+}
+
+.post__media--3 .post__print:first-child {
+  grid-row: span 2;
+}
+
+.post__media--4 {
+  grid-template-columns: 1fr 1fr;
+  aspect-ratio: 1 / 1;
+}
+
+/* Reactions and comments, counted; then React · Comment · Share. */
+.post__social {
+  position: relative;
+  padding: 0 var(--space-3);
+}
+
+.post__tally {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-1) var(--space-1) var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.post__stamps {
+  display: inline-flex;
+  align-items: center;
+}
+
+.post__stamp {
+  border: 2px solid var(--color-paper-raised);
+}
+
+.post__stamp + .post__stamp {
+  margin-left: -6px;
+}
+
+.post__stamps > span {
+  margin-left: 6px;
+}
+
+.post__tally-link:hover {
+  text-decoration: underline;
+}
+
+.post__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-1);
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.post__react {
+  position: relative;
+  display: flex;
+}
+
+.post__action {
+  display: inline-flex;
+  flex: 1;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-target);
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--color-ink-muted);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.post__action:hover {
+  background: var(--color-paper);
+}
+
+.post__action--on {
+  color: var(--color-red);
+}
+
+.post__action--proud {
+  color: var(--color-gold-small);
+}
+
+.post__action--congrats {
+  color: var(--color-blue);
+}
+
+.post__action--insightful {
+  color: var(--color-ink-amber);
+}
+
+.post__action--on .stamp {
+  animation: stamp-press 260ms var(--ease-out);
+}
+
+@keyframes stamp-press {
+  0% {
+    transform: scale(1.5) rotate(-12deg);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(0.92) rotate(3deg);
+    opacity: 1;
+  }
+}
+
+.post__more-reactions {
+  width: var(--tap-target);
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.post__more-reactions:hover {
+  background: var(--color-paper);
+}
+
+/* The picker: five stamps on a strip of paper, rising in turn. */
+.reaction-picker {
+  position: absolute;
+  z-index: 15;
+  bottom: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-pop);
+}
+
+.reaction-picker__item {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 54px;
+  padding: 6px 4px 4px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--color-ink-muted);
+  font: var(--weight-semibold) 11px / 1 var(--font-ui);
+  cursor: pointer;
+  animation: picker-rise 220ms var(--ease-out) both;
+}
+
+.reaction-picker__item:hover,
+.reaction-picker__item:focus-visible,
+.reaction-picker__item[aria-checked="true"] {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.reaction-picker__item:hover .stamp {
+  transform: translateY(-3px) scale(1.12);
+  transition: transform 140ms var(--ease-out);
+}
+
+@keyframes picker-rise {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+/* Comments: small speech bubbles of paper. */
+.post__comments {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+.post__all-comments {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.post__all-comments:hover {
+  text-decoration: underline;
+}
+
+.comment {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  align-items: start;
+}
+
+.comment__bubble {
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 4px 14px 14px 14px;
+  background: var(--color-paper);
+}
+
+.comment__name {
+  color: var(--color-ink);
+  font-size: var(--text-fine);
+  font-weight: var(--weight-bold);
+}
+
+.comment__bubble p {
+  margin: 2px 0 0;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.comment__meta {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  color: var(--color-ink-muted);
+  font-size: 12px;
+}
+
+.comment__meta .wf-link-button,
+.comment__inline button {
+  min-width: var(--tap-target);
+  justify-content: center;
+  /* Small to look at, a fingertip to hit: the extra height overlaps the gap around it. */
+  min-height: var(--tap-target);
+  margin-block: -10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink-muted);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.comment__meta .wf-link-button:hover,
+.comment__inline button:hover {
+  text-decoration: underline;
+}
+
+.comment__inline .wf-form__body {
+  display: contents;
+}
+
+.comment--new {
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
+
+.comment--new .wf-form__body {
+  display: contents;
+}
+
+.comment__input textarea {
+  width: 100%;
+  min-height: var(--tap-target);
+  padding: 9px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: var(--text-small) / 1.4 var(--font-ui);
+  resize: none;
+}
+
+.comment__send {
+  min-height: var(--tap-target);
+  padding-inline: var(--space-4);
+}
+
+/* ---------- Stories ---------- */
+
+.stories {
+  padding: var(--space-3) var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+}
+
+.stories__row {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0 var(--space-1);
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.story-face {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 76px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.story-face__ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+}
+
+.story-face__ring > img,
+.story-face__ring > .story-face__initials {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.story-face__initials {
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--color-blue);
+  background: var(--color-seal-ground);
+  color: var(--color-blue);
+  font: 20px / 1 var(--font-voice);
+}
+
+/* Something new: a ring drawn in red pen. Seen: a pencil line. */
+.story-face__pen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--color-red);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(-20deg);
+}
+
+.story-face:hover .story-face__pen {
+  stroke-width: 3.6;
+}
+
+.story-face__ring--seen {
+  box-shadow: inset 0 0 0 1.5px var(--color-line);
+}
+
+.story-face__ring--add {
+  box-shadow: inset 0 0 0 1.5px var(--color-line);
+}
+
+.story-face__plus {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-paper-raised);
+  border-radius: 50%;
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+}
+
+.story-face__name {
+  overflow: hidden;
+  max-width: 76px;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The viewer: night ground, the story in the middle at a phone's shape. */
+html.story-open {
+  overflow: hidden;
+}
+
+.story-viewer {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-night);
+  color: var(--color-night-text);
+}
+
+.story-viewer__frame {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  gap: var(--space-2);
+  width: min(100vw, calc(100dvh * 9 / 16 + 40px));
+  height: 100dvh;
+  padding: var(--space-3) var(--space-3) var(--space-4);
+}
+
+.story-viewer__bars {
+  display: flex;
+  gap: 4px;
+}
+
+.story-viewer__bar {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--color-night-line);
+}
+
+.story-viewer__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--color-paper-raised);
+  transform-origin: left;
+}
+
+.story-viewer__head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.story-viewer__head > span:nth-child(2) {
+  flex: 1;
+}
+
+.story-viewer__face img,
+.story-viewer__face .story-face__initials {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  font-size: 14px;
+}
+
+.story-viewer__ago {
+  color: var(--color-night-quiet);
+  font-size: var(--text-fine);
+}
+
+.story-viewer__close {
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-night-text);
+  cursor: pointer;
+}
+
+.story-viewer__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-night);
+  touch-action: none;
+}
+
+.story-viewer__media img,
+.story-viewer__media video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.story-viewer__tap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.story-viewer__tap--back {
+  left: 0;
+  width: 33%;
+}
+
+.story-viewer__tap--next {
+  right: 0;
+  width: 67%;
+}
+
+.story-viewer__caption {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 12px;
+  background: var(--color-paper-veil);
+  color: var(--color-ink);
+  font: 1.2rem / 1.35 var(--font-voice);
+  text-align: center;
+}
+
+.story-viewer__own {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+  align-items: center;
+}
+
+.story-viewer__delete {
+  min-height: var(--tap-target);
+  border: 0;
+  background: none;
+  color: var(--color-night-quiet);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.story-add {
+  grid-template-rows: auto 1fr auto auto auto auto;
+}
+
+.story-add__choose {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--color-night-text);
+  font: var(--weight-semibold) var(--text-button) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.story-add__caption {
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-night-line);
+  border-radius: var(--radius-pill);
+  background: var(--color-night-fill);
+  color: var(--color-night-text);
+  font: inherit;
+}
+
+.story-add__note,
+.story-add__error {
+  margin: 0;
+  color: var(--color-night-quiet);
+  font-size: var(--text-fine);
+  text-align: center;
+}
+
+.story-add__error {
+  color: var(--color-error-on-night);
+}
+
+/* ---------- The side columns ---------- */
+
+.me-card {
+  overflow: hidden;
+  text-align: center;
+}
+
+/* A strip of the red pen across the top of your card. */
+.me-card__band {
+  height: 56px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 56'%3E%3Cpath d='M-5 40C40 18 70 46 110 30s70-22 110-6 40 2 40 2' fill='none' stroke='%23c6842a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat,
+    var(--color-band);
+}
+
+.me-card__face {
+  display: inline-block;
+  margin-top: -30px;
+  border: 3px solid var(--color-paper-raised);
+  border-radius: 50%;
+  background: var(--color-paper-raised);
+}
+
+.me-card__name {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-ink);
+  font: var(--text-card) / 1.2 var(--font-voice);
+}
+
+.me-card__line {
+  display: block;
+  padding-inline: var(--space-4);
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.me-card__counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+.me-card__counts a {
+  display: grid;
+  padding: var(--space-3) 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.me-card__counts a + a {
+  border-left: 1px solid var(--color-line);
+}
+
+.me-card__counts strong {
+  color: var(--color-ink);
+  font: 1.25rem / 1.2 var(--font-voice);
+}
+
+.me-card__counts a:hover strong {
+  color: var(--color-blue);
+}
+
+.side-links {
+  display: grid;
+  padding: var(--space-2);
+}
+
+.side-links a {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 var(--space-3);
+  border-radius: 10px;
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.side-links a:hover {
+  background: var(--color-paper);
+}
+
+.side-links .wf-count {
+  margin-left: auto;
+}
+
+.side-box {
+  padding: var(--space-4);
+}
+
+.side-box h2 {
+  margin: 0 0 var(--space-3);
+  color: var(--color-ink);
+  font: var(--text-card) / 1.2 var(--font-voice);
+}
+
+.side-box__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.side-person {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.side-person__who {
+  display: grid;
+  min-width: 0;
+}
+
+.side-person__who a {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-person__who span {
+  color: var(--color-ink-muted);
+  font-size: 12px;
+}
+
+.side-person .wf-form__body {
+  display: contents;
+}
+
+.pill-button {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 12px;
+  border: 1.5px solid var(--color-blue);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-blue);
+  font: var(--weight-bold) var(--text-fine) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.pill-button:hover {
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+}
+
+.side-event {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* A date like a torn calendar leaf. */
+.side-event__date {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-paper-raised);
+  text-align: center;
+}
+
+.side-event__date span {
+  padding: 2px 0;
+  background: var(--color-blue);
+  color: var(--color-paper-raised);
+  font: var(--weight-bold) 10px / 1.2 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.side-event__date strong {
+  padding: 2px 0 4px;
+  font: 1.25rem / 1 var(--font-voice);
+}
+
+.side-event a {
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.side-event p {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 12px;
+}
+
+/* A notice from the college, pinned above the feed. */
+.notice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-color: var(--color-notice-edge);
+  background: var(--color-notice);
+}
+
+.notice__pin {
+  width: 12px;
+  height: 12px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--color-gold);
+}
+
+.notice strong {
+  display: block;
+  color: var(--color-ink);
+}
+
+.notice p {
+  margin: 2px 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-small);
+}
+
+.notice small {
+  color: var(--color-gold-small);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* The feed's two views. */
+.feed-tabs {
+  display: flex;
+  gap: var(--space-5);
+  padding: 0 var(--space-2);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.feed-tabs a {
+  position: relative;
+  padding: var(--space-3) 0;
+  color: var(--color-ink-muted);
+  font-weight: var(--weight-semibold);
+}
+
+.feed-tabs a[aria-current="page"] {
+  color: var(--color-ink);
+}
+
+/* The current view, underlined by the pen. */
+.feed-tabs a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  bottom: -1px;
+  left: -2px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--color-gold);
+}
+
+.feed-more {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-2);
+  font-weight: var(--weight-semibold);
+}
+
+.feed-more a {
+  color: var(--color-blue);
+}
+
+/* ---------- The phone's tab bar ---------- */
+
+.tab-bar {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .tab-bar {
+    position: fixed;
+    z-index: 30;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 4px 4px max(4px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--color-line);
+    background: var(--color-bar);
+    backdrop-filter: blur(8px);
+  }
+
+  .tab-bar a {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-height: 52px;
+    padding-top: 6px;
+    color: var(--color-ink-muted);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .tab-bar a[aria-current="page"] {
+    color: var(--color-blue);
+  }
+
+  .tab-bar__post {
+    align-self: center;
+    justify-self: center;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--color-blue);
+    color: var(--color-paper-raised);
+  }
+
+  .tab-bar .wf-count {
+    position: absolute;
+    top: 2px;
+    left: calc(50% + 6px);
+  }
+
+  /* Room for the bar at the bottom of every page. */
+  body:has(.tab-bar) {
+    padding-bottom: 72px;
+  }
+}
+
+/* ---------- Less motion, for those who ask for it ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .reaction-picker__item,
+  .post__action--on .stamp {
+    animation: none;
+  }
+
+  .reaction-picker__item:hover .stamp {
+    transform: none;
+  }
+}
+
+/* The story viewer's pause button. */
+.story-viewer__pause {
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-night-text);
+  cursor: pointer;
+}
+
+/* The bell above the feed (on a phone, where the side column isn't shown). */
+.feed-tabs__bell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  margin-left: auto;
+  color: var(--color-ink-muted);
+}
+
+.feed-tabs__bell .wf-count {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+}
+
+/* The getting-started steps: each a full-height row to tap. */
+.feed-layout .wf-checklist a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+}

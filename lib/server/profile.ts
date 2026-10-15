@@ -52,18 +52,15 @@ export const EMPTY_PROFILE: Profile = {
 
 export const LIMITS = { title: 80, company: 80, city: 60, about: 600, skill: 30, skills: 12, link: 200, stop: 90, stops: 8 } as const;
 
-const ensureTable = () =>
-  database().exec(`create table if not exists profiles (
-    user_id integer primary key references users(id) on delete cascade,
-    data text not null,
-    updated_at integer not null
-  )`);
-
 export function profileOf(userId: number): Profile {
-  ensureTable();
   const row = database().prepare("select data from profiles where user_id = ?").get(userId) as { data: string } | undefined;
-  if (!row) return structuredClone(EMPTY_PROFILE);
-  const saved = JSON.parse(row.data) as Partial<Profile>;
+  return profileFromData(row?.data ?? null);
+}
+
+/** A page from its stored JSON (null: an empty page), with every field present. For lists read in one query. */
+export function profileFromData(data: string | null): Profile {
+  if (!data) return structuredClone(EMPTY_PROFILE);
+  const saved = JSON.parse(data) as Partial<Profile>;
   return {
     ...structuredClone(EMPTY_PROFILE),
     ...saved,
@@ -146,7 +143,6 @@ export function parseProfile(input: Record<string, unknown>, ownerId?: number): 
 }
 
 export function saveProfile(userId: number, profile: Profile) {
-  ensureTable();
   // Uploads it no longer uses are deleted, not left lying about.
   const before = profileOf(userId);
   for (const old of [before.photo, before.cover]) {
@@ -193,4 +189,14 @@ export function profileFor(
     links: show("links") ? profile.links : { linkedin: "", website: "" },
     visibility: viewer?.id === owner.id ? profile.visibility : EMPTY_PROFILE.visibility
   };
+}
+
+/** Members' profile photos (upload ids), for avatars in lists: one query for many people. */
+export function photoIdsOf(ids: number[]): Map<number, string> {
+  const unique = [...new Set(ids)].slice(0, 2000);
+  if (!unique.length) return new Map();
+  const rows = database()
+    .prepare(`select user_id, json_extract(data, '$.photo.id') as photo from profiles where user_id in (${unique.map(() => "?").join(",")})`)
+    .all(...unique) as { user_id: number; photo: string | null }[];
+  return new Map(rows.filter((r) => r.photo).map((r) => [r.user_id, r.photo!]));
 }

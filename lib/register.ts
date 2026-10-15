@@ -150,3 +150,8 @@ export function batchSizeOf(rows: RegisterRow[], usn: string): number | undefine
   const me = rows.find((r) => r.usn === usn);
   return me ? rows.filter((r) => r.branch === me.branch && r.year === me.year && r.programme === me.programme).length : undefined;
 }
+
+/** How many are on the register in one batch (a branch's intake on one course in one year): a count, never names. */
+export function batchCount(rows: RegisterRow[], branch: string, year: number, programme = "B.Tech"): number {
+  return rows.filter((r) => r.branch === branch && r.year === year && r.programme === programme).length;
+}

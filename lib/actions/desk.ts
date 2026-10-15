@@ -1,0 +1,98 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import type { ActionState } from "../action-state";
+import { createAnnouncement, removeAnnouncement, ANNOUNCEMENT_LIMITS } from "../server/announcements";
+import { deleteMember, resolveReport, restore, setRole, signOutEverywhere, suspend, takeDown, updateSettings, type ContentKind } from "../server/desk";
+import { actor, answer, idFrom, SIGNED_OUT, textFrom } from "./common";
+
+/* The college desk's buttons. The rules (lib/server/desk.ts) check the role every time. */
+
+const contentKind = (form: FormData): ContentKind | null => {
+  const k = textFrom(form, "kind", 10);
+  return k === "post" || k === "comment" || k === "ask" ? k : null;
+};
+
+export async function resolveReportAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const action = textFrom(form, "action", 10) === "remove" ? "remove" : "dismiss";
+  return answer(resolveReport(me, idFrom(form), action), action === "remove" ? "Taken down." : "Dismissed.");
+}
+
+export async function pauseAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const paused = textFrom(form, "paused", 5) === "1";
+  return answer(suspend(me, idFrom(form), paused), paused ? "Paused, and signed out everywhere." : "Unpaused.");
+}
+
+export async function signOutAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  return answer(signOutEverywhere(me, idFrom(form)), "Signed out on every device.");
+}
+
+export async function roleAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  return answer(setRole(me, idFrom(form), textFrom(form, "role", 20)), "Role changed.");
+}
+
+export async function deleteMemberAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const result = deleteMember(me, idFrom(form), textFrom(form, "confirm", 200));
+  if (!result.ok) return answer(result);
+  answer(result);
+  redirect("/desk?tab=members");
+}
+
+export async function takeDownAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const kind = contentKind(form);
+  if (!kind) return { ok: false, error: "That can't be taken down here." };
+  return answer(takeDown(me, kind, idFrom(form)), "Taken down. Its author was told.");
+}
+
+export async function restoreAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const kind = contentKind(form);
+  if (!kind) return { ok: false, error: "That can't be brought back." };
+  return answer(restore(me, kind, idFrom(form)), "Brought back.");
+}
+
+export async function announceAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  return answer(
+    createAnnouncement(me, {
+      title: textFrom(form, "title", ANNOUNCEMENT_LIMITS.title),
+      body: textFrom(form, "body", ANNOUNCEMENT_LIMITS.body),
+      days: Number(textFrom(form, "days", 4))
+    }),
+    "Announced. It's at the top of everyone's Home."
+  );
+}
+
+export async function removeAnnouncementAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  return answer(removeAnnouncement(me, idFrom(form)), "Taken down.");
+}
+
+export async function settingsAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const on = (key: string) => form.get(key) === "on";
+  return answer(
+    updateSettings(me, {
+      joiningOpen: on("joiningOpen"),
+      features: { notes: on("notes"), asks: on("asks"), events: on("events"), messages: on("messages") },
+      dailyRequests: Number(textFrom(form, "dailyRequests", 4))
+    }),
+    "Saved. It's in the audit log."
+  );
+}

@@ -1,4 +1,5 @@
 import { loadRegister, lookup, type Found } from "../register";
+import { settings } from "./settings";
 import { database } from "./db";
 import { letter, sendMail } from "./mail";
 import { decoyHash, hashPassword, passwordProblem, randomToken, sameHash, sha256, sixDigitCode, verifyPassword } from "./secrets";
@@ -14,7 +15,8 @@ import { withinLimit } from "./throttle";
  * answers the same way.
  */
 
-export type Role = "student" | "alumnus" | "faculty" | "coordinator" | "admin";
+/** "superadmin" is never stored: it comes from ALUMNITY_SUPER_ADMINS only (see lib/server/roles.ts). */
+export type Role = "student" | "alumnus" | "faculty" | "coordinator" | "admin" | "superadmin";
 
 export type User = {
   id: number;
@@ -50,12 +52,23 @@ function roleFor(found: Found, now = new Date()): Role {
   return found.joined + years > now.getFullYear() ? "student" : "alumnus";
 }
 
-/** The college's administrators, by email (ALUMNITY_ADMINS="a@hkbk.edu.in,b@hkbk.edu.in"). */
-const admins = () =>
-  (process.env.ALUMNITY_ADMINS ?? "")
+const emails = (value: string | undefined) =>
+  (value ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
+
+/**
+ * Roles set in the server's config, by email: super administrators
+ * (ALUMNITY_SUPER_ADMINS) and administrators (ALUMNITY_ADMINS). The site can't change or
+ * remove these, so the college can never be locked out of its own site.
+ */
+export function configRole(email: string): "superadmin" | "admin" | null {
+  const e = email.toLowerCase();
+  if (emails(process.env.ALUMNITY_SUPER_ADMINS).includes(e)) return "superadmin";
+  if (emails(process.env.ALUMNITY_ADMINS).includes(e)) return "admin";
+  return null;
+}
 
 const toUser = (row: Record<string, unknown>): User => ({
   id: Number(row.id),
@@ -66,7 +79,7 @@ const toUser = (row: Record<string, unknown>): User => ({
   branchName: (row.branch_name as string) ?? null,
   programme: (row.programme as string) ?? null,
   joined: row.joined == null ? null : Number(row.joined),
-  role: admins().includes(String(row.email)) ? "admin" : (row.role as Role)
+  role: configRole(String(row.email)) ?? (row.role as Role)
 });
 
 // ---------- Codes ----------
@@ -138,6 +151,7 @@ export type JoinStart = { name: string; usn?: string; branch?: string; year?: nu
 
 /** Step 1: the register check, again on the server, then a code to the email. */
 export async function startJoin(input: JoinStart): Promise<Outcome<{ ticket: string }>> {
+  if (!settings().joiningOpen) return { ok: false, error: "Joining is paused by the college for now. Please try again later." };
   const email = normaliseEmail(input.email);
   if (!looksLikeEmail(email)) return { ok: false, error: "That doesn’t look like an email address." };
   if (!withinLimit(`join:ip:${input.ip}`, 6, 60 * MINUTE) || !withinLimit(`join:email:${email}`, 3, 60 * MINUTE)) return { ok: false, error: SLOW_DOWN };
@@ -230,7 +244,8 @@ export async function startReset(emailInput: string, ip: string): Promise<Outcom
   const email = normaliseEmail(emailInput);
   if (!looksLikeEmail(email)) return { ok: false, error: "That doesn’t look like an email address." };
   if (!withinLimit(`reset:ip:${ip}`, 6, 60 * MINUTE) || !withinLimit(`reset:email:${email}`, 3, 60 * MINUTE)) return { ok: false, error: SLOW_DOWN };
-  const user = database().prepare("select id, name from users where email = ?").get(email) as { id: number; name: string } | undefined;
+  // Sample members (development only) can never be signed in to, so they can't be reset either.
+  const user = database().prepare("select id, name from users where email = ? and sample = 0").get(email) as { id: number; name: string } | undefined;
   if (!user) return { ok: true, ticket: randomToken(18) };
   const { ticket, code } = issueCode("reset", email, { userId: user.id });
   await sendMail({

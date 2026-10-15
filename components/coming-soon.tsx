@@ -6,10 +6,7 @@ import { useEffect, useState, type MouseEvent } from "react";
  * Pages not built yet. Their links point where the pages will live, but say so instead of
  * leading nowhere; delete an entry once its page exists.
  */
-const COMING_SOON: Record<string, string> = {
-  "/how-it-works": "How it works",
-  "/people": "Exploring people"
-};
+const COMING_SOON: Record<string, string> = {};
 
 const EVENT = "alumnity:soon";
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { post } from "../../lib/client/post";
 import { PasswordField } from "./fields";
 import { RegisterBook } from "./register-book";
+import { safeNext } from "../../lib/safe-next";
 
 /* Logging in: email and password. The register sits open beside it: your page is in there. */
 export function LoginForm() {
@@ -20,7 +21,7 @@ export function LoginForm() {
             setProblem(null);
             const answer = await post("/api/auth/login", { email: form.get("email"), password: form.get("password") });
             if (answer.ok) {
-              window.location.assign(new URLSearchParams(window.location.search).get("next")?.startsWith("/") ? new URLSearchParams(window.location.search).get("next")! : "/me");
+              window.location.assign(safeNext(new URLSearchParams(window.location.search).get("next")));
               return;
             }
             setBusy(false);

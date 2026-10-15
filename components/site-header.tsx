@@ -9,6 +9,8 @@ type SiteHeaderProps = {
   landing?: boolean;
   /** The section this page belongs to, marked in the nav. */
   current?: "gallery";
+  /** Who's signed in, when the server already knows (members' pages): no "Log in" flash. */
+  member?: { firstName: string };
 };
 
 const LINKS = [
@@ -17,16 +19,20 @@ const LINKS = [
   { href: "/gallery", label: "Gallery", section: "gallery" }
 ] as const;
 
+/** Signed in, the first link goes to your Home instead. */
+const MEMBER_LINKS = [{ href: "/home", label: "Home" }, ...LINKS.slice(1)] as const;
+
 /** The one header every page shares: the lockup home, the sections, and Log in. */
-export function SiteHeader({ landing = false, current }: SiteHeaderProps) {
+export function SiteHeader({ landing = false, current, member }: SiteHeaderProps) {
   // Who's signed in, asked once the page is up (so every page can stay static and fast).
-  const [me, setMe] = useState<{ firstName: string } | null>(null);
+  const [me, setMe] = useState<{ firstName: string } | null>(member ?? null);
   useEffect(() => {
+    if (member) return;
     fetch("/api/auth/me", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setMe(d.user))
       .catch(() => undefined);
-  }, []);
+  }, [member]);
 
   return (
     <header className={`site-nav container ${landing ? "site-nav--over-hero" : ""}`}>
@@ -34,7 +40,7 @@ export function SiteHeader({ landing = false, current }: SiteHeaderProps) {
         <BrandLockup data-brand-target={landing || undefined} />
       </a>
       <nav aria-label="Primary navigation">
-        {LINKS.map((link) => (
+        {(me ? MEMBER_LINKS : LINKS).map((link) => (
           <a
             key={link.href}
             href={link.href}

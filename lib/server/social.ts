@@ -1,6 +1,8 @@
 import { database } from "./db";
 import type { User } from "./auth";
-import { blockedEitherWay, memberById, relation } from "./people";
+import { toUser } from "./auth";
+import { blockedEitherWay, blockIds, memberById, relation } from "./people";
+import { PAUSED, settings } from "./settings";
 import { withinLimit } from "./throttle";
 
 /*
@@ -25,14 +27,24 @@ export function notify(userId: number, n: { actor?: number; kind: string; text: 
     .run(userId, n.actor ?? null, n.kind, n.text, n.link, Date.now());
 }
 
+/**
+ * Leaves out anyone blocked either way, even what came before the block. The block list
+ * (usually empty) is read once, not checked again for every notification.
+ */
+function notBlocked(userId: number): { sql: string; args: number[] } {
+  const ids = [...blockIds(userId)];
+  return ids.length ? { sql: `and (actor is null or actor not in (${ids.map(() => "?").join(",")}))`, args: ids } : { sql: "", args: [] };
+}
+
 export function notificationsFor(userId: number, limit = 50): Notification[] {
+  const nb = notBlocked(userId);
   return (
-    database().prepare("select * from notifications where user_id = ? order by created_at desc limit ?").all(userId, limit) as Record<string, unknown>[]
+    database().prepare(`select * from notifications where user_id = ? ${nb.sql} order by created_at desc limit ?`).all(userId, ...nb.args, limit) as Record<string, unknown>[]
   ).map((r) => ({ id: Number(r.id), kind: String(r.kind), text: String(r.text), link: String(r.link), read: r.read_at != null, createdAt: Number(r.created_at), actor: r.actor == null ? null : Number(r.actor) }));
 }
 
 export const unreadNotifications = (userId: number) =>
-  (database().prepare("select count(*) as n from notifications where user_id = ? and read_at is null").get(userId) as { n: number }).n;
+  ((nb) => (database().prepare(`select count(*) as n from notifications where user_id = ? and read_at is null ${nb.sql}`).get(userId, ...nb.args) as { n: number }).n)(notBlocked(userId));
 
 export const markNotificationsRead = (userId: number) =>
   database().prepare("update notifications set read_at = ? where user_id = ? and read_at is null").run(Date.now(), userId);
@@ -40,7 +52,7 @@ export const markNotificationsRead = (userId: number) =>
 // ---------- Connections ----------
 
 export const NOTE_LIMIT = 300;
-/** Requests a member may send in a day: plenty for real people, too few for spam. */
+/** Requests a member may send in a day, by default: plenty for real people, too few for spam (a setting). */
 export const DAILY_REQUESTS = 25;
 
 export function requestConnection(from: User, toId: number, note: string): Result {
@@ -51,7 +63,8 @@ export function requestConnection(from: User, toId: number, note: string): Resul
   if (rel === "connected") return no("You’re already connected.");
   if (rel === "sent") return no("Your request is already waiting for them.");
   if (rel === "received") return acceptConnection(from, to.id);
-  if (!withinLimit(`connect:${from.id}`, DAILY_REQUESTS, DAY)) return no(`That’s ${DAILY_REQUESTS} requests today: the most in a day. Try again tomorrow.`);
+  const daily = settings().dailyRequests;
+  if (!withinLimit(`connect:${from.id}`, daily, DAY)) return no(`That’s ${daily} requests today: the most in a day. Try again tomorrow.`);
   const db = database();
   db.prepare("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)").run(from.id, to.id, to.id, from.id);
   db.prepare("insert into connections (requester, addressee, status, note, created_at) values (?, ?, 'pending', ?, ?)").run(
@@ -60,7 +73,11 @@ export function requestConnection(from: User, toId: number, note: string): Resul
     note.trim().slice(0, NOTE_LIMIT),
     Date.now()
   );
-  notify(to.id, { actor: from.id, kind: "connect-request", text: `${from.name} would like to connect.`, link: "/connections" });
+  // Withdrawing and asking again doesn't ping them again within a week.
+  const recently = db
+    .prepare("select 1 from notifications where user_id = ? and actor = ? and kind = 'connect-request' and created_at > ?")
+    .get(to.id, from.id, Date.now() - 7 * DAY);
+  if (!recently) notify(to.id, { actor: from.id, kind: "connect-request", text: `${from.name} would like to connect.`, link: "/connections" });
   return { ok: true };
 }
 
@@ -80,7 +97,7 @@ export function declineConnection(me: User, fromId: number): Result {
 }
 
 export function withdrawRequest(me: User, toId: number): Result {
-  database().prepare("delete from connections where requester = ? and addressee = ? and status = 'pending'").run(me.id, toId);
+  database().prepare("delete from connections where requester = ? and addressee = ? and status in ('pending', 'declined')").run(me.id, toId);
   return { ok: true };
 }
 
@@ -94,6 +111,8 @@ export function block(me: User, otherId: number): Result {
   const db = database();
   db.prepare("insert or ignore into blocks (blocker, blocked, created_at) values (?, ?, ?)").run(me.id, otherId, Date.now());
   db.prepare("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)").run(me.id, otherId, otherId, me.id);
+  // Nor does either follow the other any more.
+  db.prepare("delete from follows where (follower = ? and followee = ?) or (follower = ? and followee = ?)").run(me.id, otherId, otherId, me.id);
   return { ok: true };
 }
 
@@ -120,13 +139,24 @@ export function connectionsOf(userId: number): User[] {
   return (
     database()
       .prepare(
-        "select case when requester = ? then addressee else requester end as other from connections where (requester = ? or addressee = ?) and status = 'accepted' order by responded_at desc"
+        `select users.* from (
+           select addressee as other, responded_at from connections where requester = ? and status = 'accepted'
+           union all
+           select requester as other, responded_at from connections where addressee = ? and status = 'accepted'
+         ) as c join users on users.id = c.other and users.suspended_at is null
+         order by c.responded_at desc limit 1000`
       )
-      .all(userId, userId, userId) as { other: number }[]
-  )
-    .map((r) => memberById(r.other))
-    .filter((u): u is User => u !== null);
+      .all(userId, userId) as Record<string, unknown>[]
+  ).map(toUser);
 }
+
+/** Requests waiting for `userId`: a count for the nav (from active members only). */
+export const waitingRequests = (userId: number) =>
+  (
+    database()
+      .prepare("select count(*) as n from connections join users on users.id = connections.requester where connections.addressee = ? and connections.status = 'pending' and users.suspended_at is null")
+      .get(userId) as { n: number }
+  ).n;
 
 export const connectionCount = (userId: number) =>
   (database().prepare("select count(*) as n from connections where (requester = ? or addressee = ?) and status = 'accepted'").get(userId, userId) as { n: number }).n;
@@ -141,8 +171,10 @@ export const MESSAGE_LIMIT = 2000;
 export type Message = { id: number; mine: boolean; body: string; createdAt: number };
 
 export function sendMessage(from: User, toId: number, body: string): Result {
+  if (!settings().features.messages) return no(PAUSED);
   const text = body.trim().slice(0, MESSAGE_LIMIT);
   if (!text) return no("Write something first.");
+  if (!memberById(toId)) return no("That member isn't here any more.");
   if (relation(from.id, toId) !== "connected") return no("You can message your connections. Connect first, or Ask.");
   if (!withinLimit(`message:${from.id}`, 120, 60 * 60_000)) return no("That’s a lot of messages in an hour. Take a breather and try again.");
   const db = database();
@@ -168,17 +200,25 @@ export type Conversation = { with: User; last: string; lastAt: number; mine: boo
 export function conversations(me: User): Conversation[] {
   const rows = database()
     .prepare(
-      `select case when sender = ? then recipient else sender end as other, body, created_at, sender
-       from messages where sender = ? or recipient = ? order by created_at desc`
+      `select * from (
+         select recipient as other, body, created_at, sender from messages where sender = ?
+         union all
+         select sender as other, body, created_at, sender from messages where recipient = ?
+       ) order by created_at desc limit 2000`
     )
-    .all(me.id, me.id, me.id) as { other: number; body: string; created_at: number; sender: number }[];
+    .all(me.id, me.id) as { other: number; body: string; created_at: number; sender: number }[];
+  const unread = new Map(
+    (database().prepare("select sender, count(*) as n from messages where recipient = ? and read_at is null group by sender").all(me.id) as { sender: number; n: number }[]).map(
+      (r) => [r.sender, r.n]
+    )
+  );
   const seen = new Map<number, Conversation>();
   for (const r of rows) {
     if (seen.has(r.other)) continue;
     const other = memberById(r.other);
     if (!other || blockedEitherWay(me.id, other.id)) continue;
-    const { n } = database().prepare("select count(*) as n from messages where sender = ? and recipient = ? and read_at is null").get(r.other, me.id) as { n: number };
-    seen.set(r.other, { with: other, last: r.body, lastAt: r.created_at, mine: r.sender === me.id, unread: n });
+    seen.set(r.other, { with: other, last: r.body, lastAt: r.created_at, mine: r.sender === me.id, unread: unread.get(r.other) ?? 0 });
+    if (seen.size >= 100) break;
   }
   return [...seen.values()];
 }

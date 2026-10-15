@@ -79,11 +79,17 @@ export function withoutExif(bytes: Uint8Array): Uint8Array {
 
 export type Saved = { ok: true; media: Media } | { ok: false; error: string };
 
-/** Checks and keeps an upload, for `use` (a photo is an image; a cover is an image, a video or HTML). */
-export function saveUpload(userId: number, use: "photo" | "cover", bytes: Uint8Array): Saved {
+export type UploadUse = "photo" | "cover" | "post" | "story";
+
+/**
+ * Checks and keeps an upload, for `use`: a profile photo is an image; a post or a story is
+ * an image or a video; only a cover may also be an HTML file.
+ */
+export function saveUpload(userId: number, use: UploadUse, bytes: Uint8Array): Saved {
   const found = sniff(bytes);
-  if (!found) return { ok: false, error: "That file isn’t one we can use. Photos: JPEG, PNG, WebP or GIF. Covers can also be MP4 or WebM video, or an HTML file." };
+  if (!found) return { ok: false, error: "That file isn’t one we can use. Photos: JPEG, PNG, WebP or GIF. Videos: MP4 or WebM." };
   if (use === "photo" && found.kind !== "image") return { ok: false, error: "Your photo needs to be an image (JPEG, PNG, WebP or GIF)." };
+  if ((use === "post" || use === "story") && found.kind === "html") return { ok: false, error: "Posts and stories take photos and videos." };
   if (bytes.length > LIMITS[found.kind]) {
     return { ok: false, error: `That’s too big: ${found.kind === "video" ? "videos" : found.kind === "html" ? "HTML files" : "images"} can be up to ${LIMITS[found.kind] / 1024 / 1024} MB.` };
   }

@@ -1,0 +1,139 @@
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
+import { ActionForm } from "../../../components/app/action-form";
+import { AppPage } from "../../../components/app/app-page";
+import { PostCard } from "../../../components/app/post-card";
+import { ReportButton } from "../../../components/app/report-button";
+import { ProfileSheet } from "../../../components/profile/profile-sheet";
+import { acceptAction, blockAction, connectAction, declineAction, removeConnectionAction, unblockAction, withdrawAction } from "../../../lib/actions/social";
+import { recordOf } from "../../../lib/server/asks";
+import { pageFor } from "../../../lib/server/people";
+import { feedFor } from "../../../lib/server/posts";
+import { connectionCount } from "../../../lib/server/social";
+import { requireUser } from "../../../lib/server/session";
+import "../../styles/join.css";
+import "../../styles/profile.css";
+
+export const metadata: Metadata = { title: "A member · Alumnity", robots: { index: false } };
+export const dynamic = "force-dynamic";
+
+/** A member's page as you may see it, with what you can do: connect, message, block, report. */
+export default async function MemberPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: raw } = await params;
+  const id = Number(raw);
+  const me = await requireUser(`/people/${raw}`);
+  if (!Number.isSafeInteger(id) || id <= 0) notFound();
+  if (id === me.id) redirect("/me");
+  const page = pageFor(me, id);
+  // Blocked by them, paused or gone: the same "not here" either way, so a block isn't revealed.
+  if (!page) notFound();
+  const { owner, profile, relation } = page;
+  const first = owner.name.split(" ")[0];
+  const record = recordOf(owner.id);
+  const notes = relation === "blocked" ? [] : feedFor(me, { authorId: owner.id, limit: 10 });
+  const hidden = <input type="hidden" name="id" value={owner.id} />;
+
+  const actions =
+    relation === "blocked" ? (
+      <ActionForm action={unblockAction}>
+        {hidden}
+        <button className="button button--secondary" type="submit">
+          Unblock {first}
+        </button>
+      </ActionForm>
+    ) : (
+      <div className="wf-stack">
+        {relation === "none" && (
+          <ActionForm action={connectAction} className="wf-stack">
+            {hidden}
+            <label className="field">
+              <span className="field__label">A note with your request (optional)</span>
+              <textarea name="note" rows={2} maxLength={300} placeholder={`How you know ${first}, or why you'd like to connect`} />
+            </label>
+            <div>
+              <button className="button button--primary" type="submit">
+                Connect <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </ActionForm>
+        )}
+        {relation === "sent" && (
+          <div className="wf-actions">
+            <span className="wf-tag">Request sent</span>
+            <ActionForm action={withdrawAction}>
+              {hidden}
+              <button className="wf-link-button" type="submit">
+                Withdraw
+              </button>
+            </ActionForm>
+          </div>
+        )}
+        {relation === "received" && (
+          <div className="wf-actions">
+            <span>{first} would like to connect.</span>
+            <ActionForm action={acceptAction}>
+              {hidden}
+              <button className="button button--primary wf-small" type="submit">
+                Accept
+              </button>
+            </ActionForm>
+            <ActionForm action={declineAction}>
+              {hidden}
+              <button className="button button--secondary wf-small" type="submit">
+                Decline
+              </button>
+            </ActionForm>
+          </div>
+        )}
+        {relation === "connected" && (
+          <div className="wf-actions">
+            <a className="button button--primary" href={`/messages/${owner.id}`}>
+              Message {first}
+            </a>
+            <ActionForm action={removeConnectionAction} confirm={`Remove ${first} from your connections? They aren't told.`}>
+              {hidden}
+              <button className="wf-link-button" type="submit">
+                Remove connection
+              </button>
+            </ActionForm>
+          </div>
+        )}
+        <div className="wf-actions">
+          <ActionForm action={blockAction} confirm={`Block ${first}? You won't see each other anywhere on Alumnity, and any connection ends. They aren't told.`}>
+            {hidden}
+            <button className="wf-link-button" type="submit">
+              Block
+            </button>
+          </ActionForm>
+          <ReportButton kind="member" id={owner.id} label={`Report ${first}`} back={`/people/${owner.id}`} />
+        </div>
+      </div>
+    );
+
+  return (
+    <AppPage user={me} current="people" title={owner.name} intro={`${connectionCount(owner.id)} connections${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
+      <div className="profile-page" style={{ padding: 0 }}>
+        <ProfileSheet person={owner} profile={profile} isOwner={false} actions={actions} />
+      </div>
+      {record.thanks.length > 0 && (
+        <section aria-labelledby="record">
+          <h2 id="record">{first}'s Record</h2>
+          <p className="wf-muted">Thanks from people {first} helped through Ask a senior.</p>
+          {record.thanks.map((t, i) => (
+            <blockquote key={i} className="wf-card">
+              <p>“{t}”</p>
+            </blockquote>
+          ))}
+        </section>
+      )}
+      {notes.length > 0 && (
+        <section aria-labelledby="their-notes">
+          <h2 id="their-notes">Notes by {first}</h2>
+          {notes.map((p) => (
+            <PostCard key={p.id} post={p} />
+          ))}
+        </section>
+      )}
+    </AppPage>
+  );
+}

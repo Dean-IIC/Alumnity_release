@@ -22,6 +22,22 @@
   --color-blue-deep: #0c3155;
   --color-gold: #c6842a;
   --color-gold-text: #a86a1c; /* gold for large text: 4.0 : 1 on paper (the brand gold is only 2.8) */
+  /* Gold small enough to read: for labels in gold (5.6 : 1 on paper-raised). */
+  --color-gold-small: #8f5c18;
+  /* The reactions' stamps: a pale wash of each ink behind its drawing. */
+  --color-wash-red: #f6e3df;
+  --color-wash-gold: #f7ebd5;
+  --color-wash-blue: #e7eef6;
+  --color-wash-amber: #f7efd2;
+  --color-ink-amber: #7a5d10; /* the Insightful stamp's ink and label: 6.1 : 1 */
+  --color-fill-red: rgba(168, 57, 50, 0.15);
+  --color-fill-blue: rgba(20, 63, 104, 0.06); /* a seal's inner circle */
+  --color-seal-ground: #eef2f6; /* behind initials, where there's no photo */
+  --color-notice: #fbf3e2; /* a notice from the college, pinned above the feed */
+  --color-notice-edge: rgba(198, 132, 42, 0.45);
+  --color-band: #f1e9d8; /* the band across the top of your card */
+  --color-bar: rgba(255, 253, 247, 0.96); /* the phone's tab bar, over the page */
+  --color-error-on-night: #f0a59c;
   --color-line: rgba(57, 40, 32, 0.18);
   --color-border: rgba(57, 40, 32, 0.22);
   --color-focus: var(--color-blue);
@@ -86,6 +102,9 @@
   --seam: 3px; /* the paper showing between photos in a mosaic */
   --shadow-button: 0 12px 28px rgba(20, 63, 104, 0.2);
   --shadow-button-hover: 0 16px 30px rgba(20, 63, 104, 0.28);
+  /* Floating menus only (a post's menu, the reactions, @mention names): they lie over the
+     page and must read as above it. Cards and sheets never have a shadow. */
+  --shadow-pop: 0 10px 26px rgba(57, 40, 32, 0.14);
   /* Text laid over a photo's edge: a paper halo keeps it crisp. */
   --halo: 0 0 2px var(--color-paper), 0 0 18px rgba(248, 244, 234, 0.9), 0 0 36px rgba(248, 244, 234, 0.7);
   --halo-strong: 0 0 2px var(--color-paper), 0 0 6px var(--color-paper), 0 0 12px var(--color-paper), 0 0 20px var(--color-paper);
