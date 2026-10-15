@@ -30,6 +30,10 @@ const SPLAT = "rgba(111, 93, 69, 0.3)";
 const LINE_WIDTH = 13;
 /** The line bitmap's size against the world's: sharp enough at the camera's zoom, and any larger costs memory and setup time. */
 const LINE_TEXTURE_SCALE = 0.8;
+/** The most the intro's clock moves on in one frame (ms): ordinary lag still keeps time, a long stall doesn't. */
+const MAX_STEP = 250;
+/** When the last era has finished shrinking away (see "Every era shrinks away"). */
+const WORLD_GONE = FINALE.shrink[0] + (ERAS.length - 1) * 90 + 560;
 
 const loadImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
@@ -99,8 +103,12 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
   const [layout, setLayout] = useState<WorldLayout | null>(null);
   const [skipNextTime, setSkipNextTime] = useState(false);
   const settledRef = useRef(false);
-  /** Survives a resize, so re-laying out the world doesn't restart the intro. */
-  const startRef = useRef<number | null>(null);
+  /**
+   * The intro's own clock. It survives a resize, so re-laying out the world doesn't restart
+   * the intro, and it advances at most MAX_STEP a frame: a phone that stalls plays the
+   * intro more slowly instead of jumping past the patterns and the wordmark to the end.
+   */
+  const clockRef = useRef({ elapsed: 0, last: 0 });
 
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -296,14 +304,17 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         // Dev aid: ?t=2900 freezes the intro at 2.9 s so a single frame can be inspected.
         const frozenParam = new URLSearchParams(window.location.search).get("t");
         const frozen = frozenParam === null ? NaN : Number(frozenParam);
-        startRef.current ??= performance.now();
+        let worldDropped = false;
 
         const tick = (now: number) => {
           if (settledRef.current) {
             free();
             return;
           }
-          const t = Number.isFinite(frozen) ? frozen : now - (startRef.current ?? now);
+          const clock = clockRef.current;
+          if (clock.last) clock.elapsed += Math.min(MAX_STEP, Math.max(0, now - clock.last));
+          clock.last = now;
+          const t = Number.isFinite(frozen) ? frozen : clock.elapsed;
           const view = viewport();
           const dpr = Math.min(2, window.devicePixelRatio || 1);
           if (lineCanvas.width !== Math.round(view.width * dpr) || lineCanvas.height !== Math.round(view.height * dpr)) {
@@ -312,113 +323,126 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           }
 
           /* --- 1. Eras --- */
-          const camera = cameraAt(t, layout, view, penAt);
-          const ox = view.width / 2 - camera.x * camera.scale;
-          const oy = view.height / 2 - camera.y * camera.scale;
-          world.style.transform = `translate(${ox}px, ${oy}px) scale(${camera.scale})`;
-          if (backdrop) {
-            // Slower than the world: the years drift past behind the photos.
-            const k = camera.scale * BACKDROP_PARALLAX;
-            backdrop.style.transform = `translate(${view.width / 2 - camera.x * k}px, ${view.height / 2 - camera.y * k}px) scale(${k})`;
-            backdrop.style.opacity = `${windowProgress(t, 0, 900) * (1 - windowProgress(t, ...FINALE.shrink))}`;
+          // Once every era has shrunk away, the world, its years and the line are dropped
+          // altogether (and their memory freed), so the patterns and the wordmark have the
+          // phone to themselves. On a slow phone this is where it used to stall.
+          if (t >= WORLD_GONE && !worldDropped) {
+            worldDropped = true;
+            world.style.display = "none";
+            if (backdrop) backdrop.style.display = "none";
+            lineCanvas.style.display = "none";
+            free();
           }
-
-          // The line: stroke as far as the pen has got, then fill that with the textured ink.
-          line.setTransform(1, 0, 0, 1, 0, 0);
-          line.globalCompositeOperation = "source-over";
-          line.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
-          line.setTransform(dpr * camera.scale, 0, 0, dpr * camera.scale, dpr * ox, dpr * oy);
-          line.lineCap = "round";
-          // With the texture, a wide stroke only says how far the pen has got; without it,
-          // the stroke is the ink itself.
-          line.lineWidth = texture ? LINE_WIDTH * 3.6 : LINE_WIDTH;
-          line.strokeStyle = texture ? "#000" : INK;
-          for (const [i, segment] of segments.entries()) {
-            // Slow through each photo, quick between them, never stopping.
-            const p = penProgress(i, t);
-            if (p <= 0) continue;
-            line.setLineDash([segment.length * p, segment.length + 1]);
-            line.stroke(segment.path);
-          }
-          line.setLineDash([]);
-          if (texture) {
-            line.globalCompositeOperation = "source-in";
-            // Only the part of the world on screen: on a phone the camera sees a sliver of a
-            // tall world, and copying all of it every frame is most of a frame's work.
-            const left = Math.max(0, -ox / camera.scale);
-            const top = Math.max(0, -oy / camera.scale);
-            const right = Math.min(layout.width, (view.width - ox) / camera.scale);
-            const bottom = Math.min(layout.height, (view.height - oy) / camera.scale);
-            if (right > left && bottom > top) {
-              const kx = texture.width / layout.width;
-              const ky = texture.height / layout.height;
-              line.drawImage(texture, left * kx, top * ky, (right - left) * kx, (bottom - top) * ky, left, top, right - left, bottom - top);
+          if (!worldDropped) {
+            // The camera, the line and the photos.
+            const camera = cameraAt(t, layout, view, penAt);
+            const ox = view.width / 2 - camera.x * camera.scale;
+            const oy = view.height / 2 - camera.y * camera.scale;
+            world.style.transform = `translate(${ox}px, ${oy}px) scale(${camera.scale})`;
+            if (backdrop) {
+              // Slower than the world: the years drift past behind the photos.
+              const k = camera.scale * BACKDROP_PARALLAX;
+              backdrop.style.transform = `translate(${view.width / 2 - camera.x * k}px, ${view.height / 2 - camera.y * k}px) scale(${k})`;
+              backdrop.style.opacity = `${windowProgress(t, 0, 900) * (1 - windowProgress(t, ...FINALE.shrink))}`;
             }
-          }
 
-          // Each blot drops where the pen lands, under the photo.
-          line.globalCompositeOperation = "source-over";
-          line.fillStyle = INK;
-          for (const blot of blots) {
-            const p = windowProgress(t, ...blot.window);
-            if (p <= 0) continue;
-            const scale = easeOutCubic(p) + Math.sin(p * Math.PI) * 0.25;
-            line.save();
-            line.translate(blot.centre.x, blot.centre.y);
-            line.scale(scale, scale);
-            line.fill(blot.path);
-            line.restore();
-          }
+            // The line: stroke as far as the pen has got, then fill that with the textured ink.
+            line.setTransform(1, 0, 0, 1, 0, 0);
+            line.globalCompositeOperation = "source-over";
+            line.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+            line.setTransform(dpr * camera.scale, 0, 0, dpr * camera.scale, dpr * ox, dpr * oy);
+            line.lineCap = "round";
+            // With the texture, a wide stroke only says how far the pen has got; without it,
+            // the stroke is the ink itself.
+            line.lineWidth = texture ? LINE_WIDTH * 3.6 : LINE_WIDTH;
+            line.strokeStyle = texture ? "#000" : INK;
+            for (const [i, segment] of segments.entries()) {
+              // Slow through each photo, quick between them, never stopping.
+              const p = penProgress(i, t);
+              if (p <= 0) continue;
+              line.setLineDash([segment.length * p, segment.length + 1]);
+              line.stroke(segment.path);
+            }
+            line.setLineDash([]);
+            if (texture) {
+              line.globalCompositeOperation = "source-in";
+              // Only the part of the world on screen: on a phone the camera sees a sliver of a
+              // tall world, and copying all of it every frame is most of a frame's work.
+              const left = Math.max(0, -ox / camera.scale);
+              const top = Math.max(0, -oy / camera.scale);
+              const right = Math.min(layout.width, (view.width - ox) / camera.scale);
+              const bottom = Math.min(layout.height, (view.height - oy) / camera.scale);
+              if (right > left && bottom > top) {
+                const kx = texture.width / layout.width;
+                const ky = texture.height / layout.height;
+                line.drawImage(texture, left * kx, top * ky, (right - left) * kx, (bottom - top) * ky, left, top, right - left, bottom - top);
+              }
+            }
 
-          // Spatters land beneath the line as the pen flicks past.
-          line.globalCompositeOperation = "destination-over";
-          line.fillStyle = SPLAT;
-          for (const splat of splats) {
-            const pop = windowProgress(penProgress(splat.segment, t), splat.along, splat.along + 0.02);
-            if (pop <= 0) continue;
-            line.globalAlpha = easeOutCubic(pop);
-            line.fill(splat.path);
-          }
-          line.globalAlpha = 1;
-          line.globalCompositeOperation = "source-over";
-
-          // Each batch drops onto the line as the pen passes it: a tick, a dot sized by its
-          // intake, and its year. By the pull-back the line reads as the whole timeline.
-          line.font = labelFont;
-          line.textBaseline = "middle";
-          for (const mark of marks) {
-            const pop = windowProgress(penProgress(mark.segment, t), mark.along, mark.along + 0.03);
-            if (pop <= 0) continue;
-            const grow = easeOutCubic(pop) + Math.sin(pop * Math.PI) * 0.2;
-            // A bead on the line, sized by the batch…
+            // Each blot drops where the pen lands, under the photo.
+            line.globalCompositeOperation = "source-over";
             line.fillStyle = INK;
-            line.beginPath();
-            line.arc(mark.x, mark.y, mark.r * grow, 0, Math.PI * 2);
-            line.fill();
-            // …and its year, set clear of the line on the outward side, reading away from it.
-            line.globalAlpha = Math.min(1, pop * 1.4);
-            line.fillStyle = MARK_LABEL;
-            line.textAlign = Math.abs(mark.nx) > 0.5 ? (mark.nx > 0 ? "left" : "right") : "center";
-            const out = mark.r + (tall ? 30 : 22);
-            line.fillText(mark.label, mark.x + mark.nx * out, mark.y + mark.ny * out);
+            for (const blot of blots) {
+              const p = windowProgress(t, ...blot.window);
+              if (p <= 0) continue;
+              const scale = easeOutCubic(p) + Math.sin(p * Math.PI) * 0.25;
+              line.save();
+              line.translate(blot.centre.x, blot.centre.y);
+              line.scale(scale, scale);
+              line.fill(blot.path);
+              line.restore();
+            }
+
+            // Spatters land beneath the line as the pen flicks past.
+            line.globalCompositeOperation = "destination-over";
+            line.fillStyle = SPLAT;
+            for (const splat of splats) {
+              const pop = windowProgress(penProgress(splat.segment, t), splat.along, splat.along + 0.02);
+              if (pop <= 0) continue;
+              line.globalAlpha = easeOutCubic(pop);
+              line.fill(splat.path);
+            }
             line.globalAlpha = 1;
+            line.globalCompositeOperation = "source-over";
+
+            // Each batch drops onto the line as the pen passes it: a tick, a dot sized by its
+            // intake, and its year. By the pull-back the line reads as the whole timeline.
+            line.font = labelFont;
+            line.textBaseline = "middle";
+            for (const mark of marks) {
+              const pop = windowProgress(penProgress(mark.segment, t), mark.along, mark.along + 0.03);
+              if (pop <= 0) continue;
+              const grow = easeOutCubic(pop) + Math.sin(pop * Math.PI) * 0.2;
+              // A bead on the line, sized by the batch…
+              line.fillStyle = INK;
+              line.beginPath();
+              line.arc(mark.x, mark.y, mark.r * grow, 0, Math.PI * 2);
+              line.fill();
+              // …and its year, set clear of the line on the outward side, reading away from it.
+              line.globalAlpha = Math.min(1, pop * 1.4);
+              line.fillStyle = MARK_LABEL;
+              line.textAlign = Math.abs(mark.nx) > 0.5 ? (mark.nx > 0 ? "left" : "right") : "center";
+              const out = mark.r + (tall ? 30 : 22);
+              line.fillText(mark.label, mark.x + mark.nx * out, mark.y + mark.ny * out);
+              line.globalAlpha = 1;
+            }
+
+            layout.shots.forEach((shot, i) => {
+              const timing = stopTiming(i);
+              // Waiting faintly in black and white from the start; firm as the pen arrives.
+              const appear = windowProgress(t, 0, 600);
+              const firm = easeInOutCubic(windowProgress(t, ...timing.firm));
+              inks[i]?.draw(appear * (GHOST_OPACITY + (1 - GHOST_OPACITY) * firm), windowProgress(t, ...timing.ink));
+              const figure = shotRefs.current[i];
+              if (!figure) return;
+              figure.classList.toggle("journey-shot--captioned", t > timing.arrive);
+
+              /* --- 2. Every era shrinks away, one after another --- */
+              const gone = windowProgress(t, FINALE.shrink[0] + i * 90, FINALE.shrink[0] + i * 90 + 560);
+              figure.style.transform = `rotate(${shot.rotation + gone * 10}deg) scale(${Math.max(0.001, 1 - easeInBack(gone))})`;
+              figure.style.opacity = `${1 - easeInCubic(gone)}`;
+            });
           }
-
-          layout.shots.forEach((shot, i) => {
-            const timing = stopTiming(i);
-            // Waiting faintly in black and white from the start; firm as the pen arrives.
-            const appear = windowProgress(t, 0, 600);
-            const firm = easeInOutCubic(windowProgress(t, ...timing.firm));
-            inks[i]?.draw(appear * (GHOST_OPACITY + (1 - GHOST_OPACITY) * firm), windowProgress(t, ...timing.ink));
-            const figure = shotRefs.current[i];
-            if (!figure) return;
-            figure.classList.toggle("journey-shot--captioned", t > timing.arrive);
-
-            /* --- 2. Every era shrinks away, one after another --- */
-            const gone = windowProgress(t, FINALE.shrink[0] + i * 90, FINALE.shrink[0] + i * 90 + 560);
-            figure.style.transform = `rotate(${shot.rotation + gone * 10}deg) scale(${Math.max(0.001, 1 - easeInBack(gone))})`;
-            figure.style.opacity = `${1 - easeInCubic(gone)}`;
-          });
 
           const shrink = windowProgress(t, ...FINALE.shrink);
           lineCanvas.style.opacity = `${1 - shrink}`;
