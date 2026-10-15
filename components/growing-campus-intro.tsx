@@ -59,10 +59,10 @@ const easeInBack = (t: number) => 2.4 * t * t * t - 1.4 * t * t;
  * paper shadow come from SVG filters, which are far too slow to run every frame, so they
  * are rendered once here and the pen reveals the result.
  */
-async function lineTexture(layout: WorldLayout): Promise<HTMLCanvasElement> {
+async function lineTexture(layout: WorldLayout, scale = LINE_TEXTURE_SCALE): Promise<HTMLCanvasElement> {
   const paths = layout.segments.map((d) => `<path d="${d}"/>`).join("");
-  const width = Math.round(layout.width * LINE_TEXTURE_SCALE);
-  const height = Math.round(layout.height * LINE_TEXTURE_SCALE);
+  const width = Math.round(layout.width * scale);
+  const height = Math.round(layout.height * scale);
   // Rasterised straight at the texture's size: the filters (the slow part, ~10 million
   // pixels of world on a phone) never run at full size only to be shrunk afterwards.
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${layout.width} ${layout.height}">
@@ -94,6 +94,27 @@ async function lineTexture(layout: WorldLayout): Promise<HTMLCanvasElement> {
   }
 }
 
+/**
+ * The intro's heavy part (the eras, the ink line, the pull-back) as a video, recorded from
+ * this very component (scripts/record-intro.mjs). A phone plays it with its video hardware
+ * instead of drawing it live; the patterns, the wordmark and the reveal stay live on top,
+ * timed by the video's own clock. Recorded so far: tall phones. Other screens draw it live.
+ */
+const VIDEO_END = WORLD_GONE;
+const INTRO_VIDEOS = {
+  tall: { hevc: "/assets/intro/phone-720.hevc.mp4", h264: "/assets/intro/phone-720.h264.mp4" }
+};
+
+const saveData = () => Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
+
+function introVideoFor(view: { width: number; height: number }): string | null {
+  if (view.height / view.width < 1.6) return null;
+  const probe = document.createElement("video");
+  if (probe.canPlayType('video/mp4; codecs="hvc1.1.6.L93.B0"')) return INTRO_VIDEOS.tall.hevc;
+  if (probe.canPlayType('video/mp4; codecs="avc1.640028"')) return INTRO_VIDEOS.tall.h264;
+  return null;
+}
+
 type GrowingCampusIntroProps = {
   onComplete: () => void;
 };
@@ -102,6 +123,9 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
   const [isSettled, setIsSettled] = useState(false);
   const [layout, setLayout] = useState<WorldLayout | null>(null);
   const [skipNextTime, setSkipNextTime] = useState(false);
+  /** The video this screen plays for the eras (null: drawn live). Chosen once, as it starts. */
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const settledRef = useRef(false);
   /**
    * The intro's own clock. It survives a resize, so re-laying out the world doesn't restart
@@ -138,6 +162,14 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
       return;
     }
     setSkipNextTime(readIntroPreference() === "skip");
+    // Recording it (?t=…) always draws live; a tall phone otherwise gets the video. On Data
+    // Saver there's neither a 2 MB video nor a heavy live intro: straight to the site.
+    const recording = new URLSearchParams(window.location.search).has("t");
+    if (!recording && saveData()) {
+      settle();
+      return;
+    }
+    setVideoSrc(recording ? null : introVideoFor(viewport()));
     // No scrolling under the intro: the page below it isn't revealed yet.
     document.documentElement.classList.add("intro-playing");
     // Re-lay out the world only when it really changes shape (a rotation, a resized window).
@@ -165,6 +197,8 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
     if (!layout || settledRef.current) return;
     let frame = 0;
     let cancelled = false;
+    const video = videoSrc ? videoRef.current : null;
+    if (videoSrc && !video) return; // the video element mounts first
 
     const loadEra = (i: number) =>
       Promise.all([loadImage(layout.shots[i].era.photo.sketch), loadImage(layout.shots[i].era.photo.photo)]);
@@ -180,7 +214,13 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
     // Start as soon as the line and the first era are ready; the rest arrive while it plays.
     // Neither is essential: without the texture the line is plain ink, and a photo that
     // fails is simply left out. The intro carries on rather than vanishing.
-    Promise.all([lineTexture(layout).catch(() => null), loadEra(0).catch(() => null)])
+    // Recording the intro as a video (?t=…&capture=1, see scripts/record-intro.mjs): drawn at
+    // full phone sharpness, with a finer ink texture than a live phone could afford.
+    const capture = new URLSearchParams(window.location.search).get("capture") === "1";
+    const heavy = video
+      ? Promise.resolve([null, null] as const)
+      : Promise.all([lineTexture(layout, capture ? 1.25 : LINE_TEXTURE_SCALE).catch(() => null), loadEra(0).catch(() => null)]);
+    heavy
       .then(([lineBitmap, firstEra]) => {
         texture = lineBitmap;
         const section = sectionRef.current;
@@ -215,6 +255,19 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           }
         };
         if (firstEra) makeInk(0, firstEra);
+
+        // The video draws the eras: the live world isn't shown, and the video starts. If the
+        // phone won't play it (Low Power Mode blocks autoplay, say), straight to the site.
+        if (video) {
+          world.style.display = "none";
+          lineCanvas.style.display = "none";
+          if (backdropRef.current) backdropRef.current.style.display = "none";
+          if (totalRef.current) totalRef.current.style.display = "none";
+          video.addEventListener("error", settle, { once: true });
+          // Its last frame can hold the last photo's final speck: the live paper takes over cleanly.
+          video.addEventListener("ended", () => (video.style.visibility = "hidden"), { once: true });
+          video.play().catch(settle);
+        }
 
         const segments = layout.segments.map((d, i) => ({
           path: new Path2D(d),
@@ -303,8 +356,23 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
 
         // Dev aid: ?t=2900 freezes the intro at 2.9 s so a single frame can be inspected.
         const frozenParam = new URLSearchParams(window.location.search).get("t");
-        const frozen = frozenParam === null ? NaN : Number(frozenParam);
-        let worldDropped = false;
+        let frozen = frozenParam === null ? NaN : Number(frozenParam);
+        let worldDropped = Boolean(video);
+        // While frozen, a recorder can move the frozen moment and wait for it to be drawn.
+        if (Number.isFinite(frozen)) {
+          (window as unknown as { __introAt?: (ms: number) => Promise<void> }).__introAt = (ms) =>
+            new Promise((resolve) => {
+              frozen = ms;
+              requestAnimationFrame((now) => {
+                tick(now);
+                requestAnimationFrame(() => resolve());
+              });
+            });
+        }
+        let erasLoaded = 1;
+        const markReady = () => {
+          if (erasLoaded >= layout.shots.length) (window as unknown as { __introReady?: boolean }).__introReady = true;
+        };
 
         const tick = (now: number) => {
           if (settledRef.current) {
@@ -314,9 +382,14 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           const clock = clockRef.current;
           if (clock.last) clock.elapsed += Math.min(MAX_STEP, Math.max(0, now - clock.last));
           clock.last = now;
+          // While the video plays, it keeps the time (it may pause to load; the rest waits for it).
+          if (video) {
+            const at = video.currentTime * 1000;
+            clock.elapsed = !video.ended && at < VIDEO_END - 20 ? at : Math.max(clock.elapsed, VIDEO_END);
+          }
           const t = Number.isFinite(frozen) ? frozen : clock.elapsed;
           const view = viewport();
-          const dpr = Math.min(2, window.devicePixelRatio || 1);
+          const dpr = Math.min(capture ? 3 : 2, window.devicePixelRatio || 1);
           if (lineCanvas.width !== Math.round(view.width * dpr) || lineCanvas.height !== Math.round(view.height * dpr)) {
             lineCanvas.width = Math.round(view.width * dpr);
             lineCanvas.height = Math.round(view.height * dpr);
@@ -447,7 +520,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           const shrink = windowProgress(t, ...FINALE.shrink);
           lineCanvas.style.opacity = `${1 - shrink}`;
           const total = totalRef.current;
-          if (total) {
+          if (total && !video) {
             const p = windowProgress(t, ...FINALE.total);
             total.style.opacity = `${p * (1 - shrink)}`;
             total.style.transform = `translate(-50%, ${(1 - easeOutCubic(p)) * 14}px)`;
@@ -509,13 +582,16 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           if (!Number.isFinite(frozen)) frame = requestAnimationFrame(tick);
         };
         frame = requestAnimationFrame(tick);
+        markReady();
 
         // An era that hasn't arrived yet simply isn't drawn until it has. (A frozen frame,
         // which draws only once, draws again as each one arrives.)
-        layout.shots.slice(1).forEach((_, k) =>
+        if (!video) layout.shots.slice(1).forEach((_, k) =>
           void loadEra(k + 1)
             .then((images) => {
               makeInk(k + 1, images);
+              erasLoaded += 1;
+              markReady();
               if (Number.isFinite(frozen)) frame = requestAnimationFrame(tick);
             })
             .catch(() => undefined)
@@ -528,7 +604,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
       cancelAnimationFrame(frame);
       free();
     };
-  }, [layout, settle]);
+  }, [layout, settle, videoSrc]);
 
   return (
     <>
@@ -541,6 +617,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         {!isSettled && (
           <div className="ink-intro__stage" ref={stageRef}>
           <div className="ink-intro__paper" aria-hidden="true" />
+          {videoSrc && <video ref={videoRef} className="ink-intro__video" src={videoSrc} muted playsInline preload="auto" aria-hidden="true" tabIndex={-1} />}
           {/* Huge faint years behind everything, moving slower than the world (parallax). */}
           <div className="journey-backdrop" ref={backdropRef} aria-hidden="true" />
           {/* Drawn in screen space, behind the photos. */}
@@ -579,7 +656,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
             </>
           )}
           <p className="journey-total" ref={totalRef} aria-hidden="true">
-            {STUDENTS_SINCE_1998.toLocaleString("en-IN")} students since 1998.
+            {STUDENTS_SINCE_1998.toLocaleString("en-IN")} engineering students since 1998.
           </p>
           </div>
         )}
@@ -589,7 +666,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         <p className="sr-only">
           HKBK College of Engineering through the years:{" "}
           {ERAS.map((era) => `${era.year}, ${era.title.toLowerCase()} — ${era.detail}`).join("; ")}.{" "}
-          {STUDENTS_SINCE_1998.toLocaleString("en-IN")} students since 1998.
+          {STUDENTS_SINCE_1998.toLocaleString("en-IN")} engineering students since 1998.
         </p>
       </section>
 
