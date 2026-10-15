@@ -132,3 +132,58 @@ alpha-4/
 Still to do: the clickable prototype (landing, find-yourself, student home, Ask
 composer, Ask thread, backing, the Record, people directory, Desk), then the Next +
 Supabase build on a fresh schema.
+## 7. What's built (October 2026)
+
+Every feature works end to end on its own SQLite database (`data/alumnity.db`). The
+members' pages are plain wireframes on purpose (`app/styles/wire.css`): each gets its own
+design next, page by page.
+
+| Page | What it does | Rules (in `lib/server/`) |
+|---|---|---|
+| `/home` | Getting-started steps, batchmates to connect with, Asks waiting for you, events, write a note, the noticeboard (cheer, comment, report) | `posts.ts`: each note is for everyone, your batch, or your connections, and only they see it or can touch it |
+| `/people`, `/people/[id]` | Search by name, company, city, skill, branch, year, "happy to"; a member's page with Connect (with a note), Accept, Message, Remove, Block, Report, their Record and notes | `people.ts`, `profile.ts`: blocks hide both ways; every field shown only to whom its owner chose |
+| `/connections` | Requests waiting, your connections, suggestions from your batch, requests you sent, who you've blocked | `social.ts`: 25 requests a day; declining is silent |
+| `/messages`, `/messages/[id]` | Conversations and threads, between connections only; report a message | `social.ts`: 120 an hour; one notification until read |
+| `/ask`, `/ask/[id]` | Ask a question; it goes to the few seniors who fit (shared topics, branch, connection) and mentor; one takes it on; a private thread; mark answered with thanks (their Record) | `asks.ts`: 5 a day; only seniors take Asks; the thread is private to the two |
+| `/events`, `/events/[id]` | Upcoming and past; faculty, coordinators and admins put them up; RSVP with capacity; Add to calendar (`.ics`); the organiser sees who's coming and can cancel | `events.ts` |
+| `/batch/[branch]/[year]` | How many joined that year (a count from the register, never names), who's here, their notes | `register.ts` `batchCount` |
+| `/notifications` | Everything that concerns you | |
+| `/desk` | Coordinators and admins only (404 for everyone else): reports (take down / dismiss), members (pause / unpause, roles for admins), audit log (admins), totals | `desk.ts`: everything here is audited |
+| `/how-it-works` | Public: joining, and how members are kept safe | |
+| `/dev/seed` | Development only (404 in production): add or remove 12 made-up "… Sample" members who can't be signed in to | `samples.ts` |
+
+Forms post to server actions (`lib/actions/`), which check who's signed in; the rules
+check what they may do. Security checked: cross-site form posts are refused (tested with
+a real replayed form), safe redirects after login (`lib/safe-next.ts`), headers against
+framing and sniffing (`next.config.ts`), every query parameterised, user text never
+rendered as HTML. An independent review then found, and we fixed: blocks now close Ask
+threads; cheers and repeat requests can't flood notifications; a senior's Record shows
+only thanks (never the question or who asked); search and Home are bounded; members can
+only report what they can see; coordinators can't pause each other; the calendar file
+escapes every line break; the dev tools answer only on this computer (`lib/server/dev-only.ts`).
+Never put `next dev` behind a public tunnel: run `next build` + `next start` for demos.
+Tests: `npm test` (rules for every feature in `tests/social.test.ts`).
+
+### The college desk and its roles
+
+One ladder decides every permission (`lib/server/roles.ts`): members → faculty →
+alumni coordinators → administrators → super administrators. You can only act on people
+below you and give roles below yours. Super administrators are named only in the server's
+config (`ALUMNITY_SUPER_ADMINS`, comma-separated emails); administrators can be named there
+too (`ALUMNITY_ADMINS`) or appointed by a super administrator. Config roles can't be
+changed or removed from the site, so the college can't be locked out of it.
+
+`/desk` (also `/admin`): Overview (totals, new members per week) · Reports · Content (take
+down; admins bring back) · Members (filter; per member: pause, sign out everywhere, role,
+delete for good with their name typed) · Announcements (top of everyone's Home) · Team ·
+Settings (joining open, each feature on/off, daily request limit; super administrators
+only, enforced on the server) · Audit log (admins; search; CSV download, formula-safe).
+
+### How it holds up (measured, October 2026)
+
+`SCALE=1 npx vitest run tests/scale.test.ts` fills a throwaway database with 15,000
+members, 150,000 connections, 30,000 notes, 60,000 comments and 50,000 messages, and times
+each page's main work: everything is under ~50 ms except routing a new Ask (~30 ms) and
+search (~35–55 ms). Load-tested end to end on a laptop: one server process serves about
+55 pages a second; four processes sharing the one database file, about 105. That is ample
+for HKBK (9,327 on the register). Hundreds of thousands of members would need a database server (PostgreSQL) and several app servers.

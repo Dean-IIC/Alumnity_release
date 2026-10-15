@@ -43,3 +43,6 @@ data/uploads/
 
 # Local test logins and the demo code: never in git
 docs/dev-test-accounts.md
+
+# Local design-review exports (screenshots include test data)
+design-review/

@@ -129,3 +129,24 @@ Shared components get their own file, imported in `app/globals.css`. Styles only
 section uses (the gallery) are imported by that section's pages, so other pages don't
 load them. Layout geometry (a column's width, a hero's size) may be written where it's
 used; colours, type, space, radii and motion are always tokens.
+
+## The social pages (Home, posts, stories)
+
+- **The one red thing** on Home is the pen: the ring drawn round a story you haven't seen.
+  Everything else steps back: the current tab is underlined in gold, dates are blue, the
+  college's notices are pinned with a gold dot. Red reactions (Cheer, Support) are people's
+  content, not decoration, and unread counts stay red because they're alerts.
+- **Reactions are ink stamps**, not emoji (`components/social/stamps.tsx`): a pale wash of
+  one ink (`--color-wash-*`) behind a drawing in that ink. Their labels use text colours
+  that clear 4.5 : 1 (`--color-gold-small`, `--color-ink-amber`); the drawings, being
+  graphics, clear 3 : 1.
+- **Photos are prints**: a paper margin and `--radius-photo` corners, never edge to edge.
+- **No shadows on cards or sheets.** Only floating menus that lie over the page (a post's
+  menu, the reaction picker, @mention names) use `--shadow-pop`, so they read as above it.
+- **Every control is a fingertip tall** (`--tap-target`, 44 px), even ones that look like
+  small links (they overlap the space around them rather than growing the layout).
+- **Motion** under "reduce motion": the picker doesn't rise and stamps don't press. Stories
+  still move on by themselves, but pause on hold, Space or the pause button, and the
+  viewer takes and returns keyboard focus.
+- On a phone, the **tab bar** (Home, People, post, Messages, You) sits at the bottom and the
+  **sections bar** stays at the top, scrolling sideways, so every page is in reach.
