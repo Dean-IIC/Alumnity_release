@@ -100,6 +100,12 @@ export async function causeFor(viewer: User, id: number): Promise<Cause | null> 
   return row && mayView(viewer, row) ? (await toCauses([row], viewer))[0] : null;
 }
 
+/** A few live causes, for Home: those still furthest from their goal first. */
+export async function liveCauses(viewer: User, limit = 2): Promise<Cause[]> {
+  const rows = await db().all<CauseRow>("select * from causes where status = 'live' and (ends_at is null or ends_at > ?) order by reviewed_at desc limit 20", Date.now());
+  return (await toCauses(rows, viewer)).sort((a, b) => a.raised / a.goal - b.raised / b.goal).slice(0, limit);
+}
+
 /** Live causes (newest first), your own (any state), past ones, and, for the desk, those waiting to be reviewed. */
 export async function causesFor(viewer: User): Promise<{ live: Cause[]; mine: Cause[]; past: Cause[]; waiting: Cause[] }> {
   const [live, mine, past, waiting] = await Promise.all([

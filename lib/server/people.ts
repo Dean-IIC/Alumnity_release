@@ -156,6 +156,33 @@ export async function searchMembers(viewer: User, query: SearchQuery, limit = 60
 
 const users = (rows: Row[]) => rows.map(toUser);
 
+/**
+ * People `me` might want to know, for Home: not yet connected (or asked), not blocked
+ * either way; those from their branch and year first, then their branch, then everyone,
+ * newest members first. Works on a young site, when nobody from their batch has joined.
+ */
+export async function peopleToMeet(me: User, limit = 4): Promise<User[]> {
+  return users(
+    await db().all(
+      `select * from users
+       where id != ? and suspended_at is null
+       and id not in (select blocked from blocks where blocker = ?) and id not in (select blocker from blocks where blocked = ?)
+       and id not in (select addressee from connections where requester = ?) and id not in (select requester from connections where addressee = ?)
+       order by (branch is not distinct from ? and joined is not distinct from ?) desc, (branch is not distinct from ?) desc, created_at desc
+       limit ?`,
+      me.id,
+      me.id,
+      me.id,
+      me.id,
+      me.id,
+      me.branch,
+      me.joined,
+      me.branch,
+      limit
+    )
+  );
+}
+
 /** The viewer's batch on Alumnity (same branch, course and year), them excluded. */
 export async function batchmates(person: User): Promise<User[]> {
   if (!person.branch || !person.joined) return [];

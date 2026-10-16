@@ -8,23 +8,45 @@ import { Icon } from "../../components/social/icons";
 import { Post } from "../../components/social/post";
 import { StoriesBar, type ReelData } from "../../components/social/stories";
 import { connectAction } from "../../lib/actions/social";
-import { batchLabel, timeAgo } from "../../lib/format";
+import { batchLabel, rupees, timeAgo } from "../../lib/format";
 import { activeAnnouncements } from "../../lib/server/announcements";
 import { asksFor, isSenior } from "../../lib/server/asks";
 import { eventsFor } from "../../lib/server/events";
 import { followCounts } from "../../lib/server/follows";
-import { batchmates, relationsOf } from "../../lib/server/people";
+import { liveCauses } from "../../lib/server/causes";
+import { groupsFor } from "../../lib/server/groups";
+import { batchmates, peopleToMeet, relationsOf } from "../../lib/server/people";
 import { feedFor, type FeedScope } from "../../lib/server/posts";
 import { photoIdsOf, profileOf } from "../../lib/server/profile";
 import { requireUser } from "../../lib/server/session";
 import { PAUSED, settings } from "../../lib/server/settings";
-import { connectionCount, unreadNotifications } from "../../lib/server/social";
+import { connectionCount } from "../../lib/server/social";
 import { storyBar } from "../../lib/server/stories";
 
 export const metadata: Metadata = { title: "Home · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 const PAGE = 15;
+
+/** Every place on Alumnity, for Home's shortcuts (and the chips on a phone). */
+const SHORTCUTS = [
+  { href: "/groups", label: "Groups", icon: "group" },
+  { href: "/batch", label: "Your batch", icon: "batch" },
+  { href: "/ask", label: "Ask a senior", icon: "ask" },
+  { href: "/events", label: "Events", icon: "event" },
+  { href: "/causes", label: "Causes", icon: "heart" },
+  { href: "/connections", label: "Connections", icon: "connections" },
+  { href: "/people", label: "People", icon: "people" }
+] as const;
+
+/** Where to begin, when the feed is quiet. */
+const WELCOME = [
+  { href: "/me/edit", label: "Make your page yours", note: "A photo, what you do now, what you're happy to help with", icon: "you" },
+  { href: "/batch", label: "Find your batch", note: "Everyone from your year who's here, and how many still aren't", icon: "batch" },
+  { href: "/groups", label: "Join or start a group", note: "Your class, your club, your city, your field", icon: "group" },
+  { href: "/ask", label: "Ask a senior", note: "Questions go to the few alumni who fit them", icon: "ask" },
+  { href: "/causes", label: "Back a cause", note: "Scholarships and people in need, checked by the college", icon: "heart" }
+] as const;
 
 /** Home: stories, a word from the college, what your people are sharing, and a few people and events worth a look. */
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ before?: string; view?: string }> }) {
@@ -34,7 +56,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const before = Number.isSafeInteger(beforeParam) && beforeParam > 0 ? beforeParam : undefined;
   const scope: FeedScope = params.view === "following" ? "following" : "all";
 
-  const [profile, posts, reels, mates, relationTo, { upcoming }, asks, announcements, site, connections, follows, unread] = await Promise.all([
+  const [profile, posts, reels, mates, relationTo, { upcoming }, asks, announcements, site, connections, follows, groups, causes, others] = await Promise.all([
     profileOf(me.id),
     feedFor(me, { limit: PAGE, before, scope }),
     storyBar(me),
@@ -46,12 +68,23 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     settings(),
     connectionCount(me.id),
     followCounts(me.id),
-    unreadNotifications(me.id)
+    groupsFor(me),
+    liveCauses(me, 2),
+    peopleToMeet(me, 6)
   ]);
-  const suggestions = mates.filter((u) => relationTo(u.id) === "none").slice(0, 4);
+  // People to meet: your batch first; on a young site, anyone from your branch, then anyone.
+  const batch = mates.filter((u) => relationTo(u.id) === "none").slice(0, 4);
+  const suggestions = batch.length ? batch : others.slice(0, 4);
+  const myGroups = groups.mine.filter((g) => g.my?.status === "member").slice(0, 5);
+  const quiet = posts.length === 0 && !before;
   const notesOn = site.features.notes;
 
-  const photos = await photoIdsOf([me.id, ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)]), ...reels.map((r) => r.author.id), ...suggestions.map((s) => s.id)]);
+  const photos = await photoIdsOf([
+    me.id,
+    ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)]),
+    ...reels.map((r) => r.author.id),
+    ...suggestions.map((s) => s.id)
+  ]);
   const first = (name: string) => name.split(" ")[0];
   const reelData: ReelData[] = reels.map((r) => ({
     author: { id: r.author.id, name: r.author.name, first: first(r.author.name), photoId: photos.get(r.author.id) ?? null, initials: initialsOf(r.author.name) },
@@ -94,26 +127,47 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </div>
           </section>
           <nav className="sheet side-links" aria-label="Shortcuts">
-            <a href="/batch">
-              <Icon name="batch" size={20} /> Your batch
-            </a>
-            <a href="/ask">
-              <Icon name="ask" size={20} /> Ask a senior
-            </a>
-            <a href="/events">
-              <Icon name="event" size={20} /> Events
-            </a>
-            <a href="/notifications">
-              <Icon name="bell" size={20} /> Notifications
-              {unread > 0 && <span className="wf-count">{unread}</span>}
-            </a>
+            {SHORTCUTS.map((s) => (
+              <a key={s.href} href={s.href}>
+                <Icon name={s.icon} size={20} /> {s.label}
+              </a>
+            ))}
           </nav>
+          <section className="sheet side-box" aria-labelledby="your-groups">
+            <h2 id="your-groups">Your groups</h2>
+            {myGroups.length ? (
+              <ul className="side-box__list">
+                {myGroups.map((g) => (
+                  <li key={g.id}>
+                    <a className="side-group" href={`/groups/${g.id}`}>
+                      <span className="side-group__mark" aria-hidden="true">
+                        {g.name.slice(0, 1).toUpperCase()}
+                      </span>
+                      {g.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="side-box__note">Your class, your club, your city: find a group, or start one.</p>
+            )}
+            <a className="side-box__more" href="/groups">
+              {myGroups.length ? "All groups" : "Find groups"} →
+            </a>
+          </section>
         </aside>
 
         {/* ----- The feed ----- */}
         <div className="feed-layout__main">
           <h1 className="sr-only">Home</h1>
           <StoriesBar reels={reelData} me={meFace} />
+          <nav className="explore-chips" aria-label="Explore">
+            {SHORTCUTS.map((s) => (
+              <a key={s.href} href={s.href} className="explore-chips__chip">
+                <Icon name={s.icon} size={18} /> {s.label}
+              </a>
+            ))}
+          </nav>
 
           {announcements.map((a) => (
             <section key={a.id} className="sheet notice" aria-label="From the college">
@@ -167,24 +221,32 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <a href="/home?view=following" aria-current={scope === "following" ? "page" : undefined}>
               Following
             </a>
-            <a className="feed-tabs__bell" href="/notifications" aria-label={`Notifications${unread ? `, ${unread} new` : ""}`}>
-              <Icon name="bell" size={22} />
-              {unread > 0 && (
-                <span className="wf-count" aria-hidden="true">
-                  {unread > 99 ? "99+" : unread}
-                </span>
-              )}
-            </a>
           </nav>
 
-          {posts.length === 0 ? (
-            <p className="sheet side-box wf-muted">
-              {before
-                ? "That's everything."
-                : scope === "following"
-                  ? "Nothing yet from the people you're connected to or follow. Find people from your batch, or follow seniors you admire."
-                  : "Nothing here yet. Share the first post."}
-            </p>
+          {quiet ? (
+            <section className="sheet side-box welcome-card" aria-labelledby="welcome">
+              <h2 id="welcome">{scope === "following" ? "Nothing yet from your people" : "Alumnity is just getting started"}</h2>
+              <p className="side-box__note">
+                {scope === "following"
+                  ? "Posts from people you're connected to or follow show here. Find your batch, or follow seniors you admire."
+                  : "Be one of the first: say hello, find your batch, and bring them in."}
+              </p>
+              <ul className="welcome-card__steps">
+                {WELCOME.map((w) => (
+                  <li key={w.href}>
+                    <a href={w.href}>
+                      <Icon name={w.icon} size={22} />
+                      <span>
+                        <strong>{w.label}</strong>
+                        <small>{w.note}</small>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : posts.length === 0 ? (
+            <p className="sheet side-box wf-muted">That's everything.</p>
           ) : (
             posts.map((p) => <Post key={p.id} post={p} photos={photos} me={me} />)
           )}
@@ -221,9 +283,30 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </ul>
             </section>
           )}
+          {causes.length > 0 && (
+            <section className="sheet side-box" aria-labelledby="home-causes">
+              <h2 id="home-causes">Causes</h2>
+              <ul className="side-box__list">
+                {causes.map((c) => (
+                  <li key={c.id} className="side-cause">
+                    <a href={`/causes/${c.id}`}>{c.title}</a>
+                    <span className="cause-bar" role="img" aria-label={`${Math.min(100, Math.round((c.raised / c.goal) * 100))}% of the goal`}>
+                      <span style={{ width: `${Math.min(100, Math.round((c.raised / c.goal) * 100))}%` }} />
+                    </span>
+                    <small>
+                      {rupees(c.raised)} of {rupees(c.goal)} · {c.supporters} {c.supporters === 1 ? "supporter" : "supporters"}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+              <a className="side-box__more" href="/causes">
+                All causes →
+              </a>
+            </section>
+          )}
           {suggestions.length > 0 && (
             <section className="sheet side-box">
-              <h2>From your batch</h2>
+              <h2>{batch.length ? "From your batch" : "People you may know"}</h2>
               <ul className="side-box__list">
                 {suggestions.map((u) => (
                   <li key={u.id} className="side-person">
@@ -238,6 +321,28 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                         <Icon name="plus" size={14} /> Connect
                       </button>
                     </ActionForm>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {groups.discover.length > 0 && (
+            <section className="sheet side-box" aria-labelledby="home-groups">
+              <h2 id="home-groups">Groups to join</h2>
+              <ul className="side-box__list">
+                {groups.discover.slice(0, 3).map((g) => (
+                  <li key={g.id}>
+                    <a className="side-group" href={`/groups/${g.id}`}>
+                      <span className="side-group__mark" aria-hidden="true">
+                        {g.name.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span>
+                        {g.name}
+                        <small>
+                          {g.members} {g.members === 1 ? "member" : "members"} · {g.kind === "open" ? "open" : "private"}
+                        </small>
+                      </span>
+                    </a>
                   </li>
                 ))}
               </ul>

@@ -109,8 +109,11 @@
 }
 
 .join__forgot {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  width: max-content;
+  min-height: var(--tap-target);
+  margin-top: var(--space-2);
 }
 
 .join__switch:disabled {
@@ -649,4 +652,18 @@
 
 .me-logout {
   margin-top: var(--space-7);
+}
+
+/* A phone: the register's column names need room ("Branch" and "Joined" ran together). */
+@media (max-width: 640px) {
+  .register-book__columns,
+  .register-book__written {
+    grid-template-columns: 24% 1fr 19% 17%;
+    gap: var(--space-2);
+  }
+
+  .register-book__columns {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
 }

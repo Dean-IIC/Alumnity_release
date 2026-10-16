@@ -1,0 +1,250 @@
+/* The signed-in app bar (components/app/app-bar.tsx): one bar, like any social app. */
+
+.app-bar {
+  position: sticky;
+  z-index: 25;
+  top: 0;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-bar);
+  backdrop-filter: blur(8px);
+}
+
+.app-bar__inner {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-height: 64px;
+}
+
+.app-bar__brand {
+  flex: none;
+  font-size: 1.45rem;
+}
+
+.app-bar__brand .brand__by {
+  display: none;
+}
+
+/* Search: a pill with a pencil-line magnifier. */
+.app-bar__search {
+  display: flex;
+  flex: 1 1 260px;
+  gap: var(--space-2);
+  align-items: center;
+  max-width: 340px;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+}
+
+.app-bar__search:focus-within {
+  border-color: var(--color-blue);
+}
+
+.app-bar__search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-small);
+  outline: none;
+}
+
+/* The places: an icon over its name; the current one is ink with a gold rule under it. */
+.app-bar__nav {
+  display: flex;
+  gap: var(--space-1);
+  align-items: stretch;
+  margin-left: auto;
+}
+
+.app-bar__tab {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  min-width: 64px;
+  min-height: 56px;
+  padding: 0 var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.app-bar__tab::-webkit-details-marker {
+  display: none;
+}
+
+.app-bar__tab:hover {
+  color: var(--color-ink);
+}
+
+.app-bar__tab[aria-current="page"] {
+  color: var(--color-ink);
+}
+
+.app-bar__tab[aria-current="page"]::after {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  left: 10px;
+  height: 2px;
+  content: "";
+  border-radius: 2px;
+  background: var(--color-gold);
+}
+
+.app-bar__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 28px;
+}
+
+.app-bar__icon .avatar {
+  width: 26px;
+  height: 26px;
+}
+
+.app-bar__badge {
+  position: absolute;
+  top: -4px;
+  left: calc(50% + 6px);
+}
+
+/* Menus (More, You): plain <details>, a paper panel under the bar. */
+.app-menu {
+  position: relative;
+}
+
+.app-menu[open] > summary {
+  color: var(--color-ink);
+}
+
+.app-menu__panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  gap: 2px;
+  width: 260px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+
+.app-menu__panel--wide {
+  width: 320px;
+}
+
+.app-menu__item {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  width: 100%;
+  min-height: var(--tap-target);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-small);
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-menu__item:hover,
+.app-menu__item[aria-current="page"] {
+  background: var(--color-paper-raised);
+}
+
+.app-menu__item > span {
+  display: grid;
+}
+
+.app-menu__item small {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.app-menu__item .icon {
+  flex: none;
+  color: var(--color-blue);
+}
+
+.app-menu__item--me {
+  margin-bottom: var(--space-1);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-line);
+  border-radius: 10px 10px 0 0;
+}
+
+.app-menu__logout .icon {
+  color: var(--color-ink-muted);
+}
+
+/* Narrower screens: names go, icons stay. */
+@media (max-width: 1080px) {
+  .app-bar__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .app-bar__tab {
+    min-width: 48px;
+  }
+}
+
+/* A phone: the bottom tab bar takes Home, People, Messages and You; here, search,
+   groups, notifications and the rest. */
+@media (max-width: 860px) {
+  .app-bar__inner {
+    gap: var(--space-2);
+    min-height: 56px;
+  }
+
+  .app-bar__brand {
+    font-size: 1.25rem;
+  }
+
+  .app-bar__search {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+
+  .app-bar__tab--home,
+  .app-bar__tab--people,
+  .app-bar__tab--messages,
+  .app-bar__me {
+    display: none;
+  }
+
+  .app-menu__panel {
+    position: fixed;
+    top: 60px;
+    right: var(--gutter);
+    left: var(--gutter);
+    width: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-bar__search input::placeholder {
+    color: transparent;
+  }
+}

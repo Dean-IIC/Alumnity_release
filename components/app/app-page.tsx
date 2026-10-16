@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
 import type { User } from "../../lib/server/auth";
-import { isModerator } from "../../lib/server/roles";
+import { photoIdsOf } from "../../lib/server/profile";
 import { unreadMessages, unreadNotifications, waitingRequests } from "../../lib/server/social";
 import { SiteFooter } from "../site-footer";
+import { AppBar } from "./app-bar";
 import { Pulse } from "./pulse";
-import { SiteHeader } from "../site-header";
 import { Icon } from "../social/icons";
 import "../../app/styles/wire.css";
 import "../../app/styles/social.css";
+import "../../app/styles/app-bar.css";
 
 export type Section = "home" | "people" | "connections" | "messages" | "ask" | "events" | "groups" | "causes" | "notifications" | "desk" | "batch" | "me";
 
@@ -22,8 +23,8 @@ const Count = ({ n }: { n: number }) =>
   ) : null;
 
 /**
- * Every signed-in page: the site header, the members' sections (with what's waiting in
- * each), the page, the footer; on a phone, a tab bar at the bottom instead of the sections.
+ * Every signed-in page: the app bar (with what's waiting in each place), the page, the
+ * footer; on a phone, a tab bar at the bottom for the places people go most.
  * `bare`: the page lays itself out (the feed), with no heading of ours.
  */
 export async function AppPage({
@@ -44,33 +45,17 @@ export async function AppPage({
   /** An open conversation, kept up to date more often. */
   thread?: { with: number; latest: number };
 }) {
-  const [connections, messages, notifications] = await Promise.all([waitingRequests(user.id), unreadMessages(user.id), unreadNotifications(user.id)]);
+  const [connections, messages, notifications, photos] = await Promise.all([
+    waitingRequests(user.id),
+    unreadMessages(user.id),
+    unreadNotifications(user.id),
+    photoIdsOf([user.id])
+  ]);
   const counts = { connections, messages, notifications };
-  const links: { key: Section; href: string; label: string; count?: number }[] = [
-    { key: "home", href: "/home", label: "Home" },
-    { key: "people", href: "/people", label: "People" },
-    { key: "connections", href: "/connections", label: "Connections", count: counts.connections },
-    { key: "messages", href: "/messages", label: "Messages", count: counts.messages },
-    { key: "ask", href: "/ask", label: "Ask a senior" },
-    { key: "events", href: "/events", label: "Events" },
-    { key: "groups", href: "/groups", label: "Groups" },
-    { key: "causes", href: "/causes", label: "Causes" },
-    { key: "batch", href: "/batch", label: "Your batch" },
-    { key: "notifications", href: "/notifications", label: "Notifications", count: counts.notifications },
-    ...(isModerator(user) ? [{ key: "desk" as const, href: "/desk", label: "College desk" }] : [])
-  ];
   const tab = (key: Section) => (key === current ? ("page" as const) : undefined);
   return (
     <>
-      <SiteHeader member={{ firstName: user.name.split(" ")[0] }} />
-      <nav className="wf-sections container" aria-label="Your Alumnity">
-        {links.map((link) => (
-          <a key={link.key} href={link.href} aria-current={tab(link.key)}>
-            {link.label}
-            <Count n={link.count ?? 0} />
-          </a>
-        ))}
-      </nav>
+      <AppBar user={user} current={current} counts={counts} photoId={photos.get(user.id) ?? null} />
       {bare ? (
         <main className="container" id="main">
           {children}
@@ -95,6 +80,7 @@ export async function AppPage({
         <a href="/people" aria-current={tab("people")}>
           <Icon name="people" size={24} />
           People
+          <Count n={counts.connections} />
         </a>
         <a href="/home#compose" aria-label="New post">
           <span className="tab-bar__post">
@@ -109,7 +95,6 @@ export async function AppPage({
         <a href="/me" aria-current={tab("me")}>
           <Icon name="you" size={24} />
           You
-          <Count n={counts.connections} />
         </a>
       </nav>
     </>

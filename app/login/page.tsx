@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { SiteHeader } from "../../components/site-header";
 import { SiteFooter } from "../../components/site-footer";
 import { SoonNotice } from "../../components/coming-soon";
 import { LoginForm } from "../../components/join/login-form";
+import { safeNext } from "../../lib/safe-next";
+import { currentUser } from "../../lib/server/session";
 import "../styles/join.css";
 
 export const metadata: Metadata = {
@@ -10,7 +13,11 @@ export const metadata: Metadata = {
   description: "Log in to Alumnity, HKBK College of Engineering's alumni network."
 };
 
-export default function LoginPage() {
+export const dynamic = "force-dynamic";
+
+/** Already signed in: straight on to where you were going (or Home). */
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  if (await currentUser()) redirect(safeNext((await searchParams).next));
   return (
     <>
       <SiteHeader />

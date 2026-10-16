@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { currentUser } from "../../lib/server/session";
 import { SiteHeader } from "../../components/site-header";
 import { SiteFooter } from "../../components/site-footer";
 import { SoonNotice } from "../../components/coming-soon";
@@ -15,6 +17,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function JoinPage() {
+  // Already a member: nothing to join.
+  if (await currentUser()) redirect("/home");
   const known = await registerFacts();
   const facts = known ?? { count: 0, from: 1998, to: new Date().getFullYear(), branches: [] };
   return (
