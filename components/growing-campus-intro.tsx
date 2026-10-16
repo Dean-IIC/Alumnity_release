@@ -98,20 +98,30 @@ async function lineTexture(layout: WorldLayout, scale = LINE_TEXTURE_SCALE): Pro
  * The intro's heavy part (the eras, the ink line, the pull-back) as a video, recorded from
  * this very component (scripts/record-intro.mjs). A phone plays it with its video hardware
  * instead of drawing it live; the patterns, the wordmark and the reveal stay live on top,
- * timed by the video's own clock. Recorded so far: tall phones. Other screens draw it live.
+ * timed by the video's own clock. Recorded: tall phones, upright tablets, and wide screens
+ * (laptops, desktops); square-ish windows draw it live.
  */
 const VIDEO_END = WORLD_GONE;
 const INTRO_VIDEOS = {
-  tall: { hevc: "/assets/intro/phone-720.hevc.mp4", h264: "/assets/intro/phone-720.h264.mp4" }
+  /** Phones held upright (height ≥ 1.6 × width). */
+  tall: { hevc: "/assets/intro/phone-720.hevc.mp4", h264: "/assets/intro/phone-720.h264.mp4" },
+  /** Tablets held upright (1.25–1.6). */
+  tablet: { hevc: "/assets/intro/tablet-900.hevc.mp4", h264: "/assets/intro/tablet-900.h264.mp4" },
+  /** Laptops and desktops (height ≤ 0.7 × width: 16:9, 16:10). */
+  wide: { hevc: "/assets/intro/wide-1280.hevc.mp4", h264: "/assets/intro/wide-1280.h264.mp4" }
 };
 
 const saveData = () => Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
 
 function introVideoFor(view: { width: number; height: number }): string | null {
-  if (view.height / view.width < 1.6) return null;
+  const ratio = view.height / view.width;
+  // In between (a square-ish window, a tablet on its side): drawn live, as cropping a video
+  // to fit would cut photos off.
+  const kind = ratio >= 1.6 ? "tall" : ratio >= 1.25 ? "tablet" : ratio <= 0.7 ? "wide" : null;
+  if (!kind) return null;
   const probe = document.createElement("video");
-  if (probe.canPlayType('video/mp4; codecs="hvc1.1.6.L93.B0"')) return INTRO_VIDEOS.tall.hevc;
-  if (probe.canPlayType('video/mp4; codecs="avc1.640028"')) return INTRO_VIDEOS.tall.h264;
+  if (probe.canPlayType('video/mp4; codecs="hvc1.1.6.L93.B0"')) return INTRO_VIDEOS[kind].hevc;
+  if (probe.canPlayType('video/mp4; codecs="avc1.640028"')) return INTRO_VIDEOS[kind].h264;
   return null;
 }
 

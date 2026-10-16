@@ -94,3 +94,61 @@
     opacity: 0.18;
   }
 }
+
+/* ---------- The signed-in pages' margins ---------- */
+
+/* --p draws the marks (0 → 1); registered so it can be animated. */
+@property --p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.app-paper {
+  --p: 1;
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  animation: app-paper-draw 2.4s var(--ease-ink, ease-out) both;
+}
+
+@keyframes app-paper-draw {
+  from {
+    --p: 0;
+  }
+  to {
+    --p: 1;
+  }
+}
+
+.app-paper .side-patterns {
+  opacity: 0.32;
+}
+
+/* Each column only as wide as the margin beside the page (plus a little under its edge). */
+.app-paper .side-pattern {
+  --w: clamp(140px, calc((100vw - var(--container)) / 2 + 80px), 380px);
+  opacity: 1;
+}
+
+.app-paper .side-pattern--left {
+  transform: none;
+}
+
+.app-paper .side-pattern--right {
+  transform: scaleX(-1);
+}
+
+/* Narrow screens: the page needs the whole width; the margins stay plain paper. */
+@media (max-width: 1100px) {
+  .app-paper {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-paper {
+    animation: none;
+  }
+}

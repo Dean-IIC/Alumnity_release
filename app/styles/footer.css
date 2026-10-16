@@ -46,3 +46,25 @@
   color: var(--color-blue);
   font-weight: var(--weight-semibold);
 }
+
+.site-footer__main {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+}
+
+.site-footer__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  color: var(--color-ink-muted);
+}
+
+.site-footer__links a:hover {
+  color: var(--color-ink);
+}

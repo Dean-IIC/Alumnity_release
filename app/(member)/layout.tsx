@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AppBar, TabBar } from "../../components/app/app-bar";
 import { Pulse } from "../../components/app/pulse";
+import { SidePatterns } from "../../components/side-patterns";
 import { SiteFooter } from "../../components/site-footer";
 import { photoIdsOf } from "../../lib/server/profile";
 import { currentUser } from "../../lib/server/session";
@@ -27,6 +28,10 @@ export default async function MemberLayout({ children }: { children: ReactNode }
   const counts = { connections, messages, notifications };
   return (
     <>
+      {/* The paper's margins: the landing page's hand-drawn patterns, faint, behind everything. */}
+      <div className="app-paper" aria-hidden="true">
+        <SidePatterns />
+      </div>
       <AppBar user={user} counts={counts} photoId={photos.get(user.id) ?? null} />
       {children}
       <SiteFooter />

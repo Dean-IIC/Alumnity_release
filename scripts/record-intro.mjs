@@ -5,9 +5,12 @@
 //   1. Serve the site (a production build is best): NEXT_DIST_DIR=.next-prod next start -p 3005
 //   2. Start a headless Chromium with --remote-debugging-port=9333
 //   3. node scripts/record-intro.mjs --width 360 --height 780 --dpr 3 --out public/assets/intro/phone
+//      node scripts/record-intro.mjs --width 1280 --height 720 --dpr 1.5 --deliver 1280 --out public/assets/intro/wide
+//      node scripts/record-intro.mjs --width 768 --height 1024 --dpr 2 --deliver 900 --out public/assets/intro/tablet
 //
-// Writes <out>-720.hevc.mp4 and <out>-720.h264.mp4 (what the site plays) and a full-size
-// master. Needs ffmpeg on the PATH (or FFMPEG=…).
+// Writes <out>-<deliver>.hevc.mp4 and <out>-<deliver>.h264.mp4 (what the site plays; 720
+// wide unless --deliver says otherwise) and a full-size master. Needs ffmpeg on the PATH
+// (or FFMPEG=…).
 
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
@@ -26,6 +29,8 @@ const FPS = Number(arg("fps", 30));
 /** Where the video hands over to the live page: once every era has shrunk away (WORLD_GONE). */
 const END_MS = Number(arg("end", 16720));
 const OUT = arg("out", "public/assets/intro/phone");
+/** How wide the videos the site plays are, in pixels. */
+const DELIVER = Number(arg("deliver", 720));
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -66,15 +71,15 @@ const pixelsWide = WIDTH * DPR;
 // plays, H.264 elsewhere), and a full-sharpness H.265 master for later. Colour is converted
 // to the standard ("TV") range: some Android players show full-range video washed out.
 const range = "scale=in_range=pc:out_range=tv,format=yuv420p";
-const small = `${range},scale=720:-2:flags=lanczos`;
+const small = `${range},scale=${DELIVER}:-2:flags=lanczos`;
 const ffmpeg = spawn(
   FFMPEG,
   [
     "-y", "-loglevel", "error",
     "-f", "image2pipe", "-framerate", String(FPS), "-c:v", "mjpeg", "-i", "-",
     "-filter_complex", `[0:v]split=3[a][b][c];[a]${small}[hevc];[b]${small}[h264];[c]${range}[master]`,
-    "-map", "[hevc]", "-c:v", "libx265", "-preset", "slow", "-crf", "27", "-tag:v", "hvc1", "-movflags", "+faststart", "-an", `${OUT}-720.hevc.mp4`,
-    "-map", "[h264]", "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-profile:v", "high", "-movflags", "+faststart", "-an", `${OUT}-720.h264.mp4`,
+    "-map", "[hevc]", "-c:v", "libx265", "-preset", "slow", "-crf", "27", "-tag:v", "hvc1", "-movflags", "+faststart", "-an", `${OUT}-${DELIVER}.hevc.mp4`,
+    "-map", "[h264]", "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-profile:v", "high", "-movflags", "+faststart", "-an", `${OUT}-${DELIVER}.h264.mp4`,
     "-map", "[master]", "-c:v", "libx265", "-preset", "slow", "-crf", "24", "-tag:v", "hvc1", "-movflags", "+faststart", "-an", `${OUT}-${pixelsWide}.master.mp4`
   ],
   { stdio: ["pipe", "inherit", "inherit"] }
@@ -92,6 +97,6 @@ for (let f = 0; f <= frames; f++) {
 }
 ffmpeg.stdin.end();
 await done;
-console.log(`\nWrote ${OUT}-720.hevc.mp4, ${OUT}-720.h264.mp4 and ${OUT}-${pixelsWide}.master.mp4`);
+console.log(`\nWrote ${OUT}-${DELIVER}.hevc.mp4, ${OUT}-${DELIVER}.h264.mp4 and ${OUT}-${pixelsWide}.master.mp4`);
 await fetch(`${CDP}/json/close/${tab.id}`);
 ws.close();
