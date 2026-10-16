@@ -18,9 +18,26 @@ export const when = (at: number) =>
   new Date(at).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: IST });
 
 /** "CSE · 2012", or "" if not known. */
-export const batchLabel = (u: { branch: string | null; joined: number | null }) => [u.branch, u.joined].filter(Boolean).join(" · ");
+/** A batch as colleges write it: the years from joining to finishing ("2012–16"). */
+export const batchYears = (joined: number, programme?: string | null) => {
+  const years = !programme || programme === "B.Tech" ? 4 : programme === "PHD" ? 5 : 2;
+  return `${joined}–${String(joined + years).slice(-2)}`;
+};
+
+/** "CSE · 2012–16": a member's branch and batch (staff, with no batch: their department). */
+export const batchLabel = (u: { branch: string | null; joined: number | null; programme?: string | null }) =>
+  [u.branch, u.joined ? batchYears(u.joined, u.programme) : null].filter(Boolean).join(" · ");
 
 export const ROLE_LABEL: Record<string, string> = { student: "Student", alumnus: "Alumnus", faculty: "Faculty", coordinator: "Alumni coordinator", admin: "Administrator", superadmin: "Super administrator" };
 
 /** "₹1,25,000" from paise (₹1 = 100 paise), Indian style. */
 export const rupees = (paise: number) => `₹${(paise / 100).toLocaleString("en-IN", { maximumFractionDigits: paise % 100 ? 2 : 0 })}`;
+
+/** Titles and initials that come before a first name ("Dr. Asha Rao", "K. Ramesh"). */
+const BEFORE_NAME = /^(dr|prof|mr|mrs|ms|miss|er|smt|shri|sri|[a-z])\.?$/i;
+
+/** What to call someone: their first name, past any title or initials ("Dr. K. Asha Rao" → "Asha"). */
+export const firstName = (name: string) => {
+  const words = name.trim().split(/\s+/);
+  return words.find((w) => !BEFORE_NAME.test(w)) ?? words[0] ?? "";
+};

@@ -1,3 +1,4 @@
+import { firstName } from "../../../../lib/format";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ActionForm } from "../../../../components/app/action-form";
@@ -28,7 +29,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
   // Blocked by them, paused or gone: the same "not here" either way, so a block isn't revealed.
   if (!page) notFound();
   const { owner, profile, relation } = page;
-  const first = owner.name.split(" ")[0];
+  const first = firstName(owner.name);
   const record = await recordOf(owner.id);
   const notes = relation === "blocked" ? [] : await feedFor(me, { authorId: owner.id, limit: 10 });
   const hidden = <input type="hidden" name="id" value={owner.id} />;

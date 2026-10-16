@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { batchYears, ROLE_LABEL } from "../../lib/format";
 import { mediaUrl } from "../../lib/media-url";
 import { ERAS } from "../../lib/eras";
 import type { Profile, Visibility } from "../../lib/server/profile";
@@ -88,6 +89,15 @@ const LANTERNS = [
   }
 ] as const;
 
+/* A student's side: what they're looking for, drawn the same way. */
+const WISHES = [
+  { key: "mentor", title: "Looking for a mentor", note: "A senior to talk a decision through.", art: LANTERNS[0].art },
+  { key: "internship", title: "Looking for an internship", note: "Alumni who hire, or know where to look.", art: LANTERNS[1].art },
+  { key: "referral", title: "Looking for a referral", note: "When they apply where an alumnus works.", art: LANTERNS[2].art }
+] as const;
+
+const STAFF = new Set(["faculty", "coordinator", "admin", "superadmin"]);
+
 const linkLabel = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 
 export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: { person: SheetPerson; profile: Profile; isOwner: boolean; batchSize?: number; actions?: ReactNode }) {
@@ -98,8 +108,10 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: {
   const now = [profile.title, profile.company && `at ${profile.company}`].filter(Boolean).join(" ");
   const v = isOwner ? profile.visibility : undefined;
 
-  // The campus as it was when they joined: the latest era at or before that year.
-  const era = [...ERAS].reverse().find((e) => person.joined && e.year <= person.joined) ?? ERAS[0];
+  // The campus as it was when they joined (the latest era at or before that year); staff, who
+  // didn't join as students, get the campus as it is now.
+  const staff = STAFF.has(person.role) && !person.joined;
+  const era = staff ? ERAS[ERAS.length - 1] : ([...ERAS].reverse().find((e) => person.joined && e.year <= person.joined) ?? ERAS[0]);
 
   // The journey is optional: it appears once they've added a stop of their own.
   const stops: Stop[] = profile.journey.length
@@ -111,8 +123,11 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: {
       ]
     : [];
 
+  const student = person.role === "student";
   const lit = LANTERNS.filter((l) => profile.happyTo[l.key]);
-  const lanterns = isOwner ? LANTERNS : lit;
+  const lanterns = student ? [] : isOwner ? LANTERNS : lit;
+  const wished = WISHES.filter((w) => profile.seeking[w.key]);
+  const wishes = !student ? [] : isOwner ? WISHES : wished;
 
   return (
     <article className="profile">
@@ -133,14 +148,32 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: {
             {now ? (
               <p className="profile__now">{now}</p>
             ) : (
-              isOwner && <p className="profile__prompt">What are you doing now? Add it when you edit your page.</p>
+              isOwner && (
+                <p className="profile__prompt">
+                  {student ? "What are you up to: a project, a club, an internship? Add it when you edit your page." : "What are you doing now? Add it when you edit your page."}
+                </p>
+              )
             )}
             <p className="profile__meta">
-              {[person.branchName, graduated ? `Batch of ${graduated}` : person.joined && `Joined ${person.joined}`, profile.city].filter(Boolean).join(" · ")}
+              {[person.branchName, person.joined && `Batch ${batchYears(person.joined, person.programme)}`, profile.city].filter(Boolean).join(" · ")}
             </p>
             <p className="profile__register">
-              <span aria-hidden="true">✓</span> On the college register
-              {batchSize && batchSize > 1 ? ` · one of ${batchSize} in ${isOwner ? "your" : "their"} batch` : ""}
+              {staff ? (
+                <span>
+                  <span className="profile__tick" aria-hidden="true">
+                    ✓
+                  </span>{" "}
+                  {ROLE_LABEL[person.role] ?? "Staff"} at HKBK College of Engineering
+                </span>
+              ) : (
+              <span>
+                <span className="profile__tick" aria-hidden="true">
+                  ✓
+                </span>{" "}
+                On the college register
+                {batchSize && batchSize > 1 ? ` · one of ${batchSize} in ${isOwner ? "your" : "their"} batch` : ""}
+              </span>
+              )}
               {v && <ShownTo who={v.now} />}
             </p>
           </div>
@@ -155,7 +188,13 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: {
               {profile.about ? (
                 <blockquote className="profile__about">{profile.about}</blockquote>
               ) : (
-                <p className="profile__prompt">A few lines about you: what you work on, what you loved at HKBK, what a junior could ask you.</p>
+                <p className="profile__prompt">
+                  {student
+                    ? "A few lines about you: what you're studying, what you'd like to do after HKBK, what you'd ask a senior."
+                    : staff
+                      ? "A few lines about you: what you teach, what you research, how students and alumni can work with you."
+                      : "A few lines about you: what you work on, what you loved at HKBK, what a junior could ask you."}
+                </p>
               )}
             </Card>
           )}
@@ -168,7 +207,9 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: {
                   ))}
                 </ul>
               ) : (
-                <p className="profile__prompt">The things juniors could ask you about. These are what they search for.</p>
+                <p className="profile__prompt">
+                  {student ? "What you know or are learning: languages, tools, sports, clubs. Seniors who share them can find you." : "The things juniors could ask you about. These are what they search for."}
+                </p>
               )}
             </Card>
           )}
@@ -188,6 +229,26 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: {
                       <span>
                         <b>{l.key === "refer" && profile.company && on ? `Refers people at ${profile.company}` : l.title}</b>
                         <span>{on ? l.note : "Not switched on. Edit your page to light it."}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Card>
+          )}
+          {wishes.length > 0 && (
+            <Card title={isOwner ? "What you're looking for" : "Looking for"} who={v?.happyTo}>
+              <ul className="lanterns">
+                {wishes.map((w) => {
+                  const on = profile.seeking[w.key];
+                  return (
+                    <li key={w.key} className={on ? "lantern lantern--lit" : "lantern"}>
+                      <svg viewBox="0 0 48 48" aria-hidden="true">
+                        {w.art}
+                      </svg>
+                      <span>
+                        <b>{w.title}</b>
+                        <span>{on ? w.note : "Not switched on. Edit your page to light it, so seniors can find you."}</span>
                       </span>
                     </li>
                   );

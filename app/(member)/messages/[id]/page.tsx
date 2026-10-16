@@ -4,7 +4,7 @@ import { ActionForm } from "../../../../components/app/action-form";
 import { AppPage } from "../../../../components/app/app-page";
 import { ReportButton } from "../../../../components/app/report-button";
 import { messageAction } from "../../../../lib/actions/social";
-import { timeAgo } from "../../../../lib/format";
+import { firstName, timeAgo } from "../../../../lib/format";
 import { memberById, relation } from "../../../../lib/server/people";
 import { PAUSED, settings } from "../../../../lib/server/settings";
 import { thread } from "../../../../lib/server/social";
@@ -22,7 +22,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
   const rel = other ? await relation(me.id, other.id) : "none";
   if (!other || rel === "blocked" || rel === "blocked-by") notFound();
   const messages = await thread(me, other.id);
-  const first = other.name.split(" ")[0];
+  const first = firstName(other.name);
 
   return (
     <AppPage

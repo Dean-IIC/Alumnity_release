@@ -1,3 +1,4 @@
+import { firstName } from "../format";
 import { NextResponse } from "next/server";
 import { signedInUser, type Outcome, type User } from "./auth";
 
@@ -24,7 +25,7 @@ export const text = (value: unknown, max = 200) => (typeof value === "string" ? 
 export const clientIp = (request: Request) => request.headers.get("x-forwarded-for")?.split(",")[0].trim() || request.headers.get("x-real-ip") || "local";
 
 /** What the browser may know about who's signed in: no email, no USN. */
-export const publicUser = (user: User) => ({ name: user.name, firstName: user.name.split(" ")[0], role: user.role, branchName: user.branchName, joined: user.joined });
+export const publicUser = (user: User) => ({ name: user.name, firstName: firstName(user.name), role: user.role, branchName: user.branchName, joined: user.joined });
 
 export function respond<T extends object>(outcome: Outcome<T>) {
   const { ok } = outcome;

@@ -32,6 +32,8 @@ export type Profile = {
   about: string;
   skills: string[];
   happyTo: { mentor: boolean; refer: boolean; talk: boolean };
+  /** A student's side of it: what they'd like help with (shown with the same "who can see this" as happyTo). */
+  seeking: { mentor: boolean; internship: boolean; referral: boolean };
   links: { linkedin: string; website: string };
   visibility: Record<Field, Visibility>;
 };
@@ -46,6 +48,7 @@ export const EMPTY_PROFILE: Profile = {
   about: "",
   skills: [],
   happyTo: { mentor: false, refer: false, talk: false },
+  seeking: { mentor: false, internship: false, referral: false },
   links: { linkedin: "", website: "" },
   visibility: { now: "everyone", journey: "everyone", about: "everyone", skills: "everyone", happyTo: "everyone", links: "batch" }
 };
@@ -65,6 +68,7 @@ export function profileFromData(data: string | null): Profile {
     ...structuredClone(EMPTY_PROFILE),
     ...saved,
     happyTo: { ...EMPTY_PROFILE.happyTo, ...saved.happyTo },
+    seeking: { ...EMPTY_PROFILE.seeking, ...saved.seeking },
     links: { ...EMPTY_PROFILE.links, ...saved.links },
     visibility: { ...EMPTY_PROFILE.visibility, ...saved.visibility }
   };
@@ -110,6 +114,7 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
     .filter((s, i, all) => all.findIndex((t) => t.toLowerCase() === s.toLowerCase()) === i)
     .slice(0, LIMITS.skills);
   const happy = (input.happyTo ?? {}) as Record<string, unknown>;
+  const seek = (input.seeking ?? {}) as Record<string, unknown>;
   const links = (input.links ?? {}) as Record<string, unknown>;
   const linkedin = cleanLink(links.linkedin, true);
   if (linkedin === null) return { error: "That LinkedIn link doesn’t look like a LinkedIn profile." };
@@ -135,6 +140,7 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
       about,
       skills,
       happyTo: { mentor: happy.mentor === true, refer: happy.refer === true, talk: happy.talk === true },
+      seeking: { mentor: seek.mentor === true, internship: seek.internship === true, referral: seek.referral === true },
       links: { linkedin, website },
       visibility
     }
@@ -188,6 +194,7 @@ export function profileFor(
     about: show("about") ? profile.about : "",
     skills: show("skills") ? profile.skills : [],
     happyTo: show("happyTo") ? profile.happyTo : { mentor: false, refer: false, talk: false },
+    seeking: show("happyTo") ? profile.seeking : { mentor: false, internship: false, referral: false },
     links: show("links") ? profile.links : { linkedin: "", website: "" },
     visibility: viewer?.id === owner.id ? profile.visibility : EMPTY_PROFILE.visibility
   };

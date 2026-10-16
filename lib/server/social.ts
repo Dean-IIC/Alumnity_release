@@ -1,3 +1,4 @@
+import { firstName } from "../format";
 import { queuePush } from "./alerts";
 import { db } from "./db";
 import type { User } from "./auth";
@@ -15,7 +16,6 @@ import { withinLimit } from "./throttle";
 export type Result = { ok: true } | { ok: false; error: string };
 const no = (error: string): Result => ({ ok: false, error });
 const DAY = 24 * 60 * 60_000;
-const firstName = (u: Pick<User, "name">) => u.name.split(" ")[0];
 const count = async (sql: string, ...params: unknown[]) => (await db().one<{ n: number }>(sql, ...params))?.n ?? 0;
 
 // ---------- Notifications ----------
@@ -195,7 +195,7 @@ export async function sendMessage(from: User, toId: number, body: string): Promi
   // One notification per conversation until it's read, not one per message.
   const unread = await db().one("select 1 from messages where sender = ? and recipient = ? and read_at is null", from.id, toId);
   await db().run("insert into messages (sender, recipient, body, created_at) values (?, ?, ?, ?)", from.id, toId, text, Date.now());
-  if (!unread) await notify(toId, { actor: from.id, kind: "message", text: `New message from ${firstName(from)}.`, link: `/messages/${from.id}` });
+  if (!unread) await notify(toId, { actor: from.id, kind: "message", text: `New message from ${firstName(from.name)}.`, link: `/messages/${from.id}` });
   return { ok: true };
 }
 

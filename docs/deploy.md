@@ -17,10 +17,11 @@ in `lib/server/` decide what each member may see and do.
 
 1. Create a project (region: **Mumbai, ap-south-1**, closest to HKBK). Keep the database password somewhere safe.
 2. **Apply the migrations**, in order (by file name): `supabase/migrations/20261015000001_alumnity.sql`,
-   `20261015000002_storage.sql`, then `20261016000001_groups_causes_alerts.sql` (groups,
-   causes and donations, alerts, photo sizes). Paste each into the SQL editor and run it,
+   `20261015000002_storage.sql`, `20261016000001_groups_causes_alerts.sql` (groups,
+   causes and donations, alerts, photo sizes), then `20261016000002_staff_invites.sql` (staff
+   invitations). Paste each into the SQL editor and run it,
    or with the Supabase CLI: `supabase link --project-ref <ref>` then `supabase db push`.
-   Each is safe to run again. **If the first two are already applied, just run the third.**
+   Each is safe to run again. **Run any you haven't yet, in order** (each is safe to run again).
 3. **Check the bucket**: Storage should now have `media`, **private**, 25 MB file limit.
 
 ## 2. Supabase Auth settings

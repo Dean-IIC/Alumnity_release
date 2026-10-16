@@ -5,7 +5,8 @@ import { readIntroPreference, writeIntroPreference } from "../lib/intro-preferen
 import { COLLEGE_NAME } from "./brand-lockup";
 
 /** The page's foot: who it is for, and the intro setting (the intro's own checkbox writes the same). */
-export function SiteFooter() {
+/** `app`: inside the signed-in pages, where the intro's setting doesn't belong. */
+export function SiteFooter({ app = false }: { app?: boolean }) {
   const [playIntro, setPlayIntro] = useState(true);
 
   useEffect(() => setPlayIntro(readIntroPreference() === "play"), []);
@@ -25,7 +26,7 @@ export function SiteFooter() {
           <a href="/terms">Terms</a>
         </nav>
       </div>
-      <div className="site-footer__intro">
+      {!app && <div className="site-footer__intro">
         <label>
           <input
             type="checkbox"
@@ -38,7 +39,7 @@ export function SiteFooter() {
           Play the intro when I visit
         </label>
         <a href="/?intro=1">Watch it now <span aria-hidden="true">↺</span></a>
-      </div>
+      </div>}
     </footer>
   );
 }

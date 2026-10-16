@@ -1,5 +1,6 @@
 "use client";
 
+import { firstName } from "../../lib/format";
 import { useEffect, useState, type FormEvent } from "react";
 import { post } from "../../lib/client/post";
 import { CodeField, PasswordField } from "./fields";
@@ -105,7 +106,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
   };
 
   const line: BookLine | undefined = found ? { name: found.name, usn: found.usn, branch: found.branch, joined: found.joined } : undefined;
-  const firstName = found?.name.split(" ")[0];
+  const first = found ? firstName(found.name) : "";
   const finished = found && found.joined + (found.programme === "B.Tech" ? 4 : 2) <= new Date().getFullYear();
 
   return (
@@ -186,13 +187,16 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                   <span aria-hidden="true">→</span>
                 </button>
                 <p className="join__fine">We only check that you’re on the register. Nobody else sees what you type here.</p>
+                <p className="join__fine">
+                  A teacher or college staff? <a href="/join/staff">Join with your invitation</a>
+                </p>
               </>
             )}
           </form>
         ) : (
           <div className="join__found" aria-live="polite">
             <p className="kicker">You’re on the register</p>
-            <h2 className="join__welcome">Welcome, {firstName}.</h2>
+            <h2 className="join__welcome">Welcome, {first}.</h2>
             <p className="join__line">
               {found.branchName}, joined {found.joined}
               {finished ? `, class of ${found.joined + (found.programme === "B.Tech" ? 4 : 2)}` : ""}.{" "}

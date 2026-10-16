@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { photoIdsOf } from "../../../../../lib/server/profile";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../../components/app/action-form";
 import { AppPage } from "../../../../../components/app/app-page";
@@ -30,6 +31,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
   const course = me.branch === branch && me.joined === year && me.programme ? me.programme : branch === "GEN" ? "MBA" : "B.Tech";
   const [onRegister, everyone, blocked, relationTo] = await Promise.all([batchCount(branch, year, course), batchMembers(branch, year), blockIds(me.id), relationsOf(me.id)]);
   const members = everyone.filter((u) => u.id === me.id || !blocked.has(u.id));
+  const photos = await photoIdsOf(members.map((u) => u.id));
   const ids = new Set(members.map((u) => u.id));
   const notes = await feedFor(me, { authorIds: [...ids], limit: 10 });
   const mine = me.branch === branch && me.joined === year;
@@ -55,7 +57,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
           {members.slice((page - 1) * PAGE, page * PAGE).map((u) => {
             const rel = relationTo(u.id);
             return (
-              <MemberLine key={u.id} member={u}>
+              <MemberLine key={u.id} member={u} photoId={photos.get(u.id)}>
                 {RELATION_LABEL[rel] ? (
                   <span className="wf-tag">{RELATION_LABEL[rel]}</span>
                 ) : (

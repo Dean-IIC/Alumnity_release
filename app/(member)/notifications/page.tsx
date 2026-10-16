@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PeopleToReach, ThingsToDo } from "../../../components/app/people-to-reach";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
 import { readAllAction } from "../../../lib/actions/social";
@@ -28,7 +29,11 @@ export default async function NotificationsPage() {
         </ActionForm>
       )}
       {list.length === 0 ? (
-        <p className="wf-empty">Nothing yet. Requests, replies and answers will show up here.</p>
+        <>
+          <p className="wf-empty">Nothing yet. Requests, replies and answers will show up here; the quickest way to get some is to start one.</p>
+          <ThingsToDo me={me} />
+          <PeopleToReach me={me} mode="connect" />
+        </>
       ) : (
         <ul className="wf-list">
           {list.map((n) => (

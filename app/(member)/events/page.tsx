@@ -51,8 +51,8 @@ export default async function EventsPage() {
       {upcoming.length === 0 ? <p className="wf-empty">Nothing planned yet.</p> : <ul className="wf-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>}
 
       {canOrganise(me) && (await settings()).features.events && (
-        <section aria-labelledby="new-event">
-          <h2 id="new-event">Put up an event</h2>
+        <details className="wf-fold" id="new-event">
+          <summary>Put up an event</summary>
           <ActionForm action={eventAction} className="wf-stack">
             <label className="field">
               <span className="field__label">Name</span>
@@ -90,7 +90,7 @@ export default async function EventsPage() {
               </button>
             </div>
           </ActionForm>
-        </section>
+        </details>
       )}
 
       {past.length > 0 && (

@@ -96,3 +96,25 @@ export async function settingsAction(_: ActionState, form: FormData): Promise<Ac
     "Saved. It's in the audit log."
   );
 }
+
+export async function inviteStaffAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const { headers } = await import("next/headers");
+  const h = await headers();
+  const origin = process.env.SITE_URL || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
+  const { inviteStaff } = await import("../server/staff");
+  const done = await inviteStaff(
+    me,
+    { email: textFrom(form, "email", 254), name: textFrom(form, "name", 100), role: textFrom(form, "role", 20), branch: textFrom(form, "branch", 10) },
+    origin
+  );
+  return answer(done, "Invited. They'll get an email with a link to join; it works for two weeks.");
+}
+
+export async function revokeInviteAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const { revokeInvite } = await import("../server/staff");
+  return answer(await revokeInvite(me, textFrom(form, "email", 254)), "Invitation withdrawn.");
+}

@@ -85,8 +85,8 @@ export default async function CausesPage() {
         </>
       )}
 
-      <section aria-labelledby="propose">
-        <h2 id="propose">Propose a cause</h2>
+      <details className="wf-fold" id="propose">
+        <summary>Propose a cause</summary>
         <p className="wf-muted">
           The college desk reads every cause before it goes live, and may ask you about it. Donations go to HKBK College of Engineering's account; the college pays the cause and
           shows what it paid.
@@ -123,7 +123,7 @@ export default async function CausesPage() {
             </button>
           </div>
         </ActionForm>
-      </section>
+      </details>
 
       {past.length > 0 && (
         <>

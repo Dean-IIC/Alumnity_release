@@ -43,13 +43,13 @@ const CODE_LIFE = 15 * MINUTE;
 const SETUP_LIFE = 30 * MINUTE;
 const CODE_TRIES = 5;
 
-const SLOW_DOWN = "That’s a lot of tries in a short time. Wait a few minutes and try again.";
+export const SLOW_DOWN = "That’s a lot of tries in a short time. Wait a few minutes and try again.";
 const WRONG_CODE = "That code isn’t right. Check the email, or ask for a new one.";
 
 export { toUser };
 
 export const normaliseEmail = (email: string) => email.trim().toLowerCase();
-const looksLikeEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 254;
+export const looksLikeEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 254;
 
 /** B.Tech is four years; MBA and M.Tech two. Still inside that, you're a student. */
 function roleFor(found: Found, now = new Date()): Role {
@@ -87,7 +87,7 @@ const toUser = (row: Record<string, unknown>): User => ({
   role: configRole(String(row.email)) ?? (row.role as Role)
 });
 
-const passwordContext = (u: { name: string; usn: string | null; email: string }) => [u.name, ...u.name.split(" "), u.usn ?? "", u.email.split("@")[0]];
+export const passwordContext = (u: { name: string; usn: string | null; email: string }) => [u.name, ...u.name.split(" "), u.usn ?? "", u.email.split("@")[0]];
 
 // ---------- Who's signed in ----------
 
@@ -123,9 +123,9 @@ export async function logOut() {
 
 // ---------- Codes ----------
 
-type IntentRow = {
+export type IntentRow = {
   ticket: string;
-  purpose: "join" | "reset";
+  purpose: "join" | "reset" | "staff";
   email: string;
   found: string | null;
   role: Role | null;
@@ -135,7 +135,7 @@ type IntentRow = {
   expires_at: number;
 };
 
-async function newIntent(purpose: "join" | "reset", email: string, extra: { found?: Found; role?: Role } = {}) {
+export async function newIntent(purpose: "join" | "reset" | "staff", email: string, extra: { found?: Found; role?: Role } = {}) {
   const ticket = randomToken(18);
   const now = Date.now();
   await db().run("delete from auth_intents where expires_at < ? or (email = ? and purpose = ?)", now, email, purpose);
@@ -152,11 +152,11 @@ async function newIntent(purpose: "join" | "reset", email: string, extra: { foun
   return ticket;
 }
 
-const intent = (ticket: string, purpose: "join" | "reset") =>
+export const intent = (ticket: string, purpose: "join" | "reset" | "staff") =>
   ticket ? db().one<IntentRow>("select * from auth_intents where ticket = ? and purpose = ?", ticket, purpose) : Promise.resolve(undefined);
 
 /** Checks a typed code: five tries, fifteen minutes. Right, and this browser is signed in to that Supabase account. */
-async function verify(row: IntentRow | undefined, code: string): Promise<Outcome<{ authId: string }>> {
+export async function verify(row: IntentRow | undefined, code: string): Promise<Outcome<{ authId: string }>> {
   if (!row) return { ok: false, error: WRONG_CODE };
   if (row.expires_at < Date.now()) return { ok: false, error: "That code has expired. Ask for a new one." };
   if (row.attempts >= CODE_TRIES) return { ok: false, error: "Too many wrong codes. Ask for a new one." };

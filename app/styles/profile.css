@@ -51,14 +51,15 @@
 
 .profile__register {
   display: flex;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
   align-items: center;
   margin: var(--space-2) 0 0;
   color: var(--color-ink-soft);
   font-size: var(--text-small);
 }
 
-.profile__register span {
+.profile__register .profile__tick {
   color: var(--color-gold-text);
   font-weight: var(--weight-bold);
 }

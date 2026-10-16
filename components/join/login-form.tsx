@@ -45,7 +45,7 @@ export function LoginForm() {
             {busy ? "Opening your page…" : "Log in"} <span aria-hidden="true">→</span>
           </button>
           <p className="join__fine">
-            New here? <a href="/join">Find your name in the register</a>
+            New here? <a href="/join">Find your name in the register</a> · Staff: <a href="/join/staff">join with your invitation</a>
           </p>
         </form>
       </div>

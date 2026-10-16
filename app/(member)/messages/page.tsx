@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppPage } from "../../../components/app/app-page";
+import { PeopleToReach } from "../../../components/app/people-to-reach";
 import { timeAgo } from "../../../lib/format";
 import { conversations } from "../../../lib/server/social";
 import { requireUser } from "../../../lib/server/session";
@@ -14,9 +15,10 @@ export default async function MessagesPage() {
   return (
     <AppPage user={me} current="messages" title="Messages" intro="Letters between connections. To write to someone new, connect first, or Ask a senior.">
       {list.length === 0 ? (
-        <p className="wf-empty">
-          No messages yet. Open a <a href="/connections">connection</a> and write to them.
-        </p>
+        <>
+          <p className="wf-empty">No messages yet. Letters go between connections: write to one, or connect with someone first.</p>
+          <PeopleToReach me={me} mode="write" />
+        </>
       ) : (
         <ul className="wf-list">
           {list.slice(0, 50).map((c) => (

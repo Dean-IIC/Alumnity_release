@@ -36,7 +36,8 @@ function Part({ title, field, visibility, onVisibility, children }: { title: str
   );
 }
 
-export function ProfileEditor({ initial }: { initial: Profile }) {
+/** `role`: a student is asked what they're looking for; everyone else, what they're happy to do. */
+export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile; role?: string }) {
   const [profile, setProfile] = useState(initial);
   const [skillsText, setSkillsText] = useState(initial.skills.join(", "));
   const [problem, setProblem] = useState<string | null>(null);
@@ -147,6 +148,25 @@ export function ProfileEditor({ initial }: { initial: Profile }) {
         </label>
       </Part>
 
+      {role === "student" ? (
+        <Part title="Looking for" field="happyTo" {...who("happyTo")}>
+          {(
+            [
+              ["mentor", "A mentor", "A senior to talk a decision through: a course, a project, a first job."],
+              ["internship", "An internship", "Alumni who hire, or know where to look, can find you."],
+              ["referral", "A referral", "For when you apply where an alumnus works."]
+            ] as const
+          ).map(([key, label, note]) => (
+            <label key={key} className="editor__check">
+              <input type="checkbox" checked={profile.seeking[key]} onChange={(e) => set("seeking", { ...profile.seeking, [key]: e.target.checked })} />
+              <span>
+                <b>{label}</b>
+                <span>{note}</span>
+              </span>
+            </label>
+          ))}
+        </Part>
+      ) : (
       <Part title="Happy to" field="happyTo" {...who("happyTo")}>
         {(
           [
@@ -164,6 +184,7 @@ export function ProfileEditor({ initial }: { initial: Profile }) {
           </label>
         ))}
       </Part>
+      )}
 
       <Part title="Find me" field="links" {...who("links")}>
         <label className="field">

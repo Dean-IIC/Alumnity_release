@@ -226,3 +226,8 @@ export function eventIcs(event: Event, origin: string): string {
     .join("\r\n")
     .concat("\r\n");
 }
+
+/** How many events someone has put up (for Home's getting-started steps). */
+export async function organisedCount(userId: number): Promise<number> {
+  return (await db().one<{ n: number }>("select count(*) as n from events where organiser = ?", userId))?.n ?? 0;
+}

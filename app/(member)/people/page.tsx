@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { photoIdsOf } from "../../../lib/server/profile";
 import { AppPage } from "../../../components/app/app-page";
 import { MemberLine } from "../../../components/app/member-line";
 import { BRANCHES, isBranch } from "../../../lib/branches";
@@ -27,6 +28,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   };
   const searched = Boolean(query.q || query.branch || query.year || query.help);
   const found = await searchMembers(me, query);
+  const photos = await photoIdsOf(found.slice(0, 60).map((f) => f.member.id));
   // A young network: who's here so far, and how many from your batch aren't yet.
   const quiet = !searched && found.length < 5;
   const [members, onRegister, mates] = quiet
@@ -95,6 +97,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             <MemberLine
               key={member.id}
               member={member}
+              photoId={photos.get(member.id)}
               detail={[profile.title, profile.company && `at ${profile.company}`, profile.city && `· ${profile.city}`].filter(Boolean).join(" ")}
             >
               {RELATION_LABEL[relation] && <span className="wf-tag">{RELATION_LABEL[relation]}</span>}

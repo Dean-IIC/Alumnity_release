@@ -78,8 +78,8 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
         </ul>
       )}
 
-      <section aria-labelledby="new-group">
-        <h2 id="new-group">Start a group</h2>
+      <details className="wf-fold" id="new-group">
+        <summary>Start a group</summary>
         <ActionForm action={createGroupAction} className="wf-stack">
           <label className="field">
             <span className="field__label">Name</span>
@@ -104,7 +104,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
             </button>
           </div>
         </ActionForm>
-      </section>
+      </details>
     </AppPage>
   );
 }

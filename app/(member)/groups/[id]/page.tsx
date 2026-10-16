@@ -1,3 +1,4 @@
+import { firstName } from "../../../../lib/format";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../components/app/action-form";
@@ -41,7 +42,12 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
     tab === "members" && readable ? groupMembers(me, group.id) : Promise.resolve({ members: [], pending: [] }),
     settings()
   ]);
-  const photos = await photoIdsOf([me.id, ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)])]);
+  const photos = await photoIdsOf([
+    me.id,
+    ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)]),
+    ...people.members.map((m) => m.member.id),
+    ...people.pending.map((m) => m.member.id)
+  ]);
   const hidden = <input type="hidden" name="id" value={group.id} />;
 
   return (
@@ -103,7 +109,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
         <>
           {member &&
             (site.features.notes ? (
-              <Composer firstName={me.name.split(" ")[0]} hasBatch={false} group={{ id: group.id, name: group.name }} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
+              <Composer firstName={firstName(me.name)} hasBatch={false} group={{ id: group.id, name: group.name }} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
             ) : (
               <p className="wf-empty">{PAUSED}</p>
             ))}
@@ -125,7 +131,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
               <h2>Asking to join</h2>
               <ul className="wf-list">
                 {people.pending.map(({ member: u }) => (
-                  <MemberLine key={u.id} member={u}>
+                  <MemberLine key={u.id} member={u} photoId={photos.get(u.id)}>
                     <ActionForm action={answerGroupRequestAction} showDone={false}>
                       {hidden}
                       <input type="hidden" name="user" value={u.id} />
@@ -154,7 +160,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
               const owner = group.my?.role === "owner";
               const canAct = manager && !self && role !== "owner" && (role !== "admin" || owner);
               return (
-                <MemberLine key={u.id} member={u} detail={ROLE[role] || undefined}>
+                <MemberLine key={u.id} member={u} photoId={photos.get(u.id)} detail={ROLE[role] || undefined}>
                   {canAct && owner && (
                     <ActionForm action={groupRoleAction} showDone={false}>
                       {hidden}

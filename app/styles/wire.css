@@ -570,3 +570,124 @@
   font-size: var(--text-card);
   font-weight: normal;
 }
+
+/* A form folded behind its own button ("Start a group", "Propose a cause"): opens in place. */
+.wf-fold {
+  margin-block: var(--space-5);
+}
+
+.wf-fold > summary {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-blue);
+  border-radius: var(--radius-pill);
+  color: var(--color-blue);
+  font-size: var(--text-button);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.wf-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wf-fold > summary::before {
+  content: "+";
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.wf-fold[open] > summary {
+  margin-bottom: var(--space-4);
+  border-color: var(--color-line);
+  color: var(--color-ink-muted);
+}
+
+.wf-fold[open] > summary::before {
+  content: "–";
+}
+
+.ask-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ask-switch p {
+  flex: 1 1 320px;
+  margin: 0;
+}
+
+/* A person in a list: their face first. */
+.wf-member--face {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+.wf-member--face .wf-member__who {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wf-member__face {
+  flex: none;
+  line-height: 0;
+}
+
+@media (max-width: 520px) {
+  .wf-member--face {
+    flex-wrap: wrap;
+  }
+
+  .wf-member--face .wf-member__who {
+    flex-basis: calc(100% - 60px);
+  }
+
+  .wf-member--face > .wf-actions {
+    margin-left: 60px;
+  }
+}
+
+.desk-waiting {
+  margin-bottom: var(--space-5);
+  box-shadow: inset 4px 0 0 var(--color-red);
+}
+
+.desk-waiting--clear {
+  box-shadow: inset 4px 0 0 var(--color-gold);
+}
+
+.desk-waiting h2 {
+  margin-top: 0;
+}
+
+.desk-waiting ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: var(--weight-semibold);
+}
+
+/* A step's circle stays beside its words, however they wrap. */
+.wf-checklist li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+.wf-checklist li::before {
+  flex: none;
+}
+
+.wf-checklist li > a,
+.wf-checklist li > form {
+  flex: 1 1 auto;
+}

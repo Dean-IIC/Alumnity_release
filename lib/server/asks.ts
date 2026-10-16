@@ -317,3 +317,8 @@ export async function recordOf(userId: number): Promise<{ count: number; thanks:
   );
   return { count: rows.length, thanks: rows.flatMap((r) => (r.thanks ? [r.thanks] : [])).slice(0, 10) };
 }
+
+/** How many Asks someone has asked (for Home's getting-started steps). */
+export async function askCount(userId: number): Promise<number> {
+  return (await db().one<{ n: number }>("select count(*) as n from asks where author = ?", userId))?.n ?? 0;
+}

@@ -1,3 +1,4 @@
+import { firstName } from "../format";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "./db";
 import { letter, sendMail } from "./mail";
@@ -78,7 +79,7 @@ export async function runDigest(origin: string, now = Date.now()): Promise<{ sen
     const token = unsubscribeToken(m.id);
     const stop = token ? `${origin}/api/alerts/unsubscribe?u=${m.id}&t=${token}` : undefined;
     const body = letter({
-      greeting: `Hello ${m.name.split(" ")[0]},`,
+      greeting: `Hello ${firstName(m.name)},`,
       lines: [
         summary.length ? `Waiting for you on Alumnity: ${summary.join(", ")}.` : `You have ${plural(rows.length, "new notification", "new notifications")} on Alumnity.`,
         ...rows.slice(0, 5).map((r) => `• ${r.text}`)

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { photoIdsOf } from "../../../lib/server/profile";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
 import { MemberLine } from "../../../components/app/member-line";
@@ -18,6 +19,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
   const me = await requireUser("/connections");
   const page = Math.max(1, Math.min(1000, Math.floor(Number((await searchParams).page)) || 1));
   const [{ received, sent }, mine, blocked, mates, relationTo] = await Promise.all([requestsFor(me), connectionsOf(me.id), blockedBy(me.id), batchmates(me), relationsOf(me.id)]);
+  const photos = await photoIdsOf([...received, ...sent].map((r) => r.member.id).concat(mine.map((u) => u.id), blocked.map((u) => u.id), mates.map((u) => u.id)));
   const suggestions = mates
     .filter((u) => relationTo(u.id) === "none")
     .slice(0, 6);
@@ -31,7 +33,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
         ) : (
           <ul className="wf-list">
             {received.map((r) => (
-              <MemberLine key={r.member.id} member={r.member} detail={[r.note && `“${r.note}”`, timeAgo(r.createdAt)].filter(Boolean).join(" · ")}>
+              <MemberLine key={r.member.id} member={r.member} photoId={photos.get(r.member.id)} detail={[r.note && `“${r.note}”`, timeAgo(r.createdAt)].filter(Boolean).join(" · ")}>
                 <ActionForm action={acceptAction}>
                   <input type="hidden" name="id" value={r.member.id} />
                   <button className="button button--primary wf-small" type="submit">
@@ -59,7 +61,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
         ) : (
           <ul className="wf-list">
             {mine.slice((page - 1) * PAGE, page * PAGE).map((u) => (
-              <MemberLine key={u.id} member={u}>
+              <MemberLine key={u.id} member={u} photoId={photos.get(u.id)}>
                 <a className="button button--secondary wf-small" href={`/messages/${u.id}`}>
                   Message
                 </a>
@@ -83,7 +85,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
           <h2 id="suggest">People from your batch</h2>
           <ul className="wf-list">
             {suggestions.map((u) => (
-              <MemberLine key={u.id} member={u}>
+              <MemberLine key={u.id} member={u} photoId={photos.get(u.id)}>
                 <ActionForm action={connectAction}>
                   <input type="hidden" name="id" value={u.id} />
                   <button className="button button--secondary wf-small" type="submit">
@@ -101,7 +103,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
           <h2 id="sent">Requests you sent · {sent.length}</h2>
           <ul className="wf-list">
             {sent.map((r) => (
-              <MemberLine key={r.member.id} member={r.member} detail={`Sent ${timeAgo(r.createdAt)}`}>
+              <MemberLine key={r.member.id} member={r.member} photoId={photos.get(r.member.id)} detail={`Sent ${timeAgo(r.createdAt)}`}>
                 <ActionForm action={withdrawAction}>
                   <input type="hidden" name="id" value={r.member.id} />
                   <button className="wf-link-button" type="submit">

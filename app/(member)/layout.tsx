@@ -32,7 +32,7 @@ export default async function MemberLayout({ children }: { children: ReactNode }
       <MarginArt />
       <AppBar user={user} counts={counts} photoId={photos.get(user.id) ?? null} />
       {children}
-      <SiteFooter />
+      <SiteFooter app />
       <Pulse counts={{ n: notifications, m: messages, r: connections }} />
       <TabBar counts={counts} />
     </>

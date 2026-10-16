@@ -8,11 +8,11 @@ import { Composer } from "../../../components/social/composer";
 import { Icon } from "../../../components/social/icons";
 import { Post } from "../../../components/social/post";
 import { StoriesBar, type ReelData } from "../../../components/social/stories";
-import { connectAction } from "../../../lib/actions/social";
-import { batchLabel, rupees, timeAgo } from "../../../lib/format";
+import { connectAction, mentorAction } from "../../../lib/actions/social";
+import { firstName, batchLabel, rupees, timeAgo } from "../../../lib/format";
 import { activeAnnouncements } from "../../../lib/server/announcements";
-import { asksFor, isSenior } from "../../../lib/server/asks";
-import { eventsFor } from "../../../lib/server/events";
+import { askCount, asksFor, isSenior } from "../../../lib/server/asks";
+import { eventsFor, organisedCount } from "../../../lib/server/events";
 import { followCounts } from "../../../lib/server/follows";
 import { liveCauses } from "../../../lib/server/causes";
 import { groupsFor } from "../../../lib/server/groups";
@@ -86,7 +86,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     ...reels.map((r) => r.author.id),
     ...suggestions.map((s) => s.id)
   ]);
-  const first = (name: string) => name.split(" ")[0];
+  const first = (name: string) => firstName(name);
   const reelData: ReelData[] = reels.map((r) => ({
     author: { id: r.author.id, name: r.author.name, first: first(r.author.name), photoId: photos.get(r.author.id) ?? null, initials: initialsOf(r.author.name) },
     stories: r.stories.map((s) => ({ id: s.id, mediaId: s.mediaId, kind: s.kind, caption: s.caption, ago: timeAgo(s.createdAt) })),
@@ -96,11 +96,33 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const meFace = { id: me.id, name: me.name, first: first(me.name), photoId: photos.get(me.id) ?? null, initials: initialsOf(me.name) };
   const now = [profile.title, profile.company && `at ${profile.company}`].filter(Boolean).join(" ");
 
-  const steps = [
-    { done: Boolean(profile.title || profile.about || profile.skills.length || profile.photo), text: "Add a photo and what you do now", href: "/me/edit" },
-    { done: connections > 0, text: "Connect with someone from your batch", href: "/batch" },
-    isSenior(me) ? { done: profile.happyTo.mentor, text: "Say you're happy to mentor", href: "/me/edit" } : { done: false, text: "Ask a senior something", href: "/ask" }
-  ];
+  // Getting started, for who they are: a student wants help; an alumnus can give it; staff run things.
+  const staff = me.role !== "student" && me.role !== "alumnus";
+  const pageDone = Boolean(profile.title || profile.about || profile.skills.length || profile.photo);
+  const [asked, organised] = await Promise.all([me.role === "student" ? askCount(me.id) : Promise.resolve(0), staff ? organisedCount(me.id) : Promise.resolve(0)]);
+  const mentorStep = { done: profile.happyTo.mentor, text: "Say you're happy to mentor: questions that fit you start reaching you", href: "/ask", mentor: true };
+  const groupStep = { done: groups.mine.length > 0, text: "Join a group, or start one", href: "/groups" };
+  const steps: { done: boolean; text: string; href: string; mentor?: boolean }[] =
+    me.role === "student"
+      ? [
+          { done: pageDone, text: "Add a photo and what you're up to", href: "/me/edit" },
+          { done: Object.values(profile.seeking).some(Boolean), text: "Say what you're looking for: a mentor, an internship, a referral", href: "/me/edit" },
+          { done: connections > 0, text: "Connect with someone from your batch", href: "/batch" },
+          { done: asked > 0, text: "Ask a senior something", href: "/ask" }
+        ]
+      : staff
+        ? [
+            { done: pageDone, text: "Add a photo and what you teach", href: "/me/edit" },
+            { done: organised > 0, text: "Put up an event: a talk, a reunion, a department day", href: "/events" },
+            mentorStep,
+            groupStep
+          ]
+        : [
+            { done: pageDone, text: "Add a photo and what you do now", href: "/me/edit" },
+            { done: connections > 0, text: "Connect with someone from your batch", href: "/batch" },
+            mentorStep,
+            groupStep
+          ];
   const stepsLeft = steps.filter((s) => !s.done).length;
 
   return (
@@ -189,7 +211,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <ul className="wf-checklist">
                 {steps.map((s) => (
                   <li key={s.text} className={s.done ? "done" : ""}>
-                    {s.done ? s.text : <a href={s.href}>{s.text}</a>}
+                    {s.done ? (
+                      s.text
+                    ) : s.mentor ? (
+                      <ActionForm action={mentorAction} className="steps__inline">
+                        <button type="submit" className="steps__button">
+                          {s.text}
+                        </button>
+                      </ActionForm>
+                    ) : (
+                      <a href={s.href}>{s.text}</a>
+                    )}
                   </li>
                 ))}
               </ul>

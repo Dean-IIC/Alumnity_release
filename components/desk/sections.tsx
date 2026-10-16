@@ -1,11 +1,12 @@
 import { ActionForm } from "../app/action-form";
-import { announceAction, removeAnnouncementAction, resolveReportAction, restoreAction, settingsAction, takeDownAction } from "../../lib/actions/desk";
+import { announceAction, inviteStaffAction, removeAnnouncementAction, resolveReportAction, restoreAction, revokeInviteAction, settingsAction, takeDownAction } from "../../lib/actions/desk";
 import { BRANCHES } from "../../lib/branches";
 import { batchLabel, ROLE_LABEL, rupees, timeAgo, when } from "../../lib/format";
 import type { User } from "../../lib/server/auth";
 import { allAnnouncements } from "../../lib/server/announcements";
 import { auditLog, deskMembers, deskSettings, recentContent, reports, stats, team, type ContentKind, type MemberFilter } from "../../lib/server/desk";
-import { isAdmin, isSuperAdmin } from "../../lib/server/roles";
+import { assignable, isAdmin, isSuperAdmin } from "../../lib/server/roles";
+import { invites, STAFF_ROLES } from "../../lib/server/staff";
 import { FEATURE_LABEL } from "../../lib/server/settings";
 
 /* The college desk's sections. Each checks the viewer's role again on the server (lib/server/desk.ts). */
@@ -31,8 +32,27 @@ export async function Overview({ me }: { me: User }) {
     ["Causes to review", s.causesWaiting, "/causes"],
     ["Paused", s.paused, "/desk?tab=members&status=paused"]
   ];
+  // First, what's waiting for the desk; then the numbers.
+  const waiting = [
+    s.openReports > 0 && { href: "/desk?tab=reports", text: `${s.openReports} report${s.openReports === 1 ? "" : "s"} to look at` },
+    s.causesWaiting > 0 && { href: "/causes", text: `${s.causesWaiting} cause${s.causesWaiting === 1 ? "" : "s"} to review` }
+  ].filter(Boolean) as { href: string; text: string }[];
   return (
     <>
+      <section className={`wf-card desk-waiting ${waiting.length ? "" : "desk-waiting--clear"}`} aria-labelledby="desk-waiting">
+        <h2 id="desk-waiting">{waiting.length ? "Waiting for the desk" : "Nothing waiting for the desk"}</h2>
+        {waiting.length ? (
+          <ul>
+            {waiting.map((w) => (
+              <li key={w.href}>
+                <a href={w.href}>{w.text} →</a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="wf-muted">No reports and no causes to review. Invite staff from Team; put up an announcement from Announcements.</p>
+        )}
+      </section>
       <div className="wf-grid">
         {items.map(([label, n, href]) => (
           <div key={label} className="wf-stat">
@@ -325,13 +345,86 @@ export async function Announcements({ me }: { me: User }) {
 }
 
 export async function Team({ me }: { me: User }) {
-  const list = await team(me);
+  const [list, pending] = await Promise.all([team(me), invites(me)]);
+  const roles = STAFF_ROLES.filter((r) => assignable(me).includes(r));
   return (
     <>
       <p className="wf-muted">
         Super administrators are named in the server's config (ALUMNITY_SUPER_ADMINS) and can't be removed from the site. They make administrators; administrators make
-        coordinators. To appoint someone, open them in Members.
+        coordinators. To appoint someone already on Alumnity, open them in Members.
       </p>
+      {roles.length > 0 && (
+        <section className="wf-card" aria-labelledby="invite-staff">
+          <h2 id="invite-staff">Invite staff</h2>
+          <p className="wf-muted">
+            Teachers and college staff aren't on the student register, so they join by invitation: they get an email with a link, confirm their address with a code, and choose
+            a password.
+          </p>
+          <ActionForm action={inviteStaffAction} className="wf-stack" resetOnSuccess>
+            <div className="field-row">
+              <label className="field">
+                <span className="field__label">Their name</span>
+                <input name="name" required minLength={3} maxLength={100} placeholder="e.g. Dr. Asha Rao" />
+              </label>
+              <label className="field">
+                <span className="field__label">Their email</span>
+                <input name="email" type="email" required maxLength={254} placeholder="name@hkbk.edu.in" />
+              </label>
+            </div>
+            <div className="field-row">
+              <label className="field">
+                <span className="field__label">Role</span>
+                <select name="role" defaultValue={roles[0]}>
+                  {roles.map((r) => (
+                    <option key={r} value={r}>
+                      {ROLE_LABEL[r]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span className="field__label">Department (optional)</span>
+                <select name="branch" defaultValue="">
+                  <option value="">None</option>
+                  {BRANCHES.map(([code, name]) => (
+                    <option key={code} value={code}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div>
+              <button className="button button--primary" type="submit">
+                Send the invitation
+              </button>
+            </div>
+          </ActionForm>
+          {pending.length > 0 && (
+            <ul className="wf-list">
+              {pending.map((i) => (
+                <li key={i.email} className="wf-member">
+                  <div className="wf-member__who">
+                    <span className="wf-member__name">{i.name}</span>
+                    <span className="wf-muted">
+                      {i.email} · {ROLE_LABEL[i.role]}
+                      {i.branchName ? ` · ${i.branchName}` : ""} · {i.used ? "joined" : i.expiresAt < Date.now() ? "expired" : `invited ${timeAgo(i.createdAt)}`}
+                    </span>
+                  </div>
+                  {!i.used && (
+                    <ActionForm action={revokeInviteAction} showDone={false}>
+                      <input type="hidden" name="email" value={i.email} />
+                      <button className="button button--secondary wf-small" type="submit">
+                        Withdraw
+                      </button>
+                    </ActionForm>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
       <ul className="wf-list">
         {list.map((u) => (
           <li key={u.id} className="wf-member">

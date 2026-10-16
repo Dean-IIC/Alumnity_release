@@ -1755,3 +1755,22 @@ html.story-open {
   color: var(--color-ink-muted);
   font-size: var(--text-fine);
 }
+
+/* A getting-started step done in one tap (a form that reads as its link). */
+.steps__inline .wf-form__body {
+  display: inline;
+}
+
+.steps__button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-blue);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.steps__button:hover {
+  text-decoration: underline;
+}

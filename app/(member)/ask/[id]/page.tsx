@@ -4,7 +4,7 @@ import { ActionForm } from "../../../../components/app/action-form";
 import { AppPage } from "../../../../components/app/app-page";
 import { ReportButton } from "../../../../components/app/report-button";
 import { answeredAction, closeAskAction, replyAskAction, takeAskAction } from "../../../../lib/actions/content";
-import { timeAgo } from "../../../../lib/format";
+import { firstName, timeAgo } from "../../../../lib/format";
 import { askFor, askThread, isSenior } from "../../../../lib/server/asks";
 import { requireUser } from "../../../../lib/server/session";
 
@@ -45,7 +45,7 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
           ) : isSenior(me) ? (
             <ActionForm action={takeAskAction}>
               {hidden}
-              <p>Can you help? Taking it on means you'll write to {ask.author.name.split(" ")[0]} privately, here.</p>
+              <p>Can you help? Taking it on means you'll write to {firstName(ask.author.name)} privately, here.</p>
               <button className="button button--primary" type="submit">
                 Take it on
               </button>
@@ -63,7 +63,7 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
               <div key={m.id} className={`wf-bubble ${m.mine ? "wf-bubble--mine" : ""}`}>
                 {m.body}
                 <small>
-                  {m.author.name.split(" ")[0]} · {timeAgo(m.createdAt)}
+                  {firstName(m.author.name)} · {timeAgo(m.createdAt)}
                 </small>
               </div>
             ))}
@@ -91,7 +91,7 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
           <ActionForm action={answeredAction} className="wf-stack">
             {hidden}
             <label className="field">
-              <span className="field__label">A line of thanks (optional; it goes on {ask.taker?.name.split(" ")[0]}'s Record)</span>
+              <span className="field__label">A line of thanks (optional; it goes on {firstName(ask.taker?.name ?? "")}'s Record)</span>
               <textarea name="thanks" rows={2} maxLength={300} />
             </label>
             <div>
