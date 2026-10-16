@@ -3,8 +3,9 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { post } from "../../lib/client/post";
 import { PasswordField } from "../join/fields";
+import { AlertsPanel } from "./alerts-panel";
 
-/* Settings: your password, the browsers you're signed in on, and deleting your account. */
+/* Settings: alerts, your password, the browsers you're signed in on, and deleting your account. */
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -43,6 +44,10 @@ export function SettingsPanel({ email }: { email: string }) {
       <Section title="Your email">
         <p className="settings__value">{email}</p>
         <p className="join__fine">Only you see it. You log in with it, and your codes go to it.</p>
+      </Section>
+
+      <Section title="Alerts">
+        <AlertsPanel />
       </Section>
 
       <Section title="Password">

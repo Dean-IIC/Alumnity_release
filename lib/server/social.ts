@@ -1,3 +1,4 @@
+import { queuePush } from "./alerts";
 import { db } from "./db";
 import type { User } from "./auth";
 import { toUser } from "./auth";
@@ -24,6 +25,8 @@ export type Notification = { id: number; kind: string; text: string; link: strin
 export async function notify(userId: number, n: { actor?: number; kind: string; text: string; link: string }) {
   if (n.actor && (await blockedEitherWay(userId, n.actor))) return;
   await db().run("insert into notifications (user_id, actor, kind, text, link, created_at) values (?, ?, ?, ?, ?, ?)", userId, n.actor ?? null, n.kind, n.text, n.link, Date.now());
+  // And on their phone, if they turned that on.
+  await queuePush(userId, { text: n.text, link: n.link });
 }
 
 /**
