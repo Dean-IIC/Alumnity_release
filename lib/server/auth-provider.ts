@@ -216,7 +216,9 @@ export function authProvider(): Promise<AuthProvider> {
   // everyone would be the same person.
   const fake = process.env.ALUMNITY_AUTH === "fake" && process.env.NODE_ENV === "test";
   // Working on this computer without Supabase (never in production): see lib/server/local-auth.ts.
-  const local = process.env.ALUMNITY_AUTH === "local" && process.env.NODE_ENV !== "production";
+  // A production build on this computer may use it too, to test it as it runs on Vercel
+  // (ALUMNITY_LOCAL_PROD=1); local-auth.ts then refuses any request not from localhost.
+  const local = process.env.ALUMNITY_AUTH === "local" && (process.env.NODE_ENV !== "production" || process.env.ALUMNITY_LOCAL_PROD === "1");
   return (provider ??= fake ? Promise.resolve(new FakeAuth()) : local ? import("./local-auth").then((m) => m.localAuth()) : supabaseProvider());
 }
 

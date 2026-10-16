@@ -35,7 +35,12 @@ const tables = () =>
   `));
 
 async function jar() {
-  const { cookies } = await import("next/headers");
+  const { cookies, headers } = await import("next/headers");
+  // In a production build (testing it on this computer), only for requests to this computer.
+  if (process.env.NODE_ENV === "production") {
+    const host = ((await headers()).get("host") ?? "").replace(/:\d+$/, "");
+    if (host !== "localhost" && host !== "127.0.0.1") throw new Error("Local sign-in answers only on this computer.");
+  }
   return cookies();
 }
 
@@ -54,7 +59,7 @@ async function currentToken() {
 }
 
 export function localAuth(): AuthProvider {
-  if (process.env.NODE_ENV === "production") throw new Error("Local sign-in is for development only.");
+  if (process.env.NODE_ENV === "production" && process.env.ALUMNITY_LOCAL_PROD !== "1") throw new Error("Local sign-in is for development only.");
   return {
     async sendCode(email, create) {
       await tables();

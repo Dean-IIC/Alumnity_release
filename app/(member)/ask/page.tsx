@@ -37,7 +37,9 @@ function AskList({ asks, empty }: { asks: Ask[]; empty: string }) {
 }
 
 /** Ask a question; see yours; seniors see what's come to them. */
-export default async function AskPage() {
+export default async function AskPage({ searchParams }: { searchParams: Promise<{ title?: string }> }) {
+  // Started from Home ("Ask a senior: …"): the question is already typed.
+  const started = ((await searchParams).title ?? "").slice(0, 140);
   const me = await requireUser("/ask");
   const { mine, forMe, taken, open } = await asksFor(me);
   const senior = isSenior(me);
@@ -49,7 +51,7 @@ export default async function AskPage() {
     <ActionForm action={askAction} className="wf-stack">
       <label className="field">
         <span className="field__label">Your question, in a line</span>
-        <input name="title" required maxLength={140} placeholder="e.g. How did you prepare for campus placements?" />
+        <input name="title" required maxLength={140} placeholder="e.g. How did you prepare for campus placements?" defaultValue={started} autoFocus={Boolean(started)} />
       </label>
       <label className="field">
         <span className="field__label">A few lines more</span>
@@ -118,7 +120,7 @@ export default async function AskPage() {
       {senior ? (
         <>
           {helping}
-          <details className="wf-fold">
+          <details className="wf-fold" open={Boolean(started)}>
             <summary>Ask something yourself</summary>
             {form}
           </details>

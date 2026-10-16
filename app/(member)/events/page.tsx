@@ -42,7 +42,8 @@ function EventLine({ event, past = false }: { event: Event; past?: boolean }) {
 }
 
 /** What's coming up, what's been, and (for organisers) a form to put one up. */
-export default async function EventsPage() {
+export default async function EventsPage({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
+  const opening = (await searchParams).new === "1";
   const me = await requireUser("/events");
   const { upcoming, past } = await eventsFor(me);
   return (
@@ -51,7 +52,7 @@ export default async function EventsPage() {
       {upcoming.length === 0 ? <p className="wf-empty">Nothing planned yet.</p> : <ul className="wf-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>}
 
       {canOrganise(me) && (await settings()).features.events && (
-        <details className="wf-fold" id="new-event">
+        <details className="wf-fold" id="new-event" open={opening}>
           <summary>Put up an event</summary>
           <ActionForm action={eventAction} className="wf-stack">
             <label className="field">

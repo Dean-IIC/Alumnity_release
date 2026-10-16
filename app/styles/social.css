@@ -1774,3 +1774,214 @@ html.story-open {
 .steps__button:hover {
   text-decoration: underline;
 }
+
+/* ---------- Home's top, made for who's reading (components/home/role-focus.tsx) ---------- */
+
+.focus {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.focus h3 {
+  margin: var(--space-3) 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.focus__head h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--text-title) / 1.15 var(--font-voice);
+}
+
+.focus__head p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+/* The student's question box: the first thing they can do. */
+.focus__ask-start {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border: 1.5px solid var(--color-blue);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-blue);
+}
+
+.focus__ask-start input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  outline: none;
+}
+
+.focus__people,
+.focus__asks,
+.focus__state,
+.focus__log {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.focus__people {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.focus__person,
+.focus__ask {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 56px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.focus__ask {
+  display: grid;
+  gap: 2px;
+}
+
+.focus__person:hover,
+.focus__ask:hover {
+  border-color: var(--color-blue);
+}
+
+.focus__person > span {
+  display: grid;
+  min-width: 0;
+}
+
+.focus__person strong,
+.focus__ask strong {
+  overflow: hidden;
+  font-size: var(--text-small);
+  text-overflow: ellipsis;
+}
+
+.focus__person small,
+.focus__ask small {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.focus__note,
+.focus__quiet {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.focus__switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 12px;
+  background: var(--color-paper);
+  box-shadow: inset 3px 0 0 var(--color-gold);
+}
+
+.focus__switch p {
+  flex: 1 1 260px;
+  margin: 0;
+  font-size: var(--text-small);
+}
+
+.focus__numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.focus__numbers span {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.focus__numbers strong {
+  margin-right: 4px;
+  color: var(--color-ink);
+  font: var(--text-card) / 1 var(--font-voice);
+}
+
+.focus__state li {
+  font-size: var(--text-small);
+}
+
+.focus__state li::before {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--space-2);
+  content: "";
+  border-radius: 50%;
+  background: var(--color-gold);
+}
+
+.focus__state li.off::before {
+  background: var(--color-red);
+}
+
+.focus__log li {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.focus__log span:first-child {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+
+/* Each role's sheet has its own pen-colour edge. */
+.focus--student {
+  box-shadow: inset 4px 0 0 var(--color-blue);
+}
+
+.focus--alumnus {
+  box-shadow: inset 4px 0 0 var(--color-gold);
+}
+
+.focus--teacher {
+  box-shadow: inset 4px 0 0 var(--color-red);
+}
+
+.focus--desk {
+  box-shadow: inset 4px 0 0 var(--color-ink);
+}
+
+@media (max-width: 640px) {
+  .focus {
+    padding: var(--space-4);
+  }
+}
+
+.focus__ask-start .button {
+  flex: none;
+  width: auto;
+  min-width: 72px;
+}

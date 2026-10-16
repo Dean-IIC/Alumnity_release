@@ -40,7 +40,7 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
 
   return (
     <header className={`site-nav container ${landing ? "site-nav--over-hero" : ""}`}>
-      <a className="site-nav__brand" href={landing ? "#welcome" : "/"} aria-label="Alumnity by HKBK College of Engineering, home">
+      <a className="site-nav__brand" href={landing ? "#welcome" : me ? "/home" : "/"} aria-label={me ? "Alumnity, your Home" : "Alumnity by HKBK College of Engineering, home"}>
         <BrandLockup data-brand-target={landing || undefined} />
       </a>
       <nav aria-label="Primary navigation">

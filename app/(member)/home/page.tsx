@@ -5,13 +5,16 @@ import { AppPage } from "../../../components/app/app-page";
 import { initialsOf } from "../../../components/profile/ink-seal";
 import { Avatar } from "../../../components/social/avatar";
 import { Composer } from "../../../components/social/composer";
+import { RoleFocus } from "../../../components/home/role-focus";
 import { Icon } from "../../../components/social/icons";
 import { Post } from "../../../components/social/post";
 import { StoriesBar, type ReelData } from "../../../components/social/stories";
 import { connectAction, mentorAction } from "../../../lib/actions/social";
 import { firstName, batchLabel, rupees, timeAgo } from "../../../lib/format";
 import { activeAnnouncements } from "../../../lib/server/announcements";
-import { askCount, asksFor, isSenior } from "../../../lib/server/asks";
+import { askCount } from "../../../lib/server/asks";
+import { deskBeginnings } from "../../../lib/server/home";
+import { isModerator } from "../../../lib/server/roles";
 import { eventsFor, organisedCount } from "../../../lib/server/events";
 import { followCounts } from "../../../lib/server/follows";
 import { liveCauses } from "../../../lib/server/causes";
@@ -57,14 +60,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const before = Number.isSafeInteger(beforeParam) && beforeParam > 0 ? beforeParam : undefined;
   const scope: FeedScope = params.view === "following" ? "following" : "all";
 
-  const [profile, posts, reels, mates, relationTo, { upcoming }, asks, announcements, site, connections, follows, groups, causes, others] = await Promise.all([
+  const [profile, posts, reels, mates, relationTo, { upcoming }, announcements, site, connections, follows, groups, causes, others] = await Promise.all([
     profileOf(me.id),
     feedFor(me, { limit: PAGE, before, scope }),
     storyBar(me),
     batchmates(me),
     relationsOf(me.id),
     eventsFor(me),
-    isSenior(me) ? asksFor(me).then((a) => a.forMe) : Promise.resolve([]),
     activeAnnouncements(),
     settings(),
     connectionCount(me.id),
@@ -102,8 +104,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const [asked, organised] = await Promise.all([me.role === "student" ? askCount(me.id) : Promise.resolve(0), staff ? organisedCount(me.id) : Promise.resolve(0)]);
   const mentorStep = { done: profile.happyTo.mentor, text: "Say you're happy to mentor: questions that fit you start reaching you", href: "/ask", mentor: true };
   const groupStep = { done: groups.mine.length > 0, text: "Join a group, or start one", href: "/groups" };
-  const steps: { done: boolean; text: string; href: string; mentor?: boolean }[] =
-    me.role === "student"
+  const desk = isModerator(me);
+  const { invited, announced } = desk ? await deskBeginnings() : { invited: 0, announced: 0 };
+  const steps: { done: boolean; text: string; href: string; mentor?: boolean }[] = desk
+    ? [
+        { done: pageDone, text: "Add a photo and what you do at HKBK", href: "/me/edit" },
+        { done: invited > 0, text: "Invite the teachers and staff who'll use Alumnity", href: "/desk?tab=team" },
+        { done: announced > 0, text: "Put up a first announcement: it shows at the top of everyone's Home", href: "/desk?tab=announcements" },
+        mentorStep
+      ]
+    : me.role === "student"
       ? [
           { done: pageDone, text: "Add a photo and what you're up to", href: "/me/edit" },
           { done: Object.values(profile.seeking).some(Boolean), text: "Say what you're looking for: a mentor, an internship, a referral", href: "/me/edit" },
@@ -203,6 +213,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           ))}
 
+          {!before && <RoleFocus me={me} />}
+
           {stepsLeft > 0 && !before && (
             <section className="sheet side-box" aria-labelledby="steps">
               <h2 id="steps">
@@ -228,18 +240,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           )}
 
-          {asks.length > 0 && !before && (
-            <a className="sheet notice" href="/ask">
-              <span className="notice__pin" aria-hidden="true" style={{ background: "var(--color-blue)" }} />
-              <div>
-                <small>Ask a senior</small>
-                <strong>
-                  {asks.length === 1 ? "A student's question is" : `${asks.length} students' questions are`} waiting for you
-                </strong>
-                <p>They fit what you know. Take one on →</p>
-              </div>
-            </a>
-          )}
 
           {notesOn ? (
             <Composer firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
