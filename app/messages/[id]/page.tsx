@@ -25,7 +25,13 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
   const first = other.name.split(" ")[0];
 
   return (
-    <AppPage user={me} current="messages" title={other.name} intro={<a href={`/people/${other.id}`}>Their page →</a>}>
+    <AppPage
+      user={me}
+      current="messages"
+      title={other.name}
+      intro={<a href={`/people/${other.id}`}>Their page →</a>}
+      thread={{ with: other.id, latest: messages.at(-1)?.id ?? 0 }}
+    >
       <div className="wf-thread">
         {messages.length === 0 && <p className="wf-empty">No messages yet. Say hello.</p>}
         {messages.map((m) => (

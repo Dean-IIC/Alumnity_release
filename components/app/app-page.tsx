@@ -3,6 +3,7 @@ import type { User } from "../../lib/server/auth";
 import { isModerator } from "../../lib/server/roles";
 import { unreadMessages, unreadNotifications, waitingRequests } from "../../lib/server/social";
 import { SiteFooter } from "../site-footer";
+import { Pulse } from "./pulse";
 import { SiteHeader } from "../site-header";
 import { Icon } from "../social/icons";
 import "../../app/styles/wire.css";
@@ -25,7 +26,24 @@ const Count = ({ n }: { n: number }) =>
  * each), the page, the footer; on a phone, a tab bar at the bottom instead of the sections.
  * `bare`: the page lays itself out (the feed), with no heading of ours.
  */
-export async function AppPage({ user, current, title, intro, children, bare = false }: { user: User; current: Section; title?: string; intro?: ReactNode; children: ReactNode; bare?: boolean }) {
+export async function AppPage({
+  user,
+  current,
+  title,
+  intro,
+  children,
+  bare = false,
+  thread
+}: {
+  user: User;
+  current: Section;
+  title?: string;
+  intro?: ReactNode;
+  children: ReactNode;
+  bare?: boolean;
+  /** An open conversation, kept up to date more often. */
+  thread?: { with: number; latest: number };
+}) {
   const [connections, messages, notifications] = await Promise.all([waitingRequests(user.id), unreadMessages(user.id), unreadNotifications(user.id)]);
   const counts = { connections, messages, notifications };
   const links: { key: Section; href: string; label: string; count?: number }[] = [
@@ -67,6 +85,7 @@ export async function AppPage({ user, current, title, intro, children, bare = fa
         </main>
       )}
       <SiteFooter />
+      <Pulse counts={{ n: notifications, m: messages, r: connections }} thread={thread} />
       {/* On a phone: the five places people go most, always in reach of a thumb. */}
       <nav className="tab-bar" aria-label="Main">
         <a href="/home" aria-current={tab("home")}>
