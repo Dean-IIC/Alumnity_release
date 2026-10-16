@@ -16,10 +16,11 @@ in `lib/server/` decide what each member may see and do.
 ## 1. Supabase project
 
 1. Create a project (region: **Mumbai, ap-south-1**, closest to HKBK). Keep the database password somewhere safe.
-2. **Apply the migrations**, in order: `supabase/migrations/20261015000001_alumnity.sql`, then
-   `20261015000002_storage.sql`. Paste each into the SQL editor and run it, or with the
-   Supabase CLI: `supabase link --project-ref <ref>` then `supabase db push`.
-   The schema is idempotent (`create … if not exists`), so running it again is harmless.
+2. **Apply the migrations**, in order (by file name): `supabase/migrations/20261015000001_alumnity.sql`,
+   `20261015000002_storage.sql`, then `20261016000001_groups_causes_alerts.sql` (groups,
+   causes and donations, alerts, photo sizes). Paste each into the SQL editor and run it,
+   or with the Supabase CLI: `supabase link --project-ref <ref>` then `supabase db push`.
+   Each is safe to run again. **If the first two are already applied, just run the third.**
 3. **Check the bucket**: Storage should now have `media`, **private**, 25 MB file limit.
 
 ## 2. Supabase Auth settings
@@ -71,6 +72,16 @@ secrets: don't paste them into chats, issues or commits.
 | `ALUMNITY_SUPER_ADMINS` | comma-separated emails | super administrators (can't be removed from the site) |
 | `ALUMNITY_ADMINS` | comma-separated emails | optional: administrators set in config |
 | `DATABASE_POOL` | optional | connections per server instance (default 5) |
+| `RAZORPAY_KEY_ID` | Razorpay Dashboard → Account & Settings → API Keys | donations; `rzp_test_…` for test mode first |
+| `RAZORPAY_KEY_SECRET` | same place (shown once when the key is made) | **secret** |
+| `RAZORPAY_WEBHOOK_SECRET` | the secret you choose when adding the webhook (step 7) | **secret** |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | run `npx web-push generate-vapid-keys` once | phone notifications; the private one is **secret** |
+| `VAPID_SUBJECT` | `mailto:alumni@hkbk.edu.in` | who push services can contact |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | the same mailbox as Supabase's SMTP (step 2) | the daily email digest; `SMTP_PASS` is **secret** |
+| `CRON_SECRET` | any long random string | **secret**; Vercel Cron sends it to the daily digest |
+| `ALUMNITY_SECRET` | any long random string | **secret**; signs the digest's "stop these emails" links |
+| `SITE_URL` | the production address, e.g. `https://alumnity.hkbk.edu.in` | links in emails |
+| `DIGEST_BATCH` | optional | most digest emails per day (default 150; Gmail Workspace allows ~2,000/day) |
 
 Not for production: `ALUMNITY_DB`, `ALUMNITY_AUTH`, `ALUMNITY_STORAGE`, `ALUMNITY_UPLOADS`
 (tests only).
@@ -97,13 +108,33 @@ new register. Until it's loaded, Join answers "the register isn't reachable".
    page makes a few database round trips, so distance matters).
 4. Add the domain, and set it as the Supabase Site URL (step 2).
 
-## 6. After the first deploy
+## 6. Scheduled job
+
+`vercel.json` runs the daily digest (`/api/cron/digest`) at 09:00 India time, and pins the
+functions to Mumbai (`bom1`). Vercel picks it up on deploy; set `CRON_SECRET` first.
+
+## 7. Razorpay (donations)
+
+1. In the college's Razorpay account, start with **Test mode** keys (`rzp_test_…`): set
+   `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in Vercel and try a gift with Razorpay's
+   test cards/UPI. Switch to live keys when the college's account is activated.
+2. Razorpay → Settings → **Webhooks** → Add: URL `https://<site>/api/razorpay/webhook`,
+   events **payment.captured** and **order.paid**, a secret of your choosing → put the
+   same value in `RAZORPAY_WEBHOOK_SECRET`. (Gifts count when the browser confirms or
+   when this arrives, whichever is first; both are signature-checked.)
+3. Without keys, giving shows "opens once the college has set up payments".
+
+## 8. After the first deploy
 
 1. Join with an email listed in `ALUMNITY_SUPER_ADMINS` (it must also be on the register),
    or join first and add the email afterwards: config roles apply at once.
 2. Open `/desk`: Settings shows joining open and every feature on.
 3. Try: join, log out, log in, forgot password, upload a profile photo, post with a photo,
-   add a story. Uploads go straight from the browser to Storage (Vercel limits request
+   add a story, start a group and post in it, propose a cause and approve it from the
+   desk, give ₹10 in Razorpay test mode, turn on notifications in Settings → Alerts.
+4. **Before inviting members:** the college fills in `lib/legal.ts` (address, contact
+   email, grievance officer) and has `/privacy` and `/terms` reviewed; until then both
+   pages say they're drafts. Uploads go straight from the browser to Storage (Vercel limits request
    bodies to 4.5 MB) and are checked by the server before anyone can see them.
 
 ## How it fits together (for whoever maintains it)
@@ -121,5 +152,9 @@ new register. Until it's loaded, Join answers "the register isn't reachable".
   size, strips JPEG location data, and only then makes it a `media` row. Photos and videos
   are served by `/media/<id>` after a permission check, as a redirect to a one-hour signed
   link; HTML covers are always served by the app, sandboxed.
+- **Working on this computer without Supabase**: `npm run dev` with a
+  `.env.development.local` of `ALUMNITY_AUTH=local`, `ALUMNITY_DB=pglite:data/pglite`,
+  `ALUMNITY_STORAGE=folder` (sign-in codes print in the dev server's output). Never in
+  production: both refuse to run there.
 - **Tests** run on PGlite (the same Postgres, in memory) with a stand-in for Supabase Auth:
   `npm test`. No network or Supabase project needed.
