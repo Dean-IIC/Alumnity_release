@@ -378,6 +378,15 @@ async function DeskFocus({ me }: { me: User }) {
   );
 }
 
+/** While the rest is fetched: the greeting at once, so Home never opens on nothing. */
+export function FocusWaiting({ me }: { me: User }) {
+  return (
+    <section className="sheet focus focus--waiting" aria-label="For you" aria-busy="true">
+      <Head me={me} line="Gathering what’s for you…" />
+    </section>
+  );
+}
+
 /** Who's reading decides what Home leads with. */
 export async function RoleFocus({ me }: { me: User }) {
   if (isModerator(me)) return <DeskFocus me={me} />;

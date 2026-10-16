@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import postgres from "postgres";
@@ -48,6 +49,32 @@ export function numbered(sql: string): string {
   return out;
 }
 
+// ---------- Timing (the health check, app/api/health) ----------
+
+export type Timed = { sql: string; at: number; ms: number };
+const tracing = new AsyncLocalStorage<{ start: number; queries: Timed[] }>();
+
+/** Runs `work`, noting every query it makes: when it started (from the start of `work`) and how long it took. */
+export async function traced<T>(work: () => Promise<T>): Promise<{ result: T; ms: number; queries: Timed[] }> {
+  const trace = { start: performance.now(), queries: [] as Timed[] };
+  const result = await tracing.run(trace, work);
+  return { result, ms: Math.round(performance.now() - trace.start), queries: trace.queries };
+}
+
+async function timed<T>(text: string, work: () => Promise<T>): Promise<T> {
+  const trace = tracing.getStore();
+  if (!trace) return work();
+  const began = performance.now();
+  try {
+    return await work();
+  } finally {
+    trace.queries.push({ sql: text.replace(/\s+/g, " ").trim().slice(0, 90), at: Math.round(began - trace.start), ms: Math.round(performance.now() - began) });
+  }
+}
+
+/** Whether this process has opened its database yet (a fresh serverless instance hasn't). */
+export const opened = () => current !== undefined;
+
 /** Undefined means null to the database. */
 const values = (params: unknown[]) => params.map((p) => (p === undefined ? null : p));
 
@@ -62,7 +89,8 @@ const isRead = (text: string) => /^\s*(select|with)/i.test(text);
 function fromPostgres(sql: Sql): Db {
   // A read whose connection dropped is tried once more on a fresh one; a write never is
   // (it may already have happened).
-  const query = async (text: string, params: unknown[]) => {
+  const query = (text: string, params: unknown[]) => timed(text, () => attempt(text, params));
+  const attempt = async (text: string, params: unknown[]) => {
     const run = () => sql.unsafe(numbered(text), values(params) as postgres.ParameterOrJSON<never>[]);
     try {
       return await run();
@@ -110,10 +138,11 @@ type PGliteLike = {
 };
 
 function fromPglite(pg: PGliteLike): Db {
+  const query = <T>(text: string, params: unknown[]) => timed(text, () => pg.query<T>(numbered(text), values(params)));
   return {
-    all: async <T>(text: string, ...params: unknown[]) => (await pg.query<T>(numbered(text), values(params))).rows,
-    one: async <T>(text: string, ...params: unknown[]) => (await pg.query<T>(numbered(text), values(params))).rows[0],
-    run: async (text, ...params) => (await pg.query(numbered(text), values(params))).affectedRows ?? 0,
+    all: async <T>(text: string, ...params: unknown[]) => (await query<T>(text, params)).rows,
+    one: async <T>(text: string, ...params: unknown[]) => (await query<T>(text, params)).rows[0],
+    run: async (text, ...params) => (await query(text, params)).affectedRows ?? 0,
     exec: async (text) => {
       await pg.exec(text);
     },

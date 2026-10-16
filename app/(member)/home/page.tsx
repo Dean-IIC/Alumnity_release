@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
 import { initialsOf } from "../../../components/profile/ink-seal";
 import { Avatar } from "../../../components/social/avatar";
 import { Composer } from "../../../components/social/composer";
-import { RoleFocus } from "../../../components/home/role-focus";
+import { FocusWaiting, RoleFocus } from "../../../components/home/role-focus";
 import { Icon } from "../../../components/social/icons";
 import { Post } from "../../../components/social/post";
 import { StoriesBar, type ReelData } from "../../../components/social/stories";
@@ -213,7 +214,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           ))}
 
-          {!before && <RoleFocus me={me} />}
+          {/* Fetched alongside the rest of Home, not before it. */}
+          {!before && (
+            <Suspense fallback={<FocusWaiting me={me} />}>
+              <RoleFocus me={me} />
+            </Suspense>
+          )}
 
           {stepsLeft > 0 && !before && (
             <section className="sheet side-box" aria-labelledby="steps">
