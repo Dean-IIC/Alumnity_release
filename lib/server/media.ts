@@ -26,7 +26,7 @@ export const LIMITS: Record<MediaKind, number> = {
   html: 1024 * 1024
 };
 
-export type Media = { id: string; userId: number; kind: MediaKind; mime: string; size: number; path: string };
+export type Media = { id: string; userId: number; kind: MediaKind; mime: string; size: number; path: string; sizes: number[] };
 
 const starts = (bytes: Uint8Array, signature: number[], at = 0) => signature.every((b, i) => bytes[at + i] === b);
 
@@ -94,23 +94,61 @@ function check(use: UploadUse, bytes: Uint8Array): Checked {
   if (use === "photo" && found.kind !== "image") return { ok: false, error: "Your photo needs to be an image (JPEG, PNG, WebP or GIF)." };
   if ((use === "post" || use === "story") && found.kind === "html") return { ok: false, error: "Posts and stories take photos and videos." };
   if (bytes.length > LIMITS[found.kind]) return { ok: false, error: tooBig(found.kind) };
-  return { ok: true, ...found, data: found.mime === "image/jpeg" ? withoutExif(bytes) : bytes };
+  // The photo's hidden details (EXIF) come off in preparePhoto, after it's been turned the right way up.
+  return { ok: true, ...found, data: bytes };
+}
+
+/** Where a photo's smaller copy of width `w` is kept. */
+export const sizedPath = (path: string, w: number) => path.replace(/\.[a-z0-9]+$/, `.w${w}.webp`);
+
+/**
+ * A photo made ready to show: turned the right way up (phones record that separately),
+ * with everything hidden in it removed (location, camera), at most 2560 pixels across, and
+ * smaller copies for lists and avatars. GIFs (which may move) are kept as they are.
+ * A file sharp can't read is kept as it was (its EXIF already removed).
+ */
+async function preparePhoto(file: Extract<Checked, { ok: true }>): Promise<{ data: Uint8Array; sizes: { w: number; data: Uint8Array }[] }> {
+  const plain = file.mime === "image/jpeg" ? withoutExif(file.data) : file.data;
+  if (file.kind !== "image" || file.mime === "image/gif") return { data: plain, sizes: [] };
+  try {
+    const sharp = (await import("sharp")).default;
+    const base = sharp(file.data, { failOn: "error", limitInputPixels: 50_000_000 }).rotate();
+    // Its width as it will show: turned a quarter (orientation 5–8), it's the stored height.
+    const meta = await base.metadata();
+    const width = (meta.orientation ?? 1) >= 5 ? (meta.height ?? 0) : (meta.width ?? 0);
+    const main = base.clone().resize({ width: 2560, height: 2560, fit: "inside", withoutEnlargement: true });
+    const data =
+      file.mime === "image/png" ? await main.png({ compressionLevel: 9 }).toBuffer() : file.mime === "image/webp" ? await main.webp({ quality: 86 }).toBuffer() : await main.jpeg({ quality: 86, mozjpeg: true }).toBuffer();
+    const { PHOTO_SIZES } = await import("../media-url");
+    const sizes = [];
+    for (const w of PHOTO_SIZES) {
+      if (w >= width) break;
+      sizes.push({ w, data: new Uint8Array(await base.clone().resize({ width: w, withoutEnlargement: true }).webp({ quality: w <= 160 ? 72 : 78 }).toBuffer()) });
+    }
+    return { data: new Uint8Array(data), sizes };
+  } catch {
+    return { data: plain, sizes: [] };
+  }
 }
 
 async function keep(userId: number, id: string, file: Extract<Checked, { ok: true }>): Promise<Media> {
   const path = `${userId}/${id}.${file.ext}`;
-  await storage().write(path, file.data, file.mime);
+  const photo = await preparePhoto(file);
+  await storage().write(path, photo.data, file.mime);
+  for (const s of photo.sizes) await storage().write(sizedPath(path, s.w), s.data, "image/webp");
+  const widths = photo.sizes.map((s) => s.w);
   await db().run(
-    "insert into media (id, user_id, kind, mime, size, path, created_at) values (?, ?, ?, ?, ?, ?, ?)",
+    "insert into media (id, user_id, kind, mime, size, path, sizes, created_at) values (?, ?, ?, ?, ?, ?, ?, ?)",
     id,
     userId,
     file.kind,
     file.mime,
-    file.data.length,
+    photo.data.length,
     path,
+    widths.length ? JSON.stringify(widths) : null,
     Date.now()
   );
-  return { id, userId, kind: file.kind, mime: file.mime, size: file.data.length, path };
+  return { id, userId, kind: file.kind, mime: file.mime, size: photo.data.length, path, sizes: widths };
 }
 
 /** Checks and keeps an upload whose bytes are already here (the tests; small files). */
@@ -175,7 +213,8 @@ const toMedia = (row: Record<string, unknown>): Media => ({
   kind: row.kind as MediaKind,
   mime: String(row.mime),
   size: Number(row.size),
-  path: String(row.path)
+  path: String(row.path),
+  sizes: row.sizes ? (JSON.parse(String(row.sizes)) as number[]) : []
 });
 
 export async function mediaById(id: string): Promise<Media | null> {
@@ -192,15 +231,25 @@ export async function mediaByIds(ids: string[]): Promise<Map<string, Media>> {
   return new Map(rows.map((r) => [String(r.id), toMedia(r)]));
 }
 
-export const readMedia = (media: Media) => storage().read(media.path);
+/**
+ * Which file to send for a photo shown about `width` CSS pixels wide: the smallest copy at
+ * least twice that (sharp screens), or the full photo. Its path and type.
+ */
+export function pickSize(media: Media, width?: number): { path: string; mime: string } {
+  if (!width || !media.sizes.length) return { path: media.path, mime: media.mime };
+  const w = media.sizes.find((s) => s >= width * 2);
+  return w ? { path: sizedPath(media.path, w), mime: "image/webp" } : { path: media.path, mime: media.mime };
+}
+
+export const readMedia = (media: Media, path = media.path) => storage().read(path);
 
 /** A short-lived direct link to the file, where the store gives those (null: serve it ourselves). */
-export const mediaLink = (media: Media, seconds: number) => storage().link(media.path, seconds);
+export const mediaLink = (media: Media, seconds: number, path = media.path) => storage().link(path, seconds);
 
 /** Removes an upload the member no longer uses (only their own). */
 export async function removeMedia(userId: number, id: string) {
   const media = await mediaById(id);
   if (!media || media.userId !== userId) return;
-  await storage().remove([media.path]);
+  await storage().remove([media.path, ...media.sizes.map((w) => sizedPath(media.path, w))]);
   await db().run("delete from media where id = ?", id);
 }

@@ -5,4 +5,11 @@
  */
 const VERSION = 2;
 
-export const mediaUrl = (id: string) => `/media/${id}?v=${VERSION}`;
+/** The sizes kept of each photo (widths in pixels), smallest first. */
+export const PHOTO_SIZES = [160, 640, 1280] as const;
+
+/**
+ * `width`: about how wide it will show (in CSS pixels); the server sends the smallest copy
+ * at least twice that (for sharp screens), or the original if it's smaller.
+ */
+export const mediaUrl = (id: string, width?: number) => `/media/${id}?v=${VERSION}${width ? `&w=${Math.round(width)}` : ""}`;

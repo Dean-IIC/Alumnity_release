@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { signedInUser } from "../../../lib/server/auth";
-import { mediaById, mediaLink, readMedia } from "../../../lib/server/media";
+import { mediaById, mediaLink, pickSize, readMedia } from "../../../lib/server/media";
 import { canSeePostMedia } from "../../../lib/server/posts";
 import { canSeeStoryMedia } from "../../../lib/server/stories";
 
@@ -39,8 +39,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const onStory = onPost === null ? await canSeeStoryMedia(viewer, media.id) : null;
   if (onPost === false || onStory === false) return new NextResponse("Not found.", { status: 404 });
 
+  // A smaller copy of a photo, if the page asked for one (?w=…).
+  const width = Number(new URL(request.url).searchParams.get("w"));
+  const file = media.kind === "image" ? pickSize(media, Number.isFinite(width) && width > 0 ? Math.min(width, 4000) : undefined) : { path: media.path, mime: media.mime };
+
   const headers: Record<string, string> = {
-    "content-type": media.kind === "html" ? "text/html; charset=utf-8" : media.mime,
+    "content-type": media.kind === "html" ? "text/html; charset=utf-8" : file.mime,
     "x-content-type-options": "nosniff",
     "cache-control": "private, max-age=86400",
     "referrer-policy": "no-referrer",
@@ -50,11 +54,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   };
 
   if (media.kind !== "html") {
-    const link = await mediaLink(media, LINK_LIFE);
+    const link = await mediaLink(media, LINK_LIFE, file.path);
     if (link) return NextResponse.redirect(link, { status: 302, headers: { "cache-control": `private, max-age=${LINK_LIFE - 600}`, "referrer-policy": "no-referrer" } });
   }
 
-  const bytes = await readMedia(media);
+  const bytes = await readMedia(media, file.path);
   if (!bytes) return new NextResponse("Not found.", { status: 404 });
   // Videos are fetched in pieces as they play (and as you skip about).
   const size = bytes.length;

@@ -15,7 +15,7 @@ export function PhotoField({ name = "cover" }: { name?: string }) {
       <input type="hidden" name={name} value={id} />
       {id && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={mediaUrl(id)} alt="" style={{ maxWidth: 320, borderRadius: 8 }} />
+        <img src={mediaUrl(id, 320)} alt="" style={{ maxWidth: 320, borderRadius: 8 }} />
       )}
       <input
         type="file"

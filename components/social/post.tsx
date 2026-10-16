@@ -79,7 +79,7 @@ export function Post({ post, photos, full = false, me }: Props) {
               <video key={m.id} src={mediaUrl(m.id)} controls playsInline preload="metadata" className="post__print" />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={m.id} src={mediaUrl(m.id)} alt={`Photo ${i + 1} of ${post.media.length} posted by ${post.author.name}`} loading="lazy" decoding="async" className="post__print" />
+              <img key={m.id} src={mediaUrl(m.id, full ? 640 : post.media.length > 1 ? 320 : 640)} alt={`Photo ${i + 1} of ${post.media.length} posted by ${post.author.name}`} loading="lazy" decoding="async" className="post__print" />
             )
           )}
         </div>

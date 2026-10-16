@@ -40,7 +40,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
 
       {cause.cover && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="cause-cover" src={mediaUrl(cause.cover)} alt="" />
+        <img className="cause-cover" src={mediaUrl(cause.cover, 640)} alt="" />
       )}
 
       <section className="wf-card" aria-label="Raised so far">

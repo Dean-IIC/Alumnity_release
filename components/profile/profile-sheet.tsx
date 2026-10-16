@@ -123,7 +123,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: {
           <div className="profile__avatar">
             {profile.photo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={mediaUrl(profile.photo.id)} alt={person.name} />
+              <img src={mediaUrl(profile.photo.id, 200)} alt={person.name} />
             ) : (
               <InkSeal name={person.name} ring={ring} seed={person.id} size={148} />
             )}

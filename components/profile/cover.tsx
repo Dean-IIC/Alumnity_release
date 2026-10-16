@@ -28,7 +28,7 @@ export function Cover({ cover, fallback, name, seed }: { cover: MediaRef | null;
     <div className={`cover ${cover ? `cover--${cover.kind}` : "cover--campus"}`}>
       {cover?.kind === "image" && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="cover__media" src={mediaUrl(cover.id)} alt={`${name}’s cover`} />
+        <img className="cover__media" src={mediaUrl(cover.id, 640)} alt={`${name}’s cover`} />
       )}
       {cover?.kind === "video" && <CoverVideo id={cover.id} />}
       {cover?.kind === "html" && (

@@ -10,7 +10,7 @@ import { initialsOf } from "../profile/ink-seal";
 export function Avatar({ name, photoId, size = 44, className = "" }: { name: string; photoId?: string | null; size?: number; className?: string }) {
   if (photoId) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img className={`avatar ${className}`} src={mediaUrl(photoId)} alt="" width={size} height={size} loading="lazy" decoding="async" />;
+    return <img className={`avatar ${className}`} src={mediaUrl(photoId, size)} alt="" width={size} height={size} loading="lazy" decoding="async" />;
   }
   return (
     <svg className={`avatar avatar--seal ${className}`} width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">

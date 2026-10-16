@@ -19,7 +19,7 @@ const IMAGE_TIME = 5000;
 function Face({ reel, size = 64 }: { reel: Pick<ReelData, "author">; size?: number }) {
   return reel.author.photoId ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img className="story-face__img" src={mediaUrl(reel.author.photoId)} alt="" width={size} height={size} />
+    <img className="story-face__img" src={mediaUrl(reel.author.photoId, size)} alt="" width={size} height={size} />
   ) : (
     <span className="story-face__initials" style={{ width: size, height: size }}>
       {reel.author.initials}
@@ -232,7 +232,7 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={story.id} src={mediaUrl(story.mediaId)} alt={story.caption || `${reel.author.name}'s story`} />
+            <img key={story.id} src={mediaUrl(story.mediaId, 640)} alt={story.caption || `${reel.author.name}'s story`} />
           )}
           <button type="button" className="story-viewer__tap story-viewer__tap--back" onClick={back} aria-label="Previous" />
           <button type="button" className="story-viewer__tap story-viewer__tap--next" onClick={next} aria-label="Next" />
