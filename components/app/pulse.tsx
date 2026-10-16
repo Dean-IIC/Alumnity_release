@@ -12,12 +12,17 @@ import { useEffect, useRef } from "react";
 
 type Counts = { n: number; m: number; r: number };
 
-export function Pulse({ counts, thread }: { counts: Counts; thread?: { with: number; latest: number } }) {
+/**
+ * Around every page (the counts, every 25 s), and in an open conversation (its newest
+ * message, every 4 s). Each redraws only when what it watches has changed.
+ */
+export function Pulse({ counts, thread }: { counts?: Counts; thread?: { with: number; latest: number } }) {
   const router = useRouter();
-  const known = useRef({ ...counts, t: thread?.latest ?? 0 });
+  const known = useRef({ ...(counts ?? { n: 0, m: 0, r: 0 }), t: thread?.latest ?? 0 });
 
   useEffect(() => {
-    known.current = { ...counts, t: thread?.latest ?? 0 };
+    known.current = { ...(counts ?? known.current), t: thread?.latest ?? 0 };
+    if (!counts) return;
     const unread = counts.n + counts.m;
     const apply = () => {
       const base = document.title.replace(/^\(\d+\+?\) /, "");
@@ -29,7 +34,7 @@ export function Pulse({ counts, thread }: { counts: Counts; thread?: { with: num
     const watch = new MutationObserver(apply);
     watch.observe(document.head, { subtree: true, childList: true, characterData: true });
     return () => watch.disconnect();
-  }, [counts.n, counts.m, counts.r, thread?.latest]);
+  }, [counts?.n, counts?.m, counts?.r, thread?.latest]);
 
   useEffect(() => {
     const every = thread ? 4_000 : 25_000;
@@ -41,7 +46,8 @@ export function Pulse({ counts, thread }: { counts: Counts; thread?: { with: num
         try {
           const now = await (await fetch(`/api/pulse${thread ? `?thread=${thread.with}` : ""}`, { cache: "no-store" })).json();
           const was = known.current;
-          if (now.n !== was.n || now.m !== was.m || now.r !== was.r || (thread && now.t !== was.t)) {
+          const changed = thread ? now.t !== was.t : now.n !== was.n || now.m !== was.m || now.r !== was.r;
+          if (changed) {
             known.current = now;
             router.refresh();
           }

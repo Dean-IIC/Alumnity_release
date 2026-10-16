@@ -57,6 +57,12 @@ previews should work.
 
 Authentication → **Rate Limits**: the defaults are fine; Alumnity also limits tries itself.
 
+Project Settings → **JWT Keys** (JWT signing keys): **switch to asymmetric keys** (ECC
+P-256) if the project still uses the legacy shared secret. With the legacy secret, every
+page asks Supabase's servers who's signed in (twice: middleware and page), adding a
+network round trip to each page; with signing keys the check happens on our server
+from cached public keys. Existing sessions keep working through the switch.
+
 ## 3. Environment variables
 
 Set these in **Vercel → Project → Settings → Environment Variables** (Production, and

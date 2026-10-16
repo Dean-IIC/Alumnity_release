@@ -1,36 +1,20 @@
 import type { ReactNode } from "react";
 import type { User } from "../../lib/server/auth";
-import { photoIdsOf } from "../../lib/server/profile";
-import { unreadMessages, unreadNotifications, waitingRequests } from "../../lib/server/social";
-import { SiteFooter } from "../site-footer";
 import { BackLink } from "../back-link";
-import { AppBar } from "./app-bar";
 import { Pulse } from "./pulse";
-import { Icon } from "../social/icons";
 import "../../app/styles/wire.css";
 import "../../app/styles/social.css";
 import "../../app/styles/app-bar.css";
 
 export type Section = "home" | "people" | "connections" | "messages" | "ask" | "events" | "groups" | "causes" | "notifications" | "desk" | "batch" | "me";
 
-const Count = ({ n }: { n: number }) =>
-  n ? (
-    <>
-      <span className="wf-count" aria-hidden="true">
-        {n > 99 ? "99+" : n}
-      </span>
-      <span className="sr-only">, {n} new</span>
-    </>
-  ) : null;
-
 /**
- * Every signed-in page: the app bar (with what's waiting in each place), the page, the
- * footer; on a phone, a tab bar at the bottom for the places people go most.
+ * A signed-in page's own part: a way back, its heading, and what's on it. The bar, the
+ * phone's tab bar and the footer are around every such page already, and stay in place
+ * between them (app/(member)/layout.tsx).
  * `bare`: the page lays itself out (the feed), with no heading of ours.
  */
-export async function AppPage({
-  user,
-  current,
+export function AppPage({
   title,
   intro,
   children,
@@ -38,7 +22,9 @@ export async function AppPage({
   thread,
   back
 }: {
+  /** Who's signed in (the page has already checked). */
   user: User;
+  /** Kept for the pages' own use; the bar works out the section from the address. */
   current: Section;
   title?: string;
   intro?: ReactNode;
@@ -49,17 +35,8 @@ export async function AppPage({
   /** A page inside a section: the way back to it (or to wherever you came from). */
   back?: { href: string; label: string };
 }) {
-  const [connections, messages, notifications, photos] = await Promise.all([
-    waitingRequests(user.id),
-    unreadMessages(user.id),
-    unreadNotifications(user.id),
-    photoIdsOf([user.id])
-  ]);
-  const counts = { connections, messages, notifications };
-  const tab = (key: Section) => (key === current ? ("page" as const) : undefined);
   return (
     <>
-      <AppBar user={user} current={current} counts={counts} photoId={photos.get(user.id) ?? null} />
       {bare ? (
         <main className="container" id="main">
           {children}
@@ -74,34 +51,7 @@ export async function AppPage({
           {children}
         </main>
       )}
-      <SiteFooter />
-      <Pulse counts={{ n: notifications, m: messages, r: connections }} thread={thread} />
-      {/* On a phone: the five places people go most, always in reach of a thumb. */}
-      <nav className="tab-bar" aria-label="Main">
-        <a href="/home" aria-current={tab("home")}>
-          <Icon name="home" size={24} />
-          Home
-        </a>
-        <a href="/people" aria-current={tab("people")}>
-          <Icon name="people" size={24} />
-          People
-          <Count n={counts.connections} />
-        </a>
-        <a href="/home#compose" aria-label="New post">
-          <span className="tab-bar__post">
-            <Icon name="plus" size={24} />
-          </span>
-        </a>
-        <a href="/messages" aria-current={tab("messages")}>
-          <Icon name="message" size={24} />
-          Messages
-          <Count n={counts.messages} />
-        </a>
-        <a href="/me" aria-current={tab("me")}>
-          <Icon name="you" size={24} />
-          You
-        </a>
-      </nav>
+      {thread && <Pulse thread={thread} />}
     </>
   );
 }

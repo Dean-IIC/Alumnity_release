@@ -212,3 +212,31 @@ html:not([data-intro="skip"]) .landing:not(.landing--intro-complete) .site-nav__
     display: block;
   }
 }
+
+.sign-in {
+  white-space: nowrap;
+}
+
+.site-nav__panel-login {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .site-nav__end .sign-in {
+    display: none;
+  }
+
+  .site-nav__panel-login {
+    display: flex !important;
+    color: var(--color-blue) !important;
+  }
+
+  .site-nav__join {
+    min-height: 40px;
+    padding-inline: var(--space-4);
+  }
+
+  .site-nav__end {
+    gap: var(--space-2);
+  }
+}

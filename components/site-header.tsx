@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BrandLockup } from "./brand-lockup";
 import { soon } from "./coming-soon";
+import { MenuCloser } from "./app/menu-closer";
 
 type SiteHeaderProps = {
   /** The landing page: the header lies over the hero, and the intro lands its lockup on this one. */
@@ -65,7 +66,7 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
           </>
         )}
         {/* A phone: the links in a menu. */}
-        <details className="site-nav__menu">
+        <details className="site-nav__menu app-menu">
           <summary aria-label="Menu">
             <span aria-hidden="true" className="site-nav__burger" />
           </summary>
@@ -76,8 +77,14 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
               </a>
             ))}
             {!me && <a href="/committee">Committee</a>}
+            {!me && (
+              <a href="/login" className="site-nav__panel-login">
+                Log in
+              </a>
+            )}
           </div>
         </details>
+        <MenuCloser />
       </div>
     </header>
   );
