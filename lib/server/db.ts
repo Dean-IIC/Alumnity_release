@@ -51,7 +51,8 @@ export function numbered(sql: string): string {
 
 // ---------- Timing (the health check, app/api/health) ----------
 
-export type Timed = { sql: string; at: number; ms: number };
+/** A query: when it started (ms from the start of the trace), and how long it took (null: still running). */
+export type Timed = { sql: string; at: number; ms: number | null };
 const tracing = new AsyncLocalStorage<{ start: number; queries: Timed[] }>();
 
 /** Runs `work`, noting every query it makes: when it started (from the start of `work`) and how long it took. */
@@ -65,10 +66,13 @@ async function timed<T>(text: string, work: () => Promise<T>): Promise<T> {
   const trace = tracing.getStore();
   if (!trace) return work();
   const began = performance.now();
+  // Noted as it starts, so one that never comes back still shows.
+  const entry: Timed = { sql: text.replace(/\s+/g, " ").trim().slice(0, 90), at: Math.round(began - trace.start), ms: null };
+  trace.queries.push(entry);
   try {
     return await work();
   } finally {
-    trace.queries.push({ sql: text.replace(/\s+/g, " ").trim().slice(0, 90), at: Math.round(began - trace.start), ms: Math.round(performance.now() - began) });
+    entry.ms = Math.round(performance.now() - began);
   }
 }
 

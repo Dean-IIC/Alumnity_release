@@ -35,7 +35,11 @@ describe("the health check", () => {
     for (const email of ["student.health@example.com", "alumnus.health@example.com", "admin.health@example.com"]) {
       const body = await (await ask(`?as=${email}`)).json();
       expect(body.home.queries).toBeGreaterThan(5);
-      expect(Object.keys(body.home.steps)).toContain("focus");
+      expect(body.home.finished).toBe(true);
+      expect(body.home.stillRunning).toEqual([]);
+      // Every part of Home finished, each with its own time.
+      expect(Object.keys(body.home.parts)).toEqual(expect.arrayContaining(["feedFor", "photoIdsOf (feed)", "peopleToMeet", "layout: unread messages"]));
+      for (const value of Object.values(body.home.parts)) expect(typeof value).toBe("number");
       expect(JSON.stringify(body)).not.toContain("Health ");
       expect(JSON.stringify(body)).not.toContain("@example.com");
     }
@@ -49,5 +53,6 @@ describe("the health check", () => {
     });
     expect(result).toHaveLength(2);
     expect(queries.map((q) => q.sql).sort()).toEqual(["select 1", "select 2 as n", "select 3 as n"]);
+    expect(queries.every((q) => typeof q.ms === "number")).toBe(true);
   });
 });
