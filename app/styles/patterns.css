@@ -95,60 +95,81 @@
   }
 }
 
-/* ---------- The signed-in pages' margins ---------- */
+/* ---------- The signed-in pages' margins (components/app/margin-art.tsx) ---------- */
 
-/* --p draws the marks (0 → 1); registered so it can be animated. */
-@property --p {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-
-.app-paper {
-  --p: 1;
+.margin-art {
   position: fixed;
   z-index: -1;
   inset: 0;
   pointer-events: none;
-  animation: app-paper-draw 2.4s var(--ease-ink, ease-out) both;
-}
-
-@keyframes app-paper-draw {
-  from {
-    --p: 0;
-  }
-  to {
-    --p: 1;
-  }
-}
-
-.app-paper .side-patterns {
   opacity: 0.32;
 }
 
-/* Each column only as wide as the margin beside the page (plus a little under its edge). */
-.app-paper .side-pattern {
-  --w: clamp(140px, calc((100vw - var(--container)) / 2 + 80px), 380px);
-  opacity: 1;
+.margin-art__column {
+  /* Each column only as wide as the margin beside the page (plus a little under its edge). */
+  position: absolute;
+  top: 0;
+  width: clamp(140px, calc((100vw - var(--container)) / 2 + 80px), 380px);
+  height: 100%;
+  overflow: hidden;
 }
 
-.app-paper .side-pattern--left {
-  transform: none;
+.margin-art__column--left {
+  left: 0;
 }
 
-.app-paper .side-pattern--right {
+.margin-art__column--right {
+  right: 0;
   transform: scaleX(-1);
 }
 
-/* Narrow screens: the page needs the whole width; the margins stay plain paper. */
-@media (max-width: 1100px) {
-  .app-paper {
-    display: none;
-  }
+.margin-art__mark {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+  vector-effect: non-scaling-stroke;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .app-paper {
-    animation: none;
+.margin-art__mark--dashed {
+  stroke-dasharray: 2 9;
+}
+
+.margin-art__mark--red {
+  stroke: var(--color-red);
+}
+
+.margin-art__mark--blue {
+  stroke: var(--color-blue);
+}
+
+.margin-art__mark--gold {
+  stroke: var(--color-gold);
+}
+
+.margin-art__dot {
+  fill: var(--color-red);
+}
+
+/* Phones and tablets: a small drawing by the title instead of the columns. */
+.margin-art__phone {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .margin-art {
+    display: none;
+  }
+
+  .margin-art__phone {
+    position: absolute;
+    z-index: -1;
+    top: 72px;
+    right: 4px;
+    display: block;
+    width: 150px;
+    height: 88px;
+    pointer-events: none;
+    opacity: 0.4;
   }
 }
