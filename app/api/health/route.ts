@@ -52,7 +52,11 @@ function summary(queries: Timed[]) {
   const slowest = [...queries].sort((a, b) => b.ms - a.ms).slice(0, 8);
   let mostAtOnce = 0;
   for (const q of queries) mostAtOnce = Math.max(mostAtOnce, queries.filter((o) => o.at <= q.at && o.at + o.ms > q.at).length);
-  return { queries: queries.length, mostAtOnce, slowest };
+  // The same query asked more than once for one page: work that could be shared.
+  const times = new Map<string, number>();
+  for (const q of queries) times.set(q.sql, (times.get(q.sql) ?? 0) + 1);
+  const repeated = [...times].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]).map(([sql, n]) => ({ sql, n }));
+  return { queries: queries.length, mostAtOnce, slowest, repeated };
 }
 
 export async function GET(request: Request) {

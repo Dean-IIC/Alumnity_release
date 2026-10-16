@@ -462,31 +462,43 @@ export async function stats(me: User) {
   const samples = (await count("select count(*) as n from users where sample = 1")) > 0;
   const real = "select id from users where sample = 0";
   const by = (col: string) => (samples ? `and ${col} in (${real})` : "");
-  const [members, joinedThisWeek, signedInThisWeek, alumni, students, mentors, connections, asks, answered, posts, events, openReports, paused, groups, causesWaiting, raised, ...joinsByWeek] = await Promise.all([
-    count("select count(*) as n from users where suspended_at is null and sample = 0"),
-    count("select count(*) as n from users where created_at > ? and sample = 0", week),
-    count("select count(*) as n from users where last_seen_at > ? and sample = 0", week),
-    count("select count(*) as n from users where role = 'alumnus' and suspended_at is null and sample = 0"),
-    count("select count(*) as n from users where role = 'student' and suspended_at is null and sample = 0"),
-    count(
-      "select count(*) as n from profiles join users on users.id = profiles.user_id where (profiles.data::jsonb -> 'happyTo' ->> 'mentor') = 'true' and users.sample = 0"
-    ),
-    count(`select count(*) as n from connections where status = 'accepted' ${by("requester")} ${by("addressee")}`),
-    count(`select count(*) as n from asks where true ${by("author")}`),
-    count(`select count(*) as n from asks where status = 'answered' ${by("author")}`),
-    count(`select count(*) as n from posts where removed_at is null ${by("author")}`),
-    count(`select count(*) as n from events where true ${by("organiser")}`),
-    count("select count(*) as n from reports where status = 'open'"),
-    count("select count(*) as n from users where suspended_at is not null"),
-    count("select count(*) as n from groups where removed_at is null"),
-    count("select count(*) as n from causes where status = 'pending'"),
-    count("select coalesce(sum(amount), 0) as n from donations where status = 'paid'"),
-    /** New members in each of the last eight weeks, oldest first. */
-    ...Array.from({ length: 8 }, (_, i) => {
+  // Every total in one query (one round trip, one connection), not one each.
+  const totals: [string, string, ...unknown[]][] = [
+    ["members", "select count(*) from users where suspended_at is null and sample = 0"],
+    ["joinedThisWeek", "select count(*) from users where created_at > ? and sample = 0", week],
+    ["signedInThisWeek", "select count(*) from users where last_seen_at > ? and sample = 0", week],
+    ["alumni", "select count(*) from users where role = 'alumnus' and suspended_at is null and sample = 0"],
+    ["students", "select count(*) from users where role = 'student' and suspended_at is null and sample = 0"],
+    [
+      "mentors",
+      "select count(*) from profiles join users on users.id = profiles.user_id where (profiles.data::jsonb -> 'happyTo' ->> 'mentor') = 'true' and users.sample = 0"
+    ],
+    ["connections", `select count(*) from connections where status = 'accepted' ${by("requester")} ${by("addressee")}`],
+    ["asks", `select count(*) from asks where true ${by("author")}`],
+    ["answered", `select count(*) from asks where status = 'answered' ${by("author")}`],
+    ["posts", `select count(*) from posts where removed_at is null ${by("author")}`],
+    ["events", `select count(*) from events where true ${by("organiser")}`],
+    ["openReports", "select count(*) from reports where status = 'open'"],
+    ["paused", "select count(*) from users where suspended_at is not null"],
+    ["groups", "select count(*) from groups where removed_at is null"],
+    ["causesWaiting", "select count(*) from causes where status = 'pending'"],
+    ["raised", "select coalesce(sum(amount), 0) from donations where status = 'paid'"],
+    // New members in each of the last eight weeks, oldest first.
+    ...Array.from({ length: 8 }, (_, i): [string, string, ...unknown[]] => {
       const from = now - (8 - i) * 7 * DAY;
-      return count("select count(*) as n from users where sample = 0 and created_at > ? and created_at <= ?", from, from + 7 * DAY);
+      return [`week${i}`, "select count(*) from users where sample = 0 and created_at > ? and created_at <= ?", from, from + 7 * DAY];
     })
-  ]);
+  ];
+  const row =
+    (await db().one<Record<string, number>>(
+      `select ${totals.map(([name, sql]) => `(${sql}) as "${name}"`).join(", ")}`,
+      ...totals.flatMap(([, , ...args]) => args)
+    )) ?? {};
+  const n = (name: string) => Number(row[name] ?? 0);
+  const [members, joinedThisWeek, signedInThisWeek, alumni, students, mentors, connections, asks, answered, posts, events, openReports, paused, groups, causesWaiting, raised] = totals
+    .slice(0, 16)
+    .map(([name]) => n(name));
+  const joinsByWeek = Array.from({ length: 8 }, (_, i) => n(`week${i}`));
   return { members, joinedThisWeek, signedInThisWeek, alumni, students, mentors, connections, asks, answered, posts, events, openReports, paused, groups, causesWaiting, raised, joinsByWeek };
 }
 
