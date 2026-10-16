@@ -183,6 +183,11 @@ export async function peopleToMeet(me: User, limit = 4): Promise<User[]> {
   );
 }
 
+/** How many active members there are (sample members, in development, aren't counted). */
+export async function memberCount(): Promise<number> {
+  return (await db().one<{ n: number }>("select count(*) as n from users where suspended_at is null and sample = 0"))?.n ?? 0;
+}
+
 /** The viewer's batch on Alumnity (same branch, course and year), them excluded. */
 export async function batchmates(person: User): Promise<User[]> {
   if (!person.branch || !person.joined) return [];

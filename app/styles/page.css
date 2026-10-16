@@ -84,3 +84,69 @@
   width: 100%;
   height: 100%;
 }
+
+/* ---------- When a page fails, and while one opens ---------- */
+
+.page-error {
+  max-width: 560px;
+  padding-block: var(--space-9);
+}
+
+.page-error h1 {
+  margin: 0 0 var(--space-3);
+  color: var(--color-red);
+  font: var(--text-title) / 1.1 var(--font-voice);
+}
+
+.page-error p {
+  color: var(--color-ink-muted);
+}
+
+.page-error__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.page-error__ref {
+  margin-top: var(--space-5);
+  font-size: var(--text-fine);
+}
+
+.page-loading {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.page-loading__line {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-blue);
+  animation: page-loading 1.1s var(--ease-ink, ease-in-out) infinite;
+}
+
+@keyframes page-loading {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(260%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loading__line {
+    width: 100%;
+    animation: none;
+    opacity: 0.5;
+  }
+}

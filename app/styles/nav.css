@@ -106,3 +106,109 @@ html:not([data-intro="skip"]) .landing:not(.landing--intro-complete) .site-nav__
   opacity: 1;
   transform: translate(-50%, 0);
 }
+
+/* The end of the bar: Log in and Join (or your name), and on a phone the menu. */
+.site-nav__end {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.site-nav__join {
+  min-height: 40px;
+  padding-inline: var(--space-5);
+}
+
+.site-nav__menu {
+  position: relative;
+  display: none;
+}
+
+.site-nav__menu > summary {
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  cursor: pointer;
+  list-style: none;
+}
+
+.site-nav__menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Three pencil lines. */
+.site-nav__burger,
+.site-nav__burger::before,
+.site-nav__burger::after {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-ink);
+}
+
+.site-nav__burger {
+  position: relative;
+}
+
+.site-nav__burger::before,
+.site-nav__burger::after {
+  position: absolute;
+  left: 0;
+  content: "";
+}
+
+.site-nav__burger::before {
+  top: -7px;
+}
+
+.site-nav__burger::after {
+  top: 7px;
+}
+
+.site-nav__panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  width: 240px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+
+.site-nav__panel a {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: 0 var(--space-3);
+  border-radius: 10px;
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.site-nav__panel a:hover,
+.site-nav__panel a[aria-current] {
+  background: var(--color-paper-raised);
+}
+
+@media (max-width: 1100px) {
+  .site-nav nav {
+    gap: var(--space-5);
+    margin-left: var(--space-5);
+  }
+}
+
+@media (max-width: 960px) {
+  .site-nav nav {
+    display: none;
+  }
+
+  .site-nav__menu {
+    display: block;
+  }
+}

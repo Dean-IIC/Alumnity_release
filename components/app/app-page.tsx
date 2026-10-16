@@ -3,6 +3,7 @@ import type { User } from "../../lib/server/auth";
 import { photoIdsOf } from "../../lib/server/profile";
 import { unreadMessages, unreadNotifications, waitingRequests } from "../../lib/server/social";
 import { SiteFooter } from "../site-footer";
+import { BackLink } from "../back-link";
 import { AppBar } from "./app-bar";
 import { Pulse } from "./pulse";
 import { Icon } from "../social/icons";
@@ -34,7 +35,8 @@ export async function AppPage({
   intro,
   children,
   bare = false,
-  thread
+  thread,
+  back
 }: {
   user: User;
   current: Section;
@@ -44,6 +46,8 @@ export async function AppPage({
   bare?: boolean;
   /** An open conversation, kept up to date more often. */
   thread?: { with: number; latest: number };
+  /** A page inside a section: the way back to it (or to wherever you came from). */
+  back?: { href: string; label: string };
 }) {
   const [connections, messages, notifications, photos] = await Promise.all([
     waitingRequests(user.id),
@@ -62,6 +66,7 @@ export async function AppPage({
         </main>
       ) : (
         <main className="wf container" id="main">
+          {back && <BackLink fallback={back.href} label={back.label} />}
           <header className="wf-head">
             {title && <h1>{title}</h1>}
             {intro && <p className="wf-muted">{intro}</p>}

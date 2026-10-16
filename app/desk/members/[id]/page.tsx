@@ -25,7 +25,7 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
   const hidden = <input type="hidden" name="id" value={m.id} />;
 
   return (
-    <AppPage user={me} current="desk" title={m.name} intro={<a href="/desk?tab=members">← Members</a>}>
+    <AppPage user={me} current="desk" back={{ href: "/desk?tab=members", label: "Members" }} title={m.name}>
       <section className="wf-card">
         <p>
           <strong>Email:</strong> {m.email}

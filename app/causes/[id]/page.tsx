@@ -31,6 +31,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
     <AppPage
       user={me}
       current="causes"
+      back={{ href: "/causes", label: "Causes" }}
       title={cause.title}
       intro={cause.author ? <>Started by <a href={`/people/${cause.author.id}`}>{cause.author.name}</a> · {timeAgo(cause.createdAt)}</> : undefined}
     >

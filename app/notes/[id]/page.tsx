@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BackLink } from "../../../components/back-link";
 import { notFound } from "next/navigation";
 import { AppPage } from "../../../components/app/app-page";
 import { Post } from "../../../components/social/post";
@@ -20,9 +21,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
     <AppPage user={me} current="home" bare>
       <div className="feed-layout feed-layout--single">
         <div className="feed-layout__main">
-          <a className="wf-link-button" href="/home">
-            ← Home
-          </a>
+          <BackLink fallback="/home" label="Back" />
           <h1 className="sr-only">A post by {post.author.name}</h1>
           <Post post={post} full me={me} photos={await photoIdsOf([me.id, post.author.id, ...post.comments.map((c) => c.author.id)])} />
         </div>

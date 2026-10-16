@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { SiteHeader } from "../../components/site-header";
-import { SiteFooter } from "../../components/site-footer";
-import { SoonNotice } from "../../components/coming-soon";
+import { AppPage } from "../../components/app/app-page";
 import { LogOutButton } from "../../components/join/log-out-button";
 import { ProfileSheet } from "../../components/profile/profile-sheet";
 import { profileOf } from "../../lib/server/profile";
-import { currentUser } from "../../lib/server/session";
+import { requireUser } from "../../lib/server/session";
 import { batchSizeOf } from "../../lib/server/register";
 import "../styles/join.css";
 import "../styles/profile.css";
@@ -17,12 +14,10 @@ export const dynamic = "force-dynamic";
 
 /** Your page, as you see it: everything on it, who each part is shown to, and what's still empty. */
 export default async function MePage() {
-  const user = await currentUser();
-  if (!user) redirect("/login?next=/me");
+  const user = await requireUser("/me");
   return (
-    <>
-      <SiteHeader />
-      <main className="profile-page container">
+    <AppPage user={user} current="me" bare>
+      <div className="profile-page">
         <ProfileSheet person={user} profile={await profileOf(user.id)} isOwner
           batchSize={user.usn ? await batchSizeOf(user.usn) : undefined}
           actions={
@@ -37,9 +32,7 @@ export default async function MePage() {
           }
         />
         <LogOutButton />
-      </main>
-      <SiteFooter />
-      <SoonNotice />
-    </>
+      </div>
+    </AppPage>
   );
 }

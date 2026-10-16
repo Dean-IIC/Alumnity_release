@@ -105,7 +105,14 @@ export async function signedInUser(): Promise<User | null> {
   // Seen today, to the hour (for the desk's numbers), without a write on every page.
   const now = Date.now();
   if (row.last_seen_at == null || now - Number(row.last_seen_at) > 60 * MINUTE) {
-    await db().run("update users set last_seen_at = ? where id = ?", now, Number(row.id));
+    const note = () => db().run("update users set last_seen_at = ? where id = ?", now, Number(row.id)).catch(() => 0);
+    // After the page is sent, where the host allows it (it needn't hold the page up).
+    try {
+      const { after } = await import("next/server");
+      after(note);
+    } catch {
+      await note();
+    }
   }
   return toUser(row);
 }

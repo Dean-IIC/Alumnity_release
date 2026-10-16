@@ -8,19 +8,22 @@ type SiteHeaderProps = {
   /** The landing page: the header lies over the hero, and the intro lands its lockup on this one. */
   landing?: boolean;
   /** The section this page belongs to, marked in the nav. */
-  current?: "gallery";
+  current?: "gallery" | "how-it-works" | "about" | "community" | "committee" | "developers";
   /** Who's signed in, when the server already knows (members' pages): no "Log in" flash. */
   member?: { firstName: string };
 };
 
+/** For visitors: what Alumnity is, the college's photos, and who's behind it. */
 const LINKS = [
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/people", label: "Explore people" },
-  { href: "/gallery", label: "Gallery", section: "gallery" }
+  { href: "/gallery", label: "Gallery", section: "gallery" },
+  { href: "/how-it-works", label: "How it works", section: "how-it-works" },
+  { href: "/about", label: "About", section: "about" },
+  { href: "/community", label: "Alumni community", section: "community" },
+  { href: "/developers", label: "Developers", section: "developers" }
 ] as const;
 
-/** Signed in, the first link goes to your Home instead. */
-const MEMBER_LINKS = [{ href: "/home", label: "Home" }, ...LINKS.slice(1)] as const;
+/** Signed in, on these public pages: back to your Home first. */
+const MEMBER_LINKS = [{ href: "/home", label: "Your Home", section: "home" }, ...LINKS.slice(0, 3)] as const;
 
 /** The one header every page shares: the lockup home, the sections, and Log in. */
 export function SiteHeader({ landing = false, current, member }: SiteHeaderProps) {
@@ -41,25 +44,41 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
       </a>
       <nav aria-label="Primary navigation">
         {(me ? MEMBER_LINKS : LINKS).map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            onClick={soon}
-            aria-current={"section" in link && link.section === current ? "page" : undefined}
-          >
+          <a key={link.href} href={link.href} onClick={soon} aria-current={link.section === current ? "page" : undefined}>
             {link.label}
           </a>
         ))}
       </nav>
-      {me ? (
-        <a className="sign-in" href="/me">
-          {me.firstName} <span aria-hidden="true">→</span>
-        </a>
-      ) : (
-        <a className="sign-in" href="/login" onClick={soon}>
-          Log in <span aria-hidden="true">↗</span>
-        </a>
-      )}
+      <div className="site-nav__end">
+        {me ? (
+          <a className="sign-in" href="/home">
+            {me.firstName} <span aria-hidden="true">→</span>
+          </a>
+        ) : (
+          <>
+            <a className="sign-in" href="/login" onClick={soon}>
+              Log in
+            </a>
+            <a className="button button--primary site-nav__join" href="/join" onClick={soon}>
+              Join
+            </a>
+          </>
+        )}
+        {/* A phone: the links in a menu. */}
+        <details className="site-nav__menu">
+          <summary aria-label="Menu">
+            <span aria-hidden="true" className="site-nav__burger" />
+          </summary>
+          <div className="site-nav__panel">
+            {(me ? MEMBER_LINKS : LINKS).map((link) => (
+              <a key={link.href} href={link.href} aria-current={link.section === current ? "page" : undefined}>
+                {link.label}
+              </a>
+            ))}
+            {!me && <a href="/committee">Committee</a>}
+          </div>
+        </details>
+      </div>
     </header>
   );
 }

@@ -55,8 +55,22 @@ const values = (params: unknown[]) => params.map((p) => (p === undefined ? null 
 
 type Sql = postgres.Sql | postgres.TransactionSql;
 
+/** Errors that mean the connection dropped (the pooler restarted, a network blip), not that the query was wrong. */
+const DROPPED = new Set(["CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED", "CONNECT_TIMEOUT", "ECONNRESET", "ETIMEDOUT", "EPIPE"]);
+const isRead = (text: string) => /^\s*(select|with)/i.test(text);
+
 function fromPostgres(sql: Sql): Db {
-  const query = (text: string, params: unknown[]) => sql.unsafe(numbered(text), values(params) as postgres.ParameterOrJSON<never>[]);
+  // A read whose connection dropped is tried once more on a fresh one; a write never is
+  // (it may already have happened).
+  const query = async (text: string, params: unknown[]) => {
+    const run = () => sql.unsafe(numbered(text), values(params) as postgres.ParameterOrJSON<never>[]);
+    try {
+      return await run();
+    } catch (error) {
+      if (!isRead(text) || !DROPPED.has(String((error as { code?: string }).code))) throw error;
+      return run();
+    }
+  };
   return {
     all: async <T>(text: string, ...params: unknown[]) => (await query(text, params)) as unknown as T[],
     one: async <T>(text: string, ...params: unknown[]) => ((await query(text, params)) as unknown as T[])[0],
@@ -76,8 +90,9 @@ function connectPostgres(url: string): Db {
     // Supabase's pooler (transaction mode) doesn't keep prepared statements between requests.
     prepare: false,
     // Serverless: a few connections per instance, closed when idle.
-    max: Number(process.env.DATABASE_POOL || 5),
+    max: Number(process.env.DATABASE_POOL || 10),
     idle_timeout: 20,
+    connect_timeout: 10,
     types: {
       // int8 and numeric as numbers (counts, sums, ids, millisecond times).
       bigint: { to: 20, from: [20, 1700], serialize: (v: number) => String(v), parse: (v: string) => Number(v) }

@@ -26,7 +26,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const hidden = <input type="hidden" name="id" value={event.id} />;
 
   return (
-    <AppPage user={me} current="events" title={event.title} intro={event.organiser ? `Put up by ${event.organiser.name}` : undefined}>
+    <AppPage user={me} current="events" back={{ href: "/events", label: "Events" }} title={event.title} intro={event.organiser ? `Put up by ${event.organiser.name}` : undefined}>
       <article className="wf-card">
         {event.cancelled && <p className="wf-note wf-note--error">This event was cancelled.</p>}
         <p>

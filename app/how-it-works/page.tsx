@@ -30,7 +30,7 @@ const SAFETY = [
 export default function HowItWorks() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader current="how-it-works" />
       <main className="wf container">
         <header className="wf-head">
           <h1>How Alumnity works</h1>

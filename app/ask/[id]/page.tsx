@@ -24,7 +24,7 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
   const hidden = <input type="hidden" name="id" value={ask.id} />;
 
   return (
-    <AppPage user={me} current="ask" title={ask.title} intro={`Asked by ${asker ? "you" : ask.author.name} · ${timeAgo(ask.createdAt)}`}>
+    <AppPage user={me} current="ask" back={{ href: "/ask", label: "Ask a senior" }} title={ask.title} intro={`Asked by ${asker ? "you" : ask.author.name} · ${timeAgo(ask.createdAt)}`}>
       <article className="wf-card">
         <p>{ask.body}</p>
         <div className="wf-actions">

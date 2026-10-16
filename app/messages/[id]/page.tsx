@@ -28,6 +28,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
     <AppPage
       user={me}
       current="messages"
+      back={{ href: "/messages", label: "Messages" }}
       title={other.name}
       intro={<a href={`/people/${other.id}`}>Their page →</a>}
       thread={{ with: other.id, latest: messages.at(-1)?.id ?? 0 }}

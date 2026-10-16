@@ -48,6 +48,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
     <AppPage
       user={me}
       current="groups"
+      back={{ href: "/groups", label: "Groups" }}
       title={group.name}
       intro={`${group.kind === "open" ? "Open group" : "Private group"} · ${group.members} ${group.members === 1 ? "member" : "members"}`}
     >

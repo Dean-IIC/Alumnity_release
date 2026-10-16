@@ -38,6 +38,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
     <AppPage
       user={me}
       current="batch"
+      back={{ href: "/batch", label: "Batches" }}
       title={`${name}, ${year}`}
       intro={`${onRegister ? `${onRegister} joined HKBK in this batch` : "This batch"} · ${members.length} ${members.length === 1 ? "is" : "are"} on Alumnity`}
     >
