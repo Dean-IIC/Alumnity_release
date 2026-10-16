@@ -12,7 +12,9 @@ export function SiteFooter() {
 
   return (
     <footer className="site-footer container">
-      <p className="site-footer__for">Alumnity · for students and alumni of {COLLEGE_NAME}</p>
+      <p className="site-footer__for">
+        Alumnity · for students and alumni of {COLLEGE_NAME} · <a href="/how-it-works">How it works</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+      </p>
       <div className="site-footer__intro">
         <label>
           <input

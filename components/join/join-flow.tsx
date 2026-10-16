@@ -271,6 +271,9 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
               >
                 <p className="join__line">Your email is confirmed. Last thing: a password, for logging in next time.</p>
                 <PasswordField />
+                <p className="join__fine">
+                  By joining, you agree to the <a href="/terms">terms</a> and the <a href="/privacy">privacy policy</a>, and confirm you’re 18 or over.
+                </p>
                 {problem && (
                   <p className="join__problem" role="alert">
                     {problem}
