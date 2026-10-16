@@ -173,31 +173,74 @@ export async function askFor(viewer: User, id: number): Promise<Ask | null> {
   return row && (await mayView(viewer, row)) ? toAsk(row, viewer) : null;
 }
 
+/**
+ * Many Asks as `viewer` may see them, read together: a few queries for the whole list
+ * (the same rules as mayView and toAsk, without asking about each one separately).
+ */
+async function visibleAsks(viewer: User, rows: AskRow[]): Promise<Ask[]> {
+  if (!rows.length) return [];
+  const ids = rows.map((r) => r.id);
+  const q = ids.map(() => "?").join(",");
+  // Authors and takers, paused ones too: an Ask they were part of stays readable to the other side.
+  const who = [...new Set(rows.flatMap((r) => [r.author, ...(r.taker ? [r.taker] : [])]))];
+  const [blocked, people, mine, counts] = await Promise.all([
+    blockIds(viewer.id),
+    db().all(`select * from users where id in (${who.map(() => "?").join(",")})`, ...who),
+    db().all<{ ask_id: number; reason: string }>(`select ask_id, reason from ask_routes where user_id = ? and ask_id in (${q})`, viewer.id, ...ids),
+    db().all<{ ask_id: number; n: number }>(`select ask_id, count(*) as n from ask_routes where ask_id in (${q}) group by ask_id`, ...ids)
+  ]);
+  const users = new Map(people.map((r) => [Number(r.id), { user: toUser(r), active: r.suspended_at == null }]));
+  const reason = new Map(mine.map((r) => [r.ask_id, r.reason]));
+  const routes = new Map(counts.map((r) => [r.ask_id, r.n]));
+  const asks: Ask[] = [];
+  for (const row of rows) {
+    // As in mayView: a thread between two who've blocked each other is closed to both.
+    let ok: boolean;
+    if (row.author === viewer.id) ok = true;
+    else if (row.taker === viewer.id) ok = !blocked.has(row.author);
+    else
+      ok =
+        Boolean(users.get(row.author)?.active) &&
+        !blocked.has(row.author) &&
+        row.status === "open" &&
+        (reason.has(row.id) || ((routes.get(row.id) ?? 0) === 0 && isSenior(viewer)));
+    const author = users.get(row.author)?.user;
+    if (!ok || !author) continue;
+    asks.push({
+      id: row.id,
+      author,
+      title: row.title,
+      body: row.body,
+      topics: JSON.parse(row.topics) as string[],
+      status: row.status,
+      taker: row.taker ? (users.get(row.taker)?.user ?? null) : null,
+      thanks: row.thanks,
+      createdAt: row.created_at,
+      reason: reason.get(row.id) ?? null
+    });
+  }
+  return asks;
+}
+
 export async function asksFor(viewer: User): Promise<{ mine: Ask[]; forMe: Ask[]; taken: Ask[]; open: Ask[] }> {
-  const list = async (sql: string, ...args: (number | string)[]) => {
-    const asks: Ask[] = [];
-    for (const r of await db().all<AskRow>(sql, ...args)) {
-      if (!(await mayView(viewer, r))) continue;
-      const ask = await toAsk(r, viewer);
-      if (ask) asks.push(ask);
-    }
-    return asks;
-  };
   const [mine, forMe, taken, open] = await Promise.all([
-    list("select * from asks where author = ? order by created_at desc limit 100", viewer.id),
-    list(
+    db().all<AskRow>("select * from asks where author = ? order by created_at desc limit 100", viewer.id),
+    db().all<AskRow>(
       "select asks.* from asks join ask_routes on ask_routes.ask_id = asks.id where ask_routes.user_id = ? and asks.status = 'open' order by asks.created_at desc limit 100",
       viewer.id
     ),
-    list("select * from asks where taker = ? order by created_at desc limit 100", viewer.id),
+    db().all<AskRow>("select * from asks where taker = ? order by created_at desc limit 100", viewer.id),
     isSenior(viewer)
-      ? list(
+      ? db().all<AskRow>(
           "select * from asks where status = 'open' and author != ? and not exists (select 1 from ask_routes where ask_routes.ask_id = asks.id) order by created_at desc limit 30",
           viewer.id
         )
       : Promise.resolve([])
   ]);
-  return { mine, forMe, taken, open };
+  const all = await visibleAsks(viewer, [...mine, ...forMe, ...taken, ...open]);
+  const byId = new Map(all.map((a) => [a.id, a]));
+  const pick = (rows: AskRow[]) => rows.flatMap((r) => byId.get(r.id) ?? []);
+  return { mine: pick(mine), forMe: pick(forMe), taken: pick(taken), open: pick(open) };
 }
 
 export async function takeAsk(me: User, id: number): Promise<Result> {
