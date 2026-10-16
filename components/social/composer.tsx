@@ -19,7 +19,20 @@ const AUDIENCE = [
  * Writing a post: a few words, up to four photos or videos (uploaded as they're chosen),
  * @mentions, and who it's for. Folded to one line until it's tapped.
  */
-export function Composer({ firstName, avatar, hasBatch, startOpen = false }: { firstName: string; avatar: React.ReactNode; hasBatch: boolean; startOpen?: boolean }) {
+export function Composer({
+  firstName,
+  avatar,
+  hasBatch,
+  startOpen = false,
+  group
+}: {
+  firstName: string;
+  avatar: React.ReactNode;
+  hasBatch: boolean;
+  startOpen?: boolean;
+  /** Posting in a group: it's for the group, so there's no "who can see it" to choose. */
+  group?: { id: number; name: string };
+}) {
   const [open, setOpen] = useState(startOpen);
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [audience, setAudience] = useState<string>("everyone");
@@ -68,7 +81,7 @@ export function Composer({ firstName, avatar, hasBatch, startOpen = false }: { f
       <div className="composer composer--folded">
         {avatar}
         <button type="button" className="composer__prompt" onClick={() => setOpen(true)}>
-          Share something with HKBK, {firstName}…
+          {group ? `Write something to ${group.name}…` : `Share something with HKBK, ${firstName}…`}
         </button>
         <div className="composer__quick">
           <button
@@ -97,15 +110,25 @@ export function Composer({ firstName, avatar, hasBatch, startOpen = false }: { f
     <form action={run} className="composer composer--open" id="compose" aria-busy={pending}>
       <div className="composer__head">
         {avatar}
-        <div className="composer__audience" role="radiogroup" aria-label="Who can see it">
-          {AUDIENCE.filter((a) => a.value !== "batch" || hasBatch).map((a) => (
-            <label key={a.value} className={`composer__who ${audience === a.value ? "composer__who--on" : ""}`}>
-              <input type="radio" name="audience" value={a.value} checked={audience === a.value} onChange={() => setAudience(a.value)} />
-              <Icon name={a.icon} size={16} />
-              {a.label}
-            </label>
-          ))}
-        </div>
+        {group ? (
+          <div className="composer__audience">
+            <input type="hidden" name="group" value={group.id} />
+            <span className="composer__who composer__who--on">
+              <Icon name="people" size={16} />
+              {group.name}
+            </span>
+          </div>
+        ) : (
+          <div className="composer__audience" role="radiogroup" aria-label="Who can see it">
+            {AUDIENCE.filter((a) => a.value !== "batch" || hasBatch).map((a) => (
+              <label key={a.value} className={`composer__who ${audience === a.value ? "composer__who--on" : ""}`}>
+                <input type="radio" name="audience" value={a.value} checked={audience === a.value} onChange={() => setAudience(a.value)} />
+                <Icon name={a.icon} size={16} />
+                {a.label}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
       <MentionInput
         id="compose-text"

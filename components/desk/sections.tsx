@@ -1,7 +1,7 @@
 import { ActionForm } from "../app/action-form";
 import { announceAction, removeAnnouncementAction, resolveReportAction, restoreAction, settingsAction, takeDownAction } from "../../lib/actions/desk";
 import { BRANCHES } from "../../lib/branches";
-import { batchLabel, ROLE_LABEL, timeAgo, when } from "../../lib/format";
+import { batchLabel, ROLE_LABEL, rupees, timeAgo, when } from "../../lib/format";
 import type { User } from "../../lib/server/auth";
 import { allAnnouncements } from "../../lib/server/announcements";
 import { auditLog, deskMembers, deskSettings, recentContent, reports, stats, team, type ContentKind, type MemberFilter } from "../../lib/server/desk";
@@ -26,7 +26,9 @@ export async function Overview({ me }: { me: User }) {
     ["Asks answered", s.answered],
     ["Notes", s.posts],
     ["Events", s.events],
+    ["Groups", s.groups],
     ["Open reports", s.openReports, "/desk?tab=reports"],
+    ["Causes to review", s.causesWaiting, "/causes"],
     ["Paused", s.paused, "/desk?tab=members&status=paused"]
   ];
   return (
@@ -48,6 +50,18 @@ export async function Overview({ me }: { me: User }) {
         ))}
       </div>
       <p className="wf-muted">Totals only; sample members aren't counted.</p>
+      <h2>Causes</h2>
+      <p>
+        {rupees(s.raised)} given to causes so far. <a href="/causes">See the causes</a>
+        {isAdmin(me) && (
+          <>
+            {" · "}
+            <a href="/desk/donations.csv" download>
+              Download every donation (CSV, for the accounts)
+            </a>
+          </>
+        )}
+      </p>
     </>
   );
 }

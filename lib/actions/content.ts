@@ -15,7 +15,9 @@ export async function postAction(_: ActionState, form: FormData): Promise<Action
   if (!me) return SIGNED_OUT;
   // Uploaded first (POST /api/media); their ids come with the post.
   const media = form.getAll("media").filter((v): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{10,40}$/.test(v)).slice(0, MEDIA_LIMIT + 1);
-  return answer(await createPost(me, textFrom(form, "body", POST_LIMIT), textFrom(form, "audience", 20), media), "Posted.");
+  // A group's composer sends the group; everyone else's, who it's for.
+  const group = idFrom(form, "group") || null;
+  return answer(await createPost(me, textFrom(form, "body", POST_LIMIT), textFrom(form, "audience", 20), media, group), "Posted.");
 }
 
 export async function removePostAction(_: ActionState, form: FormData): Promise<ActionState> {

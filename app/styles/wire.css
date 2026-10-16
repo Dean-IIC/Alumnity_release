@@ -437,3 +437,27 @@
 .wf-announcement {
   border-color: var(--color-gold);
 }
+
+/* Causes: how far along the goal, and the cause's photo. */
+.cause-bar {
+  display: block;
+  height: 8px;
+  margin-top: var(--space-2);
+  border-radius: 4px;
+  background: var(--color-line);
+  overflow: hidden;
+  max-width: 420px;
+}
+.cause-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--color-blue);
+}
+.cause-cover {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: var(--space-4);
+}

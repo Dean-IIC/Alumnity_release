@@ -17,8 +17,8 @@ import { withinLimit } from "./throttle";
 
 export { isAdmin, isModerator, isSuperAdmin } from "./roles";
 
-export type SubjectKind = "member" | "post" | "comment" | "message" | "ask";
-export const SUBJECT_KINDS: SubjectKind[] = ["member", "post", "comment", "message", "ask"];
+export type SubjectKind = "member" | "post" | "comment" | "message" | "ask" | "group" | "cause";
+export const SUBJECT_KINDS: SubjectKind[] = ["member", "post", "comment", "message", "ask", "group", "cause"];
 const DAY = 24 * 60 * 60_000;
 const no = (error: string): Result => ({ ok: false, error });
 const DESK_ONLY = "Only the college desk can do that.";
@@ -69,6 +69,14 @@ async function subjectOf(kind: SubjectKind, id: number): Promise<{ text: string;
     const m = await one("select sender, body from messages where id = ?");
     return m ? { text: String(m.body), owner: Number(m.sender), link: "" } : null;
   }
+  if (kind === "group") {
+    const g = await one("select name, about, created_by from groups where id = ?");
+    return g ? { text: `${g.name}: ${g.about}`, owner: Number(g.created_by ?? 0), link: `/groups/${id}` } : null;
+  }
+  if (kind === "cause") {
+    const c = await one("select title, story, author from causes where id = ?");
+    return c ? { text: `${c.title}: ${c.story}`, owner: Number(c.author ?? 0), link: `/causes/${id}` } : null;
+  }
   const a = await one("select author, title, body from asks where id = ?");
   return a ? { text: `${a.title}: ${a.body}`, owner: Number(a.author), link: `/ask/${id}` } : null;
 }
@@ -82,6 +90,8 @@ async function canReport(me: User, kind: SubjectKind, id: number): Promise<boole
     return Boolean(c && (await visiblePost(me, c.post_id)));
   }
   if (kind === "message") return Boolean(await db().one("select 1 from messages where id = ? and recipient = ?", id, me.id));
+  if (kind === "group") return Boolean(await db().one("select 1 from groups where id = ? and removed_at is null", id));
+  if (kind === "cause") return Boolean(await db().one("select 1 from causes where id = ? and status = 'live'", id));
   return (await askFor(me, id)) !== null;
 }
 
@@ -149,6 +159,10 @@ export async function resolveReport(me: User, id: number, action: "remove" | "di
     else if (r.subject_kind === "message") {
       await db().run("delete from messages where id = ?", sid);
       result = { ok: true };
+    } else if (r.subject_kind === "group") {
+      result = await (await import("./groups")).removeGroup(me, sid);
+    } else if (r.subject_kind === "cause") {
+      result = await (await import("./causes")).closeCause(me, sid, `Taken down after a report (report ${id}).`);
     } else result = await takeDown(me, r.subject_kind, sid, `report ${id}`);
     if (!result.ok) return result;
     // Every other report about the same thing is settled with it.
@@ -448,7 +462,7 @@ export async function stats(me: User) {
   const samples = (await count("select count(*) as n from users where sample = 1")) > 0;
   const real = "select id from users where sample = 0";
   const by = (col: string) => (samples ? `and ${col} in (${real})` : "");
-  const [members, joinedThisWeek, signedInThisWeek, alumni, students, mentors, connections, asks, answered, posts, events, openReports, paused, ...joinsByWeek] = await Promise.all([
+  const [members, joinedThisWeek, signedInThisWeek, alumni, students, mentors, connections, asks, answered, posts, events, openReports, paused, groups, causesWaiting, raised, ...joinsByWeek] = await Promise.all([
     count("select count(*) as n from users where suspended_at is null and sample = 0"),
     count("select count(*) as n from users where created_at > ? and sample = 0", week),
     count("select count(*) as n from users where last_seen_at > ? and sample = 0", week),
@@ -464,12 +478,15 @@ export async function stats(me: User) {
     count(`select count(*) as n from events where true ${by("organiser")}`),
     count("select count(*) as n from reports where status = 'open'"),
     count("select count(*) as n from users where suspended_at is not null"),
+    count("select count(*) as n from groups where removed_at is null"),
+    count("select count(*) as n from causes where status = 'pending'"),
+    count("select coalesce(sum(amount), 0) as n from donations where status = 'paid'"),
     /** New members in each of the last eight weeks, oldest first. */
     ...Array.from({ length: 8 }, (_, i) => {
       const from = now - (8 - i) * 7 * DAY;
       return count("select count(*) as n from users where sample = 0 and created_at > ? and created_at <= ?", from, from + 7 * DAY);
     })
   ]);
-  return { members, joinedThisWeek, signedInThisWeek, alumni, students, mentors, connections, asks, answered, posts, events, openReports, paused, joinsByWeek };
+  return { members, joinedThisWeek, signedInThisWeek, alumni, students, mentors, connections, asks, answered, posts, events, openReports, paused, groups, causesWaiting, raised, joinsByWeek };
 }
 

@@ -8,7 +8,7 @@ import { Icon } from "../social/icons";
 import "../../app/styles/wire.css";
 import "../../app/styles/social.css";
 
-export type Section = "home" | "people" | "connections" | "messages" | "ask" | "events" | "notifications" | "desk" | "batch" | "me";
+export type Section = "home" | "people" | "connections" | "messages" | "ask" | "events" | "groups" | "causes" | "notifications" | "desk" | "batch" | "me";
 
 const Count = ({ n }: { n: number }) =>
   n ? (
@@ -35,6 +35,8 @@ export async function AppPage({ user, current, title, intro, children, bare = fa
     { key: "messages", href: "/messages", label: "Messages", count: counts.messages },
     { key: "ask", href: "/ask", label: "Ask a senior" },
     { key: "events", href: "/events", label: "Events" },
+    { key: "groups", href: "/groups", label: "Groups" },
+    { key: "causes", href: "/causes", label: "Causes" },
     { key: "batch", href: "/batch", label: "Your batch" },
     { key: "notifications", href: "/notifications", label: "Notifications", count: counts.notifications },
     ...(isModerator(user) ? [{ key: "desk" as const, href: "/desk", label: "College desk" }] : [])

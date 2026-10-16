@@ -4,7 +4,7 @@ import type { Post } from "../../lib/server/posts";
 import { ActionForm } from "./action-form";
 import { ReportButton } from "./report-button";
 
-const AUDIENCE_LABEL = { everyone: "Everyone", batch: "Batch", connections: "Connections" } as const;
+const AUDIENCE_LABEL = { everyone: "Everyone", batch: "Batch", connections: "Connections", group: "Group" } as const;
 
 /** One note on Home: who, when, for whom; cheers, comments, and Report. `full`: on its own page, with every comment. */
 export function PostCard({ post, full = false }: { post: Post; full?: boolean }) {

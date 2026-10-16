@@ -10,7 +10,7 @@ import { MentionInput } from "./mention-input";
 import { ReactionBar } from "./reaction-bar";
 import { RichText } from "./rich-text";
 
-const AUDIENCE = { everyone: ["everyone", "Everyone"], batch: ["batch", "Batch"], connections: ["connections", "Connections"] } as const;
+const AUDIENCE = { everyone: ["everyone", "Everyone"], batch: ["batch", "Batch"], connections: ["connections", "Connections"], group: ["people", "the group"] } as const;
 
 type Props = {
   post: PostData;
@@ -41,6 +41,7 @@ export function Post({ post, photos, full = false, me }: Props) {
             <a href={href}>
               <time dateTime={new Date(post.createdAt).toISOString()}>{timeAgo(post.createdAt)}</time>
             </a>
+            {post.group && !full && <a href={`/groups/${post.group.id}`}>{post.group.name}</a>}
             <span className="post__audience" title={`Shown to: ${audienceLabel}`}>
               <Icon name={audienceIcon} size={13} />
               <span className="sr-only">Shown to {audienceLabel}</span>

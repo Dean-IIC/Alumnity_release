@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import postgres from "postgres";
 
@@ -108,12 +108,16 @@ function fromPglite(pg: PGliteLike): Db {
 
 async function connectPglite(folder?: string): Promise<Db> {
   const { PGlite, types } = await import("@electric-sql/pglite");
-  const pg = new PGlite(folder || undefined, {
+  const pg = new PGlite({
+    dataDir: folder || undefined,
     parsers: { [types.INT8]: (v: string) => Number(v), [types.NUMERIC]: (v: string) => Number(v) }
   });
-  // The schema, as on Supabase (the storage bucket migration is Supabase's alone). Every
-  // statement is "if not exists", so a kept folder just gets what's new.
-  await pg.exec(readFileSync(join(process.cwd(), "supabase", "migrations", "20261015000001_alumnity.sql"), "utf8"));
+  // The schema, as on Supabase: every migration in order (the storage bucket's is
+  // Supabase's alone). Each is safe to run again, so a kept folder just gets what's new.
+  const migrations = join(process.cwd(), "supabase", "migrations");
+  for (const file of readdirSync(migrations).filter((f) => f.endsWith(".sql") && !f.includes("storage")).sort()) {
+    await pg.exec(readFileSync(join(migrations, file), "utf8"));
+  }
   const local = fromPglite(pg as unknown as PGliteLike);
   if (folder) await loadLocalRegister(local);
   return local;

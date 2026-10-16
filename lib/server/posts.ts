@@ -2,6 +2,7 @@ import { db } from "./db";
 import type { User } from "./auth";
 import { MENTION, mentionedIds } from "../mentions";
 import { followingIds } from "./follows";
+import { canPostInGroup, canReadGroup, groupNames, memberGroupIds } from "./groups";
 import { mediaByIds, type MediaKind } from "./media";
 import { blockIds, connectionIds, memberById, membersByIds, relation } from "./people";
 import { notify, type Result } from "./social";
@@ -10,11 +11,13 @@ import { withinLimit } from "./throttle";
 
 /*
  * Home: posts. Words, up to four photos or videos, @mentions. Each post is for everyone
- * on Alumnity, for the author's batch, or for their connections only, and only those
- * people ever see it, its photos, its reactions or its comments.
+ * on Alumnity, for the author's batch, for their connections only, or for one group, and
+ * only those people ever see it, its photos, its reactions or its comments. Group posts
+ * stay in their group: they never show on Home.
  */
 
-export type Audience = "everyone" | "batch" | "connections";
+export type Audience = "everyone" | "batch" | "connections" | "group";
+/** Who a post outside a group may be for. */
 export const AUDIENCES: Audience[] = ["everyone", "batch", "connections"];
 export const POST_LIMIT = 2000;
 export const COMMENT_LIMIT = 500;
@@ -35,6 +38,8 @@ export type Post = {
   author: User;
   body: string;
   audience: Audience;
+  /** The group it's in, if it's a group's post. */
+  group: { id: number; name: string } | null;
   createdAt: number;
   media: PostMedia[];
   /** How many of each reaction, and the total. */
@@ -56,8 +61,14 @@ export const BOARD_COMMENTS = 2;
 
 const sameBatch = (a: User, b: User) => Boolean(a.branch && a.joined && a.branch === b.branch && a.joined === b.joined && a.programme === b.programme);
 
-/** Whether `viewer` may see a post by `author` meant for `audience`. */
-export async function canSeePost(viewer: User, author: User, audience: Audience): Promise<boolean> {
+/** Whether `viewer` may see a post by `author` meant for `audience` (and, for a group's post, that group). */
+export async function canSeePost(viewer: User, author: User, audience: Audience, groupId: number | null = null): Promise<boolean> {
+  if (audience === "group") {
+    if (groupId === null || !(await canReadGroup(viewer, groupId))) return false;
+    if (viewer.id === author.id) return true;
+    const rel = await relation(viewer.id, author.id);
+    return rel !== "blocked" && rel !== "blocked-by";
+  }
   if (viewer.id === author.id) return true;
   const rel = await relation(viewer.id, author.id);
   if (rel === "blocked" || rel === "blocked-by") return false;
@@ -66,13 +77,13 @@ export async function canSeePost(viewer: User, author: User, audience: Audience)
   return rel === "connected";
 }
 
-type PostRow = { id: number; author: number; body: string; audience: Audience; created_at: number };
+type PostRow = { id: number; author: number; body: string; audience: Audience; group_id: number | null; created_at: number };
 
 export async function visiblePost(viewer: User, id: number): Promise<{ row: PostRow; author: User } | null> {
   if (!Number.isSafeInteger(id)) return null;
   const row = await db().one<PostRow>("select * from posts where id = ? and removed_at is null", id);
   const author = row && (await memberById(row.author));
-  return row && author && (await canSeePost(viewer, author, row.audience)) ? { row, author } : null;
+  return row && author && (await canSeePost(viewer, author, row.audience, row.group_id)) ? { row, author } : null;
 }
 
 /**
@@ -103,13 +114,16 @@ export async function mediaInUse(mediaIds: string[]): Promise<boolean> {
   );
 }
 
-export async function createPost(me: User, body: string, audience: string, mediaIds: string[] = []): Promise<Result & { id?: number }> {
+export async function createPost(me: User, body: string, audience: string, mediaIds: string[] = [], groupId: number | null = null): Promise<Result & { id?: number }> {
   if (!(await settings()).features.notes) return no(PAUSED);
   const media = [...new Set(mediaIds)].slice(0, MEDIA_LIMIT + 1);
   if (media.length > MEDIA_LIMIT) return no(`A post can have up to ${MEDIA_LIMIT} photos or videos.`);
   const { text, ids } = await checkMentions(me, body.trim().slice(0, POST_LIMIT));
   if (!text && media.length === 0) return no("Write something, or add a photo.");
-  if (!AUDIENCES.includes(audience as Audience)) return no("Choose who it's for.");
+  if (groupId !== null) {
+    if (!(await canPostInGroup(me, groupId))) return no("Join the group to post in it.");
+    audience = "group";
+  } else if (!AUDIENCES.includes(audience as Audience)) return no("Choose who it's for.");
   if (audience === "batch" && !(me.branch && me.joined)) return no("Your batch isn't known, so this can't go to it.");
   // Only your own uploads, each on one post.
   const uploads = await mediaByIds(media);
@@ -120,14 +134,21 @@ export async function createPost(me: User, body: string, audience: string, media
   if (await mediaInUse(media)) return no("That photo is already posted.");
   if (!(await withinLimit(`post:${me.id}`, 20, HOUR))) return no("That's a lot of posts in an hour. Try again a little later.");
   const postId = await db().tx(async (t) => {
-    const row = await t.one<{ id: number }>("insert into posts (author, body, audience, created_at) values (?, ?, ?, ?) returning id", me.id, text, audience, Date.now());
+    const row = await t.one<{ id: number }>(
+      "insert into posts (author, body, audience, group_id, created_at) values (?, ?, ?, ?, ?) returning id",
+      me.id,
+      text,
+      audience,
+      groupId,
+      Date.now()
+    );
     for (const [i, id] of media.entries()) await t.run("insert into post_media (post_id, media_id, position) values (?, ?, ?)", row!.id, id, i);
     return row!.id;
   });
   // Tell those mentioned, if they can see the post.
   const mentioned = await membersByIds(ids);
   for (const member of mentioned.values()) {
-    if (await canSeePost(member, me, audience as Audience)) await notify(member.id, { actor: me.id, kind: "mention", text: `${me.name} mentioned you in a post.`, link: `/notes/${postId}` });
+    if (await canSeePost(member, me, audience as Audience, groupId)) await notify(member.id, { actor: me.id, kind: "mention", text: `${me.name} mentioned you in a post.`, link: `/notes/${postId}` });
   }
   return { ok: true, id: postId };
 }
@@ -170,7 +191,7 @@ export async function addComment(me: User, id: number, body: string): Promise<Re
   if (post.author.id !== me.id) await notify(post.author.id, { actor: me.id, kind: "comment", text: `${me.name} commented on your post.`, link: `/notes/${id}` });
   const mentioned = await membersByIds(ids.filter((mid) => mid !== post.author.id));
   for (const member of mentioned.values()) {
-    if (await canSeePost(member, post.author, post.row.audience)) {
+    if (await canSeePost(member, post.author, post.row.audience, post.row.group_id)) {
       await notify(member.id, { actor: me.id, kind: "mention", text: `${me.name} mentioned you in a comment.`, link: `/notes/${id}` });
     }
   }
@@ -191,15 +212,17 @@ export async function canSeePostMedia(viewer: User, mediaId: string): Promise<bo
 }
 
 /** What one page needs about the viewer's circle, read once and shared by every post on it. */
-type Circle = { connections: Set<number>; following: Set<number>; blocks: Set<number> };
+type Circle = { connections: Set<number>; following: Set<number>; blocks: Set<number>; groups: Set<number> };
 
 async function circleOf(viewer: User): Promise<Circle> {
-  const [connections, following, blocks] = await Promise.all([connectionIds(viewer.id), followingIds(viewer.id), blockIds(viewer.id)]);
-  return { connections, following, blocks };
+  const [connections, following, blocks, groups] = await Promise.all([connectionIds(viewer.id), followingIds(viewer.id), blockIds(viewer.id), memberGroupIds(viewer.id)]);
+  return { connections, following, blocks, groups };
 }
 
 /** The same rule as canSeePost, answered from the circle (no query per post). */
 function seesPost(viewer: User, circle: Circle, author: User, audience: Audience): boolean {
+  // A group's posts are only ever listed on the group's own page, after its check.
+  if (audience === "group") return !circle.blocks.has(author.id);
   if (viewer.id === author.id) return true;
   if (circle.blocks.has(author.id)) return false;
   if (audience === "everyone") return true;
@@ -232,7 +255,10 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
       comments
     )
   ]);
-  const authors = await membersByIds(commentRows.map((c) => c.author).filter((a) => !circle.blocks.has(a)));
+  const [authors, groups] = await Promise.all([
+    membersByIds(commentRows.map((c) => c.author).filter((a) => !circle.blocks.has(a))),
+    groupNames(items.flatMap((i) => (i.row.group_id === null ? [] : [i.row.group_id])))
+  ]);
   return items.map(({ row, author }) => {
     const reactions: Partial<Record<Reaction, number>> = {};
     for (const c of counts) if (c.post_id === row.id) reactions[c.kind] = c.n;
@@ -243,6 +269,7 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
       author,
       body: row.body,
       audience: row.audience,
+      group: row.group_id === null ? null : { id: row.group_id, name: groups.get(row.group_id) ?? "A group" },
       createdAt: row.created_at,
       media: media.filter((m) => m.post_id === row.id).map(({ id, kind }) => ({ id, kind })),
       reactions,
@@ -274,8 +301,16 @@ export type FeedScope = "all" | "following";
  */
 export async function feedFor(
   viewer: User,
-  { authorId, authorIds, limit = 15, before, scope = "all" }: { authorId?: number; authorIds?: number[]; limit?: number; before?: number; scope?: FeedScope } = {}
+  {
+    authorId,
+    authorIds,
+    groupId,
+    limit = 15,
+    before,
+    scope = "all"
+  }: { authorId?: number; authorIds?: number[]; groupId?: number; limit?: number; before?: number; scope?: FeedScope } = {}
 ): Promise<Post[]> {
+  if (groupId !== undefined && !(await canReadGroup(viewer, groupId))) return [];
   const circle = await circleOf(viewer);
   let ids = (authorId ? [authorId] : authorIds ?? []).slice(0, 500);
   if (authorIds && ids.length === 0) return [];
@@ -284,7 +319,9 @@ export async function feedFor(
   }
   // Scans a bounded number of the newest posts: enough to fill a page after visibility.
   const rows = await db().all<PostRow>(
-    `select * from posts where removed_at is null ${before ? "and created_at < ?" : ""} ${ids.length ? `and author in (${marks(ids.length)})` : ""} order by created_at desc, id desc limit ?`,
+    `select * from posts where removed_at is null and ${groupId !== undefined ? "group_id = ?" : "group_id is null"}
+     ${before ? "and created_at < ?" : ""} ${ids.length ? `and author in (${marks(ids.length)})` : ""} order by created_at desc, id desc limit ?`,
+    ...(groupId !== undefined ? [groupId] : []),
     ...(before ? [before] : []),
     ...ids,
     limit * 5

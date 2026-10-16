@@ -8,7 +8,7 @@ import { requireUser } from "../../lib/server/session";
 export const metadata: Metadata = { title: "Report · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-const WHAT = { member: "this member", post: "this note", comment: "this comment", message: "this message", ask: "this question" } as const;
+const WHAT = { member: "this member", post: "this note", comment: "this comment", message: "this message", ask: "this question", group: "this group", cause: "this cause" } as const;
 
 /** Report something to the college desk. Whether it may be reported is checked when it's sent. */
 export default async function ReportPage({ searchParams }: { searchParams: Promise<{ kind?: string; id?: string; back?: string }> }) {

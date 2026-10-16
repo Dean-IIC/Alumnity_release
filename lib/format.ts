@@ -21,3 +21,6 @@ export const when = (at: number) =>
 export const batchLabel = (u: { branch: string | null; joined: number | null }) => [u.branch, u.joined].filter(Boolean).join(" · ");
 
 export const ROLE_LABEL: Record<string, string> = { student: "Student", alumnus: "Alumnus", faculty: "Faculty", coordinator: "Alumni coordinator", admin: "Administrator", superadmin: "Super administrator" };
+
+/** "₹1,25,000" from paise (₹1 = 100 paise), Indian style. */
+export const rupees = (paise: number) => `₹${(paise / 100).toLocaleString("en-IN", { maximumFractionDigits: paise % 100 ? 2 : 0 })}`;
