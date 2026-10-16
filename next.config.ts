@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
   // Lets a production build sit beside a running dev server: NEXT_DIST_DIR=.next-prod next build
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
+  // Loaded by Node as they are, not bundled: PGlite (the local database) reads its own
+  // WebAssembly files; the database driver and image tools are native or Node-only.
+  serverExternalPackages: ["@electric-sql/pglite", "postgres", "sharp", "web-push", "nodemailer"],
   async headers() {
     return [{ source: "/((?!media/).*)", headers: SECURITY_HEADERS }];
   }

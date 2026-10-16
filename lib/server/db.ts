@@ -114,7 +114,33 @@ async function connectPglite(folder?: string): Promise<Db> {
   // The schema, as on Supabase (the storage bucket migration is Supabase's alone). Every
   // statement is "if not exists", so a kept folder just gets what's new.
   await pg.exec(readFileSync(join(process.cwd(), "supabase", "migrations", "20261015000001_alumnity.sql"), "utf8"));
-  return fromPglite(pg as unknown as PGliteLike);
+  const local = fromPglite(pg as unknown as PGliteLike);
+  if (folder) await loadLocalRegister(local);
+  return local;
+}
+
+/**
+ * Working on this computer: the register comes from data/college-records.csv (never
+ * committed), the first time the local database starts. On Supabase it's loaded by
+ * scripts/import-register.mjs instead.
+ */
+async function loadLocalRegister(local: Db) {
+  if (await local.one("select 1 from register limit 1")) return;
+  let csv: string;
+  try {
+    csv = readFileSync(process.env.ALUMNITY_REGISTER || join(process.cwd(), "data", "college-records.csv"), "utf8");
+  } catch {
+    return;
+  }
+  const { parseRegister } = await import("../register");
+  const rows = parseRegister(csv);
+  for (let i = 0; i < rows.length; i += 500) {
+    const batch = rows.slice(i, i + 500);
+    await local.run(
+      `insert into register (name, usn, branch, branch_name, programme, year) values ${batch.map(() => "(?, ?, ?, ?, ?, ?)").join(", ")}`,
+      ...batch.flatMap((r) => [r.name, r.usn, r.branch, r.branchName, r.programme, r.year])
+    );
+  }
 }
 
 // ---------- The one connection ----------

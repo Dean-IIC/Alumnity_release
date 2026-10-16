@@ -215,7 +215,9 @@ export function authProvider(): Promise<AuthProvider> {
   // The stand-in is for the tests only: it has one shared "browser", so on a real server
   // everyone would be the same person.
   const fake = process.env.ALUMNITY_AUTH === "fake" && process.env.NODE_ENV === "test";
-  return (provider ??= fake ? Promise.resolve(new FakeAuth()) : supabaseProvider());
+  // Working on this computer without Supabase (never in production): see lib/server/local-auth.ts.
+  const local = process.env.ALUMNITY_AUTH === "local" && process.env.NODE_ENV !== "production";
+  return (provider ??= fake ? Promise.resolve(new FakeAuth()) : local ? import("./local-auth").then((m) => m.localAuth()) : supabaseProvider());
 }
 
 /** For tests: the stand-in, to read its codes and switch browsers. */
