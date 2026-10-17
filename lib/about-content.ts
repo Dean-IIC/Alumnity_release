@@ -31,39 +31,36 @@ export const DEVELOPERS = {
   ],
   department: "Computer Science and Engineering",
   guide: {
-    name: "Dr. Tabasum Ara",
-    roles: [
-      "Dean, Innovation and Incubation Cell (IIC)",
-      "Head of Department, Artificial Intelligence and Machine Learning",
-    ],
+    name: "Prof. Sumaiya Banu",
+    roles: ["Head of Department, Humanities"],
   },
 } as const;
 
 export const ABOUT = {
-  intro: `The alumni and student network of HKBK College of Engineering, Bengaluru.`,
-  privacy: `## Your privacy
-Your USN and email are private: other members never see them. You choose who sees each part of your page, and messages are only between connections. Nothing about you appears on public pages; only verified members can see the network.`,
+  intro: `The alumni and student network of HKBK College of Engineering, Bengaluru: one place for everyone who studied or taught here to find each other, help each other and stay in touch.`,
+  privacy: [
+    { title: "Private by default", text: "Your USN and email are never shown to other members. Nothing about you appears on any public page." },
+    { title: "You choose who sees what", text: "Every part of your page has its own setting: everyone on Alumnity, your batch, your connections, or only you." },
+    { title: "Only HKBK people", text: "Members are checked against the college's own register. Messages are only ever between connections." }
+  ]
 };
 
 export const COMMUNITY = {
   intro: `Who Alumnity is for, what is open to everyone, and what members get.`,
-  body: `Alumnity is where students and alumni of HKBK College of Engineering help each other. Students get honest interview experiences, quick answers and referrals from seniors. Alumni stay in touch with their batch and the college, and give back in the time they have.
-
-## What is open to everyone
-- What Alumnity is, and how to join
-- The gallery of college photos
-- The About, Community, Committee and Developers pages
-
-## What is for members
-- The people directory, profiles, connections and messages
-- Home: posts, photos, stories and what your batch is up to
-- Groups for your class, your club, your city or your field
-- Ask a senior, and events
-- Causes members propose and the college approves, with gifts through the college's account
-
-## Who can join
-- Everyone signs up with a personal email, so the account stays theirs after graduation.
-- Students and alumni prove they're from HKBK by finding their own line in the college register: their name and USN, or their name, branch and the year they joined.`,
+  lead: `Alumnity is where students and alumni of HKBK College of Engineering help each other. Students get honest interview experiences, quick answers and referrals from seniors. Alumni stay in touch with their batch and the college, and give back in the time they have.`,
+  open: ["What Alumnity is, and how to join", "The gallery of college photos", "The About, Community, Committee and Developers pages"],
+  members: [
+    "The people directory, profiles, connections and messages",
+    "Home: posts, photos, stories and what your batch is up to",
+    "Groups for your class, your club, your city or your field",
+    "Ask a senior, and the college's events",
+    "Causes members propose and the college approves, with gifts through the college's account"
+  ],
+  joining: [
+    "Students and alumni prove they're from HKBK by finding their own line in the college register: their name and USN, or their name, branch and the year they joined.",
+    "Teachers and college staff join by an invitation from the college desk.",
+    "Everyone signs up with a personal email, so the account stays theirs after graduation."
+  ]
 };
 
 export const DEVELOPERS_INTRO = {

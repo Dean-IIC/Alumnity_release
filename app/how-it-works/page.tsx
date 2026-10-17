@@ -11,7 +11,7 @@ const STEPS = [
   ["Confirm your email, choose a password", "We email you a six-digit code. Your email is never shown to other members."],
   ["Make your page yours", "Say what you do now, what you know, and what you're happy to help with. Every part has its own “who can see this”: everyone, your batch, your connections, or only you."],
   ["Connect", "Start with your batch. A request can carry a note; the other person accepts or quietly declines. Connections can message each other."],
-  ["Ask a senior", "Students' questions go to a few alumni who fit them, never to everyone. One takes it on and writes back privately. When it helped, the thanks goes on their Record."],
+  ["Ask a senior", "Students' questions go to a few alumni who fit them, never to everyone. One takes it on and writes back privately, and you mark it answered when it has been."],
   ["Stay in touch", "Home is a noticeboard of notes from your batch and connections. Events are put up by the college; say you're coming and add them to your calendar."]
 ] as const;
 
@@ -20,42 +20,43 @@ const SAFETY = [
   "You choose who sees each part of your page.",
   "Block anyone: you won't see each other anywhere, and they aren't told.",
   "Report anything to the college's alumni coordinators, who can take it down.",
-  "Connection requests and messages are limited per day, so nobody can spam.",
+  "Connection requests and messages are limited, so nobody can spam.",
   "You can delete your account at any time, from Settings."
 ];
 
 /** For visitors: what Alumnity is, how joining works, and how it keeps people safe. */
 export default function HowItWorks() {
   return (
-    <PublicPage current="how-it-works" title="How Alumnity works" intro="A private network for the students, alumni and faculty of HKBK College of Engineering.">
-      <ol className="wf-list">
+    <PublicPage
+      current="how-it-works"
+      kicker="How it works"
+      title="From the register"
+      gold="to your first answer"
+      intro="A private network for the students, alumni and faculty of HKBK College of Engineering. Here's how it goes."
+    >
+      <ol className="steps">
         {STEPS.map(([title, text], i) => (
-          <li key={title} className="wf-card">
-            <p>
-              <strong>
-                {i + 1}. {title}
-              </strong>
-            </p>
-            <p className="wf-muted">{text}</p>
+          <li key={title} className="steps__step">
+            <span className="steps__number" aria-hidden="true">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <div>
+              <h2>{title}</h2>
+              <p>{text}</p>
+            </div>
           </li>
         ))}
       </ol>
-      <h2>Keeping it safe</h2>
-      <ul className="wf-checklist">
-        {SAFETY.map((s) => (
-          <li key={s} className="done">
-            {s}
-          </li>
-        ))}
-      </ul>
-      <div className="wf-actions" style={{ marginTop: "var(--space-7)" }}>
-        <a className="button button--primary" href="/join">
-          Join now <span aria-hidden="true">→</span>
-        </a>
-        <a className="button button--secondary" href="/login">
-          Log in
-        </a>
-      </div>
+      <section aria-labelledby="safe">
+        <h2 id="safe" className="info__h2">
+          Keeping it safe
+        </h2>
+        <ul className="ticks ticks--grid">
+          {SAFETY.map((s) => (
+            <li key={s}>{s}</li>
+          ))}
+        </ul>
+      </section>
     </PublicPage>
   );
 }

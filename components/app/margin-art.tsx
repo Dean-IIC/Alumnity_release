@@ -230,6 +230,83 @@ const THEMES: Record<string, Theme> = {
     dots: [[240, 280], [80, 520], [230, 700]],
     phone: [["pencil", 85, 40, -45, 0.7, "blue"], ["gear", 140, 55, 0, 0.7, "gold"]]
   },
+  // About: the college's own words, a book, a scroll and a pen nib.
+  about: {
+    spine: [{ d: STEMS, tone: "gold" }],
+    marks: [
+      ["book", 160, 170, -8, 1.3, "blue"],
+      ["nib", 120, 380, 25, 1.2, "red"],
+      ["scroll", 190, 560, -6, 1.1, "gold"],
+      ["sparkle", 230, 300, 0, 0.7, "gold"],
+      ["star", 110, 760, 10, 0.7, "blue"]
+    ],
+    dots: [[240, 460], [80, 640], [230, 840]],
+    phone: [["book", 85, 45, -8, 0.7, "blue"], ["nib", 140, 45, 25, 0.6, "red"]]
+  },
+  // The community: people linked up, talking over chai.
+  community: {
+    spine: [{ d: STEMS, tone: "red" }],
+    marks: [
+      ["link", 160, 170, -20, 1.2, "blue"],
+      ["bubble", 130, 360, 0, 1.1, "gold"],
+      ["cup", 200, 540, 0, 1.2, "red"],
+      ["heart", 120, 720, -10, 0.8, "blue"],
+      ["sparkle", 230, 280, 0, 0.6, "gold"]
+    ],
+    dots: [[60, 470], [240, 640], [90, 860]],
+    phone: [["link", 85, 45, -20, 0.7, "blue"], ["bubble", 140, 45, 0, 0.6, "gold"]]
+  },
+  // The committee: the association's seal and its minutes.
+  committee: {
+    spine: [{ d: "M40 -20V940", tone: "gold" }],
+    marks: [
+      ["stamp", 170, 170, -8, 1.2, "red"],
+      ["scroll", 130, 380, 6, 1.1, "blue"],
+      ["star", 200, 560, 0, 0.9, "gold"],
+      ["postmark", 120, 740, 0, 0.9, "red"],
+      ["sparkle", 230, 300, 0, 0.6, "gold"]
+    ],
+    dots: [[240, 470], [80, 620]],
+    phone: [["stamp", 85, 45, -8, 0.7, "red"], ["star", 140, 45, 0, 0.6, "gold"]]
+  },
+  // The developers: an idea, the gears, the pencil and compass it was drawn with.
+  developers: {
+    spine: [{ d: STEMS, tone: "blue" }],
+    marks: [
+      ["bulb", 160, 170, 0, 1.2, "gold"],
+      ["gear", 120, 370, 0, 1.4, "blue"],
+      ["pencil", 190, 560, -40, 1.1, "red"],
+      ["compass", 120, 760, 10, 1.1, "gold"],
+      ["sparkle", 230, 290, 0, 0.7, "gold"]
+    ],
+    dots: [[240, 460], [70, 640], [230, 860]],
+    phone: [["bulb", 85, 45, 0, 0.7, "gold"], ["gear", 140, 50, 0, 0.7, "blue"]]
+  },
+  // How it works: the route mapped out, a question, a paper plane on its way.
+  "how-it-works": {
+    spine: [{ d: STEMS, tone: "gold", dashed: true }],
+    marks: [
+      ["compass", 160, 170, -10, 1.2, "blue"],
+      ["question", 120, 370, 8, 1.3, "red"],
+      ["plane", 200, 540, -12, 1.1, "gold"],
+      ["ruler", 130, 740, 70, 1, "blue"],
+      ["sparkle", 230, 300, 0, 0.7, "gold"]
+    ],
+    dots: [[240, 450], [80, 640], [230, 860]],
+    phone: [["compass", 85, 45, -10, 0.7, "blue"], ["plane", 140, 45, -12, 0.6, "gold"]]
+  },
+  // Privacy and terms: the fine print, signed and sealed.
+  privacy: {
+    spine: [{ d: "M40 -20V940", tone: "blue" }],
+    marks: [
+      ["scroll", 160, 170, -6, 1.2, "blue"],
+      ["nib", 120, 380, 20, 1.2, "red"],
+      ["stamp", 200, 580, 8, 1, "gold"],
+      ["sparkle", 230, 300, 0, 0.6, "gold"]
+    ],
+    dots: [[240, 470], [90, 700]],
+    phone: [["scroll", 85, 45, -6, 0.7, "blue"], ["nib", 140, 45, 20, 0.6, "red"]]
+  },
   // The college desk: rubber stamps, a pen nib, the ledger's rules.
   desk: {
     spine: [{ d: "M40 -20V940 M70 -20V940", tone: "blue" }],
@@ -249,7 +326,7 @@ const THEMES: Record<string, Theme> = {
 function themeFor(path: string): Theme {
   const first = path.split("/")[1] ?? "";
   const key =
-    first === "notes" ? "home" : first === "settings" ? "me" : first === "admin" ? "desk" : first === "report" ? "home" : first in THEMES ? first : "home";
+    first === "notes" ? "home" : first === "settings" ? "me" : first === "admin" ? "desk" : first === "report" ? "home" : first === "terms" ? "privacy" : first in THEMES ? first : "home";
   return THEMES[key];
 }
 

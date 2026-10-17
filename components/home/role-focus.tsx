@@ -365,7 +365,7 @@ async function DeskFocus({ me }: { me: User }) {
               <ul className="focus__log">
                 {log.map((e) => (
                   <li key={e.id}>
-                    <span>{e.actor}</span> {e.action} <span className="focus__log-subject">{e.subject}</span> · {timeAgo(e.createdAt)}
+                    <span>{e.actor}</span> {e.action}: <span className="focus__log-subject">{e.detail || e.subject}</span> · {timeAgo(e.createdAt)}
                   </li>
                 ))}
               </ul>
