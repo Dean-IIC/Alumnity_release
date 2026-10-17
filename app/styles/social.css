@@ -1985,3 +1985,19 @@ html.story-open {
   width: auto;
   min-width: 72px;
 }
+
+/* ---------- Fingers, not cursors ----------
+ * On a touch screen, the small links (a name, "yesterday", "2 comments") get a taller
+ * tap area than the text they show: the extra is padding taken back by a negative
+ * margin, so nothing moves.
+ */
+@media (pointer: coarse) {
+  .post__name,
+  .post__meta a,
+  .post__tally-link,
+  .wf-member__name,
+  .side-person__who a {
+    padding-block: 9px;
+    margin-block: -9px;
+  }
+}

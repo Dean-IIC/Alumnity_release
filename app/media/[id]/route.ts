@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
-import { signedInUser } from "../../../lib/server/auth";
-import { mediaById, mediaLink, pickSize, readMedia } from "../../../lib/server/media";
+import { signedInUser, type User } from "../../../lib/server/auth";
+import { db } from "../../../lib/server/db";
+import { mediaById, mediaLink, pickSize, readMedia, type Media } from "../../../lib/server/media";
+import { blockIds } from "../../../lib/server/people";
 import { canSeePostMedia } from "../../../lib/server/posts";
+import { isModerator } from "../../../lib/server/roles";
 import { canSeeStoryMedia } from "../../../lib/server/stories";
 
 /*
@@ -28,6 +31,17 @@ const HTML_POLICY = [
   "font-src data:"
 ].join("; ");
 
+async function canSeeOwnedMedia(viewer: User, media: Media): Promise<boolean> {
+  if (media.userId === viewer.id || isModerator(viewer)) return true;
+  const [owner, blocked, cause] = await Promise.all([
+    db().one<{ suspended_at: number | null }>("select suspended_at from users where id = ?", media.userId),
+    blockIds(viewer.id),
+    db().one<{ status: string }>("select status from causes where cover = ? order by status = 'live' desc limit 1", media.id)
+  ]);
+  if (!owner || owner.suspended_at !== null || blocked.has(media.userId)) return false;
+  return !cause || cause.status === "live" || cause.status === "closed";
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const viewer = await signedInUser();
   if (!viewer) return new NextResponse("Log in to see this.", { status: 401 });
@@ -38,6 +52,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const onPost = await canSeePostMedia(viewer, media.id);
   const onStory = onPost === null ? await canSeeStoryMedia(viewer, media.id) : null;
   if (onPost === false || onStory === false) return new NextResponse("Not found.", { status: 404 });
+  // Anything else (a profile photo or cover, a cause's cover): not for someone the owner
+  // has blocked or who blocked them, not once the owner is suspended, and a cause's cover
+  // only once the desk has put the cause up. The desk sees everything (it reviews them).
+  if (onPost === null && onStory === null && !(await canSeeOwnedMedia(viewer, media))) return new NextResponse("Not found.", { status: 404 });
 
   // A smaller copy of a photo, if the page asked for one (?w=…).
   const width = Number(new URL(request.url).searchParams.get("w"));
