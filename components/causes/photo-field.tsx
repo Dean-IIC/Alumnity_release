@@ -17,21 +17,25 @@ export function PhotoField({ name = "cover" }: { name?: string }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={mediaUrl(id, 320)} alt="" style={{ maxWidth: 320, borderRadius: 8 }} />
       )}
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        disabled={busy}
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-          setBusy(true);
-          setProblem(null);
-          const answer = await uploadFile(file, "photo");
-          setBusy(false);
-          if (answer.ok) setId(answer.id);
-          else setProblem(answer.error);
-        }}
-      />
+      <label className="button button--secondary wf-small photo-field__choose">
+        {id ? "Choose another photo" : "Choose a photo"}
+        <input
+          type="file"
+          className="sr-only"
+          accept="image/jpeg,image/png,image/webp"
+          disabled={busy}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setBusy(true);
+            setProblem(null);
+            const answer = await uploadFile(file, "photo");
+            setBusy(false);
+            if (answer.ok) setId(answer.id);
+            else setProblem(answer.error);
+          }}
+        />
+      </label>
       {busy && <span className="field__hint">Uploading…</span>}
       {problem && (
         <span className="wf-note wf-note--error" role="alert">

@@ -40,6 +40,9 @@ export function MediaPicker({ use, value, onChange }: { use: "photo" | "cover"; 
           ref={input}
           type="file"
           className="sr-only"
+          // The button below opens it: one control to reach, not two.
+          tabIndex={-1}
+          aria-hidden="true"
           accept={use === "photo" ? "image/jpeg,image/png,image/webp,image/gif" : "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,.html,.htm,text/html"}
           onChange={async (event) => {
             const file = event.target.files?.[0];
