@@ -7,12 +7,12 @@ export const metadata: Metadata = {
 };
 
 const STEPS = [
-  ["Find your name in the register", "Alumnity is only for HKBK College of Engineering people. You join by finding your line in the college register: your name and USN (or your name, branch and year). No line, no account."],
+  ["Find your name in the register", "Alumnity is only for HKBK College of Engineering people. You join by finding your name in the college register: your name and USN (or your name, branch and year). If you are not in the register, you cannot join."],
   ["Confirm your email, choose a password", "We email you a six-digit code. Your email is never shown to other members."],
   ["Make your page yours", "Say what you do now, what you know, and what you're happy to help with. Every part has its own “who can see this”: everyone, your batch, your connections, or only you."],
-  ["Connect", "Start with your batch. A request can carry a note; the other person accepts or quietly declines. Connections can message each other."],
+  ["Connect", "Start with your batch. You can add a short note to a connection request. The other person can accept it or decline it. Once connected, you can message each other."],
   ["Ask a senior", "Students' questions go to a few alumni who fit them, never to everyone. One takes it on and writes back privately, and you mark it answered when it has been."],
-  ["Stay in touch", "Home is a noticeboard of notes from your batch and connections. Events are put up by the college; say you're coming and add them to your calendar."]
+  ["Stay in touch", "Home shows posts from your batch and your connections. The college posts events here. Tap “I'm going” and add them to your calendar."]
 ] as const;
 
 const SAFETY = [

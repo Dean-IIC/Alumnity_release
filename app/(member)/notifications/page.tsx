@@ -30,7 +30,7 @@ export default async function NotificationsPage() {
       )}
       {list.length === 0 ? (
         <>
-          <p className="wf-empty">Nothing yet. Requests, replies and answers will show up here; the quickest way to get some is to start one.</p>
+          <p className="wf-empty">Nothing here yet. Connection requests, replies and answers will show up here. A good way to start: ask a senior a question, or connect with someone.</p>
           <ThingsToDo me={me} />
           <PeopleToReach me={me} mode="connect" />
         </>

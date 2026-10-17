@@ -42,7 +42,7 @@ export default function PrivacyPage() {
         <Section title="What we keep, and why">
           <ul>
             <li>
-              <strong>Your line in the college register</strong> (name, USN, branch, course, the year you joined), from the college’s own records. It’s how we know you studied
+              <strong>Your entry in the college register</strong> (name, USN, branch, course, the year you joined), from the college’s own records. It’s how we know you studied
               here; it’s never shown to anyone in full. Signed-in members can search it for someone’s name, to invite them: they see a name, branch and year, never a USN, and only a few searches an hour, so it can’t be copied out.
             </li>
             <li>

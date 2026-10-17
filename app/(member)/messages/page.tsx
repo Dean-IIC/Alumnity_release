@@ -13,7 +13,7 @@ export default async function MessagesPage() {
   const me = await requireUser("/messages");
   const list = await conversations(me);
   return (
-    <AppPage user={me} current="messages" title="Messages" intro="Letters between connections. To write to someone new, connect first, or Ask a senior.">
+    <AppPage user={me} current="messages" title="Messages" intro="Messages are only between connections. To message someone new, connect with them first, or use Ask a senior.">
       {list.length === 0 ? (
         <>
           <p className="wf-empty">No messages yet. Letters go between connections: write to one, or connect with someone first.</p>

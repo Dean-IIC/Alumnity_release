@@ -97,7 +97,7 @@ export function SettingsPanel({ email }: { email: string }) {
 
       <Section title="Delete your account">
         <p className="join__fine">
-          Deletes your account and your page from Alumnity, for good. Your line in the college register stays, as it always has; you could join again later.
+          This deletes your account and your page from Alumnity for good. Your name stays in the college register, so you can join again later if you want.
         </p>
         <form
           onSubmit={(event: FormEvent<HTMLFormElement>) => {
