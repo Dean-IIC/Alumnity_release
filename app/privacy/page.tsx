@@ -25,9 +25,12 @@ export default function PrivacyPage() {
     <>
       <SiteHeader />
       <main className="wf container">
-        <header className="wf-head">
-          <h1>Privacy</h1>
-          <p className="wf-muted">Last updated {LEGAL.updated}.</p>
+        <header className="page-head legal-head">
+          <p className="kicker">Privacy policy</p>
+          <h1 className="page-title">
+            Your details, <span className="page-title__gold">kept safe.</span>
+          </h1>
+          <p className="page-head__text">What Alumnity keeps about you, why, who can see it, and your rights over it. Last updated {LEGAL.updated}.</p>
         </header>
         {!legalReady() && <p className="wf-card">Draft: the college is completing its contact details and reviewing this policy before Alumnity opens to everyone.</p>}
 

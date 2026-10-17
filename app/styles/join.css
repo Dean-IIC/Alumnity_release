@@ -19,6 +19,11 @@
   align-items: start;
 }
 
+/* Staff aren't on the student register: their page is the form alone, at a readable width. */
+.join--staff {
+  grid-template-columns: minmax(0, 560px);
+}
+
 .join-page__login {
   margin: var(--space-8) 0 0;
   color: var(--color-ink-muted);
@@ -92,6 +97,8 @@
 }
 
 .join__switch {
+  /* On a line of its own, never beside the form's main button. */
+  display: block;
   min-height: var(--tap-target);
   margin-top: var(--space-2);
   padding: 0;
@@ -586,6 +593,12 @@
   .register-book {
     order: -1;
     transform: rotate(-1deg);
+  }
+
+  /* Logging in, or resetting a password, on a phone: just the form. The register is a
+     decoration there, and would push the email box below the fold. */
+  .join--form-first .register-book {
+    display: none;
   }
 
   .register-book__page {

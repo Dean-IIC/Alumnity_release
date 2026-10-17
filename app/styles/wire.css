@@ -745,3 +745,13 @@
   background: var(--color-wash-green);
   color: var(--color-green);
 }
+
+/* Privacy and Terms: the information pages' head, over the long text. */
+.legal-head {
+  padding-top: var(--space-5);
+}
+
+.legal-head .page-head__text a {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}

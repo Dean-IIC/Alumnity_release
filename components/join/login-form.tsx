@@ -11,7 +11,7 @@ export function LoginForm() {
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
-    <div className="join">
+    <div className="join join--form-first">
       <div className="join__form">
         <form
           onSubmit={async (event) => {

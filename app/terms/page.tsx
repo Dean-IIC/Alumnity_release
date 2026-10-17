@@ -25,9 +25,14 @@ export default function TermsPage() {
     <>
       <SiteHeader />
       <main className="wf container">
-        <header className="wf-head">
-          <h1>Terms of use</h1>
-          <p className="wf-muted">Last updated {LEGAL.updated}. By joining Alumnity you agree to these terms and to the <a href="/privacy">privacy policy</a>.</p>
+        <header className="page-head legal-head">
+          <p className="kicker">Terms of use</p>
+          <h1 className="page-title">
+            How we look after <span className="page-title__gold">each other.</span>
+          </h1>
+          <p className="page-head__text">
+            Last updated {LEGAL.updated}. By joining Alumnity you agree to these terms and to the <a href="/privacy">privacy policy</a>.
+          </p>
         </header>
         {!legalReady() && <p className="wf-card">Draft: the college is reviewing these terms before Alumnity opens to everyone.</p>}
 
