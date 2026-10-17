@@ -75,7 +75,7 @@ secrets: don't paste them into chats, issues or commits.
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL | public |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same page, `anon` / publishable key | public (RLS blocks it from all data) |
 | `SUPABASE_SERVICE_ROLE_KEY` | same page, `service_role` / secret key | **secret**, server only |
-| `DATABASE_URL` | Project Settings → Database → Connection string → **Transaction pooler** (port 6543) | **secret**; the app sets `prepare: false` for the pooler |
+| `DATABASE_URL` | Project Settings → Database → Connection string → **Transaction pooler** (port 6543) | **secret**; keep the transaction pooler. The app sets `prepare: false` and `max_pipeline: 0` for it (`lib/server/db.ts`): without the second, queries sent behind each other were stranded and pages never finished |
 | `ALUMNITY_SUPER_ADMINS` | comma-separated emails | super administrators (can't be removed from the site) |
 | `ALUMNITY_ADMINS` | comma-separated emails | optional: administrators set in config |
 | `DATABASE_POOL` | optional | connections per server instance (default 5) |
