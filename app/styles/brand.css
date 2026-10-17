@@ -42,10 +42,11 @@
   fill: var(--color-red);
 }
 
+/* Under the wordmark, from the same left edge (so it lines up with everything below it). */
 .brand__by {
   display: grid;
-  justify-self: end;
-  justify-items: end;
+  justify-self: start;
+  justify-items: start;
   margin-top: 0.12em;
   color: var(--color-ink);
   font-family: var(--font-ui);

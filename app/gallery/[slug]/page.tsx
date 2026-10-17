@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "../../../components/site-header";
 import { SiteFooter } from "../../../components/site-footer";
+import { VisitorOnly } from "../../../components/visitor-only";
 import { SoonNotice } from "../../../components/coming-soon";
 import { InkBloom } from "../../../components/ink-bloom";
 import { AlbumCard } from "../../../components/gallery/album-card";
@@ -12,11 +13,8 @@ import "../../styles/gallery.css";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return ALBUMS.map((album) => ({ slug: album.slug }));
-}
+// Made per request (not ahead of time): a member gets the app's bar and tabs around it, a visitor the site's.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const album = albumBySlug((await params).slug);
@@ -36,7 +34,9 @@ export default async function AlbumPage({ params }: Props) {
 
   return (
     <>
-      <SiteHeader current="gallery" />
+      <VisitorOnly>
+        <SiteHeader current="gallery" />
+      </VisitorOnly>
       <main className="album container">
         {/* The album opens like the landing page: its cover blooms from pencil into colour. */}
         <a className="back-link album__back" href="/gallery">
@@ -74,7 +74,9 @@ export default async function AlbumPage({ params }: Props) {
           </ul>
         </section>
       </main>
-      <SiteFooter />
+      <VisitorOnly>
+        <SiteFooter />
+      </VisitorOnly>
       <SoonNotice />
     </>
   );

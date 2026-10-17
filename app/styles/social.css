@@ -1929,6 +1929,34 @@ html.story-open {
   font: var(--text-card) / 1 var(--font-voice);
 }
 
+/* Home's numbers in the college's inks, each on a wash of its own colour. */
+.focus__numbers span:nth-child(3n + 1) {
+  border-color: rgba(20, 63, 104, 0.25);
+  background: var(--color-wash-blue);
+}
+
+.focus__numbers span:nth-child(3n + 1) strong {
+  color: var(--color-blue);
+}
+
+.focus__numbers span:nth-child(3n + 2) {
+  border-color: rgba(168, 57, 50, 0.22);
+  background: var(--color-wash-red);
+}
+
+.focus__numbers span:nth-child(3n + 2) strong {
+  color: var(--color-red);
+}
+
+.focus__numbers span:nth-child(3n) {
+  border-color: var(--color-notice-edge);
+  background: var(--color-wash-gold);
+}
+
+.focus__numbers span:nth-child(3n) strong {
+  color: var(--color-gold-small);
+}
+
 .focus__state li {
   font-size: var(--text-small);
 }
@@ -2000,4 +2028,27 @@ html.story-open {
     padding-block: 9px;
     margin-block: -9px;
   }
+}
+
+/* ---------- People on the college register who haven't joined (People search) ---------- */
+
+.register-found {
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+  border-top: 1px dashed var(--color-notice-edge);
+}
+
+.register-found h2 {
+  margin-top: 0;
+}
+
+/* A name without a page yet: not a link. */
+.wf-member__name--plain {
+  color: var(--color-ink);
+}
+
+.wf-tag--waiting {
+  border-color: var(--color-notice-edge);
+  background: var(--color-wash-gold);
+  color: var(--color-gold-small);
 }

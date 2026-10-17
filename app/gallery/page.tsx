@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "../../components/site-header";
 import { SiteFooter } from "../../components/site-footer";
+import { VisitorOnly } from "../../components/visitor-only";
 import { SoonNotice } from "../../components/coming-soon";
 import { AlbumCard } from "../../components/gallery/album-card";
 import { ALBUMS, PHOTO_COUNT } from "../../lib/gallery";
@@ -14,7 +15,9 @@ export const metadata: Metadata = {
 export default function GalleryPage() {
   return (
     <>
-      <SiteHeader current="gallery" />
+      <VisitorOnly>
+        <SiteHeader current="gallery" />
+      </VisitorOnly>
       <main className="gallery container">
         <header className="page-head">
           <p className="kicker">Gallery</p>
@@ -39,7 +42,9 @@ export default function GalleryPage() {
           <span aria-hidden="true">◌</span> Have photos from your time at HKBK? Soon you’ll be able to add them here.
         </p>
       </main>
-      <SiteFooter />
+      <VisitorOnly>
+        <SiteFooter />
+      </VisitorOnly>
       <SoonNotice />
     </>
   );

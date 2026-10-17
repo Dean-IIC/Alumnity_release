@@ -37,6 +37,9 @@ export const rupees = (paise: number) => `₹${(paise / 100).toLocaleString("en-
 const BEFORE_NAME = /^(dr|prof|mr|mrs|ms|miss|er|smt|shri|sri|[a-z])\.?$/i;
 
 /** What to call someone: their first name, past any title or initials ("Dr. K. Asha Rao" → "Asha"). */
+/** "changed role" → "Changed role": text from the database shown where a sentence starts. */
+export const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
 export const firstName = (name: string) => {
   const words = name.trim().split(/\s+/);
   return words.find((w) => !BEFORE_NAME.test(w)) ?? words[0] ?? "";

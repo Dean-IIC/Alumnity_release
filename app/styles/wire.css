@@ -54,8 +54,10 @@
   padding-block: var(--space-6) var(--space-9);
 }
 
+/* A page's title in the pen's red, as on the landing page and the information pages. */
 .wf-head h1 {
   margin: 0 0 var(--space-2);
+  color: var(--color-red);
   font-family: var(--font-voice);
   font-size: clamp(30px, 6vw, 44px);
   font-weight: var(--weight-regular);
@@ -330,6 +332,31 @@
   font-weight: var(--weight-regular);
 }
 
+/* The desk's numbers take the college's three inks in turn, with a rule of the same colour. */
+.wf-grid > .wf-stat {
+  border-top: 3px solid var(--color-blue);
+}
+
+.wf-grid > .wf-stat:nth-child(3n + 1) strong {
+  color: var(--color-blue);
+}
+
+.wf-grid > .wf-stat:nth-child(3n + 2) {
+  border-top-color: var(--color-red);
+}
+
+.wf-grid > .wf-stat:nth-child(3n + 2) strong {
+  color: var(--color-red);
+}
+
+.wf-grid > .wf-stat:nth-child(3n) {
+  border-top-color: var(--color-gold);
+}
+
+.wf-grid > .wf-stat:nth-child(3n) strong {
+  color: var(--color-gold-text);
+}
+
 .wf-table {
   width: 100%;
   border-collapse: collapse;
@@ -518,12 +545,19 @@
 .public-page__more {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
+  gap: 0 var(--space-5);
   margin-top: var(--space-8);
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-line);
   font-size: var(--text-small);
   font-weight: var(--weight-semibold);
+}
+
+/* Each a full finger tall, though the text is small. */
+.public-page__more a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 
 .director {

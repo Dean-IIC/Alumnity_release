@@ -1,7 +1,7 @@
 import { ActionForm } from "../app/action-form";
 import { announceAction, inviteStaffAction, removeAnnouncementAction, resolveReportAction, restoreAction, revokeInviteAction, settingsAction, takeDownAction } from "../../lib/actions/desk";
 import { BRANCHES } from "../../lib/branches";
-import { batchLabel, ROLE_LABEL, rupees, timeAgo, when } from "../../lib/format";
+import { batchLabel, capital, ROLE_LABEL, rupees, timeAgo, when } from "../../lib/format";
 import type { User } from "../../lib/server/auth";
 import { allAnnouncements } from "../../lib/server/announcements";
 import { auditLog, deskMembers, deskSettings, recentContent, reports, stats, team, type ContentKind, type MemberFilter } from "../../lib/server/desk";
@@ -529,9 +529,9 @@ export async function Audit({ me, q }: { me: User; q: string }) {
                 <tr key={e.id}>
                   <td>{when(e.createdAt)}</td>
                   <td>{e.actor}</td>
-                  <td>{e.action}</td>
+                  <td>{capital(e.action)}</td>
                   <td>
-                    {e.subject}
+                    {capital(e.subject)}
                     {e.detail ? ` · ${e.detail}` : ""}
                   </td>
                 </tr>
