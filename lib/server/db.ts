@@ -117,14 +117,25 @@ function fromPostgres(sql: Sql): Db {
   };
 }
 
+/** How Alumnity talks to Supabase's pooler (exported for the test that guards it). */
+export const POSTGRES_OPTIONS = {
+  // Supabase's pooler (transaction mode) doesn't keep prepared statements between requests.
+  prepare: false,
+  // One query at a time on each connection, never several queued behind each other. The
+  // pooler (transaction mode) hands its server connection back as each query ends, so a
+  // query sent behind another lands on a connection that's already been given away: half
+  // of it reaches Postgres, which waits for the rest forever (seen live: Home never
+  // finished, a query "active" in Postgres waiting on the client, no locks).
+  max_pipeline: 0,
+  // Serverless: a few connections per instance, closed when idle.
+  max: Number(process.env.DATABASE_POOL || 10),
+  idle_timeout: 20,
+  connect_timeout: 10
+} as const;
+
 function connectPostgres(url: string): Db {
   const sql = postgres(url, {
-    // Supabase's pooler (transaction mode) doesn't keep prepared statements between requests.
-    prepare: false,
-    // Serverless: a few connections per instance, closed when idle.
-    max: Number(process.env.DATABASE_POOL || 10),
-    idle_timeout: 20,
-    connect_timeout: 10,
+    ...POSTGRES_OPTIONS,
     types: {
       // int8 and numeric as numbers (counts, sums, ids, millisecond times).
       bigint: { to: 20, from: [20, 1700], serialize: (v: number) => String(v), parse: (v: string) => Number(v) }
