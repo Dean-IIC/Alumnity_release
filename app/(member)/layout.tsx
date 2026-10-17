@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import { AppBar, TabBar } from "../../components/app/app-bar";
-import { MarginArt } from "../../components/app/margin-art";
+import { MarginArt, type HomeKind } from "../../components/app/margin-art";
+import { isModerator, isSuperAdmin } from "../../lib/server/roles";
 import { Pulse } from "../../components/app/pulse";
 import { SiteFooter } from "../../components/site-footer";
 import { photoIdsOf } from "../../lib/server/profile";
+import type { User } from "../../lib/server/auth";
 import { currentUser } from "../../lib/server/session";
 import { unreadMessages, unreadNotifications, waitingRequests } from "../../lib/server/social";
 import "../styles/wire.css";
@@ -16,6 +18,10 @@ import "../styles/app-bar.css";
  * pages (each page swaps in under the bar without the whole site reloading). Nobody signed
  * in: the page itself sends them to log in.
  */
+/** Whose Home it is, for its drawings. */
+const homeKind = (u: User): HomeKind =>
+  isSuperAdmin(u) ? "super" : isModerator(u) ? "desk" : u.role === "student" ? "student" : u.role === "faculty" ? "faculty" : "alumnus";
+
 export default async function MemberLayout({ children }: { children: ReactNode }) {
   const user = await currentUser();
   if (!user) return children;
@@ -29,7 +35,7 @@ export default async function MemberLayout({ children }: { children: ReactNode }
   return (
     <>
       {/* The paper's margins: a hand-drawn picture for each part of the site, faint, behind everything. */}
-      <MarginArt />
+      <MarginArt home={homeKind(user)} />
       <AppBar user={user} counts={counts} photoId={photos.get(user.id) ?? null} />
       {children}
       <SiteFooter app />

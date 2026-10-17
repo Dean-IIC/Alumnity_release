@@ -283,7 +283,7 @@ async function DeskFocus({ me }: { me: User }) {
   if (!s) return null;
   const paused = site ? (Object.entries(site.features) as [string, boolean][]).filter(([, on]) => !on).map(([k]) => k) : [];
   return (
-    <section className="sheet focus focus--desk" aria-label="The college desk">
+    <section className={`sheet focus focus--desk ${superAdmin ? "focus--super" : ""}`} aria-label="The college desk">
       <Head
         me={me}
         line={superAdmin ? "The whole site: what's waiting for the desk, how it's going, and how it's set." : "What's waiting for the college desk, and how the week is going."}
