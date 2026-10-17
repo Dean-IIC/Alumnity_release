@@ -22,7 +22,7 @@ export default async function JoinPage() {
   const known = await registerFacts();
   const facts = known ?? { count: 0, from: 1998, to: new Date().getFullYear(), branches: [] };
   return (
-    <>
+    <div className="force-light force-light--page">
       <SiteHeader />
       <main className="join-page container">
         <header className="page-head join-page__head">
@@ -42,6 +42,6 @@ export default async function JoinPage() {
       </main>
       <SiteFooter />
       <SoonNotice />
-    </>
+    </div>
   );
 }

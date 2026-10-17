@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
  * Static: nothing animates, so it costs nothing after it's drawn.
  */
 
-type Tone = "red" | "blue" | "gold";
+type Tone = "red" | "blue" | "gold" | "green";
 
 /** Each motif drawn about 60 units across, centred on 0,0. */
 const MOTIFS = {
@@ -64,7 +64,7 @@ const THEMES: Record<string, Theme> = {
       ["pencil", 120, 330, -40, 1.1, "red"],
       ["bulb", 200, 500, 0, 1.1, "gold"],
       ["question", 120, 680, 10, 1.1, "blue"],
-      ["ruler", 190, 840, 70, 0.9, "gold"],
+      ["ruler", 190, 840, 70, 0.9, "green"],
       ["sparkle", 230, 260, 0, 0.7, "gold"]
     ],
     dots: [[240, 400], [80, 560], [230, 760]],
@@ -77,8 +77,8 @@ const THEMES: Record<string, Theme> = {
       ["cap", 160, 160, -16, 1.2, "gold"],
       ["plane", 120, 340, -12, 1.1, "blue"],
       ["cup", 200, 510, 0, 1.2, "red"],
-      ["link", 120, 690, 20, 1.1, "gold"],
-      ["star", 200, 840, 8, 0.8, "blue"],
+      ["link", 120, 690, 20, 1.1, "green"],
+      ["star", 200, 840, 8, 0.8, "green"],
       ["sparkle", 230, 260, 0, 0.7, "gold"]
     ],
     dots: [[240, 420], [70, 600], [230, 760]],
@@ -91,7 +91,7 @@ const THEMES: Record<string, Theme> = {
       ["book", 160, 170, 6, 1.2, "red"],
       ["nib", 120, 360, 22, 1.2, "blue"],
       ["bell", 200, 530, -8, 1.2, "gold"],
-      ["ruler", 130, 710, 75, 1, "red"],
+      ["ruler", 130, 710, 75, 1, "green"],
       ["inkwell", 200, 850, 0, 0.9, "blue"],
       ["sparkle", 230, 270, 0, 0.7, "gold"]
     ],
@@ -105,40 +105,40 @@ const THEMES: Record<string, Theme> = {
       ["stamp", 170, 160, -8, 1.2, "blue"],
       ["scroll", 120, 360, 6, 1.1, "gold"],
       ["postmark", 200, 530, 0, 1, "red"],
-      ["flag", 130, 710, 8, 1.1, "blue"],
+      ["flag", 130, 710, 8, 1.1, "green"],
       ["sparkle", 230, 280, 0, 0.6, "gold"]
     ],
     dots: [[240, 440], [80, 620], [230, 820]],
-    phone: [["stamp", 85, 45, -8, 0.7, "blue"], ["flag", 140, 45, 8, 0.6, "red"]]
+    phone: [["stamp", 85, 45, -8, 0.7, "blue"], ["flag", 140, 45, 8, 0.6, "green"]]
   },
   // Home, the super administrator's: the works: gears, the compass, the seal, the stars.
   "home-super": {
     spine: [{ d: "M60 -20V180H140V420H70V700H150V940", tone: "gold" }],
     marks: [
       ["gear", 160, 170, 0, 1.4, "blue"],
-      ["compass", 120, 370, -10, 1.2, "gold"],
+      ["compass", 120, 370, -10, 1.2, "green"],
       ["stamp", 200, 540, 8, 1.1, "red"],
       ["gear", 120, 720, 20, 1, "gold"],
-      ["star", 210, 850, 0, 0.9, "blue"],
+      ["star", 210, 850, 0, 0.9, "green"],
       ["sparkle", 230, 280, 0, 0.7, "gold"]
     ],
     dots: [[240, 460], [80, 620]],
-    phone: [["gear", 85, 45, 0, 0.7, "blue"], ["compass", 140, 45, -10, 0.6, "gold"]]
+    phone: [["gear", 85, 45, 0, 0.7, "blue"], ["compass", 140, 45, -10, 0.6, "green"]]
   },
   // People: a card catalogue's desk: pencils, a ruler, a compass, an eraser's dust.
   people: {
     spine: [{ d: "M40 -20V940", tone: "red" }, { d: "M48 -20V940", tone: "red" }],
     marks: [
       ["pencil", 160, 140, -60, 1.1, "gold"],
-      ["ruler", 150, 380, 75, 1.1, "blue"],
-      ["compass", 190, 600, 12, 1.2, "red"],
+      ["ruler", 150, 380, 75, 1.1, "green"],
+      ["compass", 190, 600, 12, 1.2, "green"],
       ["pencil", 140, 820, 25, 1, "blue"],
       ["sparkle", 230, 260, 0, 0.6, "gold"],
       ["plus", 110, 500, 0, 0.7, "gold"],
-      ["swirl", 230, 760, 0, 0.6, "red"]
+      ["swirl", 230, 760, 0, 0.6, "green"]
     ],
     dots: [[120, 220], [240, 470], [90, 700]],
-    phone: [["pencil", 90, 40, -30, 0.8, "gold"], ["compass", 140, 50, 12, 0.7, "red"]]
+    phone: [["pencil", 90, 40, -30, 0.8, "gold"], ["compass", 140, 50, 12, 0.7, "green"]]
   },
   // Groups: speech bubbles and gears (departments), joined by a loose thread.
   groups: {
@@ -148,7 +148,7 @@ const THEMES: Record<string, Theme> = {
       ["gear", 120, 330, 0, 1.4, "gold"],
       ["bubble", 200, 520, 8, 0.9, "red"],
       ["cap", 130, 700, 10, 1, "blue"],
-      ["link", 210, 830, -20, 1, "gold"],
+      ["link", 210, 830, -20, 1, "green"],
       ["sparkle", 240, 300, 0, 0.6, "gold"],
       ["plus", 90, 470, 0, 0.7, "red"]
     ],
@@ -203,15 +203,15 @@ const THEMES: Record<string, Theme> = {
   events: {
     spine: [{ d: "M20 60C120 120 200 100 280 170 M20 520C120 580 200 560 280 630", tone: "red" }],
     marks: [
-      ["flag", 60, 80, 10, 1.2, "gold"],
-      ["flag", 110, 102, 8, 1.2, "blue"],
-      ["flag", 160, 116, 4, 1.2, "red"],
-      ["flag", 210, 130, 14, 1.2, "gold"],
+      ["flag", 60, 80, 10, 1.2, "green"],
+      ["flag", 110, 102, 8, 1.2, "green"],
+      ["flag", 160, 116, 4, 1.2, "green"],
+      ["flag", 210, 130, 14, 1.2, "green"],
       ["ticket", 140, 320, -12, 1.2, "blue"],
-      ["flag", 60, 540, 10, 1.2, "blue"],
-      ["flag", 110, 562, 8, 1.2, "red"],
-      ["flag", 160, 576, 4, 1.2, "gold"],
-      ["flag", 210, 590, 14, 1.2, "blue"],
+      ["flag", 60, 540, 10, 1.2, "green"],
+      ["flag", 110, 562, 8, 1.2, "green"],
+      ["flag", 160, 576, 4, 1.2, "green"],
+      ["flag", 210, 590, 14, 1.2, "green"],
       ["star", 200, 420, 10, 0.9, "gold"],
       ["ticket", 130, 790, 10, 1, "red"],
       ["sparkle", 230, 720, 0, 0.6, "gold"]
@@ -253,15 +253,15 @@ const THEMES: Record<string, Theme> = {
   connections: {
     spine: [{ d: "M60 -20L180 200 80 420 200 640 90 940", tone: "gold" }],
     marks: [
-      ["link", 160, 160, -20, 1.2, "blue"],
+      ["link", 160, 160, -20, 1.2, "green"],
       ["cup", 120, 340, 0, 1.2, "red"],
       ["envelope", 200, 520, 10, 0.9, "gold"],
-      ["link", 130, 700, 25, 1, "red"],
+      ["link", 130, 700, 25, 1, "green"],
       ["heart", 220, 820, -10, 0.7, "blue"],
       ["sparkle", 230, 300, 0, 0.6, "gold"]
     ],
     dots: [[60, 450], [240, 640], [80, 860]],
-    phone: [["link", 85, 45, -20, 0.7, "blue"], ["cup", 140, 45, 0, 0.6, "red"]]
+    phone: [["link", 85, 45, -20, 0.7, "green"], ["cup", 140, 45, 0, 0.6, "red"]]
   },
   // Your page and settings: a pencil, a ruler, a gear.
   me: {
@@ -269,9 +269,9 @@ const THEMES: Record<string, Theme> = {
     marks: [
       ["pencil", 160, 160, -45, 1.1, "blue"],
       ["gear", 120, 380, 0, 1.3, "gold"],
-      ["ruler", 180, 600, 80, 1, "red"],
+      ["ruler", 180, 600, 80, 1, "green"],
       ["sparkle", 230, 760, 0, 0.7, "gold"],
-      ["swirl", 120, 820, 0, 0.6, "blue"]
+      ["swirl", 120, 820, 0, 0.6, "green"]
     ],
     dots: [[240, 280], [80, 520], [230, 700]],
     phone: [["pencil", 85, 40, -45, 0.7, "blue"], ["gear", 140, 55, 0, 0.7, "gold"]]
@@ -284,7 +284,7 @@ const THEMES: Record<string, Theme> = {
       ["nib", 120, 380, 25, 1.2, "red"],
       ["scroll", 190, 560, -6, 1.1, "gold"],
       ["sparkle", 230, 300, 0, 0.7, "gold"],
-      ["star", 110, 760, 10, 0.7, "blue"]
+      ["star", 110, 760, 10, 0.7, "green"]
     ],
     dots: [[240, 460], [80, 640], [230, 840]],
     phone: [["book", 85, 45, -8, 0.7, "blue"], ["nib", 140, 45, 25, 0.6, "red"]]
@@ -293,14 +293,14 @@ const THEMES: Record<string, Theme> = {
   community: {
     spine: [{ d: "M200 -20c-80 140 60 240-20 380s60 260-10 380", tone: "red", dashed: true }],
     marks: [
-      ["link", 160, 170, -20, 1.2, "blue"],
+      ["link", 160, 170, -20, 1.2, "green"],
       ["bubble", 130, 360, 0, 1.1, "gold"],
       ["cup", 200, 540, 0, 1.2, "red"],
       ["heart", 120, 720, -10, 0.8, "blue"],
       ["sparkle", 230, 280, 0, 0.6, "gold"]
     ],
     dots: [[60, 470], [240, 640], [90, 860]],
-    phone: [["link", 85, 45, -20, 0.7, "blue"], ["bubble", 140, 45, 0, 0.6, "gold"]]
+    phone: [["link", 85, 45, -20, 0.7, "green"], ["bubble", 140, 45, 0, 0.6, "gold"]]
   },
   // The committee: the association's seal and its minutes.
   committee: {
@@ -322,7 +322,7 @@ const THEMES: Record<string, Theme> = {
       ["bulb", 160, 170, 0, 1.2, "gold"],
       ["gear", 120, 370, 0, 1.4, "blue"],
       ["pencil", 190, 560, -40, 1.1, "red"],
-      ["compass", 120, 760, 10, 1.1, "gold"],
+      ["compass", 120, 760, 10, 1.1, "green"],
       ["sparkle", 230, 290, 0, 0.7, "gold"]
     ],
     dots: [[240, 460], [70, 640], [230, 860]],
@@ -332,14 +332,14 @@ const THEMES: Record<string, Theme> = {
   "how-it-works": {
     spine: [{ d: "M40 940C200 820 60 640 200 520S60 260 180 120 120 -20 200 -40", tone: "gold", dashed: true }],
     marks: [
-      ["compass", 160, 170, -10, 1.2, "blue"],
+      ["compass", 160, 170, -10, 1.2, "green"],
       ["question", 120, 370, 8, 1.3, "red"],
       ["plane", 200, 540, -12, 1.1, "gold"],
-      ["ruler", 130, 740, 70, 1, "blue"],
+      ["ruler", 130, 740, 70, 1, "green"],
       ["sparkle", 230, 300, 0, 0.7, "gold"]
     ],
     dots: [[240, 450], [80, 640], [230, 860]],
-    phone: [["compass", 85, 45, -10, 0.7, "blue"], ["plane", 140, 45, -12, 0.6, "gold"]]
+    phone: [["compass", 85, 45, -10, 0.7, "green"], ["plane", 140, 45, -12, 0.6, "gold"]]
   },
   // Privacy and terms: the fine print, signed and sealed.
   privacy: {
@@ -359,9 +359,9 @@ const THEMES: Record<string, Theme> = {
     marks: [
       ["star", 160, 170, 0, 1.1, "gold"],
       ["cap", 120, 360, -14, 1.2, "blue"],
-      ["flag", 200, 540, 8, 1.1, "red"],
+      ["flag", 200, 540, 8, 1.1, "green"],
       ["sparkle", 130, 720, 0, 0.9, "gold"],
-      ["flower", 230, 300, 10, 0.8, "red"]
+      ["flower", 230, 300, 10, 0.8, "green"]
     ],
     dots: [[240, 440], [80, 620], [230, 840]],
     phone: [["star", 85, 45, 0, 0.7, "gold"], ["cap", 140, 50, -14, 0.6, "blue"]]
@@ -371,12 +371,12 @@ const THEMES: Record<string, Theme> = {
     spine: [{ d: "M40 -20V940", tone: "gold" }],
     marks: [
       ["sparkle", 160, 170, 0, 1, "gold"],
-      ["star", 120, 380, 10, 0.9, "blue"],
+      ["star", 120, 380, 10, 0.9, "green"],
       ["plus", 200, 560, 0, 1, "red"],
-      ["swirl", 130, 740, 0, 0.8, "gold"]
+      ["swirl", 130, 740, 0, 0.8, "green"]
     ],
     dots: [[240, 460], [80, 640]],
-    phone: [["sparkle", 85, 45, 0, 0.7, "gold"], ["star", 140, 50, 10, 0.6, "blue"]]
+    phone: [["sparkle", 85, 45, 0, 0.7, "gold"], ["star", 140, 50, 10, 0.6, "green"]]
   },
   // The college desk: rubber stamps, a pen nib, the ledger's rules.
   desk: {

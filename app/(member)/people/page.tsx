@@ -106,7 +106,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               photoId={photos.get(member.id)}
               detail={[profile.title, profile.company && `at ${profile.company}`, profile.city && `· ${profile.city}`].filter(Boolean).join(" ")}
             >
-              {RELATION_LABEL[relation] && <span className="wf-tag">{RELATION_LABEL[relation]}</span>}
+              {RELATION_LABEL[relation] && <span className={`wf-tag ${relation === "connected" ? "wf-tag--ok" : ""}`}>{RELATION_LABEL[relation]}</span>}
               {profile.happyTo.mentor && <span className="wf-tag">Mentors</span>}
             </MemberLine>
           ))}

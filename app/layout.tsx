@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Figtree, Young_Serif } from "next/font/google";
 import { INTRO_PREFERENCE_SCRIPT } from "../lib/intro-preference";
+import { THEME_SCRIPT } from "../lib/theme";
 import "./globals.css";
 
 // Self-hosted by Next at build time: no render-blocking request to Google on load.
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable} ${wordmark.variable}`} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: INTRO_PREFERENCE_SCRIPT }} />
       </head>
       <body>{children}</body>

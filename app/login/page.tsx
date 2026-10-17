@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   if (await currentUser()) redirect(safeNext((await searchParams).next));
   return (
-    <>
+    <div className="force-light force-light--page">
       <SiteHeader />
       <main className="join-page container">
         <header className="page-head join-page__head">
@@ -33,6 +33,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </main>
       <SiteFooter />
       <SoonNotice />
-    </>
+    </div>
   );
 }

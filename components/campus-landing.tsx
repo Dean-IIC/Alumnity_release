@@ -13,7 +13,7 @@ export function CampusLanding() {
   const completeIntro = useCallback(() => setIntroComplete(true), []);
 
   return (
-    <main className={`landing ${introComplete ? "landing--intro-complete" : ""}`}>
+    <main className={`landing force-light ${introComplete ? "landing--intro-complete" : ""}`}>
       <GrowingCampusIntro onComplete={completeIntro} />
 
       {/* The intro reveals this from the centre outwards. */}

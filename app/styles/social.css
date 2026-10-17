@@ -1936,31 +1936,40 @@ html.story-open {
   font: var(--text-card) / 1 var(--font-voice);
 }
 
-/* Home's numbers in the college's inks, each on a wash of its own colour. */
-.focus__numbers span:nth-child(3n + 1) {
+/* Home's numbers in the college's four inks, each on a wash of its own colour. */
+.focus__numbers span:nth-child(4n + 1) {
   border-color: rgba(20, 63, 104, 0.25);
   background: var(--color-wash-blue);
 }
 
-.focus__numbers span:nth-child(3n + 1) strong {
+.focus__numbers span:nth-child(4n + 1) strong {
   color: var(--color-blue);
 }
 
-.focus__numbers span:nth-child(3n + 2) {
+.focus__numbers span:nth-child(4n + 2) {
   border-color: rgba(168, 57, 50, 0.22);
   background: var(--color-wash-red);
 }
 
-.focus__numbers span:nth-child(3n + 2) strong {
+.focus__numbers span:nth-child(4n + 2) strong {
   color: var(--color-red);
 }
 
-.focus__numbers span:nth-child(3n) {
+.focus__numbers span:nth-child(4n + 3) {
+  border-color: rgba(47, 107, 69, 0.3);
+  background: var(--color-wash-green);
+}
+
+.focus__numbers span:nth-child(4n + 3) strong {
+  color: var(--color-green);
+}
+
+.focus__numbers span:nth-child(4n) {
   border-color: var(--color-notice-edge);
   background: var(--color-wash-gold);
 }
 
-.focus__numbers span:nth-child(3n) strong {
+.focus__numbers span:nth-child(4n) strong {
   color: var(--color-gold-small);
 }
 
@@ -2108,4 +2117,74 @@ html.story-open {
 .photo-field__choose:focus-within {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/* ---------- Light or dark (Settings) ---------- */
+
+.theme-choice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.theme-choice__option {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 64px;
+  padding: var(--space-3);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-paper-raised);
+  cursor: pointer;
+}
+
+.theme-choice__option input {
+  position: absolute;
+  opacity: 0;
+}
+
+.theme-choice__option:has(input:checked) {
+  border-color: var(--color-blue);
+  box-shadow: inset 0 0 0 1px var(--color-blue);
+}
+
+.theme-choice__option:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.theme-choice__option span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.theme-choice__option small {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+  line-height: 1.35;
+}
+
+/* A little page in each: cream, charcoal, or half and half. */
+.theme-choice__swatch {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+}
+
+.theme-choice__option--light .theme-choice__swatch {
+  background: linear-gradient(135deg, #fffdf7 55%, #a83932 55% 70%, #143f68 70%);
+}
+
+.theme-choice__option--dark .theme-choice__swatch {
+  background: linear-gradient(135deg, #221b16 55%, #f08d81 55% 70%, #93bce8 70%);
+}
+
+.theme-choice__option--system .theme-choice__swatch {
+  background: linear-gradient(135deg, #fffdf7 50%, #221b16 50%);
 }
