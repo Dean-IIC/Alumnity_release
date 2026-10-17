@@ -755,3 +755,63 @@
   color: var(--color-blue);
   font-weight: var(--weight-semibold);
 }
+
+/* ---------- On a phone: tabs in one row to swipe, tables as stacked entries ---------- */
+
+@media (max-width: 640px) {
+  .wf-tabs {
+    flex-wrap: nowrap;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 2px var(--gutter) var(--space-2);
+    overflow-x: auto;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .wf-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .wf-tabs a {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  /* A table's rows become entries: the first cell (the date) small on top, the rest beneath. */
+  .wf-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .wf-table,
+  .wf-table tbody,
+  .wf-table tr,
+  .wf-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .wf-table tr {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .wf-table td {
+    padding: 1px 0;
+    border: 0;
+  }
+
+  .wf-table td:first-child {
+    color: var(--color-ink-muted);
+    font-size: var(--text-fine);
+  }
+
+  .wf-table td:nth-child(2) {
+    font-weight: var(--weight-semibold);
+  }
+}
