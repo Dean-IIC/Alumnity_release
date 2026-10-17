@@ -117,6 +117,12 @@ const words = (s: string) => s.toLowerCase().split(/[^a-z0-9+#.]+/).filter(Boole
  * Members matching a search: every word must appear in their name, or in what the viewer
  * is allowed to see of their page (what they do, where, city, skills). Newest members first.
  */
+/**
+ * A person, not an account kept by the college (users.college_account: the "HKBK Alumni
+ * Association" that owns the old portal's posts): only people are suggested or found.
+ */
+const PERSON = "users.college_account = 0";
+
 export async function searchMembers(viewer: User, query: SearchQuery, limit = 60): Promise<Found[]> {
   const terms = words(query.q ?? "").slice(0, 6);
   // A cheap first pass in SQL (each word somewhere in their name or page), then the exact
@@ -125,7 +131,7 @@ export async function searchMembers(viewer: User, query: SearchQuery, limit = 60
   const [rows, relationTo] = await Promise.all([
     db().all(
       `select users.*, profiles.data as profile_data from users left join profiles on profiles.user_id = users.id
-       where users.suspended_at is null and users.id != ?
+       where users.suspended_at is null and users.id != ? and ${PERSON}
        and users.id not in (select blocked from blocks where blocker = ?) and users.id not in (select blocker from blocks where blocked = ?)
        ${query.branch ? "and users.branch = ?" : ""} ${query.year ? "and users.joined = ?" : ""} ${like}
        order by users.created_at desc limit 400`,
@@ -165,7 +171,7 @@ export async function peopleToMeet(me: User, limit = 4): Promise<User[]> {
   return users(
     await db().all(
       `select * from users
-       where id != ? and suspended_at is null
+       where id != ? and suspended_at is null and ${PERSON.replace("users.", "")}
        and id not in (select blocked from blocks where blocker = ?) and id not in (select blocker from blocks where blocked = ?)
        and id not in (select addressee from connections where requester = ?) and id not in (select requester from connections where addressee = ?)
        order by (branch is not distinct from ? and joined is not distinct from ?) desc, (branch is not distinct from ?) desc, created_at desc

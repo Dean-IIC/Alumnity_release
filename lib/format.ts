@@ -37,6 +37,12 @@ export const rupees = (paise: number) => `₹${(paise / 100).toLocaleString("en-
 const BEFORE_NAME = /^(dr|prof|mr|mrs|ms|miss|er|smt|shri|sri|[a-z])\.?$/i;
 
 /** What to call someone: their first name, past any title or initials ("Dr. K. Asha Rao" → "Asha"). */
+/** "MOHAMMED IMRAN K" → "Mohammed Imran K": the register is in capitals, people aren't. */
+export const nameCase = (name: string) => name.toLowerCase().replace(/(^|[\s.'-])([a-z])/g, (_, a: string, b: string) => a + b.toUpperCase());
+
+/** A name as people should see it: one stored all in capitals (straight from the register) in proper case; any other as written. */
+export const displayName = (name: string) => (/^[A-Z][A-Z .'-]*$/.test(name.trim()) ? nameCase(name) : name);
+
 /** "changed role" → "Changed role": text from the database shown where a sentence starts. */
 export const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 

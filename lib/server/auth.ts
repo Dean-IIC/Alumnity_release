@@ -5,6 +5,7 @@ import { findInRegister } from "./register";
 import { passwordProblem, randomToken } from "./secrets";
 import { settings } from "./settings";
 import { withinLimit } from "./throttle";
+import { displayName } from "../format";
 
 /*
  * Accounts. Joining: find your line in the register → we email a code → you choose a
@@ -78,7 +79,7 @@ export function configRole(email: string): "superadmin" | "admin" | null {
 const toUser = (row: Record<string, unknown>): User => ({
   id: Number(row.id),
   email: String(row.email),
-  name: String(row.name),
+  name: displayName(String(row.name)),
   usn: (row.usn as string) ?? null,
   branch: (row.branch as string) ?? null,
   branchName: (row.branch_name as string) ?? null,
