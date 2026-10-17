@@ -41,10 +41,8 @@ export const DEVELOPERS = {
 
 export const ABOUT = {
   intro: `The alumni and student network of HKBK College of Engineering, Bengaluru.`,
-  privacy: `## Privacy
-Your USN and email are private: other members never see them. You choose who sees each part of your page, and messages are only between connections. Nothing about you appears on public pages; only verified members can see the network.
-
-The community section now has its own page: see Community.`,
+  privacy: `## Your privacy
+Your USN and email are private: other members never see them. You choose who sees each part of your page, and messages are only between connections. Nothing about you appears on public pages; only verified members can see the network.`,
 };
 
 export const COMMUNITY = {

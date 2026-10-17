@@ -4,11 +4,10 @@ import { ABOUT, DIRECTOR_MESSAGE } from "../../lib/about-content";
 
 export const metadata: Metadata = { title: "About · Alumnity", description: ABOUT.intro };
 
-/** What Alumnity is, and the Director's message (the college's own words). */
+/** The Director's message (the college's own words), then how Alumnity keeps people's details private. */
 export default function AboutPage() {
   return (
     <PublicPage current="about" title="About Alumnity" intro={ABOUT.intro}>
-      <Prose text={ABOUT.privacy} />
       <article className="director wf-card" aria-labelledby="director">
         <h2 id="director">A message from the {DIRECTOR_MESSAGE.role}</h2>
         <div className="wf-prose">
@@ -24,6 +23,7 @@ export default function AboutPage() {
           <span>{DIRECTOR_MESSAGE.role}</span>
         </footer>
       </article>
+      <Prose text={ABOUT.privacy} />
     </PublicPage>
   );
 }
