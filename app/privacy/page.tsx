@@ -43,7 +43,7 @@ export default function PrivacyPage() {
           <ul>
             <li>
               <strong>Your line in the college register</strong> (name, USN, branch, course, the year you joined), from the college’s own records. It’s how we know you studied
-              here; it’s never shown to anyone in full, and nobody can browse the register.
+              here; it’s never shown to anyone in full. Signed-in members can search it for someone’s name, to invite them: they see a name, branch and year, never a USN, and only a few searches an hour, so it can’t be copied out.
             </li>
             <li>
               <strong>Your email address</strong>, to sign you in and send your codes (and, if you leave it on, one daily email when something’s waiting). Other members never see it.

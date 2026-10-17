@@ -5,7 +5,9 @@ import { MemberLine } from "../../../components/app/member-line";
 import { BRANCHES, isBranch } from "../../../lib/branches";
 import { Invite } from "../../../components/app/invite";
 import { batchmates, memberCount, searchMembers, type SearchQuery } from "../../../lib/server/people";
-import { batchCount } from "../../../lib/server/register";
+import { batchCount, REGISTER_SEARCHES, searchRegister } from "../../../lib/server/register";
+import { Avatar } from "../../../components/social/avatar";
+import { batchLabel } from "../../../lib/format";
 import { requireUser } from "../../../lib/server/session";
 
 export const metadata: Metadata = { title: "People · Alumnity", robots: { index: false } };
@@ -27,7 +29,11 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
     help: params.help === "mentor" || params.help === "refer" || params.help === "talk" ? params.help : undefined
   };
   const searched = Boolean(query.q || query.branch || query.year || query.help);
-  const found = await searchMembers(me, query);
+  // Members, and (for a name or USN typed) people on the college register who haven't joined yet.
+  const [found, register] = await Promise.all([
+    searchMembers(me, query),
+    query.q ? searchRegister(me, { q: query.q, branch: query.branch, year: query.year }) : Promise.resolve({ people: [], limited: false })
+  ]);
   const photos = await photoIdsOf(found.slice(0, 60).map((f) => f.member.id));
   // A young network: who's here so far, and how many from your batch aren't yet.
   const quiet = !searched && found.length < 5;
@@ -39,8 +45,8 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
     <AppPage user={me} current="people" title="People" intro="Everyone on Alumnity from HKBK. You only see what each person chose to show.">
       <form className="wf-filters" role="search" action="/people">
         <label className="field">
-          <span className="field__label">Name, company, city or skill</span>
-          <input name="q" defaultValue={query.q} maxLength={100} placeholder="e.g. Asha, Infosys, Pune, Python" />
+          <span className="field__label">Name, USN, company, city or skill</span>
+          <input name="q" defaultValue={query.q} maxLength={100} placeholder="e.g. Asha, 1HK12CS042, Infosys, Python" />
         </label>
         <label className="field">
           <span className="field__label">Branch</span>
@@ -89,7 +95,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
         <p className="wf-empty">Nobody else has joined yet. You'll see everyone here as they do.</p>
       ) : found.length === 0 ? (
         <p className="wf-empty">
-          Nobody matches that yet. Try fewer words, or <a href="/people">clear the search</a>.
+          {register.people.length ? "No member matches that yet: see the college register below." : <>Nobody matches that yet. Try fewer words, or <a href="/people">clear the search</a>.</>}
         </p>
       ) : (
         <ul className="wf-list">
@@ -105,6 +111,37 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             </MemberLine>
           ))}
         </ul>
+      )}
+      {register.people.length > 0 && (
+        <section className="register-found" aria-labelledby="register-found">
+          <h2 id="register-found">On the college register, not on Alumnity yet</h2>
+          <p className="wf-muted">From HKBK's own register of students. Know them? Send them the link: they join by finding their own line.</p>
+          <ul className="wf-list">
+            {register.people.map((p, i) => (
+              <li key={`${p.name}-${p.joined}-${i}`} className="wf-member wf-member--face">
+                <span className="wf-member__face" aria-hidden="true">
+                  <Avatar name={p.name} size={44} />
+                </span>
+                <div className="wf-member__who">
+                  <strong className="wf-member__name wf-member__name--plain">{p.name}</strong>
+                  <span className="wf-muted">
+                    {batchLabel({ branch: p.branch, joined: p.joined, programme: p.programme })}
+                    {p.programme !== "B.Tech" ? ` · ${p.programme}` : ""}
+                  </span>
+                </div>
+                <div className="wf-actions">
+                  <span className="wf-tag wf-tag--waiting">Not on Alumnity yet</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <Invite text="I found your name on Alumnity, HKBK College of Engineering's alumni network. Find your line in the register and join:" />
+        </section>
+      )}
+      {register.limited && (
+        <p className="wf-note">
+          That's {REGISTER_SEARCHES} searches of the college register this hour, the most at a time. Members still show; the register's names come back within the hour.
+        </p>
       )}
     </AppPage>
   );

@@ -41,7 +41,7 @@ export const ABOUT = {
   privacy: [
     { title: "Private by default", text: "Your USN and email are never shown to other members. Nothing about you appears on any public page." },
     { title: "You choose who sees what", text: "Every part of your page has its own setting: everyone on Alumnity, your batch, your connections, or only you." },
-    { title: "Only HKBK people", text: "Members are checked against the college's own register. Messages are only ever between connections." }
+    { title: "Only HKBK people", text: "Members are checked against the college's own register, and only they can search it: a name, branch and year, so they can invite you, never your USN. Messages are only ever between connections." }
   ]
 };
 
