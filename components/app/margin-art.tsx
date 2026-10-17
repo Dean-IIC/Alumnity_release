@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 /*
  * The paper's margins, a different drawing for each part of Alumnity, in the landing
  * page's pen: 2.4 px round strokes in red, blue and gold, faint, behind everything.
- * Home grows vines and flowers; People has pencils, rulers and a compass; Messages,
+ * Home is each person's own (a student's books and bulbs, an alumnus's thrown caps and
+ * chai, a teacher's classroom, the desk's stamps, the super administrator's gears); People has pencils, rulers and a compass; Messages,
  * envelopes, stamps and paper planes; Events, bunting and tickets; Causes, hearts and an
  * inkwell; your batch, graduation caps flying. Wide screens get a column down each side;
  * phones get a small cluster by the page's title and another at its foot.
@@ -53,31 +54,76 @@ type MotifName = keyof typeof MOTIFS;
 type Place = [MotifName, number, number, number, number, Tone];
 type Theme = { spine: { d: string; tone: Tone; dashed?: boolean }[]; marks: Place[]; dots: [number, number][]; phone: Place[] };
 
-const VINE = "M18 -20C40 90 0 170 24 270S50 440 20 540 0 720 30 930";
-const STEMS = "M60 920C10 800 150 740 96 610S20 420 120 330 210 160 110 70 60 -10 90 -40";
 
 const THEMES: Record<string, Theme> = {
-  // Home: the landing's garden, with a cap thrown and a pencil left on the page.
-  home: {
-    spine: [
-      { d: VINE, tone: "blue" },
-      { d: STEMS, tone: "red" }
-    ],
+  // Home, a student's: books open, pencils, a bulb lit, questions asked.
+  "home-student": {
+    spine: [{ d: "M40 -20V940 M48 -20V940", tone: "blue" }],
     marks: [
-      ["flower", 200, 480, 0, 0.9, "gold"],
-      ["flower", 172, 150, 20, 0.7, "gold"],
-      ["leaf", 80, 760, -40, 1, "gold"],
-      ["leaf", 118, 690, 20, 1, "gold"],
-      ["leaf", 70, 520, -30, 1, "gold"],
-      ["leaf", 150, 250, -20, 1, "gold"],
-      ["cap", 210, 330, -14, 1, "blue"],
-      ["pencil", 180, 820, -30, 0.9, "red"],
-      ["swirl", 240, 640, 0, 0.8, "blue"],
-      ["sparkle", 230, 220, 0, 0.8, "gold"],
-      ["plus", 182, 600, 0, 0.8, "red"]
+      ["book", 170, 160, -8, 1.2, "blue"],
+      ["pencil", 120, 330, -40, 1.1, "red"],
+      ["bulb", 200, 500, 0, 1.1, "gold"],
+      ["question", 120, 680, 10, 1.1, "blue"],
+      ["ruler", 190, 840, 70, 0.9, "gold"],
+      ["sparkle", 230, 260, 0, 0.7, "gold"]
     ],
-    dots: [[150, 560], [60, 380], [210, 410], [46, 120], [220, 760]],
-    phone: [["cap", 70, 40, -14, 0.8, "blue"], ["sparkle", 120, 20, 0, 0.6, "gold"], ["flower", 128, 70, 10, 0.55, "red"]]
+    dots: [[240, 400], [80, 560], [230, 760]],
+    phone: [["book", 85, 45, -8, 0.7, "blue"], ["bulb", 140, 45, 0, 0.6, "gold"]]
+  },
+  // Home, an alumnus's: caps thrown, letters flown home, chai with old friends.
+  "home-alumnus": {
+    spine: [{ d: "M30 940C150 760 40 600 170 420S90 140 230 -20", tone: "gold", dashed: true }],
+    marks: [
+      ["cap", 160, 160, -16, 1.2, "gold"],
+      ["plane", 120, 340, -12, 1.1, "blue"],
+      ["cup", 200, 510, 0, 1.2, "red"],
+      ["link", 120, 690, 20, 1.1, "gold"],
+      ["star", 200, 840, 8, 0.8, "blue"],
+      ["sparkle", 230, 260, 0, 0.7, "gold"]
+    ],
+    dots: [[240, 420], [70, 600], [230, 760]],
+    phone: [["cap", 85, 45, -16, 0.7, "gold"], ["plane", 140, 45, -12, 0.6, "blue"]]
+  },
+  // Home, a teacher's: the classroom: an open book, a pen nib, the ruler, the bell.
+  "home-faculty": {
+    spine: [{ d: "M40 -20V940", tone: "red" }],
+    marks: [
+      ["book", 160, 170, 6, 1.2, "red"],
+      ["nib", 120, 360, 22, 1.2, "blue"],
+      ["bell", 200, 530, -8, 1.2, "gold"],
+      ["ruler", 130, 710, 75, 1, "red"],
+      ["inkwell", 200, 850, 0, 0.9, "blue"],
+      ["sparkle", 230, 270, 0, 0.7, "gold"]
+    ],
+    dots: [[240, 440], [80, 620]],
+    phone: [["book", 85, 45, 6, 0.7, "red"], ["bell", 140, 45, -8, 0.6, "gold"]]
+  },
+  // Home, the desk's: rubber stamps, the minutes, a postmark, the college's flag.
+  "home-desk": {
+    spine: [{ d: "M40 -20V940 M70 -20V940", tone: "blue" }],
+    marks: [
+      ["stamp", 170, 160, -8, 1.2, "blue"],
+      ["scroll", 120, 360, 6, 1.1, "gold"],
+      ["postmark", 200, 530, 0, 1, "red"],
+      ["flag", 130, 710, 8, 1.1, "blue"],
+      ["sparkle", 230, 280, 0, 0.6, "gold"]
+    ],
+    dots: [[240, 440], [80, 620], [230, 820]],
+    phone: [["stamp", 85, 45, -8, 0.7, "blue"], ["flag", 140, 45, 8, 0.6, "red"]]
+  },
+  // Home, the super administrator's: the works: gears, the compass, the seal, the stars.
+  "home-super": {
+    spine: [{ d: "M60 -20V180H140V420H70V700H150V940", tone: "gold" }],
+    marks: [
+      ["gear", 160, 170, 0, 1.4, "blue"],
+      ["compass", 120, 370, -10, 1.2, "gold"],
+      ["stamp", 200, 540, 8, 1.1, "red"],
+      ["gear", 120, 720, 20, 1, "gold"],
+      ["star", 210, 850, 0, 0.9, "blue"],
+      ["sparkle", 230, 280, 0, 0.7, "gold"]
+    ],
+    dots: [[240, 460], [80, 620]],
+    phone: [["gear", 85, 45, 0, 0.7, "blue"], ["compass", 140, 45, -10, 0.6, "gold"]]
   },
   // People: a card catalogue's desk: pencils, a ruler, a compass, an eraser's dust.
   people: {
@@ -347,11 +393,14 @@ const THEMES: Record<string, Theme> = {
   }
 };
 
-/** Which drawing a page gets, from its address. */
-function themeFor(path: string): Theme {
+/** Whose Home it is: each role's has its own drawings (none of them the landing page's garden). */
+export type HomeKind = "student" | "alumnus" | "faculty" | "desk" | "super";
+
+/** Which drawing a page gets, from its address (and, on Home, whose it is). */
+function themeFor(path: string, home: HomeKind): Theme {
   const first = path.split("/")[1] ?? "";
-  const key =
-    first === "notes" ? "home" : first === "settings" ? "me" : first === "admin" ? "desk" : first === "report" ? "home" : first === "terms" ? "privacy" : first in THEMES ? first : "paper";
+  if (first === "home" || first === "notes" || first === "report") return THEMES[`home-${home}`];
+  const key = first === "settings" ? "me" : first === "admin" ? "desk" : first === "terms" ? "privacy" : first in THEMES ? first : "paper";
   return THEMES[key];
 }
 
@@ -436,10 +485,10 @@ function Field({ theme, id }: { theme: Theme; id: string }) {
   );
 }
 
-export function MarginArt() {
+export function MarginArt({ home = "alumnus" }: { home?: HomeKind }) {
   const path = usePathname() ?? "/home";
-  const theme = themeFor(path);
-  const id = `paper-${path.split("/")[1] || "home"}`;
+  const theme = themeFor(path, home);
+  const id = `paper-${path.split("/")[1] || "home"}-${home}`;
   return (
     <>
       <div className="margin-art__wash" aria-hidden="true" />

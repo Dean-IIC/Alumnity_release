@@ -2009,6 +2009,45 @@ html.story-open {
   box-shadow: inset 4px 0 0 var(--color-ink);
 }
 
+/* ...and its own wash of that colour, and the greeting in it: each Home its own. */
+.focus--student {
+  background: linear-gradient(150deg, var(--color-wash-blue), var(--color-paper-raised) 55%);
+}
+
+.focus--student .focus__head h2 {
+  color: var(--color-blue);
+}
+
+.focus--alumnus {
+  background: linear-gradient(150deg, var(--color-wash-gold), var(--color-paper-raised) 55%);
+}
+
+.focus--alumnus .focus__head h2 {
+  color: var(--color-gold-text);
+}
+
+.focus--teacher {
+  background: linear-gradient(150deg, var(--color-wash-red), var(--color-paper-raised) 55%);
+}
+
+.focus--teacher .focus__head h2 {
+  color: var(--color-red);
+}
+
+.focus--desk {
+  background: linear-gradient(150deg, rgba(20, 63, 104, 0.07), var(--color-paper-raised) 55%);
+}
+
+.focus--desk .focus__head h2 {
+  color: var(--color-blue-deep);
+}
+
+/* The super administrator's: gold and blue, the whole site's. */
+.focus--super {
+  box-shadow: inset 4px 0 0 var(--color-gold), inset 8px 0 0 var(--color-blue);
+  background: linear-gradient(150deg, var(--color-wash-gold), var(--color-wash-blue) 45%, var(--color-paper-raised) 75%);
+}
+
 @media (max-width: 640px) {
   .focus {
     padding: var(--space-4);
