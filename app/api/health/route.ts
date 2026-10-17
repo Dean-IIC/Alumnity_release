@@ -29,7 +29,7 @@ import { storyBar } from "../../../lib/server/stories";
  * components/home/role-focus.tsx: change those, change this.
  */
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 60; // LIMIT below is well inside it
 
 const bootedAt = Date.now();
 let calls = 0;
@@ -47,16 +47,18 @@ const ms = async (work: () => Promise<unknown>) => {
   return Math.round(performance.now() - began);
 };
 
-/** The slowest queries, and how many ran at once at worst. */
+/** The slowest queries, any still running, how many ran at once at worst, and any asked twice. */
 function summary(queries: Timed[]) {
-  const slowest = [...queries].sort((a, b) => b.ms - a.ms).slice(0, 8);
+  const done = queries.filter((q): q is Timed & { ms: number } => q.ms !== null);
+  const stillRunning = queries.filter((q) => q.ms === null).map(({ sql, at }) => ({ sql, startedAt: at }));
+  const slowest = [...done].sort((a, b) => b.ms - a.ms).slice(0, 8);
   let mostAtOnce = 0;
-  for (const q of queries) mostAtOnce = Math.max(mostAtOnce, queries.filter((o) => o.at <= q.at && o.at + o.ms > q.at).length);
+  for (const q of queries) mostAtOnce = Math.max(mostAtOnce, queries.filter((o) => o.at <= q.at && (o.ms === null || o.at + o.ms > q.at)).length);
   // The same query asked more than once for one page: work that could be shared.
   const times = new Map<string, number>();
   for (const q of queries) times.set(q.sql, (times.get(q.sql) ?? 0) + 1);
   const repeated = [...times].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]).map(([sql, n]) => ({ sql, n }));
-  return { queries: queries.length, mostAtOnce, slowest, repeated };
+  return { queries: queries.length, stillRunning, mostAtOnce, slowest, repeated };
 }
 
 export async function GET(request: Request) {
@@ -98,50 +100,68 @@ export async function GET(request: Request) {
   if (!row) return NextResponse.json({ instance, database, auth, home: "no member with that email" });
   const me = toUser(row);
   const home = await traced(() => homeLoading(me));
-  return NextResponse.json({ instance, database, auth, home: { role: me.role, totalMs: home.ms, steps: home.result, ...summary(home.queries) } });
+  return NextResponse.json({ instance, database, auth, home: { role: me.role, totalMs: home.ms, ...home.result, ...summary(home.queries) } });
 }
 
-/** Home's loading, step by step (each step waits for the one before, as on the page). */
+/** How long one part of Home may take before it's reported as never finishing. */
+const LIMIT = 20_000;
+
+/**
+ * Every part of Home's loading, each on its own and all at once (photos aside, which needs
+ * the feed), so one that never finishes can't hide the others: each reports its time, its
+ * error, or that it hadn't finished after LIMIT.
+ */
 async function homeLoading(me: User) {
-  const steps: Record<string, number> = {};
-  const step = async <T>(name: string, work: () => Promise<T>): Promise<T> => {
+  const parts: Record<string, number | string> = {};
+  const part = <T>(name: string, work: () => Promise<T>): Promise<T | undefined> => {
     const began = performance.now();
-    try {
-      return await work();
-    } finally {
-      steps[name] = Math.round(performance.now() - began);
-    }
+    parts[name] = "not finished";
+    return work().then(
+      (value) => {
+        parts[name] = Math.round(performance.now() - began);
+        return value;
+      },
+      (error: unknown) => {
+        parts[name] = `failed after ${Math.round(performance.now() - began)} ms: ${String((error as Error)?.message ?? error).slice(0, 160)}`;
+        return undefined;
+      }
+    );
   };
-  // The layout (alongside the page).
-  const layout = step("layout: counts and photo", () =>
-    Promise.all([waitingRequests(me.id), unreadMessages(me.id), unreadNotifications(me.id), photoIdsOf([me.id])])
-  );
-  const [, posts] = await step("page: everything at once", () =>
-    Promise.all([
-      profileOf(me.id),
-      feedFor(me, { limit: 15, scope: "all" }),
-      storyBar(me),
-      batchmates(me),
-      relationsOf(me.id),
-      eventsFor(me),
-      activeAnnouncements(),
-      settings(),
-      connectionCount(me.id),
-      followCounts(me.id),
-      groupsFor(me),
-      liveCauses(me, 2),
-      peopleToMeet(me, 6)
-    ])
-  );
-  await step("page: photos", () => photoIdsOf([me.id, ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)])]));
-  if (isModerator(me)) await step("page: desk steps", () => deskBeginnings());
-  await step("focus", (): Promise<unknown> =>
-    isModerator(me)
-      ? Promise.all([stats(me), reports(me, "open"), weekInNumbers(), settings(), auditLog(me, { limit: 5 })])
+  const desk = isModerator(me);
+  const all = Promise.all([
+    // The layout.
+    part("layout: requests waiting", () => waitingRequests(me.id)),
+    part("layout: unread messages", () => unreadMessages(me.id)),
+    part("layout: unread notifications", () => unreadNotifications(me.id)),
+    // The page.
+    part("profileOf", () => profileOf(me.id)),
+    part("feedFor", () => feedFor(me, { limit: 15, scope: "all" })).then((posts) =>
+      part("photoIdsOf (feed)", () => photoIdsOf([me.id, ...(posts ?? []).flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)])]))
+    ),
+    part("storyBar", () => storyBar(me)),
+    part("batchmates", () => batchmates(me)),
+    part("relationsOf", () => relationsOf(me.id)),
+    part("eventsFor", () => eventsFor(me)),
+    part("activeAnnouncements", () => activeAnnouncements()),
+    part("settings", () => settings()),
+    part("connectionCount", () => connectionCount(me.id)),
+    part("followCounts", () => followCounts(me.id)),
+    part("groupsFor", () => groupsFor(me)),
+    part("liveCauses", () => liveCauses(me, 2)),
+    part("peopleToMeet", () => peopleToMeet(me, 6)),
+    // The part made for who's reading.
+    ...(desk
+      ? [
+          part("desk: deskBeginnings", () => deskBeginnings()),
+          part("desk: stats", () => stats(me)),
+          part("desk: reports", () => reports(me, "open")),
+          part("desk: weekInNumbers", () => weekInNumbers()),
+          part("desk: auditLog", () => auditLog(me, { limit: 5 }))
+        ]
       : me.role === "student"
-        ? Promise.all([mentorsFor(me, 4), asksFor(me)])
-        : Promise.all([asksFor(me), profileOf(me.id), studentsSeeking(me, 3), batchmates(me)])
-  );
-  await layout;
-  return steps;
+        ? [part("student: mentorsFor", () => mentorsFor(me, 4)), part("student: asksFor", () => asksFor(me))]
+        : [part("asksFor", () => asksFor(me)), part("studentsSeeking", () => studentsSeeking(me, 3))])
+  ]);
+  const finished = await Promise.race([all.then(() => true), new Promise<false>((ok) => setTimeout(() => ok(false), LIMIT))]);
+  return { finished, parts };
 }
