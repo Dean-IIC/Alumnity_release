@@ -16,7 +16,7 @@ export default async function MessagesPage() {
     <AppPage user={me} current="messages" title="Messages" intro="Messages are only between connections. To message someone new, connect with them first, or use Ask a senior.">
       {list.length === 0 ? (
         <>
-          <p className="wf-empty">No messages yet. Letters go between connections: write to one, or connect with someone first.</p>
+          <p className="wf-empty">No messages yet. Write to one of your connections, or connect with someone first.</p>
           <PeopleToReach me={me} mode="write" />
         </>
       ) : (

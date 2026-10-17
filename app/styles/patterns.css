@@ -230,12 +230,3 @@
     opacity: 0.4;
   }
 }
-
-/* In the dark, the drawings a little brighter so they still show on charcoal. */
-:root[data-theme="dark"] .margin-art__field {
-  opacity: 0.24;
-}
-
-:root[data-theme="dark"] .margin-art__wash {
-  opacity: 0.8;
-}
