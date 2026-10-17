@@ -36,14 +36,14 @@ beforeAll(async () => {
 
 describe("pinning a post to the top of your page", () => {
   it("pins your own post, and unpins it", async () => {
-    expect((await pin(null, form({ id: String(mine) }))).ok).toBe(true);
+    expect((await pin(null, form({ id: String(mine) })))?.ok).toBe(true);
     expect((await profile.profileOf(me)).featured).toBe(mine);
-    expect((await pin(null, form({ id: String(mine), unpin: "1" }))).ok).toBe(true);
+    expect((await pin(null, form({ id: String(mine), unpin: "1" })))?.ok).toBe(true);
     expect((await profile.profileOf(me)).featured).toBeNull();
   });
 
   it("won't pin someone else's post, nor keep one through the edit form", async () => {
-    expect((await pin(null, form({ id: String(theirs) }))).ok).toBe(false);
+    expect((await pin(null, form({ id: String(theirs) })))?.ok).toBe(false);
     const parsed = await profile.parseProfile({ featured: theirs }, me);
     expect("profile" in parsed && parsed.profile.featured).toBeNull();
     const own = await profile.parseProfile({ featured: mine }, me);

@@ -1,12 +1,12 @@
 /*
- * Light or dark: "system" (follow the device, the default), "light" or "dark", kept on this
- * device. THEME_SCRIPT runs in <head> before anything is drawn, so a dark page never
+ * Light or dark: "light" (the default: everyone starts on the paper the college has seen),
+ * "dark", or "system" (follow the device), kept on this device. THEME_SCRIPT runs in <head> before anything is drawn, so a dark page never
  * flashes light; it also follows the device if it switches while the page is open.
  */
 export type ThemeChoice = "system" | "light" | "dark";
 export const THEME_KEY = "alumnity-theme";
 
-export const THEME_SCRIPT = `(function(){try{var k=${JSON.stringify(THEME_KEY)},m=matchMedia("(prefers-color-scheme: dark)");var apply=function(){var c=localStorage.getItem(k)||"system";document.documentElement.dataset.theme=c==="dark"||(c==="system"&&m.matches)?"dark":"light"};apply();if(m.addEventListener)m.addEventListener("change",apply);window.__alumnityTheme=apply}catch(e){}})();`;
+export const THEME_SCRIPT = `(function(){try{var k=${JSON.stringify(THEME_KEY)},m=matchMedia("(prefers-color-scheme: dark)");var apply=function(){var c=localStorage.getItem(k)||"light";document.documentElement.dataset.theme=c==="dark"||(c==="system"&&m.matches)?"dark":"light"};apply();if(m.addEventListener)m.addEventListener("change",apply);window.__alumnityTheme=apply}catch(e){}})();`;
 
 /** Saves a choice on this device and applies it at once. */
 export function chooseTheme(choice: ThemeChoice) {
