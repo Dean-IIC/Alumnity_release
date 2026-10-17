@@ -67,6 +67,8 @@ export const DAILY_REQUESTS = 25;
 export async function requestConnection(from: User, toId: number, note: string): Promise<Result> {
   const to = await memberById(toId);
   if (!to || to.id === from.id) return no("That member isn’t here.");
+  // An account kept by the college (the alumni association's archive): nobody's there to accept.
+  if (await db().one("select 1 from users where id = ? and college_account = 1", to.id)) return no("That’s the college’s own account: there’s nobody to connect with.");
   const rel = await relation(from.id, to.id);
   if (rel === "blocked" || rel === "blocked-by") return no("You can’t connect with this member.");
   if (rel === "connected") return no("You’re already connected.");

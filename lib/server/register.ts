@@ -1,6 +1,7 @@
 import type { User } from "./auth";
 import { db } from "./db";
 import { withinLimit } from "./throttle";
+import { nameCase } from "../format";
 import { lookup, normaliseUsn, type Lookup, type LookupResult, type RegisterRow } from "../register";
 
 /*
@@ -69,8 +70,7 @@ const HOUR = 60 * 60_000;
 /** Searches of the register a member may make in an hour: plenty to find people, too few to copy it out. */
 export const REGISTER_SEARCHES = 40;
 
-/** "MOHAMMED IMRAN K" → "Mohammed Imran K": the register is in capitals, people aren't. */
-export const nameCase = (name: string) => name.toLowerCase().replace(/(^|[\s.'-])([a-z])/g, (_, a: string, b: string) => a + b.toUpperCase());
+export { nameCase } from "../format";
 
 /**
  * People on the register who haven't joined, for a member's search: by name (every word
