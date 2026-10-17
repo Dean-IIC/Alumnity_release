@@ -1,5 +1,5 @@
 import type { Found } from "../register";
-import { authProvider } from "./auth-provider";
+import { authProvider, SAME_PASSWORD } from "./auth-provider";
 import { db } from "./db";
 import { findInRegister } from "./register";
 import { passwordProblem, randomToken } from "./secrets";
@@ -215,10 +215,11 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
   const found = JSON.parse(row.found) as Found;
   const problem = passwordProblem(password, passwordContext({ name: found.name, usn: found.usn, email: row.email }));
   if (problem) return { ok: false, error: problem };
+  // On a retry the password may already be this one: that's the job half done, not a refusal.
   const refused = await auth.setPassword(password);
-  if (refused) return { ok: false, error: refused };
+  if (refused && refused !== SAME_PASSWORD) return { ok: false, error: refused };
 
-  const inserted = await db().one(
+  const fresh = await db().one(
     `insert into users (auth_id, email, name, usn, branch, branch_name, programme, joined, role, created_at)
      values (?::uuid, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict do nothing returning *`,
     session.authId,
@@ -232,6 +233,8 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
     row.role,
     Date.now()
   );
+  // Already made for this very sign-in (an earlier try got this far): finish, don't refuse.
+  const inserted = fresh ?? (await db().one("select * from users where auth_id = ?::uuid and email = ?", session.authId, row.email));
   await db().run("delete from auth_intents where ticket = ?", ticket);
   if (!inserted) {
     // The USN or the email was taken while this sign-up was waiting.

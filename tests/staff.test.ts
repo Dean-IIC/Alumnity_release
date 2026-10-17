@@ -24,9 +24,9 @@ async function member(email: string, role: string): Promise<U> {
   return (await people.memberById(row!.id))!;
 }
 
-async function joinAsStaff(email: string, browser: string) {
+async function joinAsStaff(email: string, browser: string, ip = "1") {
   fake.use(browser);
-  const start = await staff.startStaffJoin(email, "1");
+  const start = await staff.startStaffJoin(email, ip);
   if (!start.ok) return start;
   expect((await staff.checkStaffCode(start.ticket, fake.lastCode(email.toLowerCase())!)).ok).toBe(true);
   return staff.completeStaffJoin(start.ticket, "chalk and lanterns 41");
@@ -72,5 +72,25 @@ describe("staff invitations", () => {
     await staff.inviteStaff(sup, { email: "t3@example.com", name: "Prof Three", role: "coordinator", branch: "" }, "https://x");
     await db().run("update staff_invites set expires_at = 1 where email = 't3@example.com'");
     expect((await joinAsStaff("t3@example.com", "t3")).ok).toBe(false);
+  });
+
+  it("a join that stopped after the password was set finishes when they try again, and isn't refused", async () => {
+    const admin = await member("retry.admin@example.com", "admin");
+    expect((await staff.inviteStaff(admin, { email: "retry.teacher@example.com", name: "Dr. Retry", role: "faculty", branch: "CSE" }, "https://x")).ok).toBe(true);
+    // First try: the code is checked and the password set on the sign-in account, then it stops
+    // (as it did live): there's a login, but no member yet, and the invitation is still open.
+    fake.use("retry");
+    const first = await staff.startStaffJoin("retry.teacher@example.com", "retry-ip");
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    expect((await staff.checkStaffCode(first.ticket, fake.lastCode("retry.teacher@example.com")!)).ok).toBe(true);
+    expect(await (await import("../lib/server/auth-provider")).fakeAuth().then((a) => a.setPassword("chalk and lanterns 41"))).toBeNull();
+    expect(await db().one("select 1 from users where email = 'retry.teacher@example.com'")).toBeUndefined();
+    // Second try, same password: it finishes. One member, the invited role, the invitation used.
+    const again = await joinAsStaff("retry.teacher@example.com", "retry", "retry-ip");
+    expect(again.ok).toBe(true);
+    const row = await db().one<{ role: string; n: number }>("select role, (select count(*) from users where email = 'retry.teacher@example.com') as n from users where email = 'retry.teacher@example.com'");
+    expect(row).toMatchObject({ role: "faculty", n: 1 });
+    expect((await db().one<{ used_at: number | null }>("select used_at from staff_invites where email = 'retry.teacher@example.com'"))?.used_at).not.toBeNull();
   });
 });

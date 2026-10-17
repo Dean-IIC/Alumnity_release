@@ -163,3 +163,14 @@ used; colours, type, space, radii and motion are always tokens.
   viewer takes and returns keyboard focus.
 - On a phone, the **tab bar** (Home, People, post, Messages, You) sits at the bottom and the
   **sections bar** stays at the top, scrolling sideways, so every page is in reach.
+
+## On a phone
+
+- **Tables become entries.** A table compares columns; a phone has no room to compare, so below
+  640 px every `.wf-table` stacks: the first cell (a date) small on top, the rest beneath.
+- **A row of tabs swipes** rather than wrapping (the desk's eight sections).
+- **Forms come first.** A decoration never pushes the field a person came to fill below the fold
+  (login, password reset).
+- **Lists of things to open swipe** when two columns would break their names (an album's
+  "More albums", a profile's Activity).
+

@@ -46,3 +46,17 @@ export function fromThisSite(request: Request): NextResponse | null {
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   return origin && host && new URL(origin).host === host ? null : NextResponse.json({ ok: false, error: "Not allowed." }, { status: 403 });
 }
+
+/**
+ * A step of joining that must never fail in silence: whatever goes wrong is written to the
+ * server's log with its cause (Vercel's logs name it), and the person is told plainly to try
+ * again, which picks up where it stopped (lib/server/auth.ts, lib/server/staff.ts).
+ */
+export async function joinStep<T extends object>(label: string, work: () => Promise<Outcome<T>>) {
+  try {
+    return respond(await work());
+  } catch (error) {
+    console.error(`${label} failed:`, error);
+    return NextResponse.json({ ok: false, error: "Something went wrong finishing that step. Please try again: it will pick up where it stopped." }, { status: 500 });
+  }
+}

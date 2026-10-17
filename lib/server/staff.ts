@@ -1,5 +1,5 @@
 import { BRANCHES } from "../branches";
-import { authProvider } from "./auth-provider";
+import { authProvider, SAME_PASSWORD } from "./auth-provider";
 import { intent, looksLikeEmail, newIntent, normaliseEmail, passwordContext, SLOW_DOWN, toUser, verify, type Outcome, type Role, type User } from "./auth";
 import { db } from "./db";
 import { letter, sendMail } from "./mail";
@@ -129,23 +129,30 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
   }
   const problem = passwordProblem(password, passwordContext({ name: invite.name, usn: null, email: row.email }));
   if (problem) return { ok: false, error: problem };
+  // On a retry the password may already be this one: that's the job half done, not a refusal.
   const refused = await auth.setPassword(password);
-  if (refused) return { ok: false, error: refused };
-  const inserted = await db().one(
-    "insert into users (auth_id, email, name, branch, branch_name, role, created_at) values (?::uuid, ?, ?, ?, ?, ?, ?) on conflict do nothing returning *",
-    session.authId,
-    row.email,
-    invite.name,
-    invite.branch,
-    invite.branch_name,
-    invite.role,
-    Date.now()
-  );
+  if (refused && refused !== SAME_PASSWORD) return { ok: false, error: refused };
+  // The member and the used invitation, together: neither without the other.
+  const member = await db().tx(async (t) => {
+    const inserted = await t.one(
+      "insert into users (auth_id, email, name, branch, branch_name, role, created_at) values (?::uuid, ?, ?, ?, ?, ?, ?) on conflict do nothing returning *",
+      session.authId,
+      row.email,
+      invite.name,
+      invite.branch,
+      invite.branch_name,
+      invite.role,
+      Date.now()
+    );
+    // Already made for this very sign-in (an earlier try got this far): finish, don't refuse.
+    const made = inserted ?? (await t.one("select * from users where auth_id = ?::uuid and email = ?", session.authId, row.email));
+    if (made) await t.run("update staff_invites set used_at = ? where email = ?", Date.now(), row.email);
+    return made;
+  });
   await db().run("delete from auth_intents where ticket = ?", ticket);
-  if (!inserted) {
+  if (!member) {
     await auth.signOut("local");
     return { ok: false, error: "That email already has an account. Log in instead." };
   }
-  await db().run("update staff_invites set used_at = ? where email = ?", Date.now(), row.email);
-  return { ok: true, user: toUser(inserted) };
+  return { ok: true, user: toUser(member) };
 }
