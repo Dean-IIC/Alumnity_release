@@ -40,6 +40,8 @@ export type Profile = {
   /** The extra sections they've added (lib/profile-sections.ts): a kind not added is absent. */
   sections: Partial<Record<SectionKind, SectionEntry[]>>;
   sectionsVisibility: Record<SectionKind, Visibility>;
+  /** A post of their own pinned to the top of their page (shown to whoever may see that post). */
+  featured: number | null;
 };
 
 export const EMPTY_PROFILE: Profile = {
@@ -56,7 +58,8 @@ export const EMPTY_PROFILE: Profile = {
   links: { linkedin: "", website: "" },
   visibility: { now: "everyone", journey: "everyone", about: "everyone", skills: "everyone", happyTo: "everyone", links: "batch" },
   sections: {},
-  sectionsVisibility: { experience: "everyone", education: "everyone", projects: "everyone", certifications: "everyone", organisations: "everyone", honours: "everyone", languages: "everyone" }
+  sectionsVisibility: { experience: "everyone", education: "everyone", projects: "everyone", certifications: "everyone", organisations: "everyone", honours: "everyone", languages: "everyone" },
+  featured: null
 };
 
 export const LIMITS = { title: 80, company: 80, city: 60, about: 600, skill: 30, skills: 12, link: 200, stop: 90, stops: 8 } as const;
@@ -171,6 +174,7 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
   const sectionsVisibility = { ...EMPTY_PROFILE.sectionsVisibility };
   for (const kind of SECTION_KINDS) if (isVisibility(sentWho[kind])) sectionsVisibility[kind] = sentWho[kind] as Visibility;
   const [photo, cover] = await Promise.all([ownMedia(input.photo, ownerId, true), ownMedia(input.cover, ownerId, false)]);
+  const featured = await ownPost(input.featured, ownerId);
   if (photo === false || cover === false) return { error: "That upload isn’t yours, or has gone. Upload it again." };
   const about = typeof input.about === "string" ? input.about.trim().slice(0, LIMITS.about) : "";
   const thisYear = new Date().getFullYear();
@@ -194,9 +198,18 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
       links: { linkedin, website },
       visibility,
       sections: parsed.sections,
-      sectionsVisibility
+      sectionsVisibility,
+      featured
     }
   };
+}
+
+/** A post the owner may pin: their own and not taken down; anything else is quietly dropped. */
+export async function ownPost(value: unknown, ownerId: number | undefined): Promise<number | null> {
+  const id = Number(value);
+  if (!ownerId || !Number.isSafeInteger(id) || id <= 0) return null;
+  const row = await db().one("select 1 from posts where id = ? and author = ? and removed_at is null", id, ownerId);
+  return row ? id : null;
 }
 
 export async function saveProfile(userId: number, profile: Profile) {
@@ -253,7 +266,9 @@ export function profileFor(
     sections: Object.fromEntries(
       SECTION_KINDS.filter((k) => profile.sections[k]?.length && canSee(viewer, owner, profile.sectionsVisibility[k], isConnection)).map((k) => [k, profile.sections[k]!])
     ),
-    sectionsVisibility: viewer?.id === owner.id ? profile.sectionsVisibility : EMPTY_PROFILE.sectionsVisibility
+    sectionsVisibility: viewer?.id === owner.id ? profile.sectionsVisibility : EMPTY_PROFILE.sectionsVisibility,
+    // Only an id: the post itself is fetched as this viewer may see it (lib/server/posts.ts postFor).
+    featured: profile.featured
   };
 }
 

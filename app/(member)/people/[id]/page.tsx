@@ -3,18 +3,19 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ActionForm } from "../../../../components/app/action-form";
 import { AppPage } from "../../../../components/app/app-page";
-import { PostCard } from "../../../../components/app/post-card";
+import { Activity, Featured } from "../../../../components/profile/activity";
 import { ReportButton } from "../../../../components/app/report-button";
 import { ProfileSheet } from "../../../../components/profile/profile-sheet";
 import { acceptAction, blockAction, connectAction, declineAction, removeConnectionAction, unblockAction, withdrawAction } from "../../../../lib/actions/social";
 import { recordOf } from "../../../../lib/server/asks";
 import { pageFor } from "../../../../lib/server/people";
-import { feedFor } from "../../../../lib/server/posts";
+import { feedFor, postFor } from "../../../../lib/server/posts";
 import { connectionCount } from "../../../../lib/server/social";
 import { requireUser } from "../../../../lib/server/session";
 import "../../../styles/join.css";
 import "../../../styles/profile.css";
 import { badgesOf } from "../../../../lib/server/badges";
+import { StickyName } from "../../../../components/profile/sticky-name";
 
 export const metadata: Metadata = { title: "A member · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -33,6 +34,8 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
   const first = firstName(owner.name);
   const record = await recordOf(owner.id);
   const notes = relation === "blocked" ? [] : await feedFor(me, { authorId: owner.id, limit: 10 });
+  // Their pinned post, if this viewer may see it (postFor applies the post's own audience).
+  const featured = relation === "blocked" || !profile.featured ? null : await postFor(me, profile.featured);
   const hidden = <input type="hidden" name="id" value={owner.id} />;
 
   const actions =
@@ -114,6 +117,13 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
 
   return (
     <AppPage user={me} current="people" back={{ href: "/people", label: "People" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
+      <StickyName name={owner.name}>
+        {relation === "connected" && (
+          <a className="button button--primary wf-small" href={`/messages/${owner.id}`}>
+            Message
+          </a>
+        )}
+      </StickyName>
       <div className="profile-page" style={{ padding: 0 }}>
         <ProfileSheet person={owner} profile={profile} isOwner={false} actions={actions} badges={await badgesOf(owner, profile)} />
       </div>
@@ -128,14 +138,10 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
           ))}
         </section>
       )}
-      {notes.length > 0 && (
-        <section aria-labelledby="their-notes">
-          <h2 id="their-notes">Notes by {first}</h2>
-          {notes.map((p) => (
-            <PostCard key={p.id} post={p} />
-          ))}
-        </section>
-      )}
+      <div className="profile-page profile-page--more" style={{ padding: 0 }}>
+        {featured && <Featured post={featured} isOwner={false} />}
+        <Activity posts={notes} featuredId={featured?.id ?? null} isOwner={false} first={first} />
+      </div>
     </AppPage>
   );
 }

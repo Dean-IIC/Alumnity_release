@@ -1219,3 +1219,182 @@
   color: var(--color-ink-muted);
   font-size: var(--text-small);
 }
+
+/* ---------- Featured and Activity (components/profile/activity.tsx) ---------- */
+
+.profile-page--more {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.pcard--activity .pcard__head,
+.pcard--featured .pcard__head {
+  align-items: baseline;
+}
+
+.activity__hint {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+/* A strip that scrolls sideways, each post snapping into place. */
+.activity {
+  display: grid;
+  grid-auto-columns: minmax(230px, 280px);
+  grid-auto-flow: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0 0 var(--space-3);
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+}
+
+.activity > li {
+  scroll-snap-align: start;
+}
+
+.activity:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+.preview {
+  display: grid;
+  height: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  overflow: hidden;
+}
+
+.preview__open {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  padding: 0 0 var(--space-3);
+  color: inherit;
+}
+
+.preview__photo {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.preview--large .preview__photo {
+  height: 260px;
+}
+
+.preview__when,
+.preview__text,
+.preview__counts {
+  padding: 0 var(--space-3);
+}
+
+.preview__open > :first-child:not(img) {
+  padding-top: var(--space-3);
+}
+
+.preview__when {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.preview__text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-ink);
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.preview--large .preview__text {
+  -webkit-line-clamp: 6;
+  font-size: var(--text-body);
+}
+
+.preview__counts {
+  display: flex;
+  gap: var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.preview__counts:empty {
+  display: none;
+}
+
+.preview__open:hover .preview__text {
+  text-decoration: underline;
+}
+
+.preview__pin {
+  align-self: end;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px dashed var(--color-line);
+}
+
+.pcard--featured {
+  box-shadow: inset 0 3px 0 var(--color-gold);
+}
+
+/* ---------- The name bar that follows you down a page (components/profile/sticky-name.tsx) ---------- */
+
+.sticky-name {
+  position: fixed;
+  z-index: 30;
+  top: var(--app-bar-height, 57px);
+  right: 0;
+  left: 0;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-bar);
+  backdrop-filter: blur(8px);
+  transform: translateY(-120%);
+  opacity: 0;
+  transition: transform var(--duration-quick) var(--ease-out), opacity var(--duration-quick) ease;
+  pointer-events: none;
+}
+
+.sticky-name--shown {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sticky-name__inner {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 52px;
+}
+
+.sticky-name__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-ink);
+  font: var(--weight-regular) 18px / 1.2 var(--font-voice);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sticky-name__top {
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--color-blue);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-name {
+    transition: none;
+  }
+}
