@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
-import { batchLabel, ROLE_LABEL } from "../../lib/format";
+import { batchLabel } from "../../lib/format";
+import type { Role } from "../../lib/server/auth";
 import { Avatar } from "../social/avatar";
+import { NameMark } from "../social/name-mark";
 
 type MemberLineProps = {
-  member: { id: number; name: string; branch: string | null; joined: number | null; role: string };
+  member: { id: number; name: string; branch: string | null; joined: number | null; role: string; usn?: string | null };
   /** What they do now, if the viewer may see it. */
   detail?: string;
   children?: ReactNode;
@@ -19,11 +21,15 @@ export function MemberLine({ member, detail, children, photoId }: MemberLineProp
         <Avatar name={member.name} photoId={photoId} size={44} />
       </a>
       <div className="wf-member__who">
-        <a className="wf-member__name" href={`/people/${member.id}`}>
-          {member.name}
-        </a>
+        <span className="name-line">
+          <a className="wf-member__name" href={`/people/${member.id}`}>
+            {member.name}
+          </a>
+          <NameMark who={{ usn: member.usn ?? null, role: member.role as Role }} />
+        </span>
         <span className="wf-muted">
-          {[batchLabel(member), member.role !== "alumnus" && member.role !== "student" ? ROLE_LABEL[member.role] : ""].filter(Boolean).join(" · ")}
+          {/* Staff have their role beside their name (NameMark); the line underneath is their batch. */}
+          {batchLabel(member)}
         </span>
         {detail && <span className="wf-member__detail">{detail}</span>}
       </div>

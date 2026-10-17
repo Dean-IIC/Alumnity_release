@@ -7,6 +7,7 @@ import { ReportButton } from "../app/report-button";
 import { Avatar } from "./avatar";
 import { Icon } from "./icons";
 import { MentionInput } from "./mention-input";
+import { NameMark } from "./name-mark";
 import { ReactionBar } from "./reaction-bar";
 import { RichText } from "./rich-text";
 
@@ -33,9 +34,12 @@ export function Post({ post, photos, full = false, me }: Props) {
           <Avatar name={post.author.name} photoId={photos.get(post.author.id)} size={44} />
         </a>
         <div className="post__who">
-          <a className="post__name" id={`post-${post.id}-by`} href={`/people/${post.author.id}`}>
-            {post.author.name}
-          </a>
+          <span className="name-line">
+            <a className="post__name" id={`post-${post.id}-by`} href={`/people/${post.author.id}`}>
+              {post.author.name}
+            </a>
+            <NameMark who={post.author} />
+          </span>
           <span className="post__meta">
             {batchLabel(post.author) && <span>{batchLabel(post.author)}</span>}
             <a href={href}>
@@ -98,9 +102,12 @@ export function Post({ post, photos, full = false, me }: Props) {
             <div key={c.id} className="comment">
               <Avatar name={c.author.name} photoId={photos.get(c.author.id)} size={32} />
               <div className="comment__bubble">
-                <a className="comment__name" href={`/people/${c.author.id}`}>
-                  {c.author.name}
-                </a>
+                <span className="name-line">
+                  <a className="comment__name" href={`/people/${c.author.id}`}>
+                    {c.author.name}
+                  </a>
+                  <NameMark who={c.author} />
+                </span>
                 <p>
                   <RichText body={c.body} />
                 </p>

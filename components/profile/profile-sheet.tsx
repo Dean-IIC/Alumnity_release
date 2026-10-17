@@ -6,6 +6,7 @@ import type { Profile, Visibility } from "../../lib/server/profile";
 import { Cover } from "./cover";
 import { InkSeal } from "./ink-seal";
 import { Journey, type Stop } from "./journey";
+import type { Badge } from "../../lib/server/badges";
 
 /*
  * A member's page. It opens on their journey since HKBK (components/profile/journey.tsx):
@@ -100,7 +101,7 @@ const STAFF = new Set(["faculty", "coordinator", "admin", "superadmin"]);
 
 const linkLabel = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 
-export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: { person: SheetPerson; profile: Profile; isOwner: boolean; batchSize?: number; actions?: ReactNode }) {
+export function ProfileSheet({ person, profile, isOwner, batchSize, actions, badges = [] }: { person: SheetPerson; profile: Profile; isOwner: boolean; batchSize?: number; actions?: ReactNode; badges?: Badge[] }) {
   const years = person.programme === "B.Tech" ? 4 : 2;
   const graduated = person.joined && person.role !== "student" ? person.joined + years : null;
   const branch = person.branch ?? "HKBK";
@@ -176,6 +177,17 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions }: {
               )}
               {v && <ShownTo who={v.now} />}
             </p>
+            {badges.length > 0 && (
+              <ul className="badges" aria-label="Badges">
+                {badges.map((b) => (
+                  <li key={b.key} className={`badge badge--${b.tone}`} title={b.detail}>
+                    <span className="badge__dot" aria-hidden="true" />
+                    {b.label}
+                    <span className="sr-only">: {b.detail}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           {actions && <div className="profile__actions">{actions}</div>}
         </div>

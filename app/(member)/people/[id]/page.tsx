@@ -14,6 +14,7 @@ import { connectionCount } from "../../../../lib/server/social";
 import { requireUser } from "../../../../lib/server/session";
 import "../../../styles/join.css";
 import "../../../styles/profile.css";
+import { badgesOf } from "../../../../lib/server/badges";
 
 export const metadata: Metadata = { title: "A member · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -114,7 +115,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
   return (
     <AppPage user={me} current="people" back={{ href: "/people", label: "People" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
       <div className="profile-page" style={{ padding: 0 }}>
-        <ProfileSheet person={owner} profile={profile} isOwner={false} actions={actions} />
+        <ProfileSheet person={owner} profile={profile} isOwner={false} actions={actions} badges={await badgesOf(owner, profile)} />
       </div>
       {record.thanks.length > 0 && (
         <section aria-labelledby="record">

@@ -2253,3 +2253,98 @@ html.story-open {
   font-size: var(--text-small);
   text-align: center;
 }
+
+/* ---------- Beside a name: the register's seal, or a staff role (components/social/name-mark.tsx) ---------- */
+
+.name-line {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+}
+
+.name-line > a {
+  min-width: 0;
+}
+
+.name-mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+
+.name-mark--verified svg path:first-child {
+  fill: var(--color-green);
+}
+
+.name-mark__tick {
+  fill: none;
+  stroke: var(--color-paper-raised);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.name-mark--staff {
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+/* ---------- A profile's badges (lib/server/badges.ts) ---------- */
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badge {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 12px 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.badge__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge--green {
+  border-color: rgba(47, 107, 69, 0.35);
+  background: var(--color-wash-green);
+  color: var(--color-green);
+}
+
+.badge--red {
+  border-color: rgba(168, 57, 50, 0.3);
+  background: var(--color-wash-red);
+  color: var(--color-red);
+}
+
+.badge--blue {
+  border-color: rgba(20, 63, 104, 0.3);
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+}
+
+.badge--gold {
+  border-color: var(--color-notice-edge);
+  background: var(--color-wash-gold);
+  color: var(--color-gold-small);
+}
