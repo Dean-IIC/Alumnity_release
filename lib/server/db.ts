@@ -84,13 +84,14 @@ const values = (params: unknown[]) => params.map((p) => (p === undefined ? null 
 
 // ---------- Postgres (Supabase) ----------
 
-type Sql = postgres.Sql | postgres.TransactionSql;
+type Sql = postgres.Sql | postgres.ReservedSql;
 
 /** Errors that mean the connection dropped (the pooler restarted, a network blip), not that the query was wrong. */
 const DROPPED = new Set(["CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED", "CONNECT_TIMEOUT", "ECONNRESET", "ETIMEDOUT", "EPIPE"]);
 const isRead = (text: string) => /^\s*(select|with)/i.test(text);
 
-function fromPostgres(sql: Sql): Db {
+/** Exported for the test that guards transactions; `inTx` when `sql` is one already begun. */
+export function fromPostgres(sql: Sql, inTx = false): Db {
   // A read whose connection dropped is tried once more on a fresh one; a write never is
   // (it may already have happened).
   const query = (text: string, params: unknown[]) => timed(text, () => attempt(text, params));
@@ -111,8 +112,25 @@ function fromPostgres(sql: Sql): Db {
       await sql.unsafe(text);
     },
     tx: async (work) => {
-      if (!("begin" in sql)) return work(fromPostgres(sql)); // already in one
-      return (await (sql as postgres.Sql).begin((inner) => work(fromPostgres(inner)))) as never;
+      if (inTx) return work(fromPostgres(sql, true)); // already in one
+      // Not sql.begin(): with max_pipeline 0 (below) it never reserves its connection, and
+      // postgres.js refuses the BEGIN ("UNSAFE_TRANSACTION"; seen live: every transaction
+      // failed, and a teacher's join stopped halfway). A reserved connection, begun and
+      // ended by hand, is the same transaction.
+      const reserved = await (sql as postgres.Sql).reserve();
+      try {
+        await reserved.unsafe("begin");
+        try {
+          const result = await work(fromPostgres(reserved, true));
+          await reserved.unsafe("commit");
+          return result;
+        } catch (error) {
+          await reserved.unsafe("rollback").catch(() => undefined);
+          throw error;
+        }
+      } finally {
+        reserved.release();
+      }
     }
   };
 }
@@ -129,6 +147,10 @@ export const POSTGRES_OPTIONS = {
   max_pipeline: 0,
   // Serverless: a few connections per instance, closed when idle.
   max: Number(process.env.DATABASE_POOL || 10),
+  // Kept on (the driver's default) for transactions: a connection opened for one
+  // (reserve(), in tx below) is only handed over once this first exchange ends. Off, the
+  // transaction waits forever (postgres.js 3.4.9; tests/pooler.test.ts).
+  fetch_types: true,
   idle_timeout: 20,
   connect_timeout: 10
 } as const;
