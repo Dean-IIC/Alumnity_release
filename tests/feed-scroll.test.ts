@@ -42,4 +42,14 @@ describe("Home's feed, carrying on as you scroll", () => {
     expect(await older("all", Date.now())).toEqual({ posts: null, next: null });
     auth.use("feed-browser");
   });
+
+  it("marks a post brought over from the old portal, and nothing else", async () => {
+    const { postFor } = await import("../lib/server/posts");
+    const { memberById } = await import("../lib/server/people");
+    const reader = (await memberById(readerId))!;
+    const old = (await db.db().one<{ id: number }>("insert into posts (author, body, audience, from_archive, created_at) values (?, 'A notice from 2019', 'everyone', 1, ?) returning id", readerId, Date.UTC(2019, 5, 1)))!.id;
+    expect((await postFor(reader, old))?.archive).toBe(true);
+    const fresh = (await db.db().one<{ id: number }>("insert into posts (author, body, audience, created_at) values (?, 'Today', 'everyone', ?) returning id", readerId, Date.now()))!.id;
+    expect((await postFor(reader, fresh))?.archive).toBe(false);
+  });
 });
