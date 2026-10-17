@@ -41,6 +41,8 @@ export type Post = {
   /** The group it's in, if it's a group's post. */
   group: { id: number; name: string } | null;
   createdAt: number;
+  /** Brought over from the old HKBK alumni portal (its date is the portal's). */
+  archive: boolean;
   media: PostMedia[];
   /** How many of each reaction, and the total. */
   reactions: Partial<Record<Reaction, number>>;
@@ -77,7 +79,7 @@ export async function canSeePost(viewer: User, author: User, audience: Audience,
   return rel === "connected";
 }
 
-type PostRow = { id: number; author: number; body: string; audience: Audience; group_id: number | null; created_at: number };
+type PostRow = { id: number; author: number; body: string; audience: Audience; group_id: number | null; created_at: number; from_archive?: number };
 
 export async function visiblePost(viewer: User, id: number): Promise<{ row: PostRow; author: User } | null> {
   if (!Number.isSafeInteger(id)) return null;
@@ -271,6 +273,7 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
       audience: row.audience,
       group: row.group_id === null ? null : { id: row.group_id, name: groups.get(row.group_id) ?? "A group" },
       createdAt: row.created_at,
+      archive: Number(row.from_archive ?? 0) === 1,
       media: media.filter((m) => m.post_id === row.id).map(({ id, kind }) => ({ id, kind })),
       reactions,
       reactionCount,

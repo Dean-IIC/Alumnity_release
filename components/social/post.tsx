@@ -40,6 +40,11 @@ export function Post({ post, photos, full = false, me }: Props) {
             </a>
             <NameMark who={post.author} />
           </span>
+          {post.archive && (
+            <span className="post__archive" title="Brought over from the old HKBK alumni website, with its date">
+              From the old HKBK alumni portal
+            </span>
+          )}
           <span className="post__meta">
             {batchLabel(post.author) && <span>{batchLabel(post.author)}</span>}
             <a href={href}>

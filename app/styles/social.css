@@ -2348,3 +2348,17 @@ html.story-open {
   background: var(--color-wash-gold);
   color: var(--color-gold-small);
 }
+
+/* A post brought over from the old alumni portal: labelled, so nobody takes it for new. */
+.post__archive {
+  justify-self: start;
+  margin: 2px 0;
+  padding: 1px 8px;
+  border: 1px dashed var(--color-notice-edge);
+  border-radius: var(--radius-pill);
+  background: var(--color-wash-gold);
+  color: var(--color-gold-small);
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+}
