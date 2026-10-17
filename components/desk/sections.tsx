@@ -69,7 +69,7 @@ export async function Overview({ me }: { me: User }) {
           </div>
         ))}
       </div>
-      <p className="wf-muted">Totals only; sample members aren't counted.</p>
+      <p className="wf-muted">Totals only: no names.</p>
       <h2>Causes</h2>
       <p>
         {rupees(s.raised)} given to causes so far. <a href="/causes">See the causes</a>
@@ -350,8 +350,8 @@ export async function Team({ me }: { me: User }) {
   return (
     <>
       <p className="wf-muted">
-        Super administrators are named in the server's config (ALUMNITY_SUPER_ADMINS) and can't be removed from the site. They make administrators; administrators make
-        coordinators. To appoint someone already on Alumnity, open them in Members.
+        Super administrators are set by the people who run the site, so they can't be changed here. They appoint administrators; administrators appoint
+        coordinators. To give a role to someone already on Alumnity, open them in Members.
       </p>
       {roles.length > 0 && (
         <section className="wf-card" aria-labelledby="invite-staff">
@@ -436,7 +436,7 @@ export async function Team({ me }: { me: User }) {
             </div>
             <div className="wf-actions">
               <span className="wf-tag">{ROLE_LABEL[u.role]}</span>
-              {u.locked && <span className="wf-tag" title="Set in the server's config">Config</span>}
+              {u.locked && <span className="wf-tag" title="Set by the people who run the site, not from the desk">Fixed</span>}
               {u.suspended && <span className="wf-tag wf-tag--red">Paused</span>}
             </div>
           </li>

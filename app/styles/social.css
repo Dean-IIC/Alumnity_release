@@ -1767,8 +1767,15 @@ html.story-open {
   background: none;
   color: var(--color-blue);
   font: inherit;
+  font-weight: var(--weight-semibold);
+  line-height: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+/* A button that wraps sits on the baseline of its last line: line the step's circle up with its first. */
+.wf-checklist li:has(.steps__inline) {
+  align-items: flex-start;
 }
 
 .steps__button:hover {
@@ -2051,4 +2058,15 @@ html.story-open {
   border-color: var(--color-notice-edge);
   background: var(--color-wash-gold);
   color: var(--color-gold-small);
+}
+
+/* A cause's photo: the file picker as a button, like the rest of the site's. */
+.photo-field__choose {
+  justify-self: start;
+  cursor: pointer;
+}
+
+.photo-field__choose:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }

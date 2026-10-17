@@ -33,7 +33,7 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
           <strong>Batch:</strong> {batchLabel(m) || "—"} {m.programme ? `· ${m.programme}` : ""}
           <br />
           <strong>Role:</strong> {ROLE_LABEL[m.role]}
-          {m.configRole ? " (set in the server's config)" : ""}
+          {m.configRole ? " (set by the people who run the site)" : ""}
           <br />
           <strong>Status:</strong> {m.suspended ? "Paused" : "Active"}
           {m.sample ? " · sample member" : ""}
