@@ -13,9 +13,16 @@ export default function AboutPage() {
         <h2 id="director" className="letter__greeting">
           {DIRECTOR_MESSAGE.greeting}
         </h2>
-        {DIRECTOR_MESSAGE.paragraphs.map((t) => (
+        {DIRECTOR_MESSAGE.paragraphs.slice(0, 2).map((t) => (
           <p key={t}>{t}</p>
         ))}
+        {/* The rest folded away, so the page doesn't open on a wall of text; all of it a tap away. */}
+        <details className="letter__more">
+          <summary>Read the whole letter</summary>
+          {DIRECTOR_MESSAGE.paragraphs.slice(2).map((t) => (
+            <p key={t}>{t}</p>
+          ))}
+        </details>
         <footer className="letter__sign">
           <strong>{DIRECTOR_MESSAGE.name}</strong>
           <span>{DIRECTOR_MESSAGE.role}, HKBK College of Engineering</span>

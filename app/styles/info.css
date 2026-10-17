@@ -590,9 +590,42 @@
     font-size: 19px;
   }
 
+  /* On a phone, people as rows: the seal beside the name, not above it. */
+  .people-card,
   .people-card--guide {
-    flex-direction: column;
-    text-align: center;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: var(--space-4);
+    row-gap: 2px;
+    justify-items: start;
+    align-items: center;
+    padding: var(--space-4);
+    text-align: left;
+  }
+
+  .people-card .seal {
+    grid-row: 1 / span 2;
+    margin: 0;
+  }
+
+  .people-card--guide div {
+    grid-row: 1 / span 2;
+  }
+
+  .seal--large {
+    width: 56px;
+    height: 56px;
+    font-size: 21px;
+  }
+
+  .roster__item {
+    padding: var(--space-3);
+  }
+
+  .roster .seal {
+    width: 36px;
+    height: 36px;
   }
 
   .info-join {
@@ -615,4 +648,48 @@
   .info-art .margin-art__phone {
     top: 96px;
   }
+}
+
+/* ---------- An address that leads nowhere (app/not-found.tsx) ---------- */
+
+.not-found {
+  min-height: 60vh;
+}
+
+.not-found__actions {
+  margin-top: var(--space-4);
+}
+
+.not-found__actions .button--secondary {
+  color: var(--color-blue);
+}
+
+/* The Director's letter: the rest of it a tap away. */
+.letter__more > summary {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--tap-target);
+  margin: 0 0 var(--space-3);
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+  list-style: none;
+  cursor: pointer;
+}
+
+.letter__more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.letter__more > summary::after {
+  content: "↓";
+  transition: transform var(--duration-quick) ease;
+}
+
+.letter__more[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+.letter__more[open] > summary {
+  color: var(--color-ink-muted);
 }

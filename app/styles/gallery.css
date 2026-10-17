@@ -619,9 +619,21 @@ html:has(.lightbox[open]) {
     gap: var(--space-5);
   }
 
+  /* More albums, on a phone: a strip to swipe through, each card wide enough for its name. */
   .album-grid--compact {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: none;
+    grid-auto-columns: 74%;
+    grid-auto-flow: column;
     gap: var(--space-3);
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 0 var(--gutter) var(--space-3);
+    overflow-x: auto;
+    scroll-padding-inline: var(--gutter);
+    scroll-snap-type: x mandatory;
+  }
+
+  .album-grid--compact > li {
+    scroll-snap-align: start;
   }
 
   .photo-grid {

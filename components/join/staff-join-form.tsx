@@ -4,7 +4,6 @@ import { firstName } from "../../lib/format";
 import { useState } from "react";
 import { post } from "../../lib/client/post";
 import { CodeField, PasswordField } from "./fields";
-import { RegisterBook } from "./register-book";
 
 /*
  * Staff joining (an invitation from the college desk): the invited email → a code → the
@@ -18,7 +17,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className="join">
+    <div className="join join--staff">
       <div className="join__form">
         {!ticket ? (
           <form
@@ -91,7 +90,6 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
           </form>
         )}
       </div>
-      <RegisterBook state={busy ? "searching" : "idle"} />
     </div>
   );
 }

@@ -16,7 +16,7 @@ export function ForgotForm() {
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className="join">
+    <div className="join join--form-first">
       <div className="join__form">
         {!ticket ? (
           <form
