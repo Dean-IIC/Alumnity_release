@@ -5,6 +5,7 @@ import type { ActionState } from "../action-state";
 import { ASK_LIMITS, closeAsk, createAsk, markAnswered, replyToAsk, takeAsk } from "../server/asks";
 import { cancelEvent, createEvent, toggleRsvp } from "../server/events";
 import { addComment, COMMENT_LIMIT, createPost, MEDIA_LIMIT, POST_LIMIT, react, removeOwnComment, removeOwnPost, toggleCheer } from "../server/posts";
+import { ownPost, profileOf, saveProfile } from "../server/profile";
 import { CAPTION_LIMIT, createStory, markSeen, removeStory } from "../server/stories";
 import { actor, answer, idFrom, SIGNED_OUT, textFrom } from "./common";
 
@@ -24,6 +25,17 @@ export async function removePostAction(_: ActionState, form: FormData): Promise<
   const me = await actor();
   if (!me) return SIGNED_OUT;
   return answer(await removeOwnPost(me, idFrom(form)), "Removed.");
+}
+
+/** Pins one of your own posts to the top of your page ("Featured"), or unpins it. */
+export async function pinPostAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const unpin = form.get("unpin") === "1";
+  const id = unpin ? null : await ownPost(idFrom(form), me.id);
+  if (!unpin && id === null) return { ok: false, error: "Only your own posts can go at the top of your page." };
+  await saveProfile(me.id, { ...(await profileOf(me.id)), featured: id });
+  return answer({ ok: true }, unpin ? "Taken off the top of your page." : "Pinned to the top of your page.");
 }
 
 export async function cheerAction(_: ActionState, form: FormData): Promise<ActionState> {

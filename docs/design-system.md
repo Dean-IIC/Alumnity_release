@@ -20,16 +20,29 @@ overlays, no carousels.
 | `--color-ink` | Body text, headings that aren't the headline. |
 | `--color-ink-muted` | Secondary text. 5.1 : 1. |
 | `--color-ink-soft` | Kickers and notes. 5.8 : 1. |
-| `--color-red` | The pen line, the headline, the swoosh. One red thing per view. |
+| `--color-red` | The pen line, the headline, the swoosh. |
 | `--color-blue` | The wordmark, primary actions, links, focus. |
 | `--color-gold` | Small accents only (the wordmark's dot, rules, bullets, the nav's current page). |
 | `--color-gold-text` | Gold for a word picked out in a headline ("HKBK **memories**"). The brand gold is only 2.8 : 1 on paper; this is 4.0, fine for large text. |
+| `--color-green` | "Yes": done steps, ticks, Connected, the register's seal beside a name. 5.8 : 1. |
+| `--color-navy` | The college's navy, the same in both themes: a band that is always dark (the Join band). |
+| `--color-wash-*` | A pale ground of each ink (red, gold, blue, green), behind a label or number in that ink. |
 | `--color-paper-veil` | See-through paper laid on a photo (an album's name band, a caption). Text on it uses ink or ink-soft, which stay above 4.5 : 1 even over a black photo. |
 | `--color-night` … | The lightbox's dark ground and the light text and lines on it. |
 
-Every text colour clears WCAG AA (4.5 : 1) on paper. "One red thing per view" means the
-headline: rules, stems and markers beside it are gold or pencil. Text laid over a photo uses
-`--halo` (or `--halo-strong` for small text) so it stays crisp.
+Every text colour clears WCAG AA (4.5 : 1) on paper, except `--color-gold-text` (4.0), which
+is for large text only. Text laid over a photo uses `--halo` (or `--halo-strong` for small
+text) so it stays crisp.
+
+**Four inks, one accent per element.** Red, blue, gold and green take turns (numbers, badges,
+the drawings), but an element never wears two: a tile is blue *or* red, never blue with a
+red label. The page's title is the red one in its head; the rest of the head stays ink.
+
+**Dark mode** (`:root[data-theme="dark"]` in `tokens.css`): warm charcoal paper and the same
+four inks lightened. Light is the default; a member can choose Dark or Automatic in Settings
+(kept on their device). The landing page and joining stay light (`.force-light`). Measured on
+the dark paper: ink 15.5 : 1, ink-muted 9.4, red 7.8, blue 9.4, green 10.5, gold text 10.1;
+each ink on its own wash 6.3 or more. Measured, not assumed: re-measure if a value changes.
 
 ## Type
 

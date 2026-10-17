@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { post } from "../../lib/client/post";
 import type { Field, Profile, Visibility } from "../../lib/server/profile";
 import { MediaPicker } from "./media-picker";
+import { SectionsEditor } from "./sections-editor";
 
 /*
  * Editing your page: each part of it with its own "who can see this". Saved on the
@@ -185,6 +186,8 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
         ))}
       </Part>
       )}
+
+      <SectionsEditor profile={profile} onChange={(next) => setProfile((p) => ({ ...p, ...next }))} />
 
       <Part title="Find me" field="links" {...who("links")}>
         <label className="field">

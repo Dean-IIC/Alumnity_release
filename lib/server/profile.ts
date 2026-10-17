@@ -1,6 +1,7 @@
 import { db } from "./db";
 import type { User } from "./auth";
 import { mediaById, removeMedia, type MediaKind } from "./media";
+import { SECTION_KINDS, SECTION_LIMITS, SECTIONS, type SectionEntry, type SectionKind } from "../profile-sections";
 
 /*
  * A member's page: what they're doing now, a few lines about them, what they're good at,
@@ -36,6 +37,11 @@ export type Profile = {
   seeking: { mentor: boolean; internship: boolean; referral: boolean };
   links: { linkedin: string; website: string };
   visibility: Record<Field, Visibility>;
+  /** The extra sections they've added (lib/profile-sections.ts): a kind not added is absent. */
+  sections: Partial<Record<SectionKind, SectionEntry[]>>;
+  sectionsVisibility: Record<SectionKind, Visibility>;
+  /** A post of their own pinned to the top of their page (shown to whoever may see that post). */
+  featured: number | null;
 };
 
 export const EMPTY_PROFILE: Profile = {
@@ -50,7 +56,10 @@ export const EMPTY_PROFILE: Profile = {
   happyTo: { mentor: false, refer: false, talk: false },
   seeking: { mentor: false, internship: false, referral: false },
   links: { linkedin: "", website: "" },
-  visibility: { now: "everyone", journey: "everyone", about: "everyone", skills: "everyone", happyTo: "everyone", links: "batch" }
+  visibility: { now: "everyone", journey: "everyone", about: "everyone", skills: "everyone", happyTo: "everyone", links: "batch" },
+  sections: {},
+  sectionsVisibility: { experience: "everyone", education: "everyone", projects: "everyone", certifications: "everyone", organisations: "everyone", honours: "everyone", languages: "everyone" },
+  featured: null
 };
 
 export const LIMITS = { title: 80, company: 80, city: 60, about: 600, skill: 30, skills: 12, link: 200, stop: 90, stops: 8 } as const;
@@ -70,8 +79,47 @@ export function profileFromData(data: string | null): Profile {
     happyTo: { ...EMPTY_PROFILE.happyTo, ...saved.happyTo },
     seeking: { ...EMPTY_PROFILE.seeking, ...saved.seeking },
     links: { ...EMPTY_PROFILE.links, ...saved.links },
-    visibility: { ...EMPTY_PROFILE.visibility, ...saved.visibility }
+    visibility: { ...EMPTY_PROFILE.visibility, ...saved.visibility },
+    sections: { ...saved.sections },
+    sectionsVisibility: { ...EMPTY_PROFILE.sectionsVisibility, ...saved.sectionsVisibility }
   };
+}
+
+const isVisibility = (v: unknown): v is Visibility => v === "everyone" || v === "connections" || v === "batch" || v === "me";
+
+/** The sections the form sent, each entry cleaned, empty ones dropped, newest first; a kind left with none is removed. */
+function parseSections(input: unknown): { sections: Profile["sections"] } | { error: string } {
+  const sent = (typeof input === "object" && input ? input : {}) as Record<string, unknown>;
+  const thisYear = new Date().getFullYear();
+  const year = (v: unknown) => {
+    const y = Math.round(Number(v));
+    return Number.isFinite(y) && y >= 1950 && y <= thisYear + 6 ? y : null;
+  };
+  const sections: Profile["sections"] = {};
+  for (const kind of SECTION_KINDS) {
+    const info = SECTIONS[kind];
+    const list = Array.isArray(sent[kind]) ? (sent[kind] as Record<string, unknown>[]) : [];
+    const entries: SectionEntry[] = [];
+    for (const raw of list.slice(0, SECTION_LIMITS.entries)) {
+      const title = clean(raw?.title, SECTION_LIMITS.title);
+      if (!title) continue;
+      let org = clean(raw?.org, SECTION_LIMITS.org);
+      if (info.levels && !info.levels.includes(org)) org = info.levels[1];
+      if (!info.org) org = "";
+      const from = info.years ? year(raw?.from) : null;
+      const current = info.years === "range" && raw?.current === true;
+      let to = info.years === "range" && !current ? year(raw?.to) : null;
+      if (from && to && to < from) to = from;
+      const link = info.link ? cleanLink(raw?.link) : "";
+      if (link === null) return { error: `A link in ${info.label} doesn’t look right.` };
+      const detail = info.detail ? (typeof raw?.detail === "string" ? raw.detail.trim().slice(0, SECTION_LIMITS.detail) : "") : "";
+      entries.push({ title, org, from, to, current, link, detail });
+    }
+    // The newest (and anything still going) first.
+    entries.sort((a, b) => Number(b.current) - Number(a.current) || (b.to ?? b.from ?? 0) - (a.to ?? a.from ?? 0));
+    if (entries.length) sections[kind] = entries;
+  }
+  return { sections };
 }
 
 const clean = (value: unknown, max: number) => (typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : "");
@@ -120,7 +168,13 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
   if (linkedin === null) return { error: "That LinkedIn link doesn’t look like a LinkedIn profile." };
   const website = cleanLink(links.website);
   if (website === null) return { error: "That website link doesn’t look right." };
+  const parsed = parseSections(input.sections);
+  if ("error" in parsed) return parsed;
+  const sentWho = (input.sectionsVisibility ?? {}) as Record<string, unknown>;
+  const sectionsVisibility = { ...EMPTY_PROFILE.sectionsVisibility };
+  for (const kind of SECTION_KINDS) if (isVisibility(sentWho[kind])) sectionsVisibility[kind] = sentWho[kind] as Visibility;
   const [photo, cover] = await Promise.all([ownMedia(input.photo, ownerId, true), ownMedia(input.cover, ownerId, false)]);
+  const featured = await ownPost(input.featured, ownerId);
   if (photo === false || cover === false) return { error: "That upload isn’t yours, or has gone. Upload it again." };
   const about = typeof input.about === "string" ? input.about.trim().slice(0, LIMITS.about) : "";
   const thisYear = new Date().getFullYear();
@@ -142,9 +196,20 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
       happyTo: { mentor: happy.mentor === true, refer: happy.refer === true, talk: happy.talk === true },
       seeking: { mentor: seek.mentor === true, internship: seek.internship === true, referral: seek.referral === true },
       links: { linkedin, website },
-      visibility
+      visibility,
+      sections: parsed.sections,
+      sectionsVisibility,
+      featured
     }
   };
+}
+
+/** A post the owner may pin: their own and not taken down; anything else is quietly dropped. */
+export async function ownPost(value: unknown, ownerId: number | undefined): Promise<number | null> {
+  const id = Number(value);
+  if (!ownerId || !Number.isSafeInteger(id) || id <= 0) return null;
+  const row = await db().one("select 1 from posts where id = ? and author = ? and removed_at is null", id, ownerId);
+  return row ? id : null;
 }
 
 export async function saveProfile(userId: number, profile: Profile) {
@@ -196,7 +261,14 @@ export function profileFor(
     happyTo: show("happyTo") ? profile.happyTo : { mentor: false, refer: false, talk: false },
     seeking: show("happyTo") ? profile.seeking : { mentor: false, internship: false, referral: false },
     links: show("links") ? profile.links : { linkedin: "", website: "" },
-    visibility: viewer?.id === owner.id ? profile.visibility : EMPTY_PROFILE.visibility
+    visibility: viewer?.id === owner.id ? profile.visibility : EMPTY_PROFILE.visibility,
+    // Each section only if this viewer may see it; who-can-see settings are the owner's alone.
+    sections: Object.fromEntries(
+      SECTION_KINDS.filter((k) => profile.sections[k]?.length && canSee(viewer, owner, profile.sectionsVisibility[k], isConnection)).map((k) => [k, profile.sections[k]!])
+    ),
+    sectionsVisibility: viewer?.id === owner.id ? profile.sectionsVisibility : EMPTY_PROFILE.sectionsVisibility,
+    // Only an id: the post itself is fetched as this viewer may see it (lib/server/posts.ts postFor).
+    featured: profile.featured
   };
 }
 

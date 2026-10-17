@@ -1,6 +1,8 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // JSX as Next compiles it (no React import needed), for server code that renders components.
+  esbuild: { jsx: "automatic" },
   test: {
     environment: "node",
     // Each file starts its own Postgres (PGlite) on first use: a few seconds, longer when

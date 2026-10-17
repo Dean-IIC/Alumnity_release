@@ -8,6 +8,7 @@ import { Avatar } from "../../../components/social/avatar";
 import { Composer } from "../../../components/social/composer";
 import { FocusWaiting, RoleFocus } from "../../../components/home/role-focus";
 import { Icon } from "../../../components/social/icons";
+import { InfiniteFeed } from "../../../components/social/infinite-feed";
 import { Post } from "../../../components/social/post";
 import { StoriesBar, type ReelData } from "../../../components/social/stories";
 import { connectAction, mentorAction } from "../../../lib/actions/social";
@@ -290,10 +291,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             posts.map((p) => <Post key={p.id} post={p} photos={photos} me={me} />)
           )}
 
-          <div className="feed-more">
-            {before ? <a href={scope === "following" ? "/home?view=following" : "/home"}>← Newest</a> : <span />}
-            {posts.length === PAGE && <a href={`/home?${scope === "following" ? "view=following&" : ""}before=${posts[posts.length - 1].createdAt}`}>Older posts →</a>}
-          </div>
+          {before && (
+            <p className="feed-more">
+              <a href={scope === "following" ? "/home?view=following" : "/home"}>← Newest</a>
+            </p>
+          )}
+          {posts.length > 0 && (
+            <InfiniteFeed scope={scope} next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null} />
+          )}
         </div>
 
         {/* ----- Around you ----- */}
