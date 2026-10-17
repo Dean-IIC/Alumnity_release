@@ -36,10 +36,14 @@ export default function CommitteePage() {
           The association is choosing its first committee. The names will appear here as soon as the college confirms them.
         </p>
       )}
-      <h2 className="info__h2">Office bearers</h2>
-      <Roster list={OFFICE_BEARERS} />
-      <h2 className="info__h2">The committee</h2>
-      <Roster list={COMMITTEE} />
+      <section>
+        <h2 className="info__h2">Office bearers</h2>
+        <Roster list={OFFICE_BEARERS} />
+      </section>
+      <section>
+        <h2 className="info__h2">The committee</h2>
+        <Roster list={COMMITTEE} />
+      </section>
     </PublicPage>
   );
 }
