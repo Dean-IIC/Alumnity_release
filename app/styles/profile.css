@@ -109,8 +109,11 @@
   position: absolute;
   top: var(--space-5);
   left: var(--space-6);
+  z-index: 1;
   display: grid;
   margin: 0;
+  /* It sits over the drawing on narrow covers: a paper halo keeps every letter clear of the lines. */
+  text-shadow: var(--halo-strong);
   color: var(--color-ink-soft);
   font-size: var(--text-label);
   font-weight: var(--weight-bold);
