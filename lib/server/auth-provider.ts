@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { db } from "./db";
 
+/** What setPassword says when the password is already this one (on a join, a retry: fine). */
+export const SAME_PASSWORD = "That’s your current password. Choose a new one.";
+
 /*
  * Who's signed in, and the emailed codes and passwords that get them there: Supabase
  * Auth. Supabase keeps the passwords (hashed), sends the codes, and keeps each browser's
@@ -100,7 +103,10 @@ async function supabaseProvider(): Promise<AuthProvider> {
     async setPassword(password) {
       const { error } = await (await client()).auth.updateUser({ password });
       if (!error) return null;
-      return /same/i.test(error.message) ? "That’s your current password. Choose a new one." : "That password can’t be used. Try a longer one.";
+      if (/same/i.test(error.message)) return SAME_PASSWORD;
+      // Supabase's own rule (letters, digits, symbols…) in its own words, rather than a guess.
+      console.error("setPassword refused:", error.message);
+      return /password/i.test(error.message) ? `That password can’t be used: ${error.message.replace(/^Password\s*/i, "")}` : "That password can’t be used. Try a longer one.";
     },
     async signOut(scope) {
       await (await client()).auth.signOut({ scope });
