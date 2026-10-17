@@ -17,6 +17,13 @@ describe("the college register", () => {
     expect(namesMatch("Mohamed Imran", "Mohammed Imran K")).toBe(true); // one letter off
     expect(namesMatch("Asha Rai", "Asha Rao")).toBe(false); // short words must be exact
     expect(namesMatch("Priya", "Asha Rao")).toBe(false);
+    // A surname the register doesn't carry is fine; a first name alone isn't enough.
+    expect(namesMatch("Asha Rao Shetty", "Asha Rao")).toBe(true);
+    expect(namesMatch("Lakshmi Devi", "Lakshmi")).toBe(true);
+    expect(namesMatch("Imran", "Mohammed Imran K")).toBe(false);
+    // A long list of common names must not match whoever's name happens to be in it.
+    expect(namesMatch("mohammed syed ahmed khan abdul fathima shaik ayesha imran rao asha priya", "Mohammed Imran K")).toBe(false);
+    expect(namesMatch("Asha Rao Priya Nair", "Asha Rao")).toBe(false);
   });
 
   it("finds you by USN and name, which must agree", () => {

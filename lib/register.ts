@@ -83,15 +83,20 @@ function sameWord(a: string, b: string) {
 }
 
 /**
- * Whether a typed name is the register's name: every word of the shorter one is in the
- * longer one (so "Abdul Nishad" matches "Abdul Nishad A B", and initials don't count).
+ * Whether a typed name is the register's name. Every typed word must be one of the
+ * register's (one extra is allowed: a surname the register doesn't carry), and enough of
+ * the register's name must be typed: two of its words, or its only word. So "Abdul Nishad"
+ * matches "Abdul Nishad A B" (initials don't count), but neither a long string of common
+ * names (which would otherwise read the register out, USN by USN) nor a first name alone
+ * (which would hand out a stranger's full name) matches anyone.
  */
 export function namesMatch(typed: string, registered: string) {
   const a = words(typed);
   const b = words(registered);
   if (!a.length || !b.length) return false;
-  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
-  return short.every((w) => long.some((v) => sameWord(w, v)));
+  const extra = a.filter((w) => !b.some((v) => sameWord(w, v))).length;
+  const covered = b.filter((v) => a.some((w) => sameWord(w, v))).length;
+  return extra <= 1 && covered >= Math.min(2, b.length);
 }
 
 export function lookup(rows: RegisterRow[], query: Lookup): LookupResult {

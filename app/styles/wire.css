@@ -91,6 +91,11 @@
   background: var(--color-paper-raised);
 }
 
+/* A card that opens with its heading: the card's own padding is the space above it. */
+.wf-card > h2:first-child {
+  margin-top: 0;
+}
+
 .wf-card p {
   margin: 0 0 var(--space-2);
   line-height: 1.6;

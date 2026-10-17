@@ -118,8 +118,12 @@ export async function storyViewers(me: User, storyId: number): Promise<User[]> {
 
 /** Whether `viewer` may see a story's photo or video (for /media). Null if it isn't a story's. */
 export async function canSeeStoryMedia(viewer: User, mediaId: string): Promise<boolean | null> {
-  const row = await db().one<{ author: number; expires_at: number; removed_at: number | null }>("select author, expires_at, removed_at from stories where media_id = ?", mediaId);
+  const row = await db().one<{ author: number; expires_at: number; removed_at: number | null; suspended_at: number | null }>(
+    "select stories.author, stories.expires_at, stories.removed_at, users.suspended_at from stories join users on users.id = stories.author where stories.media_id = ?",
+    mediaId
+  );
   if (!row) return null;
   if (row.author === viewer.id) return true;
-  return row.removed_at === null && row.expires_at > Date.now() && (await maySee(viewer, row.author));
+  // Not once the author is suspended, even for someone who already has the link.
+  return row.removed_at === null && row.suspended_at === null && row.expires_at > Date.now() && (await maySee(viewer, row.author));
 }

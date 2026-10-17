@@ -27,6 +27,14 @@ export type Invite = { email: string; name: string; role: StaffRole; branchName:
 
 const LABEL: Record<StaffRole, string> = { faculty: "a teacher (faculty)", coordinator: "an alumni coordinator", admin: "an administrator" };
 
+const SENIOR_INVITE = "Someone more senior has invited them to a role above yours: only they can change or withdraw it.";
+
+/** Whether an invitation still waiting for `email` is to a role `me` couldn't give (so isn't theirs to change or withdraw). */
+async function outranked(me: User, email: string) {
+  const open = await db().one<{ role: Role }>("select role from staff_invites where email = ? and used_at is null", email);
+  return Boolean(open && !assignable(me).includes(open.role));
+}
+
 /** The desk invites a member of staff. */
 export async function inviteStaff(me: User, input: { email: string; name: string; role: string; branch: string }, origin: string): Promise<Result> {
   const email = normaliseEmail(input.email);
@@ -37,6 +45,7 @@ export async function inviteStaff(me: User, input: { email: string; name: string
   if (!STAFF_ROLES.includes(role) || !assignable(me).includes(role as Role)) return no("You can invite people only to roles below your own.");
   const branch = BRANCHES.find(([code]) => code === input.branch);
   if (await db().one("select 1 from users where email = ?", email)) return no("That email already has an account: change their role in Members instead.");
+  if (await outranked(me, email)) return no(SENIOR_INVITE);
   if (!(await withinLimit(`invite:${me.id}`, 50, DAY))) return no("That's a lot of invitations today. Try again tomorrow.");
   const now = Date.now();
   await db().run(
@@ -81,6 +90,7 @@ export async function invites(me: User): Promise<Invite[]> {
 
 export async function revokeInvite(me: User, email: string): Promise<Result> {
   if (!assignable(me).includes("faculty")) return no("Only the college desk can do that.");
+  if (await outranked(me, normaliseEmail(email))) return no(SENIOR_INVITE);
   await db().run("delete from staff_invites where email = ? and used_at is null", normaliseEmail(email));
   return { ok: true };
 }

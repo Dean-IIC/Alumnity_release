@@ -42,6 +42,18 @@ describe("staff invitations", () => {
     expect((await staff.inviteStaff(coordinator, { email: "plain@example.com", name: "Plain", role: "faculty", branch: "" }, "https://x")).ok).toBe(false); // already a member
   });
 
+  it("an invitation to a role above yours isn't yours to change or withdraw", async () => {
+    const admin = await member("senior.admin@example.com", "admin");
+    const coordinator = await member("coord2@example.com", "coordinator");
+    expect((await staff.inviteStaff(admin, { email: "head@example.com", name: "Dr. Head", role: "coordinator", branch: "" }, "https://x")).ok).toBe(true);
+    // The coordinator can neither overwrite it with a lesser role nor withdraw it...
+    expect((await staff.inviteStaff(coordinator, { email: "head@example.com", name: "Dr. Head", role: "faculty", branch: "" }, "https://x")).ok).toBe(false);
+    expect((await staff.revokeInvite(coordinator, "head@example.com")).ok).toBe(false);
+    expect((await staff.invites(admin)).find((i) => i.email === "head@example.com")?.role).toBe("coordinator");
+    // ...but the admin who could have made it can.
+    expect((await staff.revokeInvite(admin, "head@example.com")).ok).toBe(true);
+  });
+
   it("the invited email joins with the invited role and department; nobody else can, and it works once", async () => {
     expect((await joinAsStaff("uninvited@example.com", "u")).ok).toBe(false);
     const joined = await joinAsStaff("T1@example.com", "t1");
