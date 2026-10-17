@@ -145,35 +145,41 @@
  */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-paper: #17120f;
-  --color-paper-raised: #221b16;
-  --color-paper-glass: rgba(34, 27, 22, 0.82);
-  --color-paper-veil: rgba(23, 18, 15, 0.9);
-  --color-ink: #f2e9dc;
-  --color-ink-muted: #c4b7a6;
-  --color-ink-soft: #d2bf9c;
-  --color-red: #f08d81;
-  --color-blue: #93bce8;
-  --color-blue-deep: #bcd5f1;
-  --color-gold: #e3a94f;
-  --color-gold-text: #e9b765;
-  --color-gold-small: #e6b465;
-  --color-green: #86d3a1;
-  --color-wash-red: #3b201c;
-  --color-wash-gold: #34291a;
-  --color-wash-blue: #172738;
-  --color-wash-amber: #342b15;
-  --color-wash-green: #173022;
-  --color-ink-amber: #e8c86e;
-  --color-fill-red: rgba(240, 141, 129, 0.18);
-  --color-fill-blue: rgba(147, 188, 232, 0.12);
-  --color-seal-ground: #1d2833;
-  --color-notice: #2c2317;
-  --color-notice-edge: rgba(227, 169, 79, 0.45);
-  --color-band: #2b221b;
-  --color-bar: rgba(30, 24, 20, 0.96);
-  --color-line: rgba(242, 233, 220, 0.14);
-  --color-border: rgba(242, 233, 220, 0.2);
+  /* Grey-black, not brown: a cool charcoal, with the four inks lit up on it. */
+  --color-paper: #111317;
+  --color-paper-raised: #1a1d23;
+  --color-paper-glass: rgba(26, 29, 35, 0.84);
+  --color-paper-veil: rgba(17, 19, 23, 0.9);
+  --color-ink: #eceff4;
+  --color-ink-muted: #aab2bf;
+  --color-ink-soft: #bcc5d3;
+  --color-red: #ff8d82;
+  --color-blue: #8cc4ff;
+  --color-blue-deep: #b8dcff;
+  --color-gold: #f2b95c;
+  --color-gold-text: #f4c06c;
+  --color-gold-small: #f2bd66;
+  --color-green: #7fe0a6;
+  --color-wash-red: #2e1c1d;
+  --color-wash-gold: #2b2519;
+  --color-wash-blue: #14243a;
+  --color-wash-amber: #2b2615;
+  --color-wash-green: #12291f;
+  --color-ink-amber: #f0cf74;
+  --color-fill-red: rgba(255, 141, 130, 0.16);
+  --color-fill-blue: rgba(140, 196, 255, 0.12);
+  --color-seal-ground: #1a2433;
+  --color-notice: #17202d;
+  --color-notice-edge: rgba(140, 196, 255, 0.35);
+  --color-band: #20242b;
+  --color-bar: rgba(17, 19, 23, 0.94);
+  --color-line: rgba(220, 230, 245, 0.12);
+  --color-border: rgba(220, 230, 245, 0.18);
+  /* The glow coloured things carry in the dark (app/styles/dark.css). */
+  --glow-blue: 0 0 18px rgba(140, 196, 255, 0.35);
+  --glow-red: 0 0 18px rgba(255, 141, 130, 0.35);
+  --glow-green: 0 0 16px rgba(127, 224, 166, 0.35);
+  --glow-gold: 0 0 16px rgba(242, 185, 92, 0.32);
 }
 
 /* Pages drawn for paper stay on paper, whatever the theme. */
