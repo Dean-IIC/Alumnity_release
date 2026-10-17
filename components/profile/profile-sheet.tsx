@@ -7,6 +7,7 @@ import { Cover } from "./cover";
 import { InkSeal } from "./ink-seal";
 import { Journey, type Stop } from "./journey";
 import type { Badge } from "../../lib/server/badges";
+import { SECTION_KINDS, SECTIONS, yearsOf } from "../../lib/profile-sections";
 
 /*
  * A member's page. It opens on their journey since HKBK (components/profile/journey.tsx):
@@ -223,6 +224,31 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                   {student ? "What you know or are learning: languages, tools, sports, clubs. Seniors who share them can find you." : "The things juniors could ask you about. These are what they search for."}
                 </p>
               )}
+            </Card>
+          )}
+          {/* The sections they've added (Experience, Education, Projects…), each shown only if this viewer may see it. */}
+          {SECTION_KINDS.filter((k) => profile.sections[k]?.length).map((kind) => (
+            <Card key={kind} title={SECTIONS[kind].label} who={isOwner ? profile.sectionsVisibility[kind] : undefined} className={`pcard--section pcard--${kind}`}>
+              <ul className="entries">
+                {profile.sections[kind]!.map((e, i) => (
+                  <li key={i} className="entry">
+                    <span className="entry__mark" aria-hidden="true" />
+                    <div>
+                      <strong className="entry__title">{e.link ? <a href={e.link} rel="noopener noreferrer nofollow" target="_blank">{e.title}</a> : e.title}</strong>
+                      {e.org && <span className="entry__org">{e.org}</span>}
+                      {yearsOf(e, kind) && <span className="entry__years">{yearsOf(e, kind)}</span>}
+                      {e.detail && <p className="entry__detail">{e.detail}</p>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ))}
+          {isOwner && SECTION_KINDS.every((k) => !profile.sections[k]?.length) && (
+            <Card title="More about you">
+              <p className="profile__prompt">
+                Add sections when you edit your page: experience, education, projects, certificates, clubs, awards and languages.
+              </p>
             </Card>
           )}
         </div>
