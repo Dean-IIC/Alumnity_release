@@ -21,6 +21,7 @@ import { storyBar } from "../../../lib/server/stories";
 /*
  * Where a page's time goes on the live site, for whoever runs it (the same secret as the
  * daily job: "Authorization: Bearer <CRON_SECRET>"). Timings only: no names, no rows.
+ * Off unless ALUMNITY_HEALTH=on: a site that isn't being looked into doesn't have it.
  *
  *   GET /api/health                       this instance, the database, Supabase's auth server
  *   GET /api/health?as=<member's email>   and Home's own loading, as that member would see it
@@ -62,6 +63,7 @@ function summary(queries: Timed[]) {
 }
 
 export async function GET(request: Request) {
+  if (process.env.ALUMNITY_HEALTH !== "on") return new NextResponse("Not found", { status: 404 });
   if (!allowed(request)) return new NextResponse("Not allowed", { status: 401 });
   const coldDatabase = !opened();
   const instance = { region: process.env.VERCEL_REGION ?? "local", ageMs: Date.now() - bootedAt, call: ++calls, coldDatabase };

@@ -86,6 +86,7 @@ secrets: don't paste them into chats, issues or commits.
 | `VAPID_SUBJECT` | `mailto:alumni@hkbk.edu.in` | who push services can contact |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | the same mailbox as Supabase's SMTP (step 2) | the daily email digest; `SMTP_PASS` is **secret** |
 | `CRON_SECRET` | any long random string | **secret**; Vercel Cron sends it to the daily digest |
+| `ALUMNITY_HEALTH` | `on` only while looking into the live site; otherwise leave unset | turns on `/api/health` (needs `CRON_SECRET` too): where a page's time goes, timings only. Unset, it doesn't exist (404) |
 | `ALUMNITY_SECRET` | any long random string | **secret**; signs the digest's "stop these emails" links |
 | `SITE_URL` | the production address, e.g. `https://alumnity.hkbk.edu.in` | links in emails |
 | `DIGEST_BATCH` | optional | most digest emails per day (default 150; Gmail Workspace allows ~2,000/day) |

@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 process.env.ALUMNITY_DB = "pglite";
 process.env.ALUMNITY_AUTH = "fake";
 process.env.CRON_SECRET = "test-health-secret";
+process.env.ALUMNITY_HEALTH = "on";
 delete process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 let db: typeof import("../lib/server/db");
@@ -23,6 +24,13 @@ const ask = (query = "", secret = "test-health-secret") =>
   GET(new Request(`http://localhost/api/health${query}`, { headers: secret ? { authorization: `Bearer ${secret}` } : {} }));
 
 describe("the health check", () => {
+  it("isn't there at all unless it's switched on", async () => {
+    process.env.ALUMNITY_HEALTH = "";
+    expect((await ask()).status).toBe(404);
+    process.env.ALUMNITY_HEALTH = "on";
+    expect((await ask()).status).toBe(200);
+  });
+
   it("is only for whoever holds the secret", async () => {
     expect((await ask("", "")).status).toBe(401);
     expect((await ask("", "wrong-secret-of-same-size")).status).toBe(401);
