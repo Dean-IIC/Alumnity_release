@@ -154,6 +154,25 @@
   font: var(--weight-regular) 17px / 1 var(--font-voice);
 }
 
+/* The points take the inks in turn: red, green, blue. */
+.info-point:nth-child(3n + 1) .info-point__mark {
+  border-color: var(--color-red);
+  background: var(--color-wash-red);
+  color: var(--color-red);
+}
+
+.info-point:nth-child(3n + 2) .info-point__mark {
+  border-color: var(--color-green);
+  background: var(--color-wash-green);
+  color: var(--color-green);
+}
+
+.info-point:nth-child(3n) .info-point__mark {
+  border-color: var(--color-blue);
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+}
+
 .info-points--steps .info-point p {
   color: var(--color-ink);
 }
@@ -181,9 +200,9 @@
   content: "";
   border-radius: 50%;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.6 2.6L13 6.5' fill='none' stroke='%23143f68' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.6 2.6L13 6.5' fill='none' stroke='%232f6b45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
       center / 18px no-repeat,
-    var(--color-wash-blue);
+    var(--color-wash-green);
 }
 
 .ticks--grid {
@@ -214,8 +233,8 @@
   margin: 0 0 var(--space-3);
   padding: 3px 10px;
   border-radius: var(--radius-pill);
-  background: var(--color-wash-gold);
-  color: var(--color-gold-small);
+  background: var(--color-wash-green);
+  color: var(--color-green);
   font-size: var(--text-label);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-label);
@@ -509,7 +528,8 @@
   border-radius: var(--radius-card);
   background:
     radial-gradient(circle at 100% 0, rgba(198, 132, 42, 0.28), transparent 45%),
-    var(--color-blue);
+    radial-gradient(circle at 0 100%, rgba(168, 57, 50, 0.35), transparent 45%),
+    var(--color-navy);
   color: var(--color-night-text);
 }
 
@@ -533,7 +553,7 @@
 
 .info-join .button--primary {
   background: #fffdf7;
-  color: var(--color-blue);
+  color: var(--color-navy);
 }
 
 .info-join .button--secondary {

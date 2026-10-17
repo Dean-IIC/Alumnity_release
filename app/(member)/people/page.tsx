@@ -106,7 +106,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               photoId={photos.get(member.id)}
               detail={[profile.title, profile.company && `at ${profile.company}`, profile.city && `· ${profile.city}`].filter(Boolean).join(" ")}
             >
-              {RELATION_LABEL[relation] && <span className="wf-tag">{RELATION_LABEL[relation]}</span>}
+              {RELATION_LABEL[relation] && <span className={`wf-tag ${relation === "connected" ? "wf-tag--ok" : ""}`}>{RELATION_LABEL[relation]}</span>}
               {profile.happyTo.mentor && <span className="wf-tag">Mentors</span>}
             </MemberLine>
           ))}
@@ -115,7 +115,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
       {register.people.length > 0 && (
         <section className="register-found" aria-labelledby="register-found">
           <h2 id="register-found">On the college register, not on Alumnity yet</h2>
-          <p className="wf-muted">From HKBK's own register of students. Know them? Send them the link: they join by finding their own line.</p>
+          <p className="wf-muted">From HKBK's own register of students. Know them? Send them the link. They can join by finding their name in the register.</p>
           <ul className="wf-list">
             {register.people.map((p, i) => (
               <li key={`${p.name}-${p.joined}-${i}`} className="wf-member wf-member--face">
@@ -135,7 +135,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               </li>
             ))}
           </ul>
-          <Invite text="I found your name on Alumnity, HKBK College of Engineering's alumni network. Find your line in the register and join:" />
+          <Invite text="I found your name on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />
         </section>
       )}
       {register.limited && (

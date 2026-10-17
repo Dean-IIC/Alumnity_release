@@ -24,6 +24,11 @@
   --color-gold-text: #a86a1c; /* gold for large text: 4.0 : 1 on paper (the brand gold is only 2.8) */
   /* Gold small enough to read: for labels in gold (5.6 : 1 on paper-raised). */
   --color-gold-small: #8f5c18;
+  /* Green: "yes", done, connected, joined. The fourth ink, so the page isn't only blue and gold. */
+  --color-green: #2f6b45; /* 6.4 : 1 on paper */
+  --color-wash-green: #e2efe5;
+  /* The college's navy, the same in light and dark: for a band that is always dark. */
+  --color-navy: #143f68;
   /* The reactions' stamps: a pale wash of each ink behind its drawing. */
   --color-wash-red: #f6e3df;
   --color-wash-gold: #f7ebd5;
@@ -132,8 +137,88 @@
   --z-notice: 40;
 }
 
+/*
+ * Dark mode: warm charcoal paper and the same four inks, lightened to read on it. On when
+ * the member chooses it in Settings, or follows the device (app/layout.tsx sets
+ * data-theme before the page is drawn). The landing page and joining keep their paper
+ * (.force-light), because their drawings are made for it.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #17120f;
+  --color-paper-raised: #221b16;
+  --color-paper-glass: rgba(34, 27, 22, 0.82);
+  --color-paper-veil: rgba(23, 18, 15, 0.9);
+  --color-ink: #f2e9dc;
+  --color-ink-muted: #c4b7a6;
+  --color-ink-soft: #d2bf9c;
+  --color-red: #f08d81;
+  --color-blue: #93bce8;
+  --color-blue-deep: #bcd5f1;
+  --color-gold: #e3a94f;
+  --color-gold-text: #e9b765;
+  --color-gold-small: #e6b465;
+  --color-green: #86d3a1;
+  --color-wash-red: #3b201c;
+  --color-wash-gold: #34291a;
+  --color-wash-blue: #172738;
+  --color-wash-amber: #342b15;
+  --color-wash-green: #173022;
+  --color-ink-amber: #e8c86e;
+  --color-fill-red: rgba(240, 141, 129, 0.18);
+  --color-fill-blue: rgba(147, 188, 232, 0.12);
+  --color-seal-ground: #1d2833;
+  --color-notice: #2c2317;
+  --color-notice-edge: rgba(227, 169, 79, 0.45);
+  --color-band: #2b221b;
+  --color-bar: rgba(30, 24, 20, 0.96);
+  --color-line: rgba(242, 233, 220, 0.14);
+  --color-border: rgba(242, 233, 220, 0.2);
+}
+
+/* Pages drawn for paper stay on paper, whatever the theme. */
+.force-light {
+  color-scheme: light;
+  --color-paper: #f8f4ea;
+  --color-paper-raised: #fffdf7;
+  --color-paper-glass: rgba(255, 253, 247, 0.8);
+  --color-paper-veil: rgba(248, 244, 234, 0.92);
+  --color-ink: #392820;
+  --color-ink-muted: #73665c;
+  --color-ink-soft: #6f5d45;
+  --color-red: #a83932;
+  --color-blue: #143f68;
+  --color-blue-deep: #0c3155;
+  --color-gold: #c6842a;
+  --color-gold-text: #a86a1c;
+  --color-gold-small: #8f5c18;
+  --color-green: #2f6b45;
+  --color-wash-red: #f6e3df;
+  --color-wash-gold: #f7ebd5;
+  --color-wash-blue: #e7eef6;
+  --color-wash-amber: #f7efd2;
+  --color-wash-green: #e2efe5;
+  --color-ink-amber: #7a5d10;
+  --color-fill-red: rgba(168, 57, 50, 0.15);
+  --color-fill-blue: rgba(20, 63, 104, 0.06);
+  --color-seal-ground: #eef2f6;
+  --color-notice: #fbf3e2;
+  --color-notice-edge: rgba(198, 132, 42, 0.45);
+  --color-band: #f1e9d8;
+  --color-bar: rgba(255, 253, 247, 0.96);
+  --color-line: rgba(57, 40, 32, 0.18);
+  --color-border: rgba(57, 40, 32, 0.22);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
 @media (max-width: 700px) {
   :root {
     --nav-height: 76px;
   }
+}
+
+/* A whole page kept on paper: at least the screen's height, so the dark body doesn't show below it. */
+.force-light--page {
+  min-height: 100vh;
 }

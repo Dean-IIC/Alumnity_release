@@ -50,7 +50,7 @@ export async function Overview({ me }: { me: User }) {
             ))}
           </ul>
         ) : (
-          <p className="wf-muted">No reports and no causes to review. Invite staff from Team; put up an announcement from Announcements.</p>
+          <p className="wf-muted">No reports and no causes to review. You can invite staff from the Team tab, or post an announcement from the Announcements tab.</p>
         )}
       </section>
       <div className="wf-grid">
@@ -350,15 +350,15 @@ export async function Team({ me }: { me: User }) {
   return (
     <>
       <p className="wf-muted">
-        Super administrators are set by the people who run the site, so they can't be changed here. They appoint administrators; administrators appoint
-        coordinators. To give a role to someone already on Alumnity, open them in Members.
+        Super administrators are set by the people who run the site, so they can't be changed here. A super administrator can make someone an
+        administrator. An administrator can make someone a coordinator. To give a role to someone already on Alumnity, open their name in Members.
       </p>
       {roles.length > 0 && (
         <section className="wf-card" aria-labelledby="invite-staff">
           <h2 id="invite-staff">Invite staff</h2>
           <p className="wf-muted">
-            Teachers and college staff aren't on the student register, so they join by invitation: they get an email with a link, confirm their address with a code, and choose
-            a password.
+            Teachers and college staff are not in the student register, so they join by invitation. They get an email with a link. They confirm their email
+            with a code, and choose a password.
           </p>
           <ActionForm action={inviteStaffAction} className="wf-stack" resetOnSuccess>
             <div className="field-row">

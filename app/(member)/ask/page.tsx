@@ -112,7 +112,7 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
       title="Ask a senior"
       intro={
         senior
-          ? "Students ask; their questions go to the few seniors who fit them (by branch and what they know). Take one on, and you write to them privately."
+          ? "Students ask questions here. Each question goes to a few seniors from the same branch who know about it. If you take one, you reply to the student privately."
           : "Your question goes to a few seniors who fit it (by branch and what they know), not to everyone. One takes it on and writes to you privately."
       }
     >

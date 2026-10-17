@@ -43,7 +43,7 @@
   padding: 1px 6px;
   border-radius: var(--radius-pill);
   background: var(--color-red);
-  color: #fff;
+  color: var(--color-paper-raised);
   font-size: 12px;
   line-height: 18px;
   text-align: center;
@@ -304,7 +304,7 @@
 
 .wf-checklist li.done::before {
   content: "● ";
-  color: #2d6a3e;
+  color: var(--color-green);
 }
 
 .wf-checklist a {
@@ -332,28 +332,36 @@
   font-weight: var(--weight-regular);
 }
 
-/* The desk's numbers take the college's three inks in turn, with a rule of the same colour. */
+/* The desk's numbers take the college's four inks in turn, each with a rule of its colour. */
 .wf-grid > .wf-stat {
   border-top: 3px solid var(--color-blue);
 }
 
-.wf-grid > .wf-stat:nth-child(3n + 1) strong {
+.wf-grid > .wf-stat:nth-child(4n + 1) strong {
   color: var(--color-blue);
 }
 
-.wf-grid > .wf-stat:nth-child(3n + 2) {
+.wf-grid > .wf-stat:nth-child(4n + 2) {
   border-top-color: var(--color-red);
 }
 
-.wf-grid > .wf-stat:nth-child(3n + 2) strong {
+.wf-grid > .wf-stat:nth-child(4n + 2) strong {
   color: var(--color-red);
 }
 
-.wf-grid > .wf-stat:nth-child(3n) {
+.wf-grid > .wf-stat:nth-child(4n + 3) {
+  border-top-color: var(--color-green);
+}
+
+.wf-grid > .wf-stat:nth-child(4n + 3) strong {
+  color: var(--color-green);
+}
+
+.wf-grid > .wf-stat:nth-child(4n) {
   border-top-color: var(--color-gold);
 }
 
-.wf-grid > .wf-stat:nth-child(3n) strong {
+.wf-grid > .wf-stat:nth-child(4n) strong {
   color: var(--color-gold-text);
 }
 
@@ -389,7 +397,7 @@
 .wf-tabs a[aria-current="page"] {
   border-color: var(--color-blue);
   background: var(--color-blue);
-  color: #fff;
+  color: var(--color-paper-raised);
 }
 
 .wf-filters {
@@ -729,4 +737,11 @@
 .wf-checklist li > a,
 .wf-checklist li > form {
   flex: 1 1 auto;
+}
+
+/* "Yes": connected, joined, done. */
+.wf-tag--ok {
+  border-color: rgba(47, 107, 69, 0.35);
+  background: var(--color-wash-green);
+  color: var(--color-green);
 }

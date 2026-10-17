@@ -4,6 +4,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { post } from "../../lib/client/post";
 import { PasswordField } from "../join/fields";
 import { AlertsPanel } from "./alerts-panel";
+import { ThemeChoicePicker } from "./theme-choice";
 
 /* Settings: alerts, your password, the browsers you're signed in on, and deleting your account. */
 
@@ -46,6 +47,9 @@ export function SettingsPanel({ email }: { email: string }) {
         <p className="join__fine">Only you see it. You log in with it, and your codes go to it.</p>
       </Section>
 
+      <Section title="Light or dark">
+        <ThemeChoicePicker />
+      </Section>
       <Section title="Alerts">
         <AlertsPanel />
       </Section>
@@ -97,7 +101,7 @@ export function SettingsPanel({ email }: { email: string }) {
 
       <Section title="Delete your account">
         <p className="join__fine">
-          Deletes your account and your page from Alumnity, for good. Your line in the college register stays, as it always has; you could join again later.
+          This deletes your account and your page from Alumnity for good. Your name stays in the college register, so you can join again later if you want.
         </p>
         <form
           onSubmit={(event: FormEvent<HTMLFormElement>) => {

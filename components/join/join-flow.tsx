@@ -95,8 +95,8 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
     setProblem(
       {
         "not-found": byUsn
-          ? "We couldn't find that line. Check your USN, and your name as it's written on your marks card."
-          : "We couldn't find that line. Check the spelling, the branch and the year you joined.",
+          ? "We couldn't find you in the register. Check your USN, and your name as it's written on your marks card."
+          : "We couldn't find you in the register. Check the spelling, the branch and the year you joined.",
         ambiguous: "More than one person on the register fits that. Add your USN to tell you apart.",
         "slow-down": "That's a lot of tries in a short time. Wait a few minutes and try again.",
         unavailable: "The register isn't reachable just now. Please try again in a little while.",

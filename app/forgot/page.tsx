@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Reset your password · Alumnity" };
 
 export default function ForgotPage() {
   return (
-    <>
+    <div className="force-light force-light--page">
       <SiteHeader />
       <main className="join-page container">
         <header className="page-head join-page__head">
@@ -23,6 +23,6 @@ export default function ForgotPage() {
       </main>
       <SiteFooter />
       <SoonNotice />
-    </>
+    </div>
   );
 }

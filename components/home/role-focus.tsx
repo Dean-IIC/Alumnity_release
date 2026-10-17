@@ -80,7 +80,7 @@ async function StudentFocus({ me }: { me: User }) {
   const live = mine.filter((a) => a.status === "open" || a.status === "taken").slice(0, 3);
   return (
     <section className="sheet focus focus--student" aria-label="For you">
-      <Head me={me} line="Seniors who've been where you are are here. Ask them anything: electives, projects, placements, life after HKBK." />
+      <Head me={me} line="Ask a senior who has been in your place. Ask about electives, projects, placements or life after college." />
       <form className="focus__ask-start" action="/ask">
         <label className="sr-only" htmlFor="focus-ask">
           Your question for a senior
@@ -133,7 +133,7 @@ async function AlumnusFocus({ me }: { me: User }) {
   const missing = Math.max(0, onRegister - mates.length - 1);
   return (
     <section className="sheet focus focus--alumnus" aria-label="For you">
-      <Head me={me} line="A few minutes of yours can change a junior's year. Here's where you're needed, and who's back from your batch." />
+      <Head me={me} line="A few minutes of your time can really help a junior. Here you can see who needs help, and who from your batch has joined." />
       <h3>Questions for you</h3>
       {!profile.happyTo.mentor ? (
         <div className="focus__switch">

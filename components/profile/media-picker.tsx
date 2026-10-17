@@ -16,7 +16,7 @@ async function upload(file: File, use: "photo" | "cover"): Promise<{ ok: true; r
 }
 
 function Preview({ value, use }: { value: MediaRef | null; use: "photo" | "cover" }) {
-  if (!value) return <span className="picker__empty">{use === "photo" ? "Your ink seal, until you add a photo" : "The campus of your year, until you add a cover"}</span>;
+  if (!value) return <span className="picker__empty">{use === "photo" ? "Your initials show here until you add a photo" : "A campus photo from your year shows here until you add a cover"}</span>;
   if (value.kind === "video") return <video src={mediaUrl(value.id)} muted loop autoPlay playsInline />;
   if (value.kind === "html") return <iframe src={mediaUrl(value.id)} title="Your cover" sandbox="allow-scripts" referrerPolicy="no-referrer" scrolling="no" />;
   // eslint-disable-next-line @next/next/no-img-element
@@ -68,7 +68,7 @@ export function MediaPicker({ use, value, onChange }: { use: "photo" | "cover"; 
       <span className="field__hint">
         {use === "photo"
           ? "JPEG, PNG, WebP or GIF, up to 5 MB. Location details hidden in photos are removed."
-          : "An image (up to 5 MB), a short MP4 or WebM video (up to 25 MB, plays muted on a loop), or an HTML file (up to 1 MB) for something of your own: it runs its own scripts and animations in a sealed frame, but can’t load anything from the internet, so put any images or fonts inside the file."}
+          : "You can add a photo (up to 5 MB), a short video (up to 25 MB, it plays without sound) or an HTML file (up to 1 MB). An HTML file runs in a safe, closed box and cannot load anything from the internet, so put any pictures or fonts inside the file."}
       </span>
       {problem && (
         <p className="join__problem" role="alert">

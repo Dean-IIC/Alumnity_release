@@ -14,7 +14,7 @@ export default async function StaffJoinPage({ searchParams }: { searchParams: Pr
   if (await currentUser()) redirect("/home");
   const email = (await searchParams).email?.slice(0, 254) ?? "";
   return (
-    <>
+    <div className="force-light force-light--page">
       <SiteHeader />
       <main className="join-page container">
         <header className="page-head join-page__head">
@@ -27,6 +27,6 @@ export default async function StaffJoinPage({ searchParams }: { searchParams: Pr
         <StaffJoinForm invitedEmail={email} />
       </main>
       <SiteFooter />
-    </>
+    </div>
   );
 }

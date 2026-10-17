@@ -33,7 +33,7 @@ export default function TermsPage() {
 
         <Section title="Who it's for">
           <p>
-            Alumnity is {LEGAL.fiduciary}’s network for its students, alumni and faculty, aged 18 or over. You join with your own line in the college register; one person,
+            Alumnity is {LEGAL.fiduciary}’s network for its students, alumni and faculty, aged 18 or over. You join with your own entry in the college register; one person,
             one account. Don’t join as anyone else, share your account, or let anyone else use it.
           </p>
         </Section>

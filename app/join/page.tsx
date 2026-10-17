@@ -22,7 +22,7 @@ export default async function JoinPage() {
   const known = await registerFacts();
   const facts = known ?? { count: 0, from: 1998, to: new Date().getFullYear(), branches: [] };
   return (
-    <>
+    <div className="force-light force-light--page">
       <SiteHeader />
       <main className="join-page container">
         <header className="page-head join-page__head">
@@ -32,7 +32,7 @@ export default async function JoinPage() {
           </h1>
           <p className="page-head__text">
             Everyone here is on the college’s own register
-            {facts.count ? `: ${facts.count.toLocaleString("en-IN")} students on every course since ${facts.from}` : ""}. Find your line, and you’re in.
+            {facts.count ? `: ${facts.count.toLocaleString("en-IN")} students on every course since ${facts.from}` : ""}. Find your name, and you’re in.
           </p>
         </header>
         <JoinFlow branches={facts.branches.map(({ code, name }) => ({ code, name }))} from={facts.from} to={facts.to} />
@@ -42,6 +42,6 @@ export default async function JoinPage() {
       </main>
       <SiteFooter />
       <SoonNotice />
-    </>
+    </div>
   );
 }
