@@ -126,7 +126,7 @@ const THEMES: Record<string, Theme> = {
   },
   // Notifications: bells and the day's sparkle.
   notifications: {
-    spine: [{ d: VINE, tone: "gold" }],
+    spine: [{ d: "M60 -20c40 40-40 80 0 120s-40 80 0 120-40 80 0 120-40 80 0 120-40 80 0 120-40 80 0 120-40 80 0 120-40 80 0 120", tone: "blue", dashed: true }],
     marks: [
       ["bell", 150, 160, -14, 1.3, "blue"],
       ["sparkle", 220, 110, 0, 0.8, "gold"],
@@ -190,7 +190,7 @@ const THEMES: Record<string, Theme> = {
   },
   // Your batch: caps thrown in the air, a diploma, stars.
   batch: {
-    spine: [{ d: VINE, tone: "red" }],
+    spine: [{ d: "M30 940C150 760 40 600 170 420S90 140 230 -20", tone: "red", dashed: true }],
     marks: [
       ["cap", 160, 120, -20, 1.2, "blue"],
       ["cap", 220, 260, 18, 0.9, "gold"],
@@ -205,7 +205,7 @@ const THEMES: Record<string, Theme> = {
   },
   // Connections: links and letters between friends, a cup of chai.
   connections: {
-    spine: [{ d: STEMS, tone: "gold" }],
+    spine: [{ d: "M60 -20L180 200 80 420 200 640 90 940", tone: "gold" }],
     marks: [
       ["link", 160, 160, -20, 1.2, "blue"],
       ["cup", 120, 340, 0, 1.2, "red"],
@@ -232,7 +232,7 @@ const THEMES: Record<string, Theme> = {
   },
   // About: the college's own words, a book, a scroll and a pen nib.
   about: {
-    spine: [{ d: STEMS, tone: "gold" }],
+    spine: [{ d: "M40 -20V940 M50 -20V940", tone: "gold" }],
     marks: [
       ["book", 160, 170, -8, 1.3, "blue"],
       ["nib", 120, 380, 25, 1.2, "red"],
@@ -245,7 +245,7 @@ const THEMES: Record<string, Theme> = {
   },
   // The community: people linked up, talking over chai.
   community: {
-    spine: [{ d: STEMS, tone: "red" }],
+    spine: [{ d: "M200 -20c-80 140 60 240-20 380s60 260-10 380", tone: "red", dashed: true }],
     marks: [
       ["link", 160, 170, -20, 1.2, "blue"],
       ["bubble", 130, 360, 0, 1.1, "gold"],
@@ -271,7 +271,7 @@ const THEMES: Record<string, Theme> = {
   },
   // The developers: an idea, the gears, the pencil and compass it was drawn with.
   developers: {
-    spine: [{ d: STEMS, tone: "blue" }],
+    spine: [{ d: "M60 -20V180H140V420H70V700H150V940", tone: "blue" }],
     marks: [
       ["bulb", 160, 170, 0, 1.2, "gold"],
       ["gear", 120, 370, 0, 1.4, "blue"],
@@ -284,7 +284,7 @@ const THEMES: Record<string, Theme> = {
   },
   // How it works: the route mapped out, a question, a paper plane on its way.
   "how-it-works": {
-    spine: [{ d: STEMS, tone: "gold", dashed: true }],
+    spine: [{ d: "M40 940C200 820 60 640 200 520S60 260 180 120 120 -20 200 -40", tone: "gold", dashed: true }],
     marks: [
       ["compass", 160, 170, -10, 1.2, "blue"],
       ["question", 120, 370, 8, 1.3, "red"],
@@ -307,6 +307,31 @@ const THEMES: Record<string, Theme> = {
     dots: [[240, 470], [90, 700]],
     phone: [["scroll", 85, 45, -6, 0.7, "blue"], ["nib", 140, 45, 20, 0.6, "red"]]
   },
+  // The gallery: memories pinned up, caps thrown, a flag and stars.
+  gallery: {
+    spine: [{ d: "M20 120H280 M20 560H280", tone: "gold", dashed: true }],
+    marks: [
+      ["star", 160, 170, 0, 1.1, "gold"],
+      ["cap", 120, 360, -14, 1.2, "blue"],
+      ["flag", 200, 540, 8, 1.1, "red"],
+      ["sparkle", 130, 720, 0, 0.9, "gold"],
+      ["flower", 230, 300, 10, 0.8, "red"]
+    ],
+    dots: [[240, 440], [80, 620], [230, 840]],
+    phone: [["star", 85, 45, 0, 0.7, "gold"], ["cap", 140, 50, -14, 0.6, "blue"]]
+  },
+  // Anywhere else: the paper's own marks, nothing borrowed from another page.
+  paper: {
+    spine: [{ d: "M40 -20V940", tone: "gold" }],
+    marks: [
+      ["sparkle", 160, 170, 0, 1, "gold"],
+      ["star", 120, 380, 10, 0.9, "blue"],
+      ["plus", 200, 560, 0, 1, "red"],
+      ["swirl", 130, 740, 0, 0.8, "gold"]
+    ],
+    dots: [[240, 460], [80, 640]],
+    phone: [["sparkle", 85, 45, 0, 0.7, "gold"], ["star", 140, 50, 10, 0.6, "blue"]]
+  },
   // The college desk: rubber stamps, a pen nib, the ledger's rules.
   desk: {
     spine: [{ d: "M40 -20V940 M70 -20V940", tone: "blue" }],
@@ -326,7 +351,7 @@ const THEMES: Record<string, Theme> = {
 function themeFor(path: string): Theme {
   const first = path.split("/")[1] ?? "";
   const key =
-    first === "notes" ? "home" : first === "settings" ? "me" : first === "admin" ? "desk" : first === "report" ? "home" : first === "terms" ? "privacy" : first in THEMES ? first : "home";
+    first === "notes" ? "home" : first === "settings" ? "me" : first === "admin" ? "desk" : first === "report" ? "home" : first === "terms" ? "privacy" : first in THEMES ? first : "paper";
   return THEMES[key];
 }
 
@@ -367,10 +392,58 @@ function Column({ theme, side }: { theme: Theme; side: "left" | "right" }) {
   );
 }
 
+/*
+ * The whole page's paper: the same drawings, smaller and fainter, scattered over a tile
+ * that repeats behind everything (cards are solid paper, so text never sits on it), and
+ * a wash of the three inks in the corners. Every screen size gets it.
+ */
+const SCATTER: [number, number][] = [
+  [70, 80],
+  [300, 60],
+  [190, 200],
+  [40, 330],
+  [330, 300],
+  [230, 420],
+  [110, 470]
+];
+
+function scatter(theme: Theme, at: [number, number][], shift: number, size: number): Place[] {
+  const marks = theme.marks.filter(([name]) => name !== "trail");
+  return at.map(([x, y], i) => {
+    const [name, , , angle, scale, tone] = marks[(i + shift) % marks.length];
+    return [name, x, y, angle + (i % 2 ? 14 : -10) + shift * 7, Math.min(scale, 1.2) * size, tone];
+  });
+}
+
+/** Two tiles of different sizes, one turned a little, so the repeat never lines up into a grid. */
+function Field({ theme, id }: { theme: Theme; id: string }) {
+  return (
+    <svg className="margin-art__field" aria-hidden="true">
+      <defs>
+        <pattern id={`${id}-a`} width="400" height="520" patternUnits="userSpaceOnUse">
+          <Marks places={scatter(theme, SCATTER, 0, 0.78)} />
+          {[[150, 120], [300, 200], [60, 420], [360, 470]].map(([cx, cy], i) => (
+            <circle key={i} className="margin-art__dot" cx={cx} cy={cy} r={2.4} />
+          ))}
+        </pattern>
+        <pattern id={`${id}-b`} width="620" height="700" patternUnits="userSpaceOnUse" patternTransform="rotate(9) translate(170 240)">
+          <Marks places={scatter(theme, [[90, 130], [420, 90], [300, 380], [560, 520], [140, 600]], 2, 0.62)} />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill={`url(#${id}-a)`} />
+      <rect className="margin-art__field-second" width="100%" height="100%" fill={`url(#${id}-b)`} />
+    </svg>
+  );
+}
+
 export function MarginArt() {
-  const theme = themeFor(usePathname() ?? "/home");
+  const path = usePathname() ?? "/home";
+  const theme = themeFor(path);
+  const id = `paper-${path.split("/")[1] || "home"}`;
   return (
     <>
+      <div className="margin-art__wash" aria-hidden="true" />
+      <Field theme={theme} id={id} />
       <div className="margin-art" aria-hidden="true">
         <Column theme={theme} side="left" />
         <Column theme={theme} side="right" />
