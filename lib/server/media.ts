@@ -113,21 +113,55 @@ async function preparePhoto(file: Extract<Checked, { ok: true }>): Promise<{ dat
   try {
     const sharp = (await import("sharp")).default;
     const base = sharp(file.data, { failOn: "error", limitInputPixels: 50_000_000 }).rotate();
-    // Its width as it will show: turned a quarter (orientation 5–8), it's the stored height.
-    const meta = await base.metadata();
-    const width = (meta.orientation ?? 1) >= 5 ? (meta.height ?? 0) : (meta.width ?? 0);
     const main = base.clone().resize({ width: 2560, height: 2560, fit: "inside", withoutEnlargement: true });
     const data =
       file.mime === "image/png" ? await main.png({ compressionLevel: 9 }).toBuffer() : file.mime === "image/webp" ? await main.webp({ quality: 86 }).toBuffer() : await main.jpeg({ quality: 86, mozjpeg: true }).toBuffer();
-    const { PHOTO_SIZES } = await import("../media-url");
-    const sizes = [];
-    for (const w of PHOTO_SIZES) {
-      if (w >= width) break;
-      sizes.push({ w, data: new Uint8Array(await base.clone().resize({ width: w, withoutEnlargement: true }).webp({ quality: w <= 160 ? 72 : 78 }).toBuffer()) });
-    }
-    return { data: new Uint8Array(data), sizes };
-  } catch {
+    return { data: new Uint8Array(data), sizes: await smallerCopies(base) };
+  } catch (error) {
+    console.error("preparePhoto: kept without smaller copies:", error);
     return { data: plain, sizes: [] };
+  }
+}
+
+/** The smaller copies of a photo (sharp, turned the right way up), each narrower than it. */
+async function smallerCopies(base: import("sharp").Sharp) {
+  // Its width as it will show: turned a quarter (orientation 5–8), it's the stored height.
+  const meta = await base.metadata();
+  const width = (meta.orientation ?? 1) >= 5 ? (meta.height ?? 0) : (meta.width ?? 0);
+  const { PHOTO_SIZES } = await import("../media-url");
+  const sizes: { w: number; data: Uint8Array }[] = [];
+  for (const w of PHOTO_SIZES) {
+    if (w >= width) break;
+    sizes.push({ w, data: new Uint8Array(await base.clone().resize({ width: w, withoutEnlargement: true }).webp({ quality: w <= 160 ? 72 : 78 }).toBuffer()) });
+  }
+  return sizes;
+}
+
+// Photos this instance tried and couldn't make copies of: not again until it restarts.
+const uncopied = new Set<string>();
+
+/**
+ * A photo kept without its smaller copies (it came in before they were made, or sharp
+ * failed then): they're made the first time a smaller one is asked for, and kept, so a
+ * 44-pixel face doesn't cost the whole photo again on every page.
+ */
+export async function withSizes(media: Media): Promise<Media> {
+  if (media.kind !== "image" || media.mime === "image/gif" || media.sizes.length || uncopied.has(media.id)) return media;
+  uncopied.add(media.id);
+  try {
+    const bytes = await storage().read(media.path);
+    if (!bytes) return media;
+    const sharp = (await import("sharp")).default;
+    const sizes = await smallerCopies(sharp(bytes, { failOn: "error", limitInputPixels: 50_000_000 }).rotate());
+    if (!sizes.length) return media; // already small: the photo itself is the copy
+    for (const s of sizes) await storage().write(sizedPath(media.path, s.w), s.data, "image/webp");
+    const widths = sizes.map((s) => s.w);
+    await db().run("update media set sizes = ? where id = ?", JSON.stringify(widths), media.id);
+    uncopied.delete(media.id);
+    return { ...media, sizes: widths };
+  } catch (error) {
+    console.error(`withSizes ${media.id}: no smaller copies:`, error);
+    return media;
   }
 }
 

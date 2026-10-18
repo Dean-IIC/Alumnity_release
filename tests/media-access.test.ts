@@ -93,3 +93,44 @@ describe("someone's photo, cover or cause cover", () => {
     expect(await fetchAs(reader, cover)).toBe(200);
   });
 });
+
+describe("a photo kept without its smaller copies", () => {
+  it("gets them the first time a small one is asked for, and keeps them", async () => {
+    const owner = await member("Old Photo Person");
+    const viewer = await member("Looking Person");
+    const sharp = (await import("sharp")).default;
+    const id = "oldphoto000000000001";
+    mkdirSync(join(process.env.ALUMNITY_UPLOADS!, "t"), { recursive: true });
+    writeFileSync(join(process.env.ALUMNITY_UPLOADS!, "t", `${id}.jpg`), await sharp({ create: { width: 1280, height: 960, channels: 3, background: "#3a6" } }).jpeg().toBuffer());
+    await db.db().run("insert into media (id, user_id, kind, mime, size, path, created_at) values (?, ?, 'image', 'image/jpeg', 1, ?, ?)", id, owner.id, `t/${id}.jpg`, Date.now());
+
+    const auth = await (await import("../lib/server/auth-provider")).fakeAuth();
+    const authId = (await db.db().one<{ auth_id: string }>("select auth_id from users where id = ?", viewer.id))!.auth_id;
+    auth.accounts.set(viewer.email, { authId, password: "a long test password", code: null });
+    auth.use(`browser-${viewer.id}`);
+    await auth.signInWithPassword(viewer.email, "a long test password");
+    const face = await GET(new Request(`http://localhost/media/${id}?w=44`), { params: Promise.resolve({ id }) });
+    auth.use("main");
+
+    // A face 44 pixels wide gets the 160 copy, not the whole photo.
+    expect(face.status).toBe(200);
+    expect(face.headers.get("content-type")).toBe("image/webp");
+    expect((await sharp(Buffer.from(await face.arrayBuffer())).metadata()).width).toBe(160);
+    expect((await db.db().one<{ sizes: string }>("select sizes from media where id = ?", id))!.sizes).toBe("[160,640]");
+  });
+
+  it("is still served whole when it can't be read to make them", async () => {
+    const owner = await member("Odd Photo Person");
+    const viewer = await member("Other Looking Person");
+    const id = await photo(owner); // four bytes: a JPEG's start, nothing sharp can read
+    const auth = await (await import("../lib/server/auth-provider")).fakeAuth();
+    const authId = (await db.db().one<{ auth_id: string }>("select auth_id from users where id = ?", viewer.id))!.auth_id;
+    auth.accounts.set(viewer.email, { authId, password: "a long test password", code: null });
+    auth.use(`browser-${viewer.id}`);
+    await auth.signInWithPassword(viewer.email, "a long test password");
+    const response = await GET(new Request(`http://localhost/media/${id}?w=44`), { params: Promise.resolve({ id }) });
+    auth.use("main");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("image/jpeg");
+  });
+});
