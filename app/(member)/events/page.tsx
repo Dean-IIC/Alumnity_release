@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
@@ -15,9 +16,9 @@ function EventLine({ event, past = false }: { event: Event; past?: boolean }) {
   return (
     <li className="wf-member">
       <div className="wf-member__who">
-        <a className="wf-member__name" href={`/events/${event.id}`}>
+        <Link className="wf-member__name" href={`/events/${event.id}`}>
           {event.title}
-        </a>
+        </Link>
         <span className="wf-muted">
           {when(event.startsAt)} · {event.place}
         </span>

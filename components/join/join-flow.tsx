@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { firstName } from "../../lib/format";
 import { useEffect, useState, type FormEvent } from "react";
 import { post } from "../../lib/client/post";
@@ -188,7 +190,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                 </button>
                 <p className="join__fine">We only check that you’re on the register. Nobody else sees what you type here.</p>
                 <p className="join__fine">
-                  A teacher or college staff? <a href="/join/staff">Join with your invitation</a>
+                  A teacher or college staff? <Link href="/join/staff">Join with your invitation</Link>
                 </p>
               </>
             )}
@@ -279,7 +281,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                 <p className="join__line">Your email is confirmed. Last thing: a password, for logging in next time.</p>
                 <PasswordField />
                 <p className="join__fine">
-                  By joining, you agree to the <a href="/terms">terms</a> and the <a href="/privacy">privacy policy</a>, and confirm you’re 18 or over.
+                  By joining, you agree to the <Link href="/terms">terms</Link> and the <Link href="/privacy">privacy policy</Link>, and confirm you’re 18 or over.
                 </p>
                 {problem && (
                   <p className="join__problem" role="alert">

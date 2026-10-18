@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { connectAction } from "../../lib/actions/social";
 import type { User } from "../../lib/server/auth";
 import { batchLabel } from "../../lib/format";
@@ -26,13 +27,13 @@ export async function PeopleToReach({ me, mode }: { me: User; mode: "write" | "c
           <li key={u.id} className="side-person">
             <Avatar name={u.name} photoId={photos.get(u.id)} size={40} />
             <span className="side-person__who">
-              <a href={`/people/${u.id}`}>{u.name}</a>
+              <Link href={`/people/${u.id}`}>{u.name}</Link>
               <span>{batchLabel(u)}</span>
             </span>
             {writing ? (
-              <a className="pill-button" href={`/messages/${u.id}`}>
+              <Link className="pill-button" href={`/messages/${u.id}`}>
                 Write
-              </a>
+              </Link>
             ) : (
               <ActionForm action={connectAction} showDone={false}>
                 <input type="hidden" name="id" value={u.id} />

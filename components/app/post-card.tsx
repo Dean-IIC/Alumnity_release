@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cheerAction, commentAction, removeCommentAction, removePostAction } from "../../lib/actions/content";
 import { batchLabel, timeAgo } from "../../lib/format";
 import type { Post } from "../../lib/server/posts";
@@ -12,7 +13,7 @@ export function PostCard({ post, full = false }: { post: Post; full?: boolean })
   return (
     <article className="wf-card" id={`post-${post.id}`}>
       <div className="wf-card__meta">
-        <a href={`/people/${post.author.id}`}>{post.author.name}</a>
+        <Link href={`/people/${post.author.id}`}>{post.author.name}</Link>
         <span>{batchLabel(post.author)}</span>
         <span>{timeAgo(post.createdAt)}</span>
         <span className="wf-tag" title="Who can see this">
@@ -44,9 +45,9 @@ export function PostCard({ post, full = false }: { post: Post; full?: boolean })
             <li key={c.id} className="wf-member">
               <div className="wf-member__who">
                 <span>
-                  <a className="wf-member__name" href={`/people/${c.author.id}`}>
+                  <Link className="wf-member__name" href={`/people/${c.author.id}`}>
                     {c.author.name}
-                  </a>{" "}
+                  </Link>{" "}
                   <span className="wf-muted">{timeAgo(c.createdAt)}</span>
                 </span>
                 <span style={{ whiteSpace: "pre-line", overflowWrap: "anywhere" }}>{c.body}</span>
@@ -69,9 +70,9 @@ export function PostCard({ post, full = false }: { post: Post; full?: boolean })
       )}
       {!full && post.commentCount > post.comments.length && (
         <p>
-          <a className="wf-link-button" href={`/notes/${post.id}`}>
+          <Link className="wf-link-button" href={`/notes/${post.id}`}>
             Show all {post.commentCount} comments
-          </a>
+          </Link>
         </p>
       )}
       <ActionForm action={commentAction} resetOnSuccess className="wf-stack" showDone={false}>

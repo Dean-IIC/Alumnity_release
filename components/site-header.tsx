@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "./brand-lockup";
 import { soon } from "./coming-soon";
@@ -52,17 +54,17 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
       </nav>
       <div className="site-nav__end">
         {me ? (
-          <a className="sign-in" href="/home">
+          <Link className="sign-in" href="/home">
             {me.firstName} <span aria-hidden="true">→</span>
-          </a>
+          </Link>
         ) : (
           <>
-            <a className="sign-in" href="/login" onClick={soon}>
+            <Link className="sign-in" href="/login" onClick={soon}>
               Log in
-            </a>
-            <a className="button button--primary site-nav__join" href="/join" onClick={soon}>
+            </Link>
+            <Link className="button button--primary site-nav__join" href="/join" onClick={soon}>
               Join
-            </a>
+            </Link>
           </>
         )}
         {/* A phone: the links in a menu. */}
@@ -76,11 +78,11 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
                 {link.label}
               </a>
             ))}
-            {!me && <a href="/committee">Committee</a>}
+            {!me && <Link href="/committee">Committee</Link>}
             {!me && (
-              <a href="/login" className="site-nav__panel-login">
+              <Link href="/login" className="site-nav__panel-login">
                 Log in
-              </a>
+              </Link>
             )}
           </div>
         </details>

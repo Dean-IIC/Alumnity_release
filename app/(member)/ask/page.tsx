@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
@@ -21,9 +22,9 @@ function AskList({ asks, empty }: { asks: Ask[]; empty: string }) {
       {asks.map((a) => (
         <li key={a.id} className="wf-member">
           <div className="wf-member__who">
-            <a className="wf-member__name" href={`/ask/${a.id}`}>
+            <Link className="wf-member__name" href={`/ask/${a.id}`}>
               {a.title}
-            </a>
+            </Link>
             <span className="wf-muted">
               {a.author.name} · {timeAgo(a.createdAt)}
               {a.reason ? ` · came to you: ${a.reason}` : ""}

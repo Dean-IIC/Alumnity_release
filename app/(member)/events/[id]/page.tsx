@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../components/app/action-form";
@@ -86,9 +87,9 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         </section>
       )}
       <p style={{ marginTop: "var(--space-6)" }}>
-        <a className="wf-link-button" href="/events">
+        <Link className="wf-link-button" href="/events">
           ← All events
-        </a>
+        </Link>
       </p>
     </AppPage>
   );

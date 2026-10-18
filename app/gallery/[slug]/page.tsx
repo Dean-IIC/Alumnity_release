@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -39,9 +40,9 @@ export default async function AlbumPage({ params }: Props) {
       </VisitorOnly>
       <main className="album container">
         {/* The album opens like the landing page: its cover blooms from pencil into colour. */}
-        <a className="back-link album__back" href="/gallery">
+        <Link className="back-link album__back" href="/gallery">
           <span aria-hidden="true">←</span> All albums
-        </a>
+        </Link>
         <header className="album-hero">
           <div className="album-hero__copy">
             <h1 className="page-title">{album.title}</h1>

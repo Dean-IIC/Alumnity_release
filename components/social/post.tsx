@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { commentAction, removeCommentAction, removePostAction } from "../../lib/actions/content";
 import { batchLabel, timeAgo } from "../../lib/format";
 import { mediaUrl } from "../../lib/media-url";
@@ -30,14 +31,14 @@ export function Post({ post, photos, full = false, me }: Props) {
   return (
     <article className="post" id={`post-${post.id}`} aria-labelledby={`post-${post.id}-by`}>
       <header className="post__head">
-        <a href={`/people/${post.author.id}`} tabIndex={-1} aria-hidden="true">
+        <Link href={`/people/${post.author.id}`} tabIndex={-1} aria-hidden="true">
           <Avatar name={post.author.name} photoId={photos.get(post.author.id)} size={44} />
-        </a>
+        </Link>
         <div className="post__who">
           <span className="name-line">
-            <a className="post__name" id={`post-${post.id}-by`} href={`/people/${post.author.id}`}>
+            <Link className="post__name" id={`post-${post.id}-by`} href={`/people/${post.author.id}`}>
               {post.author.name}
-            </a>
+            </Link>
             <NameMark who={post.author} />
           </span>
           {post.archive && (
@@ -50,7 +51,7 @@ export function Post({ post, photos, full = false, me }: Props) {
             <a href={href}>
               <time dateTime={new Date(post.createdAt).toISOString()}>{timeAgo(post.createdAt)}</time>
             </a>
-            {post.group && !full && <a href={`/groups/${post.group.id}`}>{post.group.name}</a>}
+            {post.group && !full && <Link href={`/groups/${post.group.id}`}>{post.group.name}</Link>}
             <span className="post__audience" title={`Shown to: ${audienceLabel}`}>
               <Icon name={audienceIcon} size={13} />
               <span className="sr-only">Shown to {audienceLabel}</span>
@@ -108,9 +109,9 @@ export function Post({ post, photos, full = false, me }: Props) {
               <Avatar name={c.author.name} photoId={photos.get(c.author.id)} size={32} />
               <div className="comment__bubble">
                 <span className="name-line">
-                  <a className="comment__name" href={`/people/${c.author.id}`}>
+                  <Link className="comment__name" href={`/people/${c.author.id}`}>
                     {c.author.name}
-                  </a>
+                  </Link>
                   <NameMark who={c.author} />
                 </span>
                 <p>

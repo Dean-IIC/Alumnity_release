@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { useState } from "react";
 import { post } from "../../lib/client/post";
 import { CodeField, PasswordField } from "./fields";
@@ -47,7 +49,7 @@ export function ForgotForm() {
               {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
             </button>
             <p className="join__fine">
-              Remembered it? <a href="/login">Log in</a>
+              Remembered it? <Link href="/login">Log in</Link>
             </p>
           </form>
         ) : (

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
@@ -15,9 +16,9 @@ function GroupLine({ group }: { group: Group }) {
   return (
     <li className="wf-member">
       <div className="wf-member__who">
-        <a className="wf-member__name" href={`/groups/${group.id}`}>
+        <Link className="wf-member__name" href={`/groups/${group.id}`}>
           {group.name}
-        </a>
+        </Link>
         <span className="wf-muted">
           {KIND_LABEL[group.kind]} · {group.members} {group.members === 1 ? "member" : "members"}
           {group.my?.role === "owner" ? " · yours" : group.my?.role === "admin" ? " · you're an admin" : ""}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../components/app/action-form";
@@ -119,9 +120,9 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
           </ActionForm>
         )}
         {!asker && <ReportButton kind="ask" id={ask.id} back={`/ask/${ask.id}`} />}
-        <a className="wf-link-button" href="/ask">
+        <Link className="wf-link-button" href="/ask">
           ← All questions
-        </a>
+        </Link>
       </div>
     </AppPage>
   );

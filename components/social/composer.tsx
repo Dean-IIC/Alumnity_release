@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { ActionState } from "../../lib/action-state";
 import { postAction } from "../../lib/actions/content";
@@ -94,12 +96,12 @@ export function Composer({
           >
             <Icon name="photo" size={20} className="icon--gold" /> Photo
           </button>
-          <a className="composer__chip" href="/ask">
+          <Link className="composer__chip" href="/ask">
             <Icon name="ask" size={20} className="icon--blue" /> Ask
-          </a>
-          <a className="composer__chip" href="/events">
+          </Link>
+          <Link className="composer__chip" href="/events">
             <Icon name="event" size={20} className="icon--blue" /> Events
-          </a>
+          </Link>
         </div>
         <input ref={files} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple hidden onChange={(e) => add(e.target.files)} />
       </div>

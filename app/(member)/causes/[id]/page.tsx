@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../components/app/action-form";
@@ -33,7 +34,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
       current="causes"
       back={{ href: "/causes", label: "Causes" }}
       title={cause.title}
-      intro={cause.author ? <>Started by <a href={`/people/${cause.author.id}`}>{cause.author.name}</a> · {timeAgo(cause.createdAt)}</> : undefined}
+      intro={cause.author ? <>Started by <Link href={`/people/${cause.author.id}`}>{cause.author.name}</Link> · {timeAgo(cause.createdAt)}</> : undefined}
     >
       {cause.status === "pending" && <p className="wf-card">Waiting for the college desk to read it. Only you and the desk can see it until then.</p>}
       {cause.status === "rejected" && <p className="wf-card">The college desk didn't approve this cause{cause.reviewNote ? `: ${cause.reviewNote}` : "."}</p>}
@@ -108,7 +109,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
             {people.map((p, i) => (
               <li key={i} className="wf-member">
                 <div className="wf-member__who">
-                  <span className="wf-member__name">{p.memberId ? <a href={`/people/${p.memberId}`}>{p.name}</a> : "Someone"}</span>
+                  <span className="wf-member__name">{p.memberId ? <Link href={`/people/${p.memberId}`}>{p.name}</Link> : "Someone"}</span>
                   <span className="wf-muted">
                     {timeAgo(p.at)}
                     {p.amount !== null ? ` · ${rupees(p.amount)}` : ""}

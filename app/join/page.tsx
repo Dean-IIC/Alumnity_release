@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { currentUser } from "../../lib/server/session";
@@ -37,7 +38,7 @@ export default async function JoinPage() {
         </header>
         <JoinFlow branches={facts.branches.map(({ code, name }) => ({ code, name }))} from={facts.from} to={facts.to} />
         <p className="join-page__login">
-          Already joined? <a href="/login">Log in</a>
+          Already joined? <Link href="/login">Log in</Link>
         </p>
       </main>
       <SiteFooter />

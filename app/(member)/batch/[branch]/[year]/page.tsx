@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { photoIdsOf } from "../../../../../lib/server/profile";
 import { notFound } from "next/navigation";
@@ -46,7 +47,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
     >
       {mine && onRegister > members.length && (
         <p className="wf-card">
-          {onRegister - members.length} from your batch aren't here yet. Tell them they can <a href="/join">join with their name and USN</a>. Their names are already in the register.
+          {onRegister - members.length} from your batch aren't here yet. Tell them they can <Link href="/join">join with their name and USN</Link>. Their names are already in the register.
         </p>
       )}
       <h2>On Alumnity</h2>

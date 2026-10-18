@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { olderPostsAction } from "../../lib/actions/feed";
 import type { FeedScope } from "../../lib/server/posts";
@@ -78,7 +80,7 @@ export function InfiniteFeed({ scope, next: first }: { scope: FeedScope; next: n
         ) : next === null ? (
           <p className="feed-more__end">You're all caught up.</p>
         ) : (
-          <a href={`/home?${scope === "following" ? "view=following&" : ""}before=${next}`}>Older posts →</a>
+          <Link href={`/home?${scope === "following" ? "view=following&" : ""}before=${next}`}>Older posts →</Link>
         )}
       </div>
     </>

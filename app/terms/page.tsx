@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { SiteFooter } from "../../components/site-footer";
@@ -31,7 +32,7 @@ export default function TermsPage() {
             How we look after <span className="page-title__gold">each other.</span>
           </h1>
           <p className="page-head__text">
-            Last updated {LEGAL.updated}. By joining Alumnity you agree to these terms and to the <a href="/privacy">privacy policy</a>.
+            Last updated {LEGAL.updated}. By joining Alumnity you agree to these terms and to the <Link href="/privacy">privacy policy</Link>.
           </p>
         </header>
         {!legalReady() && <p className="wf-card">Draft: the college is reviewing these terms before Alumnity opens to everyone.</p>}
