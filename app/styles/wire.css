@@ -237,6 +237,14 @@
   color: var(--color-red);
 }
 
+/* A link inside a sentence: the base rule leaves links looking like the words around them. */
+.wf-inline-link {
+  color: var(--color-blue);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .wf-report summary,
 .wf-link-button {
   /* Looks like a link, but a full fingertip tall: easy to hit on a phone. */

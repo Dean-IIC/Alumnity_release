@@ -72,11 +72,13 @@ export async function Overview({ me }: { me: User }) {
       <p className="wf-muted">Totals only: no names.</p>
       <h2>Causes</h2>
       <p>
-        {rupees(s.raised)} given to causes so far. <a href="/causes">See the causes</a>
+        {rupees(s.raised)} given to causes so far. <a className="wf-inline-link" href="/causes">
+          See the causes
+        </a>
         {isAdmin(me) && (
           <>
             {" · "}
-            <a href="/desk/donations.csv" download>
+            <a className="wf-inline-link" href="/desk/donations.csv" download>
               Download every donation (CSV, for the accounts)
             </a>
           </>
