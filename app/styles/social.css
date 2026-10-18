@@ -2503,3 +2503,10 @@ html.story-open {
     margin-left: auto;
   }
 }
+
+/* On a phone, posts run edge to edge (as on Home), but the board's own words keep the page's margins. */
+@media (max-width: 700px) {
+  .board .feed-layout__main > :not(.post) {
+    margin-inline: var(--gutter);
+  }
+}

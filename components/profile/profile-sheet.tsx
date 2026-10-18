@@ -286,7 +286,13 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                       </svg>
                       <span>
                         <b>{w.title}</b>
-                        <span>{on ? w.note : "Not switched on. Edit your page to light it, so seniors can find you."}</span>
+                        <span>
+                          {on
+                            ? w.note
+                            : w.key === "mentor"
+                              ? "Not switched on. Edit your page to light it, so seniors can find you."
+                              : "Not switched on. Light it when you edit your page: seniors can find you, and you hear when a job or internship goes on the HKBK board."}
+                        </span>
                       </span>
                     </li>
                   );
