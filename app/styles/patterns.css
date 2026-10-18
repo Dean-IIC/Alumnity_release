@@ -18,7 +18,7 @@
 
 .side-pattern {
   /* Width of a pattern column, and how far it must step aside to clear the page's text. */
-  --w: min(30vw, 34vh);
+  --w: min(30vw, 34svh);
   --clear: max(0px, min(var(--w) * 0.52, var(--w) - (100vw - var(--container)) / 2 + var(--space-5)));
   position: absolute;
   top: 0;

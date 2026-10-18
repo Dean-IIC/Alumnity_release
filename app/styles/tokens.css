@@ -226,5 +226,5 @@
 
 /* A whole page kept on paper: at least the screen's height, so the dark body doesn't show below it. */
 .force-light--page {
-  min-height: 100vh;
+  min-height: 100svh;
 }
