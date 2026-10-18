@@ -11,6 +11,7 @@ import { followCounts } from "../../../lib/server/follows";
 import { groupsFor } from "../../../lib/server/groups";
 import { deskBeginnings, mentorsFor, studentsSeeking, weekInNumbers } from "../../../lib/server/home";
 import { batchmates, peopleToMeet, relationsOf } from "../../../lib/server/people";
+import { openingsForHome } from "../../../lib/server/openings";
 import { feedFor } from "../../../lib/server/posts";
 import { photoIdsOf, profileOf } from "../../../lib/server/profile";
 import { isModerator } from "../../../lib/server/roles";
@@ -217,7 +218,7 @@ async function homeLoading(me: User) {
           part("desk: auditLog", () => auditLog(me, { limit: 5 }))
         ]
       : me.role === "student"
-        ? [part("student: mentorsFor", () => mentorsFor(me, 4)), part("student: asksFor", () => asksFor(me))]
+        ? [part("student: mentorsFor", () => mentorsFor(me, 4)), part("student: asksFor", () => asksFor(me)), part("student: openingsForHome", () => openingsForHome(me, 3))]
         : [part("asksFor", () => asksFor(me)), part("studentsSeeking", () => studentsSeeking(me, 3))])
   ]);
   const finished = await Promise.race([all.then(() => true), new Promise<false>((ok) => setTimeout(() => ok(false), LIMIT))]);

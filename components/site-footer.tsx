@@ -40,7 +40,8 @@ export function SiteFooter({ app = false }: { app?: boolean }) {
           />
           Play the intro when I visit
         </label>
-        <Link href="/?intro=1">Watch it now <span aria-hidden="true">↺</span></Link>
+        {/* A full load: the intro is chosen by the script in <head>, which a page swap skips. */}
+        <a href="/?intro=1">Watch it now <span aria-hidden="true">↺</span></a>
       </div>}
     </footer>
   );

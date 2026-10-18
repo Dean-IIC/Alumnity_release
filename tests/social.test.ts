@@ -543,7 +543,7 @@ describe("the admin ladder", () => {
     const a = await member("Wren Test");
     const b = await member("Xia Test");
     await connect(a, b);
-    const off = { ...m.settings.DEFAULT_SETTINGS, joiningOpen: false, features: { notes: false, asks: false, events: false, messages: false }, dailyRequests: 1 };
+    const off = { ...m.settings.DEFAULT_SETTINGS, joiningOpen: false, features: { notes: false, asks: false, events: false, messages: false, openings: false }, dailyRequests: 1 };
     expect((await m.desk.updateSettings(admin, off)).ok).toBe(false);
     expect((await m.desk.updateSettings(sup, off)).ok).toBe(true);
     expect((await m.posts.createPost(a, "hello", "everyone")).ok).toBe(false);

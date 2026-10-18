@@ -2,6 +2,7 @@ import Link from "next/link";
 import { mentorAction } from "../../lib/actions/social";
 import type { User } from "../../lib/server/auth";
 import { asksFor, type Ask } from "../../lib/server/asks";
+import { openingsForHome } from "../../lib/server/openings";
 import { batchLabel, firstName, rupees, timeAgo, when } from "../../lib/format";
 import { departmentCounts, mentorsFor, myUpcomingEvents, newestAlumni, studentsSeeking, weekInNumbers } from "../../lib/server/home";
 import { auditLog, reports, stats } from "../../lib/server/desk";
@@ -75,7 +76,7 @@ function AskLine({ ask }: { ask: Ask }) {
 // ---------- A student ----------
 
 async function StudentFocus({ me }: { me: User }) {
-  const [mentors, { mine }] = await Promise.all([mentorsFor(me, 4), asksFor(me)]);
+  const [mentors, { mine }, openings] = await Promise.all([mentorsFor(me, 4), asksFor(me), openingsForHome(me, 3)]);
   const photos = await photoIdsOf(mentors.map((m) => m.member.id));
   const live = mine.filter((a) => a.status === "open" || a.status === "taken").slice(0, 3);
   return (
@@ -104,6 +105,29 @@ async function StudentFocus({ me }: { me: User }) {
               </li>
             ))}
           </ul>
+        </>
+      )}
+      {openings.length > 0 && (
+        <>
+          <h3>Openings you could ask about</h3>
+          <ul className="focus__asks">
+            {openings.map((o) => (
+              <li key={o.id}>
+                <Link href={`/openings/${o.id}`} className="focus__ask">
+                  <strong>
+                    {o.title} · {o.company}
+                  </strong>
+                  <small>
+                    {o.kind === "internship" ? "Internship" : "Job"}
+                    {o.poster ? ` · ${o.canRefer ? `${o.poster.name} can refer you` : `from ${o.poster.name}`}` : ""}
+                  </small>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link className="wf-inline-link" href="/openings">
+            All jobs and internships
+          </Link>
         </>
       )}
       {mentors.length > 0 && (
@@ -176,6 +200,13 @@ async function AlumnusFocus({ me }: { me: User }) {
           {missing > 0 && <Invite text="I'm on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />}
         </>
       )}
+      <h3>Hiring where you work?</h3>
+      <p className="focus__quiet">
+        Put up the opening. HKBK students can ask you for a referral, with a line on why they fit.{" "}
+        <Link className="wf-inline-link" href="/openings?new=1#new-opening">
+          Put up an opening
+        </Link>
+      </p>
     </section>
   );
 }

@@ -90,7 +90,7 @@ export async function settingsAction(_: ActionState, form: FormData): Promise<Ac
   return answer(
     await updateSettings(me, {
       joiningOpen: on("joiningOpen"),
-      features: { notes: on("notes"), asks: on("asks"), events: on("events"), messages: on("messages") },
+      features: { notes: on("notes"), asks: on("asks"), events: on("events"), messages: on("messages"), openings: on("openings") },
       dailyRequests: Number(textFrom(form, "dailyRequests", 4))
     }),
     "Saved. It's in the audit log."

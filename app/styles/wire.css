@@ -415,6 +415,11 @@
   align-items: end;
 }
 
+/* Two choices and a button (Jobs & referrals). */
+.wf-filters--short {
+  grid-template-columns: 1fr 1fr auto;
+}
+
 @media (max-width: 700px) {
   .wf-filters {
     grid-template-columns: 1fr 1fr;
@@ -822,4 +827,15 @@
   .wf-table td:nth-child(2) {
     font-weight: var(--weight-semibold);
   }
+}
+
+/* What someone wrote, under their line in a list (a referral request). */
+.wf-member__note {
+  display: block;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--color-green, var(--color-line));
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  white-space: pre-wrap;
 }

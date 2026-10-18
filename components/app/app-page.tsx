@@ -6,7 +6,7 @@ import "../../app/styles/wire.css";
 import "../../app/styles/social.css";
 import "../../app/styles/app-bar.css";
 
-export type Section = "home" | "people" | "connections" | "messages" | "ask" | "events" | "groups" | "causes" | "notifications" | "desk" | "batch" | "me";
+export type Section = "home" | "people" | "connections" | "messages" | "ask" | "events" | "groups" | "causes" | "openings" | "notifications" | "desk" | "batch" | "me";
 
 /**
  * A signed-in page's own part: a way back, its heading, and what's on it. The bar, the
