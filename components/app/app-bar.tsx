@@ -62,6 +62,9 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
           </label>
           <Icon name="search" size={18} />
           <input id="app-search" name="q" type="search" placeholder="Search people, companies, skills" maxLength={100} autoComplete="off" />
+          <span className="app-bar__search-short" aria-hidden="true">
+            Search
+          </span>
         </form>
 
         <nav className="app-bar__nav" aria-label="Main">

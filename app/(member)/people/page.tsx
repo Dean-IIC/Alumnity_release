@@ -45,7 +45,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
 
   return (
     <AppPage user={me} current="people" title="People" intro="Everyone on Alumnity from HKBK. You only see what each person chose to show.">
-      <form className="wf-filters" role="search" aria-label="Find people" action="/people">
+      <form className="wf-filters wf-filters--people" role="search" aria-label="Find people" action="/people">
         <label className="field">
           <span className="field__label">Name, USN, company, city or skill</span>
           <input name="q" defaultValue={query.q} maxLength={100} placeholder="e.g. Asha, 1HK12CS042, Infosys, Python" />

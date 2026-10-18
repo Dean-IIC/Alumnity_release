@@ -1951,6 +1951,44 @@ html.story-open {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
+/* A phone: the people in a row to swipe, not a card each down the screen. Four of them
+   stacked pushed the first post two screens down. */
+@media (max-width: 600px) {
+  .focus__people {
+    grid-auto-columns: 152px;
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    padding-bottom: var(--space-1);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .focus__people > li {
+    scroll-snap-align: start;
+  }
+
+  .focus__people .focus__person {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+    height: 100%;
+    padding: var(--space-3);
+  }
+
+  .focus__people .focus__person small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .focus__people .focus__note {
+    align-self: center;
+  }
+}
+
 .focus__person,
 .focus__ask {
   display: flex;
