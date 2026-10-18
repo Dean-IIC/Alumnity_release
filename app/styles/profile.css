@@ -711,8 +711,9 @@
   color: var(--color-blue);
 }
 
-.lantern:not(.lantern--lit) {
-  opacity: 0.75;
+/* Unlit: the drawing fades, the words don't (faded words fell to 3.2 : 1, under the 4.5 needed). */
+.lantern:not(.lantern--lit) svg {
+  opacity: 0.55;
 }
 
 .profile__links {

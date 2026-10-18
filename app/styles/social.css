@@ -2027,7 +2027,8 @@ html.story-open {
   border: 1px solid var(--color-line);
   border-radius: 12px;
   background: var(--color-paper);
-  color: var(--color-ink-muted);
+  /* Full ink: the muted grey on the red wash was 4.48 : 1, just under 4.5. */
+  color: var(--color-ink);
   font-size: var(--text-small);
 }
 

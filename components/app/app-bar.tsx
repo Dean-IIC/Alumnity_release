@@ -54,7 +54,7 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
           <BrandLockup />
         </NavLink>
 
-        <form className="app-bar__search" role="search" action="/people">
+        <form className="app-bar__search" role="search" aria-label="Search Alumnity" action="/people">
           <label className="sr-only" htmlFor="app-search">
             Search people
           </label>
@@ -137,7 +137,7 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
 /** On a phone: the five places people go most, always in reach of a thumb. */
 export function TabBar({ counts }: { counts: Counts }) {
   return (
-    <nav className="tab-bar" aria-label="Main">
+    <nav className="tab-bar" aria-label="Shortcuts">
       <NavLink href="/home" match={["/home", "/notes"]}>
         <Icon name="home" size={24} />
         Home
