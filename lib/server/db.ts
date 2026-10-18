@@ -266,3 +266,16 @@ export function resetDatabase() {
   current = undefined;
   pending = undefined;
 }
+
+/**
+ * Moves a table's id counter past the ids already in it, if it has fallen behind. That
+ * happens when rows go in with their own ids (an import, a restore): seen live, the counter
+ * then handed out ids that were taken, and "insert … on conflict do nothing" quietly made
+ * nobody (joining failed with no clash anywhere). Only ever moves the counter forward.
+ */
+export async function catchUpIds(table: "users"): Promise<void> {
+  await db().run(
+    `select setval(pg_get_serial_sequence('${table}', 'id'), m) from (select max(id) as m from ${table}) as top
+     where m > coalesce((select last_value from pg_sequences where schemaname || '.' || sequencename = pg_get_serial_sequence('${table}', 'id')), 0)`
+  );
+}
