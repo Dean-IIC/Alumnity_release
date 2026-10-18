@@ -264,7 +264,7 @@ export async function Members({ me, filter }: { me: User; filter: MemberFilter }
                 {u.name}
               </a>
               <span className="wf-muted">
-                {u.email} · {batchLabel(u) || "—"} · {ROLE_LABEL[u.role]} · joined {timeAgo(u.createdAt)}
+                {[u.email, batchLabel(u), ROLE_LABEL[u.role], `joined ${timeAgo(u.createdAt)}`].filter(Boolean).join(" · ")}
               </span>
             </div>
             <div className="wf-actions">
@@ -400,6 +400,7 @@ export async function Team({ me }: { me: User }) {
               </button>
             </div>
           </ActionForm>
+          {pending.length > 0 && <h3>Invited, not joined yet</h3>}
           {pending.length > 0 && (
             <ul className="wf-list">
               {pending.map((i) => (
@@ -425,6 +426,7 @@ export async function Team({ me }: { me: User }) {
           )}
         </section>
       )}
+      <h2>The team</h2>
       <ul className="wf-list">
         {list.map((u) => (
           <li key={u.id} className="wf-member">
