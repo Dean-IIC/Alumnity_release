@@ -139,6 +139,7 @@ async function smallerCopies(base: import("sharp").Sharp) {
 
 // Photos this instance tried and couldn't make copies of: not again until it restarts.
 const uncopied = new Set<string>();
+let copying = 0;
 
 /**
  * A photo kept without its smaller copies (it came in before they were made, or sharp
@@ -147,7 +148,12 @@ const uncopied = new Set<string>();
  */
 export async function withSizes(media: Media): Promise<Media> {
   if (media.kind !== "image" || media.mime === "image/gif" || media.sizes.length || uncopied.has(media.id)) return media;
+  // Two at a time on an instance: a page of old faces can't tie the server up decoding
+  // whole photos (the rest are served whole this once, and copied on a later visit).
+  // And never a copy whose name would be the original's (a path without an extension).
+  if (copying >= 2 || sizedPath(media.path, 160) === media.path) return media;
   uncopied.add(media.id);
+  copying += 1;
   try {
     const bytes = await storage().read(media.path);
     if (!bytes) return media;
@@ -162,6 +168,8 @@ export async function withSizes(media: Media): Promise<Media> {
   } catch (error) {
     console.error(`withSizes ${media.id}: no smaller copies:`, error);
     return media;
+  } finally {
+    copying -= 1;
   }
 }
 

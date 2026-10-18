@@ -9,15 +9,13 @@ type MemberLineProps = {
   member: { id: number; name: string; branch: string | null; joined: number | null; role: string; usn?: string | null };
   /** What they do now, if the viewer may see it. */
   detail?: string;
-  /** Something they wrote (a referral request): shown whole, under the line. */
-  note?: string;
   children?: ReactNode;
   /** Their photo (an upload id); without one, their ink seal. */
   photoId?: string | null;
 };
 
 /** A member in a list: their name (to their page), batch, and what they do; actions to the right. */
-export function MemberLine({ member, detail, note, children, photoId }: MemberLineProps) {
+export function MemberLine({ member, detail, children, photoId }: MemberLineProps) {
   return (
     <li className="wf-member wf-member--face">
       <Link href={`/people/${member.id}`} className="wf-member__face" tabIndex={-1} aria-hidden="true">
@@ -35,7 +33,6 @@ export function MemberLine({ member, detail, note, children, photoId }: MemberLi
           {batchLabel(member)}
         </span>
         {detail && <span className="wf-member__detail">{detail}</span>}
-        {note && <span className="wf-member__note">{note}</span>}
       </div>
       {children && <div className="wf-actions">{children}</div>}
     </li>

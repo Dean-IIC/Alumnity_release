@@ -8,7 +8,8 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/$", "/about", "/how-it-works", "/community", "/committee", "/developers", "/privacy", "/terms"],
+      // The join page and the share card too: link previews (WhatsApp, LinkedIn) read them.
+      allow: ["/$", "/about", "/how-it-works", "/community", "/committee", "/developers", "/privacy", "/terms", "/join$", "/opengraph-image"],
       disallow: "/"
     }
   };

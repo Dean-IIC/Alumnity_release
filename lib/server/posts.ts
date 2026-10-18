@@ -1,11 +1,13 @@
 import { db } from "./db";
 import type { User } from "./auth";
 import { MENTION, mentionedIds } from "../mentions";
+import { cleanTag, tagsIn, WORK_TAGS } from "../tags";
 import { followingIds } from "./follows";
 import { canPostInGroup, canReadGroup, groupNames, memberGroupIds } from "./groups";
 import { mediaByIds, type MediaKind } from "./media";
 import { blockIds, connectionIds, memberById, membersByIds, relation } from "./people";
-import { notify, type Result } from "./social";
+import { isModerator } from "./roles";
+import { acceptConnection, NOTE_LIMIT, notify, requestConnection, sendMessage, type Result } from "./social";
 import { PAUSED, settings } from "./settings";
 import { withinLimit } from "./throttle";
 
@@ -13,7 +15,8 @@ import { withinLimit } from "./throttle";
  * Home: posts. Words, up to four photos or videos, @mentions. Each post is for everyone
  * on Alumnity, for the author's batch, for their connections only, or for one group, and
  * only those people ever see it, its photos, its reactions or its comments. Group posts
- * stay in their group: they never show on Home.
+ * stay in their group: they never show on Home. A #tag says what a post is about (#job,
+ * #notice…), and the college can verify a post: it then shows on the HKBK board too.
  */
 
 export type Audience = "everyone" | "batch" | "connections" | "group";
@@ -56,6 +59,10 @@ export type Post = {
   /** All its comments (only the newest few are in `comments` on the board). */
   commentCount: number;
   mine: boolean;
+  /** Its #tags, lower-cased. */
+  tags: string[];
+  /** When the college verified it (it's on the HKBK board), or null. */
+  verifiedAt: number | null;
 };
 
 /** Comments shown under a post in the feed; the rest are on the post's own page. */
@@ -79,7 +86,7 @@ export async function canSeePost(viewer: User, author: User, audience: Audience,
   return rel === "connected";
 }
 
-type PostRow = { id: number; author: number; body: string; audience: Audience; group_id: number | null; created_at: number; from_archive?: number };
+type PostRow = { id: number; author: number; body: string; audience: Audience; group_id: number | null; created_at: number; from_archive?: number; verified_at?: number | null };
 
 export async function visiblePost(viewer: User, id: number): Promise<{ row: PostRow; author: User } | null> {
   if (!Number.isSafeInteger(id)) return null;
@@ -116,7 +123,7 @@ export async function mediaInUse(mediaIds: string[]): Promise<boolean> {
   );
 }
 
-export async function createPost(me: User, body: string, audience: string, mediaIds: string[] = [], groupId: number | null = null): Promise<Result & { id?: number }> {
+export async function createPost(me: User, body: string, audience: string, mediaIds: string[] = [], groupId: number | null = null, picked: string[] = []): Promise<Result & { id?: number }> {
   if (!(await settings()).features.notes) return no(PAUSED);
   const media = [...new Set(mediaIds)].slice(0, MEDIA_LIMIT + 1);
   if (media.length > MEDIA_LIMIT) return no(`A post can have up to ${MEDIA_LIMIT} photos or videos.`);
@@ -145,6 +152,9 @@ export async function createPost(me: User, body: string, audience: string, media
       Date.now()
     );
     for (const [i, id] of media.entries()) await t.run("insert into post_media (post_id, media_id, position) values (?, ?, ?)", row!.id, id, i);
+    // Typed in the text, or picked in the composer: five at most.
+    const tags = [...new Set([...tagsIn(text), ...picked.flatMap((p) => cleanTag(p) ?? [])])].slice(0, 5);
+    for (const tag of tags) await t.run("insert into post_tags (post_id, tag) values (?, ?) on conflict do nothing", row!.id, tag);
     return row!.id;
   });
   // Tell those mentioned, if they can see the post.
@@ -240,7 +250,7 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
   if (!items.length) return [];
   const ids = items.map((i) => i.row.id);
   const q = marks(ids.length);
-  const [counts, mine, commentCounts, media, commentRows] = await Promise.all([
+  const [counts, mine, commentCounts, media, commentRows, tags] = await Promise.all([
     db().all<{ post_id: number; kind: Reaction; n: number }>(`select post_id, kind, count(*) as n from post_cheers where post_id in (${q}) group by post_id, kind`, ...ids),
     db().all<{ post_id: number; kind: Reaction }>(`select post_id, kind from post_cheers where user_id = ? and post_id in (${q})`, viewer.id, ...ids),
     db().all<{ post_id: number; n: number }>(`select post_id, count(*) as n from post_comments where removed_at is null and post_id in (${q}) group by post_id`, ...ids),
@@ -255,7 +265,8 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
        ) as c where newest <= ? order by created_at, id`,
       ...ids,
       comments
-    )
+    ),
+    db().all<{ post_id: number; tag: string }>(`select post_id, tag from post_tags where post_id in (${q}) order by tag`, ...ids)
   ]);
   const [authors, groups] = await Promise.all([
     membersByIds(commentRows.map((c) => c.author).filter((a) => !circle.blocks.has(a))),
@@ -285,7 +296,9 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
         return by ? [{ id: c.id, author: by, body: c.body, createdAt: c.created_at, mine: by.id === viewer.id }] : [];
       }),
       commentCount: commentCounts.find((c) => c.post_id === row.id)?.n ?? 0,
-      mine: author.id === viewer.id
+      mine: author.id === viewer.id,
+      tags: tags.filter((t) => t.post_id === row.id).map((t) => t.tag),
+      verifiedAt: row.verified_at ?? null
     };
   });
 }
@@ -310,10 +323,24 @@ export async function feedFor(
     groupId,
     limit = 15,
     before,
-    scope = "all"
-  }: { authorId?: number; authorIds?: number[]; groupId?: number; limit?: number; before?: number; scope?: FeedScope } = {}
+    scope = "all",
+    tag,
+    verified = false
+  }: {
+    authorId?: number;
+    authorIds?: number[];
+    groupId?: number;
+    limit?: number;
+    before?: number;
+    scope?: FeedScope;
+    /** Only posts with this #tag (or any of these). */
+    tag?: string | string[];
+    /** Only posts the college has verified (the HKBK board), newest verified first. */
+    verified?: boolean;
+  } = {}
 ): Promise<Post[]> {
   if (groupId !== undefined && !(await canReadGroup(viewer, groupId))) return [];
+  const tags = (tag === undefined ? [] : Array.isArray(tag) ? tag : [tag]).slice(0, 10);
   const circle = await circleOf(viewer);
   let ids = (authorId ? [authorId] : authorIds ?? []).slice(0, 500);
   if (authorIds && ids.length === 0) return [];
@@ -323,10 +350,13 @@ export async function feedFor(
   // Scans a bounded number of the newest posts: enough to fill a page after visibility.
   const rows = await db().all<PostRow>(
     `select * from posts where removed_at is null and ${groupId !== undefined ? "group_id = ?" : "group_id is null"}
-     ${before ? "and created_at < ?" : ""} ${ids.length ? `and author in (${marks(ids.length)})` : ""} order by created_at desc, id desc limit ?`,
+     ${before ? "and created_at < ?" : ""} ${ids.length ? `and author in (${marks(ids.length)})` : ""}
+     ${tags.length ? `and id in (select post_id from post_tags where tag in (${marks(tags.length)}))` : ""} ${verified ? "and verified_at is not null" : ""}
+     order by ${verified ? "verified_at desc," : ""} created_at desc, id desc limit ?`,
     ...(groupId !== undefined ? [groupId] : []),
     ...(before ? [before] : []),
     ...ids,
+    ...tags,
     limit * 5
   );
   const authors = await membersByIds(rows.map((r) => r.author));
@@ -341,3 +371,54 @@ export async function feedFor(
 }
 
 export { mentionedIds };
+
+/**
+ * The college's check mark: a coordinator or administrator verifies a post (it goes on the
+ * HKBK board), or takes it back. Only posts for everyone can be on the board. Written to the
+ * audit log; the writer is told when theirs is verified.
+ */
+export async function verifyPost(me: User, id: number, on: boolean): Promise<Result> {
+  if (!isModerator(me)) return no("Only the college desk can verify posts.");
+  const post = await visiblePost(me, id);
+  if (!post) return no("That post isn't here any more.");
+  if (on && post.row.audience !== "everyone") return no("Only a post for everyone can go on the board.");
+  const changed = await db().run(
+    on ? "update posts set verified_at = ?, verified_by = ? where id = ? and verified_at is null" : "update posts set verified_at = null, verified_by = null where id = ? and verified_at is not null",
+    ...(on ? [Date.now(), me.id, id] : [id])
+  );
+  if (!changed) return { ok: true };
+  const { audit } = await import("./desk");
+  await audit(me, on ? "verified" : "unverified", `post ${id}`, plainStart(post.row.body));
+  if (on && post.author.id !== me.id) await notify(post.author.id, { actor: me.id, kind: "post-verified", text: "The college verified your post. It's on the HKBK board now.", link: `/notes/${id}` });
+  return { ok: true };
+}
+
+const plainStart = (body: string) => body.replace(MENTION, (_, name: string) => `@${name}`).slice(0, 80);
+
+/**
+ * Asking the writer of a #job, #internship or #referral post to refer you, with a line on
+ * why you fit. Not connected yet: it's a connection request with that note (they accept,
+ * you talk). Already connected: it goes to them as a message. No new kind of thing to learn.
+ */
+export async function askForReferral(me: User, postId: number, note: string): Promise<Result & { as?: "request" | "message" }> {
+  const post = await visiblePost(me, postId);
+  if (!post) return no("That post isn't here any more.");
+  if (post.author.id === me.id) return no("That's your own post.");
+  const tags = tagsIn(post.row.body);
+  const tag = WORK_TAGS.find((t) => tags.includes(t));
+  if (!tag) return no("You can ask for a referral on a #job, #internship or #referral post.");
+  const why = note.trim();
+  if (why.length < 20) return no("Write a line or two about why you fit: your branch, skills, a project.");
+  const about = `Referral, about your #${tag} post: `;
+  const rel = await relation(me.id, post.author.id);
+  if (rel === "connected" || rel === "received") {
+    if (rel === "received") {
+      const accepted = await acceptConnection(me, post.author.id);
+      if (!accepted.ok) return accepted;
+    }
+    const sent = await sendMessage(me, post.author.id, `${about}${why}`.slice(0, 1800) + `\n\n/notes/${postId}`);
+    return sent.ok ? { ok: true, as: "message" } : sent;
+  }
+  const asked = await requestConnection(me, post.author.id, `${about}${why}`.slice(0, NOTE_LIMIT));
+  return asked.ok ? { ok: true, as: "request" } : asked;
+}

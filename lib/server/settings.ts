@@ -10,14 +10,14 @@ export type Settings = {
   /** New members may join. Off: the register still checks, but no new accounts. */
   joiningOpen: boolean;
   /** Each feature can be paused for everyone. What's already there stays readable. */
-  features: { notes: boolean; asks: boolean; events: boolean; messages: boolean; openings: boolean };
+  features: { notes: boolean; asks: boolean; events: boolean; messages: boolean };
   /** Connection requests one member may send in a day. */
   dailyRequests: number;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
   joiningOpen: true,
-  features: { notes: true, asks: true, events: true, messages: true, openings: true },
+  features: { notes: true, asks: true, events: true, messages: true },
   dailyRequests: 25
 };
 
@@ -42,8 +42,7 @@ export const FEATURE_LABEL: Record<keyof Settings["features"], string> = {
   notes: "Notes on Home (posting and comments)",
   asks: "Ask a senior (new questions)",
   events: "Events (putting up new ones)",
-  messages: "Messages",
-  openings: "Jobs & referrals (putting up new openings, asking for referrals)"
+  messages: "Messages"
 };
 
 export const PAUSED = "The college has paused this for now. Everything already here stays as it is.";

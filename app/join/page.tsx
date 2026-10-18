@@ -11,7 +11,15 @@ import "../styles/join.css";
 
 export const metadata: Metadata = {
   title: "Join · Alumnity",
-  description: "Join Alumnity: find your name in HKBK College of Engineering's register."
+  description: "Join Alumnity: find your name in HKBK College of Engineering's register.",
+  // What an invitation shows on WhatsApp: the card is app/opengraph-image.tsx.
+  openGraph: {
+    siteName: "Alumnity",
+    title: "Join HKBK's alumni and students on Alumnity",
+    description: "Find your name in the college register and join in a minute: your batch, seniors who mentor, jobs and referrals.",
+    locale: "en_IN",
+    type: "website"
+  }
 };
 
 // Reads the register on the server at request time (it isn't part of the build).

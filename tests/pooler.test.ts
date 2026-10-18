@@ -62,6 +62,8 @@ function serve(socket: Socket) {
         const text = (type === "Q" ? body : body.subarray(body.indexOf(0) + 1)).toString("utf8").split("\0")[0];
         heard.push(text);
         tag = tagOf(text);
+        // The pooler restarting, or the network dropping, in the middle of a transaction.
+        if (text.includes("drop me")) return socket.destroy();
       }
       if (type === "X") return socket.end();
       if (type === "H") then(() => socket.write(described()));
@@ -143,6 +145,19 @@ describe("transactions through the pooler", () => {
     expect(ours()).toEqual(["begin", "insert into a values (1)", "rollback"]);
     // The connection went back to the pool: the next query runs.
     expect(await fromPostgres(sql).run("select 1")).toBe(0);
+    await sql.end({ timeout: 1 });
+  });
+
+  it("a connection that drops in the middle of a transaction isn't handed back to the pool", async () => {
+    const sql = connect();
+    const db = fromPostgres(sql);
+    await expect(db.tx(async (t) => t.one("select 1 as drop_me").then(() => t.one("select 'drop me'")))).rejects.toBeTruthy();
+    // Whatever runs next gets a working connection: none of it hangs, none of it lands in a dead one.
+    const later = await Promise.race([
+      Promise.all(Array.from({ length: 4 }, () => db.run("select 1"))),
+      new Promise((_, no) => setTimeout(() => no(new Error("queries after the drop never finished")), 8000))
+    ]);
+    expect(later).toEqual([0, 0, 0, 0]);
     await sql.end({ timeout: 1 });
   });
 });
