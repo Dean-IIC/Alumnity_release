@@ -35,7 +35,7 @@ export function ForgotForm() {
           >
             <label className="field">
               <span className="field__label">Your email</span>
-              <input name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
+              <input name="email" type="email" autoComplete="email" required placeholder="you@example.com" defaultValue={email} />
               <span className="field__hint">The one you joined with.</span>
             </label>
             {problem && (
@@ -76,7 +76,7 @@ export function ForgotForm() {
               {busy ? "Saving…" : "Save my new password"} <span aria-hidden="true">→</span>
             </button>
             <button type="button" className="join__switch" onClick={() => setTicket("")}>
-              Use a different email
+              Send a new code, or change the email
             </button>
           </form>
         )}

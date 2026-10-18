@@ -37,7 +37,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
           >
             <label className="field">
               <span className="field__label">The email you were invited at</span>
-              <input name="email" type="email" autoComplete="email" required placeholder="you@hkbk.edu.in" defaultValue={invitedEmail} />
+              <input name="email" type="email" autoComplete="email" required placeholder="you@hkbk.edu.in" defaultValue={email} />
               <span className="field__hint">The college desk invites teachers, coordinators and administrators by email.</span>
             </label>
             {problem && (
@@ -87,7 +87,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
               {busy ? "Making your account…" : "Join Alumnity"} <span aria-hidden="true">→</span>
             </button>
             <button type="button" className="join__switch" onClick={() => setTicket("")}>
-              Use a different email
+              Send a new code, or change the email
             </button>
           </form>
         )}
