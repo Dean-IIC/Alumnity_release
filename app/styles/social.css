@@ -1901,10 +1901,12 @@ html.story-open {
   text-transform: uppercase;
 }
 
+/* A greeting, not the page's headline: at title size it took the eye that belongs to the
+   box below it (gazemap, an eye-tracking model, put almost nothing on the Ask box). */
 .focus__head h2 {
   margin: 0;
   color: var(--color-ink);
-  font: var(--text-title) / 1.15 var(--font-voice);
+  font: clamp(1.375rem, 2.2vw, 1.875rem) / 1.15 var(--font-voice);
 }
 
 .focus__head p {
@@ -1919,10 +1921,18 @@ html.story-open {
   gap: var(--space-2);
   align-items: center;
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  border: 1.5px solid var(--color-blue);
+  border: 2px solid var(--color-blue);
   border-radius: var(--radius-pill);
-  background: var(--color-paper);
+  background: var(--color-paper-raised);
+  box-shadow: 0 4px 14px rgba(20, 63, 104, 0.14);
   color: var(--color-blue);
+}
+
+/* The example question in ink, not the browser's pale grey: it's what tells a student
+   what this box is for. */
+.focus__ask-start input::placeholder {
+  color: var(--color-ink-muted);
+  opacity: 1;
 }
 
 .focus__ask-start input {
