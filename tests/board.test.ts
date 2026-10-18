@@ -119,4 +119,28 @@ describe("the HKBK board", () => {
     await posts.verifyPost(admin, id!, true);
     expect(await told(looking)).toBe(1);
   });
+
+});
+
+describe("where HKBK alumni work", () => {
+  it("counts companies alumni show to everyone, grouped however they're typed, and nobody else's", async () => {
+    const viewer = await member("Curious Student", { role: "student" });
+    const show = async (name: string, company: string, extra: { role?: string; now?: string } = {}) => {
+      const u = await member(name, { role: extra.role });
+      await db.db().run("insert into profiles (user_id, data, updated_at) values (?, ?, ?)", u.id, JSON.stringify({ company, visibility: { now: extra.now ?? "everyone" } }), Date.now());
+      return u;
+    };
+    await show("Work One", "Zylo Systems");
+    await show("Work Two", "zylo  systems");
+    await show("Work Three", "Quorra Labs");
+    await show("Work Private", "Hidden Corp", { now: "connections" });
+    await show("Work Student", "Intern Co", { role: "student" });
+    const blocker = await show("Work Blocker", "Blocked Inc");
+    await social.block(blocker, viewer.id);
+    const list = await people.whereAlumniWork(viewer);
+    const zylo = list.find((c) => c.company.toLowerCase() === "zylo systems");
+    expect(zylo?.n).toBe(2);
+    expect(list.map((c) => c.company)).toContain("Quorra Labs");
+    for (const hidden of ["Hidden Corp", "Intern Co", "Blocked Inc"]) expect(list.map((c) => c.company)).not.toContain(hidden);
+  });
 });

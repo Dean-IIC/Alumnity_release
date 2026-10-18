@@ -212,3 +212,36 @@ export async function batchmates(person: User): Promise<User[]> {
 export async function batchMembers(branch: string, joined: number): Promise<User[]> {
   return users(await db().all("select * from users where branch = ? and joined = ? and suspended_at is null order by name", branch, joined));
 }
+
+/**
+ * Where HKBK's alumni work: companies by how many alumni name them, for People. Only what
+ * each one shows to everyone (their "now", with the company in it) counts; nobody paused,
+ * made up, blocked either way, or the college's own account. A company opens the People
+ * search for it, which shows each person only as they allow.
+ */
+export async function whereAlumniWork(viewer: User, limit = 12): Promise<{ company: string; n: number }[]> {
+  const [rows, blocked] = await Promise.all([
+    db().all<{ id: number; data: string }>(
+      `select users.id, profiles.data from users join profiles on profiles.user_id = users.id
+       where users.role = 'alumnus' and users.suspended_at is null and users.sample = 0 and users.college_account = 0
+       limit 5000`
+    ),
+    blockIds(viewer.id)
+  ]);
+  const groups = new Map<string, { n: number; names: Map<string, number> }>();
+  for (const row of rows) {
+    if (blocked.has(row.id)) continue;
+    const profile = profileFromData(row.data);
+    const company = profile.company.trim().replace(/\s+/g, " ");
+    if (!company || profile.visibility.now !== "everyone") continue;
+    const key = company.toLowerCase();
+    const g = groups.get(key) ?? { n: 0, names: new Map() };
+    g.n += 1;
+    g.names.set(company, (g.names.get(company) ?? 0) + 1);
+    groups.set(key, g);
+  }
+  return [...groups.values()]
+    .map((g) => ({ company: [...g.names].sort((a, b) => b[1] - a[1])[0][0], n: g.n }))
+    .sort((a, b) => b.n - a.n || a.company.localeCompare(b.company))
+    .slice(0, limit);
+}
