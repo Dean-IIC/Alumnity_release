@@ -23,7 +23,7 @@ import { storyBar } from "../../../lib/server/stories";
  * daily job: "Authorization: Bearer <CRON_SECRET>"). Timings only: no names, no rows.
  * Off unless ALUMNITY_HEALTH=on: a site that isn't being looked into doesn't have it.
  *
- *   GET /api/health                       this instance, the database, Supabase's auth server
+ *   GET /api/health                       this instance, the database (and its transactions), Supabase's auth server
  *   GET /api/health?as=<member's email>   and Home's own loading, as that member would see it
  *
  * Home's loading here mirrors app/(member)/layout.tsx, app/(member)/home/page.tsx and
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
   const trips: number[] = [];
   for (let i = 0; i < 5; i++) trips.push(await ms(() => db().one("select 1")));
   const tenAtOnce = await ms(() => Promise.all(Array.from({ length: 10 }, () => db().one("select 1"))));
-  const database = { firstQueryMs: first, roundTripsMs: trips, tenAtOnceMs: tenAtOnce };
+  const database = { firstQueryMs: first, roundTripsMs: trips, tenAtOnceMs: tenAtOnce, transactions: await transactions() };
 
   // Supabase's auth server: every page checks the session with it unless the project signs with its own keys.
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -103,6 +103,41 @@ export async function GET(request: Request) {
   const me = toUser(row);
   const home = await traced(() => homeLoading(me));
   return NextResponse.json({ instance, database, auth, home: { role: me.role, totalMs: home.ms, ...home.result, ...summary(home.queries) } });
+}
+
+const failure = (error: unknown) => String((error as Error)?.message ?? error).slice(0, 160);
+type XactId = { id: string };
+
+/**
+ * Whether transactions work (a post, a join, a group are each written in one): two
+ * statements in one see the same transaction, one that fails rolls back and frees its
+ * connection, and three at once each finish. Nothing is written.
+ */
+async function transactions() {
+  try {
+    let same = false;
+    const oneMs = await ms(() =>
+      db().tx(async (t) => {
+        const a = await t.one<XactId>("select txid_current()::text as id");
+        const b = await t.one<XactId>("select txid_current()::text as id");
+        same = Boolean(a?.id) && a?.id === b?.id;
+      })
+    );
+    const rolledBack = await db()
+      .tx(async (t) => {
+        await t.one("select 1");
+        throw new Error("on purpose");
+      })
+      .then(
+        () => false,
+        (error: unknown) => failure(error) === "on purpose"
+      );
+    const threeAtOnceMs = await ms(() => Promise.all(Array.from({ length: 3 }, () => db().tx((t) => t.one("select 1")))));
+    const afterwardsMs = await ms(() => db().one("select 1"));
+    return { ok: same && rolledBack, oneTransaction: same, oneMs, rolledBack, threeAtOnceMs, afterwardsMs };
+  } catch (error) {
+    return { ok: false, error: failure(error) };
+  }
 }
 
 /** How long one part of Home may take before it's reported as never finishing. */
