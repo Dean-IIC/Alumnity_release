@@ -13,8 +13,8 @@ export const SWOOSH_CENTRELINE = "M10 40C92 14 200 8 290 26S372 38 392 16";
 
 export const COLLEGE_NAME = "HKBK College of Engineering";
 export const COLLEGE_SHORT_NAME = "HKBK CE";
-/** The college's own crest ("HKBK College of Engineering · Estd 1997"). Only a 180 px copy exists so far. */
-const CREST = "/assets/brand/hkbk-crest.png";
+/** The college's own crest ("HKBK College of Engineering · Estd 1997"). Shown at 1.7em: a 144 px copy is plenty, even on sharp screens. */
+const CREST = "/assets/brand/hkbk-crest.webp"; // a 144 px WebP of the 180 px PNG: a third of its size
 
 type BrandLockupProps = HTMLAttributes<HTMLSpanElement> & {
   "data-brand-target"?: boolean;
