@@ -12,7 +12,7 @@ import { InkBloom } from "../ink-bloom";
  * (the server adds the same sandbox, so it holds even if the file is opened on its own).
  */
 
-export type DefaultCover = { src: string; sketch: string; year: number; title: string };
+export type DefaultCover = { src: string; sketch: string; year: number; title: string; kicker?: string };
 
 function CoverVideo({ id }: { id: string }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -45,10 +45,10 @@ export function Cover({ cover, fallback, name, seed }: { cover: MediaRef | null;
       {!cover && (
         <>
           <div className="cover__campus">
-            <InkBloom src={fallback.src} sketch={fallback.sketch} seed={seed + 3} alt={`HKBK College of Engineering around ${fallback.year}`} active spread={{ sketch: 0.6, colour: 0.5 }} />
+            <InkBloom src={fallback.src} sketch={fallback.sketch} seed={seed + 3} alt={fallback.kicker ? "HKBK College of Engineering's campus" : `HKBK College of Engineering around ${fallback.year}`} active spread={{ sketch: 0.6, colour: 0.5 }} />
           </div>
           <p className="cover__caption">
-            HKBK, around {fallback.year}
+            {fallback.kicker ?? `HKBK, around ${fallback.year}`}
             <span>{fallback.title}</span>
           </p>
         </>

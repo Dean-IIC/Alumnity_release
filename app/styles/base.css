@@ -59,3 +59,15 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+/* Signed-in pages: a short page (Events with one event, an empty inbox) keeps its footer at
+   the bottom of the screen, instead of floating halfway up with blank paper beneath. */
+body:has(> .app-bar) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+body:has(> .app-bar) > main {
+  flex: 1 0 auto;
+}

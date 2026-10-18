@@ -54,7 +54,9 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
       </section>
 
       <section aria-labelledby="yours">
-        <h2 id="yours">Your connections · {mine.length}</h2>
+        <h2 id="yours">
+          Your connections <span className="h-count">· {mine.length}</span>
+        </h2>
         {mine.length === 0 ? (
           <p className="wf-empty">
             None yet. Start with <Link href="/batch">your batch</Link>, or <Link href="/people">find people you know</Link>.
@@ -101,7 +103,9 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
 
       {sent.length > 0 && (
         <section aria-labelledby="sent">
-          <h2 id="sent">Requests you sent · {sent.length}</h2>
+          <h2 id="sent">
+            Requests you sent <span className="h-count">· {sent.length}</span>
+          </h2>
           <ul className="wf-list">
             {sent.map((r) => (
               <MemberLine key={r.member.id} member={r.member} photoId={photos.get(r.member.id)} detail={`Sent ${timeAgo(r.createdAt)}`}>

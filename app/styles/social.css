@@ -1373,7 +1373,8 @@ html.story-open {
 
 .me-card__counts strong {
   color: var(--color-ink);
-  font: 1.25rem / 1.2 var(--font-voice);
+  /* The interface face: the serif's 1 read as an I ("I connections"). */
+  font: var(--weight-semibold) 1.25rem / 1.2 var(--font-ui);
 }
 
 .me-card__counts a:hover strong {
@@ -2035,7 +2036,7 @@ html.story-open {
 .focus__numbers strong {
   margin-right: 4px;
   color: var(--color-ink);
-  font: var(--text-card) / 1 var(--font-voice);
+  font: var(--weight-semibold) var(--text-card) / 1 var(--font-ui);
 }
 
 /* Home's numbers in the college's four inks, each on a wash of its own colour. */

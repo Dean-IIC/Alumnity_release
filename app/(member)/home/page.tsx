@@ -154,10 +154,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {now && <span className="me-card__line">{batchLabel(me)}</span>}
             <div className="me-card__counts">
               <Link href="/connections">
-                <strong>{connections}</strong> connections
+                <strong>{connections}</strong> {connections === 1 ? "connection" : "connections"}
               </Link>
               <Link href="/me">
-                <strong>{follows.followers}</strong> followers
+                <strong>{follows.followers}</strong> {follows.followers === 1 ? "follower" : "followers"}
               </Link>
             </div>
           </section>
@@ -225,7 +225,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {stepsLeft > 0 && !before && (
             <section className="sheet side-box" aria-labelledby="steps">
               <h2 id="steps">
-                Getting started · {steps.length - stepsLeft} of {steps.length}
+                Getting started{" "}
+                <span className="h-count">
+                  · {steps.length - stepsLeft} of {steps.length}
+                </span>
               </h2>
               <ul className="wf-checklist">
                 {steps.map((s) => (

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { photoIdsOf } from "../../../../../lib/server/profile";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../../components/app/action-form";
+import { Invite } from "../../../../../components/app/invite";
 import { AppPage } from "../../../../../components/app/app-page";
 import { MemberLine } from "../../../../../components/app/member-line";
 import { PostCard } from "../../../../../components/app/post-card";
@@ -46,9 +47,16 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
       intro={`${onRegister ? `${onRegister} joined HKBK in this batch` : "This batch"} · ${members.length} ${members.length === 1 ? "is" : "are"} on Alumnity`}
     >
       {mine && onRegister > members.length && (
-        <p className="wf-card">
-          {onRegister - members.length} from your batch aren't here yet. Tell them they can <Link href="/join">join with their name and USN</Link>. Their names are already in the register.
-        </p>
+        <div className="wf-card">
+          <p>
+            {onRegister - members.length} from your batch aren't here yet. Tell them they can{" "}
+            <Link className="wf-inline-link" href="/join">
+              join with their name and USN
+            </Link>
+            . Their names are already in the register.
+          </p>
+          <Invite text="I'm on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />
+        </div>
       )}
       <h2>On Alumnity</h2>
       {members.length === 0 ? (

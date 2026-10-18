@@ -137,7 +137,7 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
 /** On a phone: the five places people go most, always in reach of a thumb. */
 export function TabBar({ counts }: { counts: Counts }) {
   return (
-    <nav className="tab-bar" aria-label="Shortcuts">
+    <nav className="tab-bar" aria-label="Bottom bar">
       <NavLink href="/home" match={["/home", "/notes"]}>
         <Icon name="home" size={24} />
         Home

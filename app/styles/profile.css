@@ -1232,6 +1232,17 @@
   margin-top: var(--space-4);
 }
 
+/* Featured and Activity line up with the page above them (the same width, and a gap
+   between): they ran wider than the cards, and touched the last one. */
+.profile-page > .pcard,
+.profile-page--more {
+  max-width: 1120px;
+}
+
+.profile-page > .pcard {
+  margin-top: var(--space-4);
+}
+
 .pcard--activity .pcard__head,
 .pcard--featured .pcard__head {
   align-items: baseline;

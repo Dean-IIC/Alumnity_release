@@ -60,7 +60,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
       )}
 
       <h2>Find a group</h2>
-      <form className="wf-filters" role="search" aria-label="Find groups" action="/groups">
+      <form className="wf-filters wf-filters--one" role="search" aria-label="Find groups" action="/groups">
         <label className="field">
           <span className="field__label">Search groups</span>
           <input name="q" defaultValue={q} maxLength={60} placeholder="e.g. robotics, Dubai, 2012" />

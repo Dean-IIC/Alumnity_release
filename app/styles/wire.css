@@ -335,9 +335,11 @@
 
 .wf-stat strong {
   display: block;
-  font-family: var(--font-voice);
+  /* Numbers in the interface face: the serif's 1 reads as a capital I ("I Happy to mentor"). */
+  font-family: var(--font-ui);
   font-size: 30px;
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
 }
 
 /* The desk's numbers take the college's four inks in turn, each with a rule of its colour. */
@@ -413,6 +415,16 @@
   gap: var(--space-3);
   grid-template-columns: 2fr 1fr 1fr 1fr auto;
   align-items: end;
+}
+
+/* One search box and its button (Groups): side by side, not spread over five columns. */
+.wf-filters--one {
+  grid-template-columns: minmax(0, 1fr) auto;
+  max-width: 640px;
+}
+
+.wf-filters {
+  margin-bottom: var(--space-5);
 }
 
 @media (max-width: 700px) {
@@ -822,4 +834,13 @@
   .wf-table td:nth-child(2) {
     font-weight: var(--weight-semibold);
   }
+}
+
+/* A count in a heading ("Your connections · 1"): in the interface face, whose 1 reads as a
+   one (the serif's looks like a capital I). */
+.h-count {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-semibold);
+  font-size: 0.8em;
+  color: var(--color-ink-muted);
 }
