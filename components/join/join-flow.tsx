@@ -113,7 +113,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
     <div className="join">
       <div className="join__form">
         {!found ? (
-          <form onSubmit={search} noValidate>
+          <form method="post" onSubmit={search} noValidate>
             <fieldset className="join__roles">
               <legend>Who are you at HKBK?</legend>
               {ROLES.map((r) => (
@@ -205,6 +205,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
 
             {step === "email" && (
               <form
+                method="post"
                 className="join__email"
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -229,6 +230,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
 
             {step === "code" && (
               <form
+                method="post"
                 className="join__email"
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -261,6 +263,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
 
             {step === "password" && (
               <form
+                method="post"
                 className="join__email"
                 onSubmit={(event) => {
                   event.preventDefault();

@@ -56,6 +56,7 @@ export function SettingsPanel({ email }: { email: string }) {
 
       <Section title="Password">
         <form
+          method="post"
           onSubmit={(event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
             const form = event.currentTarget;
@@ -104,6 +105,7 @@ export function SettingsPanel({ email }: { email: string }) {
           This deletes your account and your page from Alumnity for good. Your name stays in the college register, so you can join again later if you want.
         </p>
         <form
+          method="post"
           onSubmit={(event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
             const data = new FormData(event.currentTarget);

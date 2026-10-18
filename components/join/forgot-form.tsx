@@ -20,6 +20,7 @@ export function ForgotForm() {
       <div className="join__form">
         {!ticket ? (
           <form
+            method="post"
             onSubmit={async (event) => {
               event.preventDefault();
               const to = String(new FormData(event.currentTarget).get("email") ?? "");
@@ -51,6 +52,7 @@ export function ForgotForm() {
           </form>
         ) : (
           <form
+            method="post"
             onSubmit={async (event) => {
               event.preventDefault();
               const form = new FormData(event.currentTarget);

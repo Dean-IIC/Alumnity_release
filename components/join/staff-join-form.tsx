@@ -21,6 +21,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
       <div className="join__form">
         {!ticket ? (
           <form
+            method="post"
             onSubmit={async (event) => {
               event.preventDefault();
               const to = String(new FormData(event.currentTarget).get("email") ?? "");
@@ -53,6 +54,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
           </form>
         ) : (
           <form
+            method="post"
             onSubmit={async (event) => {
               event.preventDefault();
               const form = new FormData(event.currentTarget);
