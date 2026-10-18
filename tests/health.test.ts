@@ -41,6 +41,7 @@ describe("the health check", () => {
     const plain = await (await ask()).json();
     expect(plain.database.roundTripsMs).toHaveLength(5);
     expect(plain.database.transactions).toMatchObject({ ok: true, oneTransaction: true, rolledBack: true });
+    expect(plain.photos).toMatchObject({ ok: true });
     for (const email of ["student.health@example.com", "alumnus.health@example.com", "admin.health@example.com"]) {
       const body = await (await ask(`?as=${email}`)).json();
       expect(body.home.queries).toBeGreaterThan(5);

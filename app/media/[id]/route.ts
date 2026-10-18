@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { signedInUser, type User } from "../../../lib/server/auth";
 import { db } from "../../../lib/server/db";
-import { mediaById, mediaLink, pickSize, readMedia, type Media } from "../../../lib/server/media";
+import { mediaById, mediaLink, pickSize, readMedia, withSizes, type Media } from "../../../lib/server/media";
 import { blockIds } from "../../../lib/server/people";
 import { canSeePostMedia } from "../../../lib/server/posts";
 import { isModerator } from "../../../lib/server/roles";
@@ -59,7 +59,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   // A smaller copy of a photo, if the page asked for one (?w=…).
   const width = Number(new URL(request.url).searchParams.get("w"));
-  const file = media.kind === "image" ? pickSize(media, Number.isFinite(width) && width > 0 ? Math.min(width, 4000) : undefined) : { path: media.path, mime: media.mime };
+  const wanted = Number.isFinite(width) && width > 0 ? Math.min(width, 4000) : undefined;
+  const file = media.kind === "image" ? pickSize(wanted ? await withSizes(media) : media, wanted) : { path: media.path, mime: media.mime };
 
   const headers: Record<string, string> = {
     "content-type": media.kind === "html" ? "text/html; charset=utf-8" : file.mime,

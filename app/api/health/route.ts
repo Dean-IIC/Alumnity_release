@@ -23,7 +23,7 @@ import { storyBar } from "../../../lib/server/stories";
  * daily job: "Authorization: Bearer <CRON_SECRET>"). Timings only: no names, no rows.
  * Off unless ALUMNITY_HEALTH=on: a site that isn't being looked into doesn't have it.
  *
- *   GET /api/health                       this instance, the database (and its transactions), Supabase's auth server
+ *   GET /api/health                       this instance, the database (and its transactions), Supabase's auth server, photo copies
  *   GET /api/health?as=<member's email>   and Home's own loading, as that member would see it
  *
  * Home's loading here mirrors app/(member)/layout.tsx, app/(member)/home/page.tsx and
@@ -95,14 +95,15 @@ export async function GET(request: Request) {
     };
   }
 
+  const photos = await photoCopies();
   const as = new URL(request.url).searchParams.get("as")?.trim().toLowerCase();
-  if (!as) return NextResponse.json({ instance, database, auth });
+  if (!as) return NextResponse.json({ instance, database, auth, photos });
 
   const row = await db().one("select * from users where lower(email) = ?", as);
-  if (!row) return NextResponse.json({ instance, database, auth, home: "no member with that email" });
+  if (!row) return NextResponse.json({ instance, database, auth, photos, home: "no member with that email" });
   const me = toUser(row);
   const home = await traced(() => homeLoading(me));
-  return NextResponse.json({ instance, database, auth, home: { role: me.role, totalMs: home.ms, ...home.result, ...summary(home.queries) } });
+  return NextResponse.json({ instance, database, auth, photos, home: { role: me.role, totalMs: home.ms, ...home.result, ...summary(home.queries) } });
 }
 
 const failure = (error: unknown) => String((error as Error)?.message ?? error).slice(0, 160);
@@ -135,6 +136,26 @@ async function transactions() {
     const threeAtOnceMs = await ms(() => Promise.all(Array.from({ length: 3 }, () => db().tx((t) => t.one("select 1")))));
     const afterwardsMs = await ms(() => db().one("select 1"));
     return { ok: same && rolledBack, oneTransaction: same, oneMs, rolledBack, threeAtOnceMs, afterwardsMs };
+  } catch (error) {
+    return { ok: false, error: failure(error) };
+  }
+}
+
+/**
+ * Whether this instance can make a photo's smaller copies (sharp, a native library, has to
+ * be built for the server it runs on): without it every face on a page is the whole photo.
+ * Also how many kept photos still have none (they get them the first time one's asked for).
+ */
+async function photoCopies() {
+  try {
+    const sharp = (await import("sharp")).default;
+    let width = 0;
+    const copyMs = await ms(async () => {
+      const copy = await sharp({ create: { width: 640, height: 480, channels: 3, background: "#123456" } }).resize({ width: 160 }).webp().toBuffer();
+      width = (await sharp(copy).metadata()).width ?? 0;
+    });
+    const without = await db().one<{ n: number }>("select count(*) as n from media where kind = 'image' and mime <> 'image/gif' and sizes is null");
+    return { ok: width === 160, copyMs, vips: sharp.versions?.vips ?? "?", photosWithoutCopies: Number(without?.n ?? 0) };
   } catch (error) {
     return { ok: false, error: failure(error) };
   }
