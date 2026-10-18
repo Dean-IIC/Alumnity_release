@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { firstName } from "../../lib/format";
 import { useState } from "react";
 import { post } from "../../lib/client/post";
@@ -49,7 +51,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
               {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
             </button>
             <p className="join__fine">
-              A student or alumnus? <a href="/join">Find your name in the register</a> · Already joined? <a href="/login">Log in</a>
+              A student or alumnus? <Link href="/join">Find your name in the register</Link> · Already joined? <Link href="/login">Log in</Link>
             </p>
           </form>
         ) : (
@@ -76,7 +78,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
             <CodeField email={email} />
             <PasswordField />
             <p className="join__fine">
-              By joining, you agree to the <a href="/terms">terms</a> and the <a href="/privacy">privacy policy</a>.
+              By joining, you agree to the <Link href="/terms">terms</Link> and the <Link href="/privacy">privacy policy</Link>.
             </p>
             {problem && (
               <p className="join__problem" role="alert">

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../components/app/action-form";
 import { addSamplesAction, removeSamplesAction } from "../../../lib/actions/dev";
@@ -40,7 +41,7 @@ export default async function DevSeed() {
         </ActionForm>
       </div>
       <p style={{ marginTop: "var(--space-6)" }}>
-        <a href="/home">Go to Home →</a>
+        <Link href="/home">Go to Home →</Link>
       </p>
     </main>
   );

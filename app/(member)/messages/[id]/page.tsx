@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../components/app/action-form";
@@ -30,7 +31,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
       current="messages"
       back={{ href: "/messages", label: "Messages" }}
       title={other.name}
-      intro={<a href={`/people/${other.id}`}>Their page →</a>}
+      intro={<Link href={`/people/${other.id}`}>Their page →</Link>}
       thread={{ with: other.id, latest: messages.at(-1)?.id ?? 0 }}
     >
       <div className="wf-thread">
@@ -67,7 +68,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
         </ActionForm>
       ) : (
         <p className="wf-empty">
-          You can write to {first} once you're connected. <a href={`/people/${other.id}`}>Connect from their page</a>.
+          You can write to {first} once you're connected. <Link href={`/people/${other.id}`}>Connect from their page</Link>.
         </p>
       )}
     </AppPage>

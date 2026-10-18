@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ActionForm } from "../app/action-form";
 import { announceAction, inviteStaffAction, removeAnnouncementAction, resolveReportAction, restoreAction, revokeInviteAction, settingsAction, takeDownAction } from "../../lib/actions/desk";
 import { BRANCHES } from "../../lib/branches";
@@ -72,9 +73,9 @@ export async function Overview({ me }: { me: User }) {
       <p className="wf-muted">Totals only: no names.</p>
       <h2>Causes</h2>
       <p>
-        {rupees(s.raised)} given to causes so far. <a className="wf-inline-link" href="/causes">
+        {rupees(s.raised)} given to causes so far. <Link className="wf-inline-link" href="/causes">
           See the causes
-        </a>
+        </Link>
         {isAdmin(me) && (
           <>
             {" · "}
@@ -111,12 +112,12 @@ export async function Reports({ me, closed }: { me: User; closed: boolean }) {
           {r.subject ? (
             <p>
               <strong>{r.kind === "member" ? "Member" : "What was written"}:</strong>{" "}
-              {r.kind === "member" && r.subject.owner ? <a href={`/desk/members/${r.subject.owner.id}`}>{r.subject.text}</a> : r.subject.text}
+              {r.kind === "member" && r.subject.owner ? <Link href={`/desk/members/${r.subject.owner.id}`}>{r.subject.text}</Link> : r.subject.text}
               {r.subject.owner && r.kind !== "member" && (
                 <>
                   <br />
                   <span className="wf-muted">
-                    By <a href={`/desk/members/${r.subject.owner.id}`}>{r.subject.owner.name}</a>
+                    By <Link href={`/desk/members/${r.subject.owner.id}`}>{r.subject.owner.name}</Link>
                   </span>
                 </>
               )}
@@ -161,9 +162,9 @@ export async function Content({ me, kind, q }: { me: User; kind: ContentKind; q:
     <>
       <div className="wf-tabs">
         {CONTENT_TABS.map(([k, label]) => (
-          <a key={k} href={`/desk?tab=content&kind=${k}`} aria-current={k === kind ? "page" : undefined}>
+          <Link key={k} href={`/desk?tab=content&kind=${k}`} aria-current={k === kind ? "page" : undefined}>
             {label}
-          </a>
+          </Link>
         ))}
       </div>
       <form action="/desk" className="wf-actions" role="search">
@@ -181,7 +182,7 @@ export async function Content({ me, kind, q }: { me: User; kind: ContentKind; q:
       {list.map((c) => (
         <article key={`${c.kind}-${c.id}`} className="wf-card">
           <div className="wf-card__meta">
-            {c.author && <a href={`/desk/members/${c.author.id}`}>{c.author.name}</a>}
+            {c.author && <Link href={`/desk/members/${c.author.id}`}>{c.author.name}</Link>}
             <span>{timeAgo(c.createdAt)}</span>
             {c.removed && <span className="wf-tag wf-tag--red">{c.kind === "ask" ? "Closed" : "Taken down"}</span>}
           </div>
@@ -262,9 +263,9 @@ export async function Members({ me, filter }: { me: User; filter: MemberFilter }
         {list.map((u) => (
           <li key={u.id} className="wf-member">
             <div className="wf-member__who">
-              <a className="wf-member__name" href={`/desk/members/${u.id}`}>
+              <Link className="wf-member__name" href={`/desk/members/${u.id}`}>
                 {u.name}
-              </a>
+              </Link>
               <span className="wf-muted">
                 {[u.email, batchLabel(u), ROLE_LABEL[u.role], `joined ${timeAgo(u.createdAt)}`].filter(Boolean).join(" · ")}
               </span>
@@ -272,9 +273,9 @@ export async function Members({ me, filter }: { me: User; filter: MemberFilter }
             <div className="wf-actions">
               {u.suspended && <span className="wf-tag wf-tag--red">Paused</span>}
               {u.sample && <span className="wf-tag">Sample</span>}
-              <a className="button button--secondary wf-small" href={`/desk/members/${u.id}`}>
+              <Link className="button button--secondary wf-small" href={`/desk/members/${u.id}`}>
                 Manage
-              </a>
+              </Link>
             </div>
           </li>
         ))}
@@ -433,9 +434,9 @@ export async function Team({ me }: { me: User }) {
         {list.map((u) => (
           <li key={u.id} className="wf-member">
             <div className="wf-member__who">
-              <a className="wf-member__name" href={`/desk/members/${u.id}`}>
+              <Link className="wf-member__name" href={`/desk/members/${u.id}`}>
                 {u.name}
-              </a>
+              </Link>
               <span className="wf-muted">{u.email}</span>
             </div>
             <div className="wf-actions">

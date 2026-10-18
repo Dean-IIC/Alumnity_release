@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { readIntroPreference, writeIntroPreference } from "../lib/intro-preference";
 import { COLLEGE_NAME } from "./brand-lockup";
@@ -16,14 +18,14 @@ export function SiteFooter({ app = false }: { app?: boolean }) {
       <div className="site-footer__main">
         <p className="site-footer__for">Alumnity · for students and alumni of {COLLEGE_NAME}</p>
         <nav className="site-footer__links" aria-label="About Alumnity">
-          <a href="/about">About</a>
-          <a href="/community">Alumni community</a>
-          <a href="/committee">Committee</a>
-          <a href="/developers">Developers</a>
-          <a href="/how-it-works">How it works</a>
-          <a href="/gallery">Gallery</a>
-          <a href="/privacy">Privacy</a>
-          <a href="/terms">Terms</a>
+          <Link href="/about">About</Link>
+          <Link href="/community">Alumni community</Link>
+          <Link href="/committee">Committee</Link>
+          <Link href="/developers">Developers</Link>
+          <Link href="/how-it-works">How it works</Link>
+          <Link href="/gallery">Gallery</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
         </nav>
       </div>
       {!app && <div className="site-footer__intro">
@@ -38,7 +40,7 @@ export function SiteFooter({ app = false }: { app?: boolean }) {
           />
           Play the intro when I visit
         </label>
-        <a href="/?intro=1">Watch it now <span aria-hidden="true">↺</span></a>
+        <Link href="/?intro=1">Watch it now <span aria-hidden="true">↺</span></Link>
       </div>}
     </footer>
   );

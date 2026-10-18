@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
@@ -18,9 +19,9 @@ function CauseLine({ cause }: { cause: Cause }) {
   return (
     <li className="wf-member">
       <div className="wf-member__who">
-        <a className="wf-member__name" href={`/causes/${cause.id}`}>
+        <Link className="wf-member__name" href={`/causes/${cause.id}`}>
           {cause.title}
-        </a>
+        </Link>
         <span className="wf-muted">
           {rupees(cause.raised)} of {rupees(cause.goal)} · {cause.supporters} {cause.supporters === 1 ? "supporter" : "supporters"}
           {cause.author ? ` · started by ${cause.author.name}` : ""}
@@ -49,9 +50,9 @@ export default async function CausesPage() {
             {waiting.map((c) => (
               <li key={c.id} className="wf-member">
                 <div className="wf-member__who">
-                  <a className="wf-member__name" href={`/causes/${c.id}`}>
+                  <Link className="wf-member__name" href={`/causes/${c.id}`}>
                     {c.title}
-                  </a>
+                  </Link>
                   <span className="wf-muted">
                     Goal {rupees(c.goal)} · proposed {timeAgo(c.createdAt)}
                     {c.author ? ` by ${c.author.name}` : ""}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { batchLabel } from "../../lib/format";
 import type { Role } from "../../lib/server/auth";
@@ -17,14 +18,14 @@ type MemberLineProps = {
 export function MemberLine({ member, detail, children, photoId }: MemberLineProps) {
   return (
     <li className="wf-member wf-member--face">
-      <a href={`/people/${member.id}`} className="wf-member__face" tabIndex={-1} aria-hidden="true">
+      <Link href={`/people/${member.id}`} className="wf-member__face" tabIndex={-1} aria-hidden="true">
         <Avatar name={member.name} photoId={photoId} size={44} />
-      </a>
+      </Link>
       <div className="wf-member__who">
         <span className="name-line">
-          <a className="wf-member__name" href={`/people/${member.id}`}>
+          <Link className="wf-member__name" href={`/people/${member.id}`}>
             {member.name}
-          </a>
+          </Link>
           <NameMark who={{ usn: member.usn ?? null, role: member.role as Role }} />
         </span>
         <span className="wf-muted">

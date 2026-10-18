@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { pinPostAction } from "../../lib/actions/content";
 import { timeAgo } from "../../lib/format";
 import { mediaUrl } from "../../lib/media-url";
@@ -25,7 +26,7 @@ function Preview({ post, isOwner, pinned, large = false }: { post: Post; isOwner
   const photo = post.media.find((m) => m.kind === "image");
   return (
     <article className={`preview ${large ? "preview--large" : ""}`}>
-      <a className="preview__open" href={`/notes/${post.id}`} aria-label={`Open the post from ${timeAgo(post.createdAt)}`}>
+      <Link className="preview__open" href={`/notes/${post.id}`} aria-label={`Open the post from ${timeAgo(post.createdAt)}`}>
         {photo && (
           // eslint-disable-next-line @next/next/no-img-element
           <img className="preview__photo" src={mediaUrl(photo.id, large ? 640 : 320)} alt="" loading="lazy" decoding="async" />
@@ -36,7 +37,7 @@ function Preview({ post, isOwner, pinned, large = false }: { post: Post; isOwner
         </span>
         <span className="preview__text">{excerpt(post.body, large ? 320 : 140) || (photo ? "A photo" : "A post")}</span>
         <Counts post={post} />
-      </a>
+      </Link>
       {isOwner && (
         <ActionForm action={pinPostAction} className="preview__pin">
           <input type="hidden" name="id" value={post.id} />

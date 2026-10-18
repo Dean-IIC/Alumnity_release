@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { HERO_PHOTO } from "../lib/campus";
 import { InkBloom } from "./ink-bloom";
 
@@ -30,9 +32,9 @@ export function HeroInk({ active }: HeroInkProps) {
       <figcaption className="hero-ink__caption">
         <span>{HERO_PHOTO.label}</span>
         <strong>{HERO_PHOTO.title}</strong>
-        <a className="hero-ink__explore" href="/gallery">
+        <Link className="hero-ink__explore" href="/gallery">
           Explore the gallery <span aria-hidden="true">→</span>
-        </a>
+        </Link>
       </figcaption>
     </figure>
   );

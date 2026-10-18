@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { BackLink } from "./back-link";
 import { SiteFooter } from "./site-footer";
@@ -67,12 +68,12 @@ export function PublicPage({ current, kicker, title, gold, intro, children }: Pr
               <p>Every student and graduate since 1998 is in it. Find your name to join.</p>
             </div>
             <div className="info-join__actions">
-              <a className="button button--primary" href="/join">
+              <Link className="button button--primary" href="/join">
                 Join Alumnity <span aria-hidden="true">→</span>
-              </a>
-              <a className="button button--secondary" href="/login">
+              </Link>
+              <Link className="button button--secondary" href="/login">
                 Log in
-              </a>
+              </Link>
             </div>
           </section>
         </VisitorOnly>
@@ -123,7 +124,7 @@ function withLinks(text: string) {
   return (
     <>
       {m[1]}
-      <a href="/community">{m[2]}</a>
+      <Link href="/community">{m[2]}</Link>
       {m[3]}
     </>
   );

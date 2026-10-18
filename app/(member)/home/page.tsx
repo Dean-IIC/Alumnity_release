@@ -144,21 +144,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <aside className="feed-layout__side feed-layout__side--left" aria-label="You">
           <section className="sheet me-card">
             <div className="me-card__band" />
-            <a href="/me" className="me-card__face" aria-hidden="true" tabIndex={-1}>
+            <Link href="/me" className="me-card__face" aria-hidden="true" tabIndex={-1}>
               <Avatar name={me.name} photoId={photos.get(me.id)} size={64} />
-            </a>
-            <a href="/me" className="me-card__name">
+            </Link>
+            <Link href="/me" className="me-card__name">
               {me.name}
-            </a>
+            </Link>
             <span className="me-card__line">{now || batchLabel(me)}</span>
             {now && <span className="me-card__line">{batchLabel(me)}</span>}
             <div className="me-card__counts">
-              <a href="/connections">
+              <Link href="/connections">
                 <strong>{connections}</strong> connections
-              </a>
-              <a href="/me">
+              </Link>
+              <Link href="/me">
                 <strong>{follows.followers}</strong> followers
-              </a>
+              </Link>
             </div>
           </section>
           <nav className="sheet side-links" aria-label="Shortcuts">
@@ -174,21 +174,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <ul className="side-box__list">
                 {myGroups.map((g) => (
                   <li key={g.id}>
-                    <a className="side-group" href={`/groups/${g.id}`}>
+                    <Link className="side-group" href={`/groups/${g.id}`}>
                       <span className="side-group__mark" aria-hidden="true">
                         {g.name.slice(0, 1).toUpperCase()}
                       </span>
                       {g.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="side-box__note">Your class, your club, your city: find a group, or start one.</p>
             )}
-            <a className="side-box__more" href="/groups">
+            <Link className="side-box__more" href="/groups">
               {myGroups.length ? "All groups" : "Find groups"} →
-            </a>
+            </Link>
           </section>
         </aside>
 
@@ -255,12 +255,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           )}
 
           <nav className="feed-tabs" aria-label="Which posts">
-            <a href="/home" aria-current={scope === "all" ? "page" : undefined}>
+            <Link href="/home" aria-current={scope === "all" ? "page" : undefined}>
               Everyone
-            </a>
-            <a href="/home?view=following" aria-current={scope === "following" ? "page" : undefined}>
+            </Link>
+            <Link href="/home?view=following" aria-current={scope === "following" ? "page" : undefined}>
               Following
-            </a>
+            </Link>
           </nav>
 
           {quiet ? (
@@ -316,7 +316,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                         <strong>{d.toLocaleDateString("en-IN", { day: "numeric", timeZone: "Asia/Kolkata" })}</strong>
                       </span>
                       <div>
-                        <a href={`/events/${e.id}`}>{e.title}</a>
+                        <Link href={`/events/${e.id}`}>{e.title}</Link>
                         <p>
                           {e.going} going{e.imGoing ? " · you too" : ""}
                         </p>
@@ -333,7 +333,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <ul className="side-box__list">
                 {causes.map((c) => (
                   <li key={c.id} className="side-cause">
-                    <a href={`/causes/${c.id}`}>{c.title}</a>
+                    <Link href={`/causes/${c.id}`}>{c.title}</Link>
                     <span className="cause-bar" role="img" aria-label={`${Math.min(100, Math.round((c.raised / c.goal) * 100))}% of the goal`}>
                       <span style={{ width: `${Math.min(100, Math.round((c.raised / c.goal) * 100))}%` }} />
                     </span>
@@ -343,9 +343,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   </li>
                 ))}
               </ul>
-              <a className="side-box__more" href="/causes">
+              <Link className="side-box__more" href="/causes">
                 All causes →
-              </a>
+              </Link>
             </section>
           )}
           {suggestions.length > 0 && (
@@ -356,7 +356,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   <li key={u.id} className="side-person">
                     <Avatar name={u.name} photoId={photos.get(u.id)} size={40} />
                     <span className="side-person__who">
-                      <a href={`/people/${u.id}`}>{u.name}</a>
+                      <Link href={`/people/${u.id}`}>{u.name}</Link>
                       <span>{batchLabel(u)}</span>
                     </span>
                     <ActionForm action={connectAction} showDone={false}>
@@ -376,7 +376,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <ul className="side-box__list">
                 {groups.discover.slice(0, 3).map((g) => (
                   <li key={g.id}>
-                    <a className="side-group" href={`/groups/${g.id}`}>
+                    <Link className="side-group" href={`/groups/${g.id}`}>
                       <span className="side-group__mark" aria-hidden="true">
                         {g.name.slice(0, 1).toUpperCase()}
                       </span>
@@ -386,7 +386,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                           {g.members} {g.members === 1 ? "member" : "members"} · {g.kind === "open" ? "open" : "private"}
                         </small>
                       </span>
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

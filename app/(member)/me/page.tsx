@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { AppPage } from "../../../components/app/app-page";
 import { LogOutButton } from "../../../components/join/log-out-button";
@@ -25,21 +26,21 @@ export default async function MePage() {
   return (
     <AppPage user={user} current="me" bare>
       <StickyName name={user.name}>
-        <a className="button button--primary wf-small" href="/me/edit">
+        <Link className="button button--primary wf-small" href="/me/edit">
           Edit your page
-        </a>
+        </Link>
       </StickyName>
       <div className="profile-page">
         <ProfileSheet person={user} profile={profile} isOwner badges={await badgesOf(user, profile)}
           batchSize={user.usn ? await batchSizeOf(user.usn) : undefined}
           actions={
             <>
-              <a className="button button--primary" href="/me/edit">
+              <Link className="button button--primary" href="/me/edit">
                 Edit your page <span aria-hidden="true">→</span>
-              </a>
-              <a className="button button--secondary" href="/settings">
+              </Link>
+              <Link className="button button--secondary" href="/settings">
                 Settings
-              </a>
+              </Link>
             </>
           }
         />

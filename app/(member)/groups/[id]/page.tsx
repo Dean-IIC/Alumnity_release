@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { firstName } from "../../../../lib/format";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -90,16 +91,16 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
       </div>
 
       <nav className="wf-tabs" aria-label="This group">
-        <a href={`/groups/${group.id}`} aria-current={tab === "posts" ? "page" : undefined}>
+        <Link href={`/groups/${group.id}`} aria-current={tab === "posts" ? "page" : undefined}>
           Posts
-        </a>
-        <a href={`/groups/${group.id}?tab=members`} aria-current={tab === "members" ? "page" : undefined}>
+        </Link>
+        <Link href={`/groups/${group.id}?tab=members`} aria-current={tab === "members" ? "page" : undefined}>
           Members
-        </a>
+        </Link>
         {(manager || isModerator(me)) && (
-          <a href={`/groups/${group.id}?tab=settings`} aria-current={tab === "settings" ? "page" : undefined}>
+          <Link href={`/groups/${group.id}?tab=settings`} aria-current={tab === "settings" ? "page" : undefined}>
             Settings
-          </a>
+          </Link>
         )}
       </nav>
 
@@ -120,7 +121,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
           )}
           {posts.length === PAGE && (
             <p>
-              <a href={`/groups/${group.id}?before=${posts[posts.length - 1].createdAt}`}>Older posts →</a>
+              <Link href={`/groups/${group.id}?before=${posts[posts.length - 1].createdAt}`}>Older posts →</Link>
             </p>
           )}
         </>

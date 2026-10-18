@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { post } from "../../lib/client/post";
 import type { Field, Profile, Visibility } from "../../lib/server/profile";
@@ -209,9 +211,9 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
         <button className="button button--primary" type="submit" disabled={busy}>
           {busy ? "Saving…" : "Save my page"} <span aria-hidden="true">→</span>
         </button>
-        <a className="button button--secondary" href="/me">
+        <Link className="button button--secondary" href="/me">
           Cancel
-        </a>
+        </Link>
       </div>
     </form>
   );

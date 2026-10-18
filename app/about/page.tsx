@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { PublicPage } from "../../components/public-page";
 import { ABOUT, DIRECTOR_MESSAGE } from "../../lib/about-content";
@@ -45,7 +46,7 @@ export default function AboutPage() {
           ))}
         </ul>
         <p className="info__aside">
-          The details are in the <a href="/privacy">privacy policy</a>.
+          The details are in the <Link href="/privacy">privacy policy</Link>.
         </p>
       </section>
     </PublicPage>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { countLabel, type Album } from "../../lib/gallery";
 import { LeafVine } from "./leaf-vine";
 
@@ -5,7 +6,7 @@ import { LeafVine } from "./leaf-vine";
 export function AlbumCard({ album, compact = false }: { album: Album; compact?: boolean }) {
   const Title = compact ? "h3" : "h2";
   return (
-    <a className={`album-card ${compact ? "album-card--compact" : ""}`} href={`/gallery/${album.slug}`}>
+    <Link className={`album-card ${compact ? "album-card--compact" : ""}`} href={`/gallery/${album.slug}`}>
       <span className="album-card__mosaic">
         {album.mosaic.map((photo, i) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -24,6 +25,6 @@ export function AlbumCard({ album, compact = false }: { album: Album; compact?: 
           →
         </span>
       </span>
-    </a>
+    </Link>
   );
 }

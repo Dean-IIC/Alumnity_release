@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
@@ -24,21 +25,21 @@ export default async function NotFound() {
         <div className="info-join__actions not-found__actions">
           {me ? (
             <>
-              <a className="button button--primary" href="/home">
+              <Link className="button button--primary" href="/home">
                 Go to Home <span aria-hidden="true">→</span>
-              </a>
-              <a className="button button--secondary" href="/people">
+              </Link>
+              <Link className="button button--secondary" href="/people">
                 Find someone
-              </a>
+              </Link>
             </>
           ) : (
             <>
-              <a className="button button--primary" href="/">
+              <Link className="button button--primary" href="/">
                 Go to the start <span aria-hidden="true">→</span>
-              </a>
-              <a className="button button--secondary" href="/gallery">
+              </Link>
+              <Link className="button button--secondary" href="/gallery">
                 See the gallery
-              </a>
+              </Link>
             </>
           )}
         </div>

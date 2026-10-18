@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppPage } from "../../../components/app/app-page";
@@ -36,9 +37,9 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     <AppPage user={me} current="desk" title="College desk" intro={`Signed in as ${ROLE_LABEL[me.role].toLowerCase()}. Everything done here is written to the audit log.`}>
       <nav className="wf-tabs" aria-label="Desk sections">
         {tabs.map(([t, label]) => (
-          <a key={t} href={`/desk?tab=${t}`} aria-current={t === tab ? "page" : undefined}>
+          <Link key={t} href={`/desk?tab=${t}`} aria-current={t === tab ? "page" : undefined}>
             {label}
-          </a>
+          </Link>
         ))}
       </nav>
       {tab === "overview" && <Overview me={me} />}

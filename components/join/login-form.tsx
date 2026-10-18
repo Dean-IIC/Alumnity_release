@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { useState } from "react";
 import { post } from "../../lib/client/post";
 import { PasswordField } from "./fields";
@@ -34,9 +36,9 @@ export function LoginForm() {
             <input name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
           </label>
           <PasswordField label="Your password" autoComplete="current-password" />
-          <a className="join__switch join__forgot" href="/forgot">
+          <Link className="join__switch join__forgot" href="/forgot">
             Forgot your password?
-          </a>
+          </Link>
           {problem && (
             <p className="join__problem" role="alert">
               {problem}
@@ -46,7 +48,7 @@ export function LoginForm() {
             {busy ? "Opening your page…" : "Log in"} <span aria-hidden="true">→</span>
           </button>
           <p className="join__fine">
-            New here? <a href="/join">Find your name in the register</a> · Staff: <a href="/join/staff">join with your invitation</a>
+            New here? <Link href="/join">Find your name in the register</Link> · Staff: <Link href="/join/staff">join with your invitation</Link>
           </p>
         </form>
       </div>

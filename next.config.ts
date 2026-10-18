@@ -27,6 +27,13 @@ const nextConfig: NextConfig = {
   // Lets a production build sit beside a running dev server: NEXT_DIST_DIR=.next-prod next build
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
+  experimental: {
+    // A page you were on a moment ago comes back at once (Back, or a tab you just left),
+    // instead of asking the server again: on a phone, that wait was most of the lag. Up to
+    // 30 seconds old; anything you do (post, reply, connect) refreshes it straight away
+    // (the actions call revalidatePath).
+    staleTimes: { dynamic: 30, static: 300 }
+  },
   // Loaded by Node as they are, not bundled: PGlite (the local database) reads its own
   // WebAssembly files; the database driver and image tools are native or Node-only.
   serverExternalPackages: ["@electric-sql/pglite", "postgres", "sharp", "web-push", "nodemailer"],

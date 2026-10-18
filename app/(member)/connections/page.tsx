@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { photoIdsOf } from "../../../lib/server/profile";
 import { ActionForm } from "../../../components/app/action-form";
@@ -56,26 +57,26 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
         <h2 id="yours">Your connections · {mine.length}</h2>
         {mine.length === 0 ? (
           <p className="wf-empty">
-            None yet. Start with <a href="/batch">your batch</a>, or <a href="/people">find people you know</a>.
+            None yet. Start with <Link href="/batch">your batch</Link>, or <Link href="/people">find people you know</Link>.
           </p>
         ) : (
           <ul className="wf-list">
             {mine.slice((page - 1) * PAGE, page * PAGE).map((u) => (
               <MemberLine key={u.id} member={u} photoId={photos.get(u.id)}>
-                <a className="button button--secondary wf-small" href={`/messages/${u.id}`}>
+                <Link className="button button--secondary wf-small" href={`/messages/${u.id}`}>
                   Message
-                </a>
+                </Link>
               </MemberLine>
             ))}
           </ul>
         )}
         {mine.length > PAGE && (
           <div className="wf-actions" style={{ justifyContent: "space-between" }}>
-            {page > 1 ? <a href={`/connections?page=${page - 1}#yours`}>← Previous</a> : <span />}
+            {page > 1 ? <Link href={`/connections?page=${page - 1}#yours`}>← Previous</Link> : <span />}
             <span className="wf-muted">
               {(page - 1) * PAGE + 1}–{Math.min(page * PAGE, mine.length)} of {mine.length}
             </span>
-            {page * PAGE < mine.length ? <a href={`/connections?page=${page + 1}#yours`}>Next →</a> : <span />}
+            {page * PAGE < mine.length ? <Link href={`/connections?page=${page + 1}#yours`}>Next →</Link> : <span />}
           </div>
         )}
       </section>

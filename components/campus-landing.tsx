@@ -1,5 +1,7 @@
 "use client";
 
+
+import Link from "next/link";
 import { useCallback, useState } from "react";
 import { GrowingCampusIntro } from "./growing-campus-intro";
 import { WELCOME_COPY } from "../lib/campus";
@@ -26,8 +28,8 @@ export function CampusLanding() {
             <h1 id="welcome-title">{WELCOME_COPY.title}</h1>
             <p className="hero-text">A network for HKBK people to ask, guide and grow — together.</p>
             <div className="hero-actions">
-              <a className="button button--primary" href="/join" onClick={soon}>{WELCOME_COPY.primaryAction} <span aria-hidden="true">→</span></a>
-              <a className="button button--secondary" href="/login" onClick={soon}>{WELCOME_COPY.secondaryAction} <span aria-hidden="true">→</span></a>
+              <Link className="button button--primary" href="/join" onClick={soon}>{WELCOME_COPY.primaryAction} <span aria-hidden="true">→</span></Link>
+              <Link className="button button--secondary" href="/login" onClick={soon}>{WELCOME_COPY.secondaryAction} <span aria-hidden="true">→</span></Link>
             </div>
             <p className="hero-note"><span aria-hidden="true">◌</span> A place to ask. A place to give back.</p>
           </div>

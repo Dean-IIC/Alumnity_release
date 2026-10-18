@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { firstName } from "../../../../lib/format";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
@@ -92,9 +93,9 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
         )}
         {relation === "connected" && (
           <div className="wf-actions">
-            <a className="button button--primary" href={`/messages/${owner.id}`}>
+            <Link className="button button--primary" href={`/messages/${owner.id}`}>
               Message {first}
-            </a>
+            </Link>
             <ActionForm action={removeConnectionAction} confirm={`Remove ${first} from your connections? They aren't told.`}>
               {hidden}
               <button className="wf-link-button" type="submit">
@@ -119,9 +120,9 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
     <AppPage user={me} current="people" back={{ href: "/people", label: "People" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
       <StickyName name={owner.name}>
         {relation === "connected" && (
-          <a className="button button--primary wf-small" href={`/messages/${owner.id}`}>
+          <Link className="button button--primary wf-small" href={`/messages/${owner.id}`}>
             Message
-          </a>
+          </Link>
         )}
       </StickyName>
       <div className="profile-page" style={{ padding: 0 }}>

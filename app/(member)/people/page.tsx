@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { photoIdsOf } from "../../../lib/server/profile";
 import { AppPage } from "../../../components/app/app-page";
@@ -95,7 +96,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
         <p className="wf-empty">Nobody else has joined yet. You'll see everyone here as they do.</p>
       ) : found.length === 0 ? (
         <p className="wf-empty">
-          {register.people.length ? "No member matches that yet: see the college register below." : <>Nobody matches that yet. Try fewer words, or <a href="/people">clear the search</a>.</>}
+          {register.people.length ? "No member matches that yet: see the college register below." : <>Nobody matches that yet. Try fewer words, or <Link href="/people">clear the search</Link>.</>}
         </p>
       ) : (
         <ul className="wf-list">

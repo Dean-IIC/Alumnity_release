@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { AppPage } from "../../../components/app/app-page";
 import { PeopleToReach } from "../../../components/app/people-to-reach";
@@ -24,10 +25,10 @@ export default async function MessagesPage() {
           {list.slice(0, 50).map((c) => (
             <li key={c.with.id} className="wf-member">
               <div className="wf-member__who">
-                <a className="wf-member__name" href={`/messages/${c.with.id}`}>
+                <Link className="wf-member__name" href={`/messages/${c.with.id}`}>
                   {c.with.name}
                   {c.unread > 0 && <span className="wf-count" style={{ marginLeft: 8 }}>{c.unread}</span>}
-                </a>
+                </Link>
                 <span className="wf-muted" style={{ overflowWrap: "anywhere" }}>
                   {c.mine ? "You: " : ""}
                   {c.last.length > 90 ? `${c.last.slice(0, 90)}…` : c.last}

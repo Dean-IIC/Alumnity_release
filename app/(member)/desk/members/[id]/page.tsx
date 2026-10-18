@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../../components/app/action-form";
@@ -53,7 +54,7 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
         </div>
         {!m.suspended && (
           <p style={{ marginTop: "var(--space-3)" }}>
-            <a href={`/people/${m.id}`}>Their page as members see it →</a>
+            <Link href={`/people/${m.id}`}>Their page as members see it →</Link>
           </p>
         )}
       </section>
