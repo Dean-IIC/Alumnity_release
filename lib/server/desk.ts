@@ -17,8 +17,8 @@ import { withinLimit } from "./throttle";
 
 export { isAdmin, isModerator, isSuperAdmin } from "./roles";
 
-export type SubjectKind = "member" | "post" | "comment" | "message" | "ask" | "group" | "cause";
-export const SUBJECT_KINDS: SubjectKind[] = ["member", "post", "comment", "message", "ask", "group", "cause"];
+export type SubjectKind = "member" | "post" | "comment" | "message" | "ask" | "group" | "cause" | "opening";
+export const SUBJECT_KINDS: SubjectKind[] = ["member", "post", "comment", "message", "ask", "group", "cause", "opening"];
 const DAY = 24 * 60 * 60_000;
 const no = (error: string): Result => ({ ok: false, error });
 const DESK_ONLY = "Only the college desk can do that.";
@@ -77,6 +77,10 @@ async function subjectOf(kind: SubjectKind, id: number): Promise<{ text: string;
     const c = await one("select title, story, author from causes where id = ?");
     return c ? { text: `${c.title}: ${c.story}`, owner: Number(c.author ?? 0), link: `/causes/${id}` } : null;
   }
+  if (kind === "opening") {
+    const o = await one("select title, company, body, poster from openings where id = ?");
+    return o ? { text: `${o.title} at ${o.company}: ${o.body}`, owner: Number(o.poster), link: `/openings/${id}` } : null;
+  }
   const a = await one("select author, title, body from asks where id = ?");
   return a ? { text: `${a.title}: ${a.body}`, owner: Number(a.author), link: `/ask/${id}` } : null;
 }
@@ -92,6 +96,7 @@ async function canReport(me: User, kind: SubjectKind, id: number): Promise<boole
   if (kind === "message") return Boolean(await db().one("select 1 from messages where id = ? and recipient = ?", id, me.id));
   if (kind === "group") return Boolean(await db().one("select 1 from groups where id = ? and removed_at is null", id));
   if (kind === "cause") return Boolean(await db().one("select 1 from causes where id = ? and status = 'live'", id));
+  if (kind === "opening") return (await (await import("./openings")).openingById(me, id)) !== null;
   return (await askFor(me, id)) !== null;
 }
 
@@ -163,6 +168,9 @@ export async function resolveReport(me: User, id: number, action: "remove" | "di
       result = await (await import("./groups")).removeGroup(me, sid);
     } else if (r.subject_kind === "cause") {
       result = await (await import("./causes")).closeCause(me, sid, `Taken down after a report (report ${id}).`);
+    } else if (r.subject_kind === "opening") {
+      result = await (await import("./openings")).closeOpening(me, sid);
+      if (result.ok) await audit(me, "took down", `opening ${sid}`, `report ${id}`);
     } else result = await takeDown(me, r.subject_kind, sid, `report ${id}`);
     if (!result.ok) return result;
     // Every other report about the same thing is settled with it.
@@ -398,7 +406,8 @@ export async function updateSettings(me: User, next: Settings): Promise<Result> 
       notes: Boolean(next.features.notes),
       asks: Boolean(next.features.asks),
       events: Boolean(next.features.events),
-      messages: Boolean(next.features.messages)
+      messages: Boolean(next.features.messages),
+      openings: Boolean(next.features.openings)
     },
     dailyRequests: limit
   };

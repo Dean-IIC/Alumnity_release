@@ -234,6 +234,23 @@ const THEMES: Record<string, Theme> = {
     dots: [[240, 560], [80, 460], [230, 680]],
     phone: [["inkwell", 85, 45, 0, 0.7, "blue"], ["heart", 140, 40, -10, 0.6, "red"]]
   },
+  // Jobs and referrals: a path climbing up the margin, gears, a chain of links (one person
+  // to the next), letters going out.
+  openings: {
+    spine: [{ d: "M40 940L40 800L130 800L130 640L220 640L220 470L120 470L120 300L230 300L230 120", tone: "green", dashed: true }],
+    marks: [
+      ["gear", 160, 120, 0, 1.2, "blue"],
+      ["link", 90, 250, -20, 1.1, "green"],
+      ["link", 140, 290, -20, 1.1, "green"],
+      ["envelope", 200, 400, 8, 1.1, "red"],
+      ["star", 80, 540, 0, 0.9, "gold"],
+      ["gear", 190, 600, 20, 0.9, "gold"],
+      ["envelope", 110, 740, -10, 1, "blue"],
+      ["sparkle", 230, 860, 0, 0.6, "gold"]
+    ],
+    dots: [[240, 220], [70, 420], [230, 760]],
+    phone: [["gear", 85, 45, 0, 0.7, "blue"], ["link", 140, 40, -20, 0.6, "green"]]
+  },
   // Your batch: caps thrown in the air, a diploma, stars.
   batch: {
     spine: [{ d: "M30 940C150 760 40 600 170 420S90 140 230 -20", tone: "red", dashed: true }],

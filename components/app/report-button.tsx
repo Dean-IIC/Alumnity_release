@@ -8,7 +8,7 @@ import type { SubjectKind } from "../../lib/server/desk";
 export function ReportButton({ kind, id, label = "Report", back }: { kind: SubjectKind; id: number; label?: string; back?: string }) {
   const params = new URLSearchParams({ kind, id: String(id), ...(back ? { back } : {}) });
   return (
-    <Link className="wf-link-button" href={`/report?${params}`} rel="nofollow">
+    <Link className="wf-link-button" href={`/report?${params}`} rel="nofollow" prefetch={false}>
       {label}
     </Link>
   );
