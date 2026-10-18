@@ -22,7 +22,9 @@ export async function readJson(request: Request): Promise<Record<string, unknown
 
 export const text = (value: unknown, max = 200) => (typeof value === "string" ? value.slice(0, max) : "");
 
-export const clientIp = (request: Request) => request.headers.get("x-forwarded-for")?.split(",")[0].trim() || request.headers.get("x-real-ip") || "local";
+/** Vercel's own record of the visitor's address first: X-Forwarded-For can be written by the client behind other proxies. */
+export const clientIp = (request: Request) =>
+  request.headers.get("x-vercel-forwarded-for")?.split(",")[0].trim() || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || request.headers.get("x-real-ip") || "local";
 
 /** What the browser may know about who's signed in: no email, no USN. */
 export const publicUser = (user: User) => ({ name: user.name, firstName: firstName(user.name), role: user.role, branchName: user.branchName, joined: user.joined });

@@ -106,4 +106,22 @@ describe("staff invitations", () => {
     expect(joined.ok).toBe(true);
     expect(await db().one("select 1 from users where email = 'lag.teacher@example.com' and role = 'faculty'")).toBeTruthy();
   });
+
+  it("someone who made the login for an invited email first is signed out when its owner joins", async () => {
+    const admin = await member("squat.admin@example.com", "admin");
+    expect((await staff.inviteStaff(admin, { email: "squat.teacher@example.com", name: "Dr. Squat", role: "faculty", branch: "CSE" }, "https://x")).ok).toBe(true);
+    // Before the teacher joins, someone else makes the Supabase login for that email and signs in.
+    const authId = crypto.randomUUID();
+    fake.accounts.set("squat.teacher@example.com", { authId, password: "the squatter's password 9", code: null });
+    fake.use("squatter");
+    await fake.signInWithPassword("squat.teacher@example.com", "the squatter's password 9");
+    expect((await fake.session())?.authId).toBe(authId);
+    // The teacher joins (a code to their inbox, then their own password)...
+    expect((await joinAsStaff("squat.teacher@example.com", "squat-real", "squat-ip")).ok).toBe(true);
+    // ...and the squatter's session is gone.
+    fake.use("squatter");
+    expect(await fake.session()).toBeNull();
+    fake.use("squat-real");
+    expect((await fake.session())?.authId).toBe(authId);
+  });
 });
