@@ -46,14 +46,14 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
       title={`${name}, ${year}`}
       intro={`${onRegister ? `${onRegister} joined HKBK in this batch` : "This batch"} · ${members.length} ${members.length === 1 ? "is" : "are"} on Alumnity`}
     >
-      {mine && onRegister > members.length && (
+      {mine && (onRegister > members.length || members.length <= 1) && (
         <div className="wf-card">
           <p>
-            {onRegister - members.length} from your batch aren't here yet. Tell them they can{" "}
+            {onRegister > members.length ? `${onRegister - members.length} from your batch aren't here yet.` : "Nobody else from your batch is here yet."} Tell them they can{" "}
             <Link className="wf-inline-link" href="/join">
               join with their name and USN
             </Link>
-            . Their names are already in the register.
+            .{onRegister > 0 ? " Their names are already in the register." : ""}
           </p>
           <Invite text="I'm on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />
         </div>

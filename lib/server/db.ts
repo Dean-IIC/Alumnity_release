@@ -249,7 +249,19 @@ export function db(): Db {
   // PGlite starts asynchronously; until it has, every call waits for it.
   const ready = (pending ??= (async () => {
     const local = process.env.ALUMNITY_DB;
-    if (local === "pglite" || local?.startsWith("pglite:")) return connectPglite(local.slice("pglite:".length));
+    if (local === "pglite" || local?.startsWith("pglite:")) {
+      const folder = local.slice("pglite:".length);
+      // One PGlite per folder in the whole process. In development a hot reload (and each of
+      // Next's server bundles) loads this module afresh: a second PGlite on the same folder
+      // corrupted it twice ("could not locate a valid checkpoint record"). Kept on globalThis
+      // so they all share the one already open. (In memory, as in the tests: each its own.)
+      if (!folder) return connectPglite(folder);
+      const shared = globalThis as unknown as { __alumnityPglite?: Map<string, Promise<Db>> };
+      shared.__alumnityPglite ??= new Map();
+      const open = shared.__alumnityPglite.get(folder) ?? connectPglite(folder);
+      shared.__alumnityPglite.set(folder, open);
+      return open;
+    }
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL isn't set: add Supabase's connection string (see docs/deploy.md).");
     return connectPostgres(url);

@@ -1,6 +1,8 @@
+import Link from "next/link";
 import type { User } from "../../lib/server/auth";
 import { isModerator } from "../../lib/server/roles";
 import { BrandLockup } from "../brand-lockup";
+import { ABOUT_LINKS } from "../../lib/footer-links";
 import { LogOutButton } from "../join/log-out-button";
 import { Avatar } from "../social/avatar";
 import { Icon, type IconName } from "../social/icons";
@@ -90,6 +92,14 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
                   </span>
                 </NavLink>
               ))}
+              {/* The pages about Alumnity: Home has no footer, so they're here too (and in its right column). */}
+              <nav className="app-menu__about" aria-label="About Alumnity">
+                {ABOUT_LINKS.map(([href, label]) => (
+                  <Link key={href} href={href}>
+                    {label}
+                  </Link>
+                ))}
+              </nav>
             </div>
           </details>
 

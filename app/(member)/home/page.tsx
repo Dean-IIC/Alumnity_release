@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ABOUT_LINKS } from "../../../lib/footer-links";
 import { Suspense } from "react";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
@@ -139,7 +140,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <AppPage user={me} current="home" bare>
-      <div className="feed-layout">
+      <div className="feed-layout feed-layout--home">
         {/* ----- You ----- */}
         <aside className="feed-layout__side feed-layout__side--left" aria-label="You">
           <section className="sheet me-card">
@@ -299,9 +300,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <a href={scope === "following" ? "/home?view=following" : "/home"}>← Newest</a>
             </p>
           )}
-          {posts.length > 0 && (
-            <InfiniteFeed scope={scope} next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null} />
-          )}
+          {/* It never just stops: older posts, then "More from HKBK", as the reader scrolls. */}
+          <InfiniteFeed scope={scope} next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null} />
         </div>
 
         {/* ----- Around you ----- */}
@@ -395,6 +395,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </ul>
             </section>
           )}
+          {/* Home has no footer (its feed keeps going), so the pages about Alumnity are here, as on LinkedIn. */}
+          <nav className="sheet side-box side-about" aria-label="About Alumnity">
+            <ul>
+              {ABOUT_LINKS.map(([href, label]) => (
+                <li key={href}>
+                  <Link href={href}>{label}</Link>
+                </li>
+              ))}
+            </ul>
+            <p>Alumnity · for students and alumni of HKBK College of Engineering</p>
+          </nav>
         </aside>
       </div>
     </AppPage>
