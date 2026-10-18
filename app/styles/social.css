@@ -2492,3 +2492,14 @@ html.story-open {
   color: var(--color-paper, #fff);
   font-size: 16px;
 }
+
+/* On a phone the long hint was squeezed to a word a line beside Post: the photo button says it. */
+@media (max-width: 480px) {
+  .composer__hint--long {
+    display: none;
+  }
+
+  .composer__hint--long + .composer__cancel {
+    margin-left: auto;
+  }
+}
