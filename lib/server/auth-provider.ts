@@ -54,7 +54,8 @@ const SUPABASE_ERRORS: [RegExp, string][] = [
  * Anything else is Supabase's own rule, in its own words, rather than a guess.
  */
 export function passwordRefusal(error: { message: string; code?: string }): string {
-  if (error.code === "same_password" || /same|different from the old/i.test(error.message)) return SAME_PASSWORD;
+  // Exactly that, and nothing broader: anything else taken for "same" would skip setting the password.
+  if (error.code === "same_password" || /should be different from the old password/i.test(error.message)) return SAME_PASSWORD;
   console.error("setPassword refused:", error.code ?? "", error.message);
   return /password/i.test(error.message) ? `That password can’t be used: ${error.message.replace(/^Password\s*/i, "")}` : "That password can’t be used. Try a longer one.";
 }

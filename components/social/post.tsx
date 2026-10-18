@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { commentAction, removeCommentAction, removePostAction } from "../../lib/actions/content";
+import { commentAction, removeCommentAction, removePostAction, verifyPostAction } from "../../lib/actions/content";
+import { referralAction } from "../../lib/actions/social";
 import { batchLabel, timeAgo } from "../../lib/format";
 import { mediaUrl } from "../../lib/media-url";
+import type { User } from "../../lib/server/auth";
 import type { Post as PostData } from "../../lib/server/posts";
+import { isModerator } from "../../lib/server/roles";
+import { WORK_TAGS } from "../../lib/tags";
 import { ActionForm } from "../app/action-form";
 import { ReportButton } from "../app/report-button";
 import { Avatar } from "./avatar";
@@ -20,14 +24,16 @@ type Props = {
   photos: Map<number, string>;
   /** On the post's own page: every comment, not just the newest. */
   full?: boolean;
-  /** The viewer, for the comment box. */
-  me: { id: number; name: string };
+  /** The viewer, for the comment box (and, for the college desk, the check mark). */
+  me: Pick<User, "id" | "name" | "role">;
 };
 
 /** One post in the feed: who and when, their words and photos, reactions, and the newest comments. */
 export function Post({ post, photos, full = false, me }: Props) {
   const [audienceIcon, audienceLabel] = AUDIENCE[post.audience];
   const href = `/notes/${post.id}`;
+  const desk = isModerator(me);
+  const work = !post.mine && post.tags.some((t) => WORK_TAGS.includes(t));
   return (
     <article className="post" id={`post-${post.id}`} aria-labelledby={`post-${post.id}-by`}>
       <header className="post__head">
@@ -57,6 +63,11 @@ export function Post({ post, photos, full = false, me }: Props) {
               <span className="sr-only">Shown to {audienceLabel}</span>
             </span>
           </span>
+          {post.verifiedAt && (
+            <Link className="post__verified" href="/board" title="The college checked this post: it's on the HKBK board">
+              <span aria-hidden="true">✓</span> Verified by HKBK
+            </Link>
+          )}
         </div>
         <details className="post__menu">
           <summary aria-label="More">
@@ -71,6 +82,13 @@ export function Post({ post, photos, full = false, me }: Props) {
             ) : (
               <ReportButton kind="post" id={post.id} back={full ? href : `/home#post-${post.id}`} label="Report post" />
             )}
+            {desk && (post.verifiedAt || post.audience === "everyone") && (
+              <ActionForm action={verifyPostAction} showDone={false}>
+                <input type="hidden" name="id" value={post.id} />
+                <input type="hidden" name="on" value={post.verifiedAt ? "0" : "1"} />
+                <button type="submit">{post.verifiedAt ? "Take off the HKBK board" : "Verify for the HKBK board"}</button>
+              </ActionForm>
+            )}
             <a href={href}>Open post</a>
           </div>
         </details>
@@ -79,6 +97,17 @@ export function Post({ post, photos, full = false, me }: Props) {
       {post.body && (
         <p className={`post__body ${post.media.length === 0 && post.body.length < 90 ? "post__body--large" : ""}`}>
           <RichText body={post.body} />
+        </p>
+      )}
+      {post.tags.some((t) => !post.body.toLowerCase().includes(`#${t}`)) && (
+        <p className="post__tags">
+          {post.tags
+            .filter((t) => !post.body.toLowerCase().includes(`#${t}`))
+            .map((t) => (
+              <Link key={t} className="hashtag" href={`/board?tag=${t}`}>
+                #{t}
+              </Link>
+            ))}
         </p>
       )}
 
@@ -93,6 +122,25 @@ export function Post({ post, photos, full = false, me }: Props) {
             )
           )}
         </div>
+      )}
+
+      {work && (
+        <details className="post__refer">
+          <summary>Ask {post.author.name.split(" ")[0]} for a referral</summary>
+          <ActionForm action={referralAction} className="wf-stack" resetOnSuccess>
+            <input type="hidden" name="id" value={post.id} />
+            <label className="field">
+              <span className="field__label">Why you fit</span>
+              <textarea name="note" rows={3} required minLength={20} maxLength={1500} placeholder="Your branch and year, what you've built or studied that fits. Keep it short." />
+              <span className="field__hint">Not connected yet? It goes as a connection request with this note. Connected? It goes to them in Messages.</span>
+            </label>
+            <div>
+              <button className="button button--primary wf-small" type="submit">
+                Send
+              </button>
+            </div>
+          </ActionForm>
+        </details>
       )}
 
       <ReactionBar postId={post.id} mine={post.myReaction} counts={post.reactions} commentCount={post.commentCount} commentsHref={full ? "#comment-box" : `${href}#comments`} shareUrl={href} />

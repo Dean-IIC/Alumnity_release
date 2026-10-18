@@ -8,6 +8,7 @@ import { postAction } from "../../lib/actions/content";
 import { uploadFile } from "../../lib/client/upload";
 import { Icon } from "./icons";
 import { MentionInput } from "./mention-input";
+import { SUGGESTED_TAGS } from "../../lib/tags";
 
 type Upload = { key: string; id?: string; kind: "image" | "video"; preview: string; error?: string };
 
@@ -144,6 +145,14 @@ export function Composer({
         autoFocus
         className="composer__text"
       />
+      <fieldset className="composer__tags">
+        <legend>Tag it (optional)</legend>
+        {SUGGESTED_TAGS.map(([tag, label]) => (
+          <label key={tag} className="composer__tag">
+            <input type="checkbox" name="tag" value={tag} />#{label.toLowerCase()}
+          </label>
+        ))}
+      </fieldset>
       {uploads.length > 0 && (
         <ul className={`composer__media composer__media--${Math.min(uploads.length, 4)}`}>
           {uploads.map((u) => (

@@ -90,6 +90,8 @@ type Sql = postgres.Sql | postgres.ReservedSql;
 const DROPPED = new Set(["CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED", "CONNECT_TIMEOUT", "ECONNRESET", "ETIMEDOUT", "EPIPE"]);
 const isRead = (text: string) => /^\s*(select|with)/i.test(text);
 
+const dropped = (error: unknown) => DROPPED.has(String((error as { code?: string } | null)?.code));
+
 /** Exported for the test that guards transactions; `inTx` when `sql` is one already begun. */
 export function fromPostgres(sql: Sql, inTx = false): Db {
   // A read whose connection dropped is tried once more on a fresh one; a write never is
@@ -100,7 +102,8 @@ export function fromPostgres(sql: Sql, inTx = false): Db {
     try {
       return await run();
     } catch (error) {
-      if (!isRead(text) || !DROPPED.has(String((error as { code?: string }).code))) throw error;
+      // Nothing inside a transaction is tried again: the transaction went with the connection.
+      if (inTx || !isRead(text) || !dropped(error)) throw error;
       return run();
     }
   };
@@ -118,6 +121,9 @@ export function fromPostgres(sql: Sql, inTx = false): Db {
       // failed, and a teacher's join stopped halfway). A reserved connection, begun and
       // ended by hand, is the same transaction.
       const reserved = await (sql as postgres.Sql).reserve();
+      // A connection that dropped part-way is never handed back: the driver has closed it,
+      // and back in the pool it would give the next query a dead socket.
+      let dead = false;
       try {
         await reserved.unsafe("begin");
         try {
@@ -125,11 +131,15 @@ export function fromPostgres(sql: Sql, inTx = false): Db {
           await reserved.unsafe("commit");
           return result;
         } catch (error) {
-          await reserved.unsafe("rollback").catch(() => undefined);
+          dead = dropped(error);
+          if (!dead) await reserved.unsafe("rollback").catch((e: unknown) => void (dead = dropped(e)));
           throw error;
         }
+      } catch (error) {
+        dead ||= dropped(error);
+        throw error;
       } finally {
-        reserved.release();
+        if (!dead) reserved.release();
       }
     }
   };

@@ -13,9 +13,22 @@ const serif = Young_Serif({ subsets: ["latin"], weight: "400", variable: "--font
 // The wordmark keeps its own face: the logo shouldn't change when the body font does.
 const wordmark = DM_Sans({ subsets: ["latin"], weight: "700", variable: "--font-wordmark-face", display: "swap" });
 
+const SITE = process.env.SITE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3004");
+
 export const metadata: Metadata = {
+  // Shared links (an invitation on WhatsApp, mostly) show a card: this title, this line, and
+  // app/opengraph-image.tsx. Links are made whole against the site's own address.
+  metadataBase: new URL(SITE),
   title: "Alumnity · HKBK College of Engineering alumni",
-  description: "A place for HKBK College of Engineering students and alumni to ask, guide and grow together."
+  description: "A place for HKBK College of Engineering students and alumni to ask, guide and grow together.",
+  openGraph: {
+    siteName: "Alumnity",
+    title: "Alumnity · HKBK College of Engineering alumni",
+    description: "A place for HKBK College of Engineering students and alumni to ask, guide and grow together.",
+    locale: "en_IN",
+    type: "website"
+  },
+  twitter: { card: "summary_large_image" }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

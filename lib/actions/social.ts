@@ -4,6 +4,7 @@ import type { ActionState } from "../action-state";
 import { report } from "../server/desk";
 import { follow, unfollow } from "../server/follows";
 import { acceptConnection, block, declineConnection, markNotificationsRead, removeConnection, requestConnection, sendMessage, unblock, withdrawRequest, NOTE_LIMIT, MESSAGE_LIMIT } from "../server/social";
+import { askForReferral } from "../server/posts";
 import { actor, answer, idFrom, SIGNED_OUT, textFrom } from "./common";
 
 /* Connections, blocks, messages, notifications and reports: one action per button. */
@@ -12,6 +13,14 @@ export async function connectAction(_: ActionState, form: FormData): Promise<Act
   const me = await actor();
   if (!me) return SIGNED_OUT;
   return answer(await requestConnection(me, idFrom(form), textFrom(form, "note", NOTE_LIMIT)), "Request sent.");
+}
+
+/** "Ask for a referral" on a #job post: a connection request with the note, or a message if you're connected. */
+export async function referralAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const asked = await askForReferral(me, idFrom(form), textFrom(form, "note", 1500));
+  return answer(asked, asked.ok && asked.as === "message" ? "Sent to them in Messages." : "Sent with a connection request. When they accept, you can message each other.");
 }
 
 export async function acceptAction(_: ActionState, form: FormData): Promise<ActionState> {

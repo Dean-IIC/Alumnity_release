@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import type { ActionState } from "../action-state";
 import { ASK_LIMITS, closeAsk, createAsk, markAnswered, replyToAsk, takeAsk } from "../server/asks";
 import { cancelEvent, createEvent, toggleRsvp } from "../server/events";
-import { addComment, COMMENT_LIMIT, createPost, MEDIA_LIMIT, POST_LIMIT, react, removeOwnComment, removeOwnPost, toggleCheer } from "../server/posts";
+import { addComment, COMMENT_LIMIT, createPost, MEDIA_LIMIT, POST_LIMIT, react, removeOwnComment, removeOwnPost, toggleCheer, verifyPost } from "../server/posts";
 import { ownPost, profileOf, saveProfile } from "../server/profile";
 import { CAPTION_LIMIT, createStory, markSeen, removeStory } from "../server/stories";
 import { actor, answer, idFrom, SIGNED_OUT, textFrom } from "./common";
@@ -18,13 +18,23 @@ export async function postAction(_: ActionState, form: FormData): Promise<Action
   const media = form.getAll("media").filter((v): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{10,40}$/.test(v)).slice(0, MEDIA_LIMIT + 1);
   // A group's composer sends the group; everyone else's, who it's for.
   const group = idFrom(form, "group") || null;
-  return answer(await createPost(me, textFrom(form, "body", POST_LIMIT), textFrom(form, "audience", 20), media, group), "Posted.");
+  // Tags picked in the composer (#job, #notice…), as well as any typed in the text.
+  const tags = form.getAll("tag").filter((v): v is string => typeof v === "string").slice(0, 10);
+  return answer(await createPost(me, textFrom(form, "body", POST_LIMIT), textFrom(form, "audience", 20), media, group, tags), "Posted.");
 }
 
 export async function removePostAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
   return answer(await removeOwnPost(me, idFrom(form)), "Removed.");
+}
+
+/** The college desk's check mark on a post (it goes on the HKBK board), or taking it back. */
+export async function verifyPostAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  const on = textFrom(form, "on", 2) === "1";
+  return answer(await verifyPost(me, idFrom(form), on), on ? "Verified: it's on the HKBK board." : "Taken off the board.");
 }
 
 /** Pins one of your own posts to the top of your page ("Featured"), or unpins it. */

@@ -234,9 +234,9 @@ const THEMES: Record<string, Theme> = {
     dots: [[240, 560], [80, 460], [230, 680]],
     phone: [["inkwell", 85, 45, 0, 0.7, "blue"], ["heart", 140, 40, -10, 0.6, "red"]]
   },
-  // Jobs and referrals: a path climbing up the margin, gears, a chain of links (one person
-  // to the next), letters going out.
-  openings: {
+  // The HKBK board (jobs, internships, notices): a path climbing up the margin, gears, a
+  // chain of links (one person to the next), letters going out.
+  board: {
     spine: [{ d: "M40 940L40 800L130 800L130 640L220 640L220 470L120 470L120 300L230 300L230 120", tone: "green", dashed: true }],
     marks: [
       ["gear", 160, 120, 0, 1.2, "blue"],

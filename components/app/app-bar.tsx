@@ -27,7 +27,7 @@ const MAIN: { key: string; href: string; label: string; icon: IconName; count?: 
 
 export const MORE: { href: string; label: string; icon: IconName; note: string }[] = [
   { href: "/ask", label: "Ask a senior", icon: "ask", note: "Questions to alumni who fit them" },
-  { href: "/openings", label: "Jobs & referrals", icon: "briefcase", note: "Openings alumni can refer you to" },
+  { href: "/board", label: "HKBK board", icon: "briefcase", note: "Jobs, internships and notices the college checked" },
   { href: "/events", label: "Events", icon: "event", note: "Reunions, talks, college days" },
   { href: "/causes", label: "Causes", icon: "heart", note: "Give to what HKBK people care about" },
   { href: "/batch", label: "Your batch", icon: "batch", note: "Everyone from your year" },

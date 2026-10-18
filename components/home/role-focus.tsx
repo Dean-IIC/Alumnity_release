@@ -2,7 +2,9 @@ import Link from "next/link";
 import { mentorAction } from "../../lib/actions/social";
 import type { User } from "../../lib/server/auth";
 import { asksFor, type Ask } from "../../lib/server/asks";
-import { openingsForHome } from "../../lib/server/openings";
+import { plainText } from "../../lib/mentions";
+import { feedFor } from "../../lib/server/posts";
+import { TAG } from "../../lib/tags";
 import { batchLabel, firstName, rupees, timeAgo, when } from "../../lib/format";
 import { departmentCounts, mentorsFor, myUpcomingEvents, newestAlumni, studentsSeeking, weekInNumbers } from "../../lib/server/home";
 import { auditLog, reports, stats } from "../../lib/server/desk";
@@ -76,7 +78,7 @@ function AskLine({ ask }: { ask: Ask }) {
 // ---------- A student ----------
 
 async function StudentFocus({ me }: { me: User }) {
-  const [mentors, { mine }, openings] = await Promise.all([mentorsFor(me, 4), asksFor(me), openingsForHome(me, 3)]);
+  const [mentors, { mine }, openings] = await Promise.all([mentorsFor(me, 4), asksFor(me), feedFor(me, { verified: true, tag: ["job", "internship"], limit: 3 })]);
   const photos = await photoIdsOf(mentors.map((m) => m.member.id));
   const live = mine.filter((a) => a.status === "open" || a.status === "taken").slice(0, 3);
   return (
@@ -109,24 +111,21 @@ async function StudentFocus({ me }: { me: User }) {
       )}
       {openings.length > 0 && (
         <>
-          <h3>Openings you could ask about</h3>
+          <h3>Jobs and internships the college has checked</h3>
           <ul className="focus__asks">
             {openings.map((o) => (
               <li key={o.id}>
-                <Link href={`/openings/${o.id}`} className="focus__ask">
-                  <strong>
-                    {o.title} · {o.company}
-                  </strong>
+                <Link href={`/notes/${o.id}`} className="focus__ask">
+                  <strong>{firstLine(o.body)}</strong>
                   <small>
-                    {o.kind === "internship" ? "Internship" : "Job"}
-                    {o.poster ? ` · ${o.canRefer ? `${o.poster.name} can refer you` : `from ${o.poster.name}`}` : ""}
+                    {o.tags.includes("internship") ? "Internship" : "Job"} · from {o.author.name}
                   </small>
                 </Link>
               </li>
             ))}
           </ul>
-          <Link className="wf-inline-link" href="/openings">
-            All jobs and internships
+          <Link className="wf-inline-link" href="/board?tag=job">
+            All jobs and internships on the board
           </Link>
         </>
       )}
@@ -142,6 +141,12 @@ async function StudentFocus({ me }: { me: User }) {
     </section>
   );
 }
+
+/** The start of a post, for a one-line list: mentions as names, #tags left out. */
+const firstLine = (body: string) => {
+  const line = plainText(body).replace(TAG, "$1").replace(/\s+/g, " ").trim();
+  return line.length > 90 ? `${line.slice(0, 90).replace(/\s+\S*$/, "")}…` : line || "A post";
+};
 
 // ---------- An alumnus ----------
 
@@ -202,10 +207,11 @@ async function AlumnusFocus({ me }: { me: User }) {
       )}
       <h3>Hiring where you work?</h3>
       <p className="focus__quiet">
-        Put up the opening. HKBK students can ask you for a referral, with a line on why they fit.{" "}
-        <Link className="wf-inline-link" href="/openings?new=1#new-opening">
-          Put up an opening
-        </Link>
+        Post it with #job or #internship. The college checks it and puts it on the HKBK board, where students look, and they can ask you for a referral.{" "}
+        {/* A plain link: the composer opens on the address's #compose, which a page swap wouldn't change. */}
+        <a className="wf-inline-link" href="#compose">
+          Write a post
+        </a>
       </p>
     </section>
   );
