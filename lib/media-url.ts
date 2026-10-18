@@ -3,7 +3,7 @@
  * browsers keep them a day; the version moves when how they're served changes, so nobody
  * is left with a copy served the old way.
  */
-const VERSION = 2;
+const VERSION = 3; // 3: older photos now get their smaller copies (lib/server/media.ts, withSizes)
 
 /** The sizes kept of each photo (widths in pixels), smallest first. */
 export const PHOTO_SIZES = [160, 640, 1280] as const;
