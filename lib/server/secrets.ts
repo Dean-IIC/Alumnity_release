@@ -55,7 +55,9 @@ export function passwordProblem(password: string, context: string[] = []): strin
   if (/^\d+$/.test(password)) return "Not just numbers: add some letters.";
   if (new Set(password).size < 4) return "Use more different characters.";
   const lower = password.toLowerCase();
-  if (["password", "qwerty", "123456", "hkbk", "alumnity"].some((w) => lower.includes(w))) return "Avoid common words like “password” or “hkbk”.";
+  // Named, so nobody is left guessing which word it was ("Alumnity" is in every demo address).
+  const common = ["password", "qwerty", "123456", "hkbk", "alumnity"].find((w) => lower.includes(w));
+  if (common) return `Leave out “${common}”: it’s too easy to guess.`;
   if (context.some((c) => c && c.length >= 4 && lower.includes(c.toLowerCase()))) return "Don’t use your name, USN or email in it.";
   return null;
 }
