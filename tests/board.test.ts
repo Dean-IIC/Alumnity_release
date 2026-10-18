@@ -100,4 +100,23 @@ describe("the HKBK board", () => {
     expect(await posts.askForReferral(student, id!, why)).toMatchObject({ ok: true, as: "message" });
     expect(await db.db().one("select 1 from messages where sender = ? and recipient = ? and body like ?", student.id, alum.id, "%CAN bus%")).toBeTruthy();
   });
+
+  it("a job or internship put on the board tells the students who are looking, once, and nobody else", async () => {
+    const alum = await member("Hiring Alum");
+    const admin = await member("Board Admin 2", { email: "board-admin@example.com" }).catch(async () => (await people.memberById((await db.db().one<{ id: number }>("select id from users where email = 'board-admin@example.com'"))!.id))!);
+    const looking = await member("Looking Student", { role: "student" });
+    const idle = await member("Idle Student", { role: "student" });
+    const seek = (u: U, seeking: object) => db.db().run("insert into profiles (user_id, data, updated_at) values (?, ?, ?) on conflict (user_id) do update set data = excluded.data", u.id, JSON.stringify({ seeking }), Date.now());
+    await seek(looking, { internship: true });
+    await seek(idle, { mentor: true });
+    const { id } = await posts.createPost(alum, "Summer internship in my team #internship", "everyone");
+    expect((await posts.verifyPost(admin, id!, true)).ok).toBe(true);
+    const told = async (u: U) => (await db.db().all("select 1 from notifications where user_id = ? and kind = 'board-work'", u.id)).length;
+    expect(await told(looking)).toBe(1);
+    expect(await told(idle)).toBe(0);
+    // Off and on again: not told twice.
+    await posts.verifyPost(admin, id!, false);
+    await posts.verifyPost(admin, id!, true);
+    expect(await told(looking)).toBe(1);
+  });
 });
