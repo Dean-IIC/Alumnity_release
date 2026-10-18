@@ -20,7 +20,7 @@ function Preview({ value, use }: { value: MediaRef | null; use: "photo" | "cover
   if (value.kind === "video") return <video src={mediaUrl(value.id)} muted loop autoPlay playsInline />;
   if (value.kind === "html") return <iframe src={mediaUrl(value.id)} title="Your cover" sandbox="allow-scripts" referrerPolicy="no-referrer" scrolling="no" />;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={mediaUrl(value.id)} alt="" />;
+  return <img src={mediaUrl(value.id, 640)} alt="" />;
 }
 
 export function MediaPicker({ use, value, onChange }: { use: "photo" | "cover"; value: MediaRef | null; onChange: (ref: MediaRef | null) => void }) {

@@ -14,6 +14,7 @@ export function LoginForm() {
     <div className="join join--form-first">
       <div className="join__form">
         <form
+          method="post"
           onSubmit={async (event) => {
             event.preventDefault();
             const form = new FormData(event.currentTarget);
