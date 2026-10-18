@@ -47,6 +47,18 @@ const SUPABASE_ERRORS: [RegExp, string][] = [
   [/signups? not allowed|not allowed for otp/i, "We couldn’t send a code to that address."]
 ];
 
+/**
+ * What Supabase's refusal to set a password means here. "The same as the old one" is
+ * SAME_PASSWORD: on a join that's a retry, and fine. Seen live, its words are "New password
+ * should be different from the old password." (code same_password), with no "same" in them.
+ * Anything else is Supabase's own rule, in its own words, rather than a guess.
+ */
+export function passwordRefusal(error: { message: string; code?: string }): string {
+  if (error.code === "same_password" || /same|different from the old/i.test(error.message)) return SAME_PASSWORD;
+  console.error("setPassword refused:", error.code ?? "", error.message);
+  return /password/i.test(error.message) ? `That password can’t be used: ${error.message.replace(/^Password\s*/i, "")}` : "That password can’t be used. Try a longer one.";
+}
+
 function friendly(message: string) {
   return SUPABASE_ERRORS.find(([pattern]) => pattern.test(message))?.[1] ?? "We couldn’t send the code just now. Please try again in a minute.";
 }
@@ -102,11 +114,7 @@ async function supabaseProvider(): Promise<AuthProvider> {
     },
     async setPassword(password) {
       const { error } = await (await client()).auth.updateUser({ password });
-      if (!error) return null;
-      if (/same/i.test(error.message)) return SAME_PASSWORD;
-      // Supabase's own rule (letters, digits, symbols…) in its own words, rather than a guess.
-      console.error("setPassword refused:", error.message);
-      return /password/i.test(error.message) ? `That password can’t be used: ${error.message.replace(/^Password\s*/i, "")}` : "That password can’t be used. Try a longer one.";
+      return error ? passwordRefusal(error) : null;
     },
     async signOut(scope) {
       await (await client()).auth.signOut({ scope });
