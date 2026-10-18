@@ -151,8 +151,23 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
   });
   await db().run("delete from auth_intents where ticket = ?", ticket);
   if (!member) {
+    // Say which: a member with this email, or this sign-in already tied to another member
+    // (seen live: refused with no member under this email). The server log names the rows.
+    const clash = await db().all<{ id: number; email: string; same_login: boolean }>(
+      "select id, email, auth_id = ?::uuid as same_login from users where auth_id = ?::uuid or lower(email) = lower(?)",
+      session.authId,
+      session.authId,
+      row.email
+    );
+    console.error("staff join complete: no member made", { invited: row.email, authId: session.authId, clash });
     await auth.signOut("local");
-    return { ok: false, error: "That email already has an account. Log in instead." };
+    const byLogin = clash.find((c) => c.same_login && c.email.toLowerCase() !== row.email.toLowerCase());
+    return {
+      ok: false,
+      error: byLogin
+        ? "This sign-in is already tied to another member's account. The college desk can sort it out."
+        : "That email already has an account. Log in instead."
+    };
   }
   return { ok: true, user: toUser(member) };
 }

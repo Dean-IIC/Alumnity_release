@@ -18,7 +18,8 @@ export const metadata: Metadata = {
     title: "Join HKBK's alumni and students on Alumnity",
     description: "Find your name in the college register and join in a minute: your batch, seniors who mentor, jobs and referrals.",
     locale: "en_IN",
-    type: "website"
+    type: "website",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Alumnity: HKBK College of Engineering's students and alumni" }]
   }
 };
 

@@ -17,7 +17,8 @@ const SITE = process.env.SITE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL 
 
 export const metadata: Metadata = {
   // Shared links (an invitation on WhatsApp, mostly) show a card: this title, this line, and
-  // app/opengraph-image.tsx. Links are made whole against the site's own address.
+  // public/og.jpg (1200×630, under 100 KB: WhatsApp leaves out bigger pictures). It was drawn
+  // once with next/og (git history: app/opengraph-image.tsx) and saved as a JPEG.
   metadataBase: new URL(SITE),
   title: "Alumnity · HKBK College of Engineering alumni",
   description: "A place for HKBK College of Engineering students and alumni to ask, guide and grow together.",
@@ -26,9 +27,10 @@ export const metadata: Metadata = {
     title: "Alumnity · HKBK College of Engineering alumni",
     description: "A place for HKBK College of Engineering students and alumni to ask, guide and grow together.",
     locale: "en_IN",
-    type: "website"
+    type: "website",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Alumnity: HKBK College of Engineering's students and alumni" }]
   },
-  twitter: { card: "summary_large_image" }
+  twitter: { card: "summary_large_image", images: ["/og.jpg"] }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
