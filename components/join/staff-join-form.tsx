@@ -5,6 +5,7 @@ import Link from "next/link";
 import { firstName } from "../../lib/format";
 import { useState } from "react";
 import { post } from "../../lib/client/post";
+import { useHydrated } from "../../lib/client/hydrated";
 import { CodeField, PasswordField } from "./fields";
 
 /*
@@ -17,6 +18,8 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
   const [name, setName] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Disabled until the script has taken over: tapped early, the browser would send the form itself.
+  const ready = useHydrated();
 
   return (
     <div className="join join--staff">
@@ -47,7 +50,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
                 {problem}
               </p>
             )}
-            <button className="button button--primary join__submit" type="submit" disabled={busy}>
+            <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
               {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
             </button>
             <p className="join__fine">
@@ -85,7 +88,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
                 {problem}
               </p>
             )}
-            <button className="button button--primary join__submit" type="submit" disabled={busy}>
+            <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
               {busy ? "Making your account…" : "Join Alumnity"} <span aria-hidden="true">→</span>
             </button>
             <button type="button" className="join__switch" onClick={() => setTicket("")}>

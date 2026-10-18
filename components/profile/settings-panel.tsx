@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { post } from "../../lib/client/post";
+import { useHydrated } from "../../lib/client/hydrated";
 import { PasswordField } from "../join/fields";
 import { AlertsPanel } from "./alerts-panel";
 import { ThemeChoicePicker } from "./theme-choice";
@@ -37,6 +38,8 @@ function useAction() {
 
 export function SettingsPanel({ email }: { email: string }) {
   const password = useAction();
+  // Disabled until the script has taken over: tapped early, the browser would send the form itself.
+  const ready = useHydrated();
   const sessions = useAction();
   const remove = useAction();
 
@@ -75,7 +78,7 @@ export function SettingsPanel({ email }: { email: string }) {
           </label>
           <PasswordField label="A new password" />
           {password.note}
-          <button className="button button--primary join__submit" type="submit" disabled={password.busy}>
+          <button className="button button--primary join__submit" type="submit" disabled={password.busy || !ready}>
             {password.busy ? "Saving…" : "Change my password"}
           </button>
         </form>

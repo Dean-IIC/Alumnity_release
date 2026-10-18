@@ -5,6 +5,7 @@ import Link from "next/link";
 import { firstName } from "../../lib/format";
 import { useEffect, useState, type FormEvent } from "react";
 import { post } from "../../lib/client/post";
+import { useHydrated } from "../../lib/client/hydrated";
 import { CodeField, PasswordField } from "./fields";
 import { RegisterBook, type BookLine, type BookState } from "./register-book";
 
@@ -42,6 +43,8 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
   const [email, setEmail] = useState("");
   const [ticket, setTicket] = useState("");
   const [busy, setBusy] = useState(false);
+  // Disabled until the script has taken over: tapped early, the browser would send the form itself.
+  const ready = useHydrated();
   const [resendIn, setResendIn] = useState(0);
 
   useEffect(() => {
@@ -224,7 +227,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                     {problem}
                   </p>
                 )}
-                <button className="button button--primary" type="submit" disabled={busy}>
+                <button className="button button--primary" type="submit" disabled={busy || !ready}>
                   {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
                 </button>
               </form>
@@ -251,7 +254,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                     {problem}
                   </p>
                 )}
-                <button className="button button--primary" type="submit" disabled={busy}>
+                <button className="button button--primary" type="submit" disabled={busy || !ready}>
                   {busy ? "Checking…" : "That’s my code"} <span aria-hidden="true">→</span>
                 </button>
                 <button type="button" className="join__switch" disabled={resendIn > 0 || busy} onClick={() => sendCode(email)}>
@@ -288,7 +291,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                     {problem}
                   </p>
                 )}
-                <button className="button button--primary" type="submit" disabled={busy}>
+                <button className="button button--primary" type="submit" disabled={busy || !ready}>
                   {busy ? "Making your account…" : "Join Alumnity"} <span aria-hidden="true">→</span>
                 </button>
               </form>

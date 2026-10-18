@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { post } from "../../lib/client/post";
+import { useHydrated } from "../../lib/client/hydrated";
 import { CodeField, PasswordField } from "./fields";
 import { RegisterBook } from "./register-book";
 
@@ -16,6 +17,8 @@ export function ForgotForm() {
   const [ticket, setTicket] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Disabled until the script has taken over: tapped early, the browser would send the form itself.
+  const ready = useHydrated();
 
   return (
     <div className="join join--form-first">
@@ -45,7 +48,7 @@ export function ForgotForm() {
                 {problem}
               </p>
             )}
-            <button className="button button--primary join__submit" type="submit" disabled={busy}>
+            <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
               {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
             </button>
             <p className="join__fine">
@@ -74,7 +77,7 @@ export function ForgotForm() {
                 {problem}
               </p>
             )}
-            <button className="button button--primary join__submit" type="submit" disabled={busy}>
+            <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
               {busy ? "Saving…" : "Save my new password"} <span aria-hidden="true">→</span>
             </button>
             <button type="button" className="join__switch" onClick={() => setTicket("")}>
