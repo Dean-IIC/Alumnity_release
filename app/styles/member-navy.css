@@ -20,10 +20,27 @@
 }
 
 .scene,
-.scene__depth {
+.scene__version {
   position: absolute;
   inset: 0;
   overflow: hidden;
+}
+
+/* Each picture is drawn three times, for a computer, a tablet and a phone: only the one
+   made for this screen is shown, so nothing is stretched or awkwardly cropped. */
+.scene__version--tablet,
+.scene__version--phone {
+  display: none;
+}
+
+@media (min-width: 701px) and (max-width: 1100px) {
+  .scene__version--computer {
+    display: none;
+  }
+
+  .scene__version--tablet {
+    display: block;
+  }
 }
 
 /* Each layer a little wider than the screen, so it can drift without showing an edge. */
@@ -84,9 +101,23 @@
 /* A phone: the picture wider, and still. The cards cover most of it, and a phone's
    graphics are better spent on scrolling smoothly than on drifting waves behind them. */
 @media (max-width: 700px) {
+  .scene__version--computer {
+    display: none;
+  }
+
+  .scene__version--phone {
+    display: block;
+  }
+
   .scene svg {
-    left: -30%;
-    width: 160%;
+    left: 0;
+    width: 100%;
+  }
+
+  /* On a phone the page's words run the full width, over the drawing: it stays a soft
+     texture behind them rather than competing. */
+  .scene__version--phone .scene__shapes {
+    opacity: 0.5;
   }
 
   .scene__wave,
