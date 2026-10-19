@@ -29,11 +29,18 @@ export function PostSkeleton() {
  * posts run out it doesn't stop: "More from HKBK" follows (people, groups, questions, and the
  * college's photos, a card at a time) until there's truly nothing left. The "Older posts"
  * link stays underneath, for anyone without JavaScript or who'd rather tap.
+ *
+ * `filters`: Home's filters, as in its address ("tag=job&role=alumnus"). Every page that
+ * follows keeps to them, and a filtered feed ends with its last matching post (what it was
+ * narrowed to is done; "More from HKBK" would only be in the way). Give it a `key` that
+ * changes with the filters, so a new set starts afresh. `empty`: the first page had no posts
+ * (the page says so itself, so the end needn't).
  */
-export function InfiniteFeed({ scope, next: first }: { scope: FeedScope; next: number | null }) {
+export function InfiniteFeed({ scope, next: first, filters = "", empty = false }: { scope: FeedScope; next: number | null; filters?: string; empty?: boolean }) {
+  const filtered = filters !== "";
   const [pages, setPages] = useState<ReactNode[]>([]);
   // Posts first (the next one's time), then "more" pages (their number), then the end.
-  const [cursor, setCursor] = useState<{ posts: number } | { more: number } | null>(first === null ? { more: 0 } : { posts: first });
+  const [cursor, setCursor] = useState<{ posts: number } | { more: number } | null>(first !== null ? { posts: first } : filtered ? null : { more: 0 });
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const end = useRef<HTMLDivElement>(null);
@@ -46,9 +53,9 @@ export function InfiniteFeed({ scope, next: first }: { scope: FeedScope; next: n
     setFailed(false);
     try {
       if ("posts" in cursor) {
-        const result = await olderPostsAction(scope, cursor.posts);
+        const result = await olderPostsAction(scope, cursor.posts, filters);
         setPages((list) => [...list, result.posts]);
-        setCursor(result.next === null ? { more: 0 } : { posts: result.next });
+        setCursor(result.next !== null ? { posts: result.next } : filtered ? null : { more: 0 });
       } else {
         const result = await moreFromHkbkAction(cursor.more);
         setPages((list) => [...list, ...(cursor.more === 0 ? [<MoreHeading key="more" />] : []), result.cards]);
@@ -60,7 +67,7 @@ export function InfiniteFeed({ scope, next: first }: { scope: FeedScope; next: n
       busy.current = false;
       setLoading(false);
     }
-  }, [cursor, scope]);
+  }, [cursor, scope, filters, filtered]);
 
   useEffect(() => {
     const target = end.current;
@@ -94,9 +101,13 @@ export function InfiniteFeed({ scope, next: first }: { scope: FeedScope; next: n
             Couldn't load more. Try again
           </button>
         ) : cursor === null ? (
-          <p className="feed-more__end">You've seen everything on Alumnity for now. Come back soon: HKBK keeps posting.</p>
+          filtered ? (
+            empty ? null : <p className="feed-more__end">That's every post that matches these filters.</p>
+          ) : (
+            <p className="feed-more__end">You've seen everything on Alumnity for now. Come back soon: HKBK keeps posting.</p>
+          )
         ) : "posts" in cursor ? (
-          <Link href={`/home?${scope === "following" ? "view=following&" : ""}before=${cursor.posts}`}>Older posts →</Link>
+          <Link href={`/home?${[scope === "following" ? "view=following" : "", filters, `before=${cursor.posts}`].filter(Boolean).join("&")}`}>Older posts →</Link>
         ) : null}
       </div>
     </>

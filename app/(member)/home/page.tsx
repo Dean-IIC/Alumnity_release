@@ -25,8 +25,12 @@ import { eventsFor, organisedCount } from "../../../lib/server/events";
 import { followCounts } from "../../../lib/server/follows";
 import { liveCauses } from "../../../lib/server/causes";
 import { groupsFor } from "../../../lib/server/groups";
-import { batchmates, peopleToMeet, relationsOf } from "../../../lib/server/people";
-import { feedFor, type FeedScope } from "../../../lib/server/posts";
+import { FeedFilterBar } from "../../../components/home/feed-filters";
+import { feedHref, filterCount, filterQuery, NO_FILTERS, readFeedFilters } from "../../../lib/feed-filters";
+import { WORK_TAGS } from "../../../lib/tags";
+import type { User } from "../../../lib/server/auth";
+import { batchmates, blockIds, membersByIds, peopleToMeet, relationsOf } from "../../../lib/server/people";
+import { feedFor, popularTags, type FeedScope } from "../../../lib/server/posts";
 import { photoIdsOf, profileOf } from "../../../lib/server/profile";
 import { requireUser } from "../../../lib/server/session";
 import { PAUSED, settings } from "../../../lib/server/settings";
@@ -59,17 +63,31 @@ const WELCOME = [
   { href: "/causes", label: "Back a cause", note: "Scholarships and people in need, checked by the college", icon: "heart" }
 ] as const;
 
+/** The people a filter names, as the filter bar shows them: never anyone blocked either way. */
+async function filterPeople(me: User, ids: number[]): Promise<{ id: number; name: string }[]> {
+  if (!ids.length) return [];
+  const [members, blocks] = await Promise.all([membersByIds(ids), blockIds(me.id)]);
+  return ids.flatMap((id) => {
+    const m = members.get(id);
+    return m && !blocks.has(id) ? [{ id, name: m.name }] : [];
+  });
+}
+
 /** Home: stories, a word from the college, what your people are sharing, and a few people and events worth a look. */
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ before?: string; view?: string }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const me = await requireUser("/home");
   const params = await searchParams;
   const beforeParam = Number(params.before);
   const before = Number.isSafeInteger(beforeParam) && beforeParam > 0 ? beforeParam : undefined;
   const scope: FeedScope = params.view === "following" ? "following" : "all";
+  // The feed's filters (?tag=job&role=alumnus&from=12,34&q=…), cleaned and capped.
+  const filters = readFeedFilters(params);
+  const filtered = filterCount(filters) > 0;
+  const filterParams = filterQuery(filters);
 
-  const [profile, posts, reels, mates, relationTo, { upcoming }, announcements, site, connections, follows, groups, causes, others] = await Promise.all([
+  const [profile, posts, reels, mates, relationTo, { upcoming }, announcements, site, connections, follows, groups, causes, others, topTags, chosenPeople] = await Promise.all([
     profileOf(me.id),
-    feedFor(me, { limit: PAGE, before, scope }),
+    feedFor(me, { limit: PAGE, before, scope, ...filters }),
     storyBar(me),
     batchmates(me),
     relationsOf(me.id),
@@ -80,13 +98,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     followCounts(me.id),
     groupsFor(me),
     liveCauses(me, 2),
-    peopleToMeet(me, 6)
+    peopleToMeet(me, 6),
+    popularTags(me),
+    filterPeople(me, filters.authors)
   ]);
+  // The topic chips: what's being tagged lately, then the work tags; ten at most.
+  const topics = [...new Set([...topTags, ...WORK_TAGS])].slice(0, 10);
   // People to meet: your batch first; on a young site, anyone from your branch, then anyone.
   const batch = mates.filter((u) => relationTo(u.id) === "none").slice(0, 4);
   const suggestions = batch.length ? batch : others.slice(0, 4);
   const myGroups = groups.mine.filter((g) => g.my?.status === "member").slice(0, 5);
-  const quiet = posts.length === 0 && !before;
+  const quiet = posts.length === 0 && !before && !filtered;
   const notesOn = site.features.notes;
 
   const photos = await photoIdsOf([
@@ -232,13 +254,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           )}
 
           {/* Fetched alongside the rest of Home, not before it. */}
-          {!before && (
+          {/* Filtering, the reader is looking for posts: the greeting and the steps can wait. */}
+          {!before && !filtered && (
             <Suspense fallback={<FocusWaiting me={me} />}>
               <RoleFocus me={me} />
             </Suspense>
           )}
 
-          {(stepsLeft > 0 || !pageFull) && !before && (
+          {(stepsLeft > 0 || !pageFull) && !before && !filtered && (
             <section className="sheet side-box" aria-labelledby="steps">
               {/* A full page counts as one of the steps; until then its strength shows here, above the rest. */}
               <h2 id="steps">
@@ -270,15 +293,27 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
 
           <nav className="feed-tabs" aria-label="Which posts">
-            <Link href="/home" aria-current={scope === "all" ? "page" : undefined}>
+            <Link href={feedHref(filters)} aria-current={scope === "all" ? "page" : undefined}>
               Everyone
             </Link>
-            <Link href="/home?view=following" aria-current={scope === "following" ? "page" : undefined}>
+            <Link href={feedHref(filters, { view: "following" })} aria-current={scope === "following" ? "page" : undefined}>
               Following
             </Link>
           </nav>
 
-          {quiet ? (
+          <FeedFilterBar filters={filters} view={scope} topics={topics} people={chosenPeople} />
+
+          {filtered && posts.length === 0 && !before ? (
+            <section className="sheet post-filters-empty" aria-labelledby="no-match">
+              <h2 id="no-match">No posts match these filters</h2>
+              <p>
+                {scope === "following" ? "Nothing from the people you follow matches. " : ""}Try fewer filters, or other words.
+              </p>
+              <Link className="post-filters__reset" href={feedHref(NO_FILTERS, { view: scope })}>
+                Clear filters
+              </Link>
+            </section>
+          ) : quiet ? (
             <section className="sheet side-box welcome-card" aria-labelledby="welcome">
               <h2 id="welcome">{scope === "following" ? "Nothing yet from your people" : "Alumnity is just getting started"}</h2>
               <p className="side-box__note">
@@ -308,11 +343,18 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
           {before && (
             <p className="feed-more">
-              <a href={scope === "following" ? "/home?view=following" : "/home"}>← Newest</a>
+              <a href={feedHref(filters, { view: scope })}>← Newest</a>
             </p>
           )}
-          {/* It never just stops: older posts, then "More from HKBK", as the reader scrolls. */}
-          <InfiniteFeed scope={scope} next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null} />
+          {/* It never just stops: older posts, then "More from HKBK", as the reader scrolls (a
+              filtered feed ends with its last match). Keyed, so new filters start it afresh. */}
+          <InfiniteFeed
+            key={`${scope}|${filterParams}|${before ?? ""}`}
+            scope={scope}
+            filters={filterParams}
+            empty={posts.length === 0}
+            next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null}
+          />
         </div>
 
         {/* ----- Around you ----- */}
