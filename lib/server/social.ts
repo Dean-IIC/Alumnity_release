@@ -67,16 +67,16 @@ export const DAILY_REQUESTS = 25;
 
 export async function requestConnection(from: User, toId: number, note: string): Promise<Result> {
   const to = await memberById(toId);
-  if (!to || to.id === from.id) return no("That member isn’t here.");
+  if (!to || to.id === from.id) return no("We couldn’t find that member.");
   // An account kept by the college (the alumni association's archive): nobody's there to accept.
-  if (await db().one("select 1 from users where id = ? and college_account = 1", to.id)) return no("That’s the college’s own account: there’s nobody to connect with.");
+  if (await db().one("select 1 from users where id = ? and college_account = 1", to.id)) return no("This is the college’s own account. You can’t connect with it.");
   const rel = await relation(from.id, to.id);
   if (rel === "blocked" || rel === "blocked-by") return no("You can’t connect with this member.");
   if (rel === "connected") return no("You’re already connected.");
-  if (rel === "sent") return no("Your request is already waiting for them.");
+  if (rel === "sent") return no("You’ve already sent them a connection request.");
   if (rel === "received") return acceptConnection(from, to.id);
   const daily = (await settings()).dailyRequests;
-  if (!(await withinLimit(`connect:${from.id}`, daily, DAY))) return no(`That’s ${daily} requests today: the most in a day. Try again tomorrow.`);
+  if (!(await withinLimit(`connect:${from.id}`, daily, DAY))) return no(`You’ve sent ${daily} connection requests today. That’s the daily limit. Try again tomorrow.`);
   await db().tx(async (t) => {
     await t.run("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)", from.id, to.id, to.id, from.id);
     await t.run("insert into connections (requester, addressee, status, note, created_at) values (?, ?, 'pending', ?, ?)", from.id, to.id, note.trim().slice(0, NOTE_LIMIT), Date.now());
@@ -88,7 +88,7 @@ export async function requestConnection(from: User, toId: number, note: string):
     from.id,
     Date.now() - 7 * DAY
   );
-  if (!recently) await notify(to.id, { actor: from.id, kind: "connect-request", text: `${from.name} would like to connect.`, link: "/connections" });
+  if (!recently) await notify(to.id, { actor: from.id, kind: "connect-request", text: `${from.name} sent you a connection request.`, link: "/connections" });
   return { ok: true };
 }
 
@@ -99,8 +99,8 @@ export async function acceptConnection(me: User, fromId: number): Promise<Result
     fromId,
     me.id
   );
-  if (!changes) return no("That request isn’t waiting any more.");
-  await notify(fromId, { actor: me.id, kind: "connect-accepted", text: `${me.name} accepted your request. You’re connected.`, link: `/people/${me.id}` });
+  if (!changes) return no("This connection request has already been answered or withdrawn.");
+  await notify(fromId, { actor: me.id, kind: "connect-accepted", text: `${me.name} accepted your connection request. You’re now connected.`, link: `/people/${me.id}` });
   return { ok: true };
 }
 
@@ -121,7 +121,7 @@ export async function removeConnection(me: User, otherId: number): Promise<Resul
 
 export async function block(me: User, otherId: number): Promise<Result> {
   if (me.id === otherId) return no("You can’t block yourself.");
-  if (!(await db().one("select 1 from users where id = ?", otherId))) return no("That member isn’t here.");
+  if (!(await db().one("select 1 from users where id = ?", otherId))) return no("We couldn’t find that member.");
   await db().tx(async (t) => {
     await t.run("insert into blocks (blocker, blocked, created_at) values (?, ?, ?) on conflict do nothing", me.id, otherId, Date.now());
     await t.run("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)", me.id, otherId, otherId, me.id);
@@ -225,10 +225,10 @@ export type Message = {
 export async function sendMessage(from: User, toId: number, body: string, story?: { id: number; reaction: string | null }): Promise<Result> {
   if (!(await settings()).features.messages) return no(PAUSED);
   const text = body.trim().slice(0, MESSAGE_LIMIT);
-  if (!text) return no("Write something first.");
-  if (!(await memberById(toId))) return no("That member isn't here any more.");
-  if ((await relation(from.id, toId)) !== "connected") return no("You can message your connections. Connect first, or use Ask a senior.");
-  if (!(await withinLimit(`message:${from.id}`, 120, 60 * 60_000))) return no("That’s a lot of messages in an hour. Take a breather and try again.");
+  if (!text) return no("Type a message first.");
+  if (!(await memberById(toId))) return no("We couldn't find that member.");
+  if ((await relation(from.id, toId)) !== "connected") return no("You can only message your connections. Connect with them first, or use Ask a senior.");
+  if (!(await withinLimit(`message:${from.id}`, 120, 60 * 60_000))) return no("You’ve sent too many messages in the last hour. Please wait a while and try again.");
   // One notification per conversation until it's read, not one per message: none while
   // earlier messages wait unread, nor while the last "new message" notification does (a
   // thread read some other way used to leave that one behind, and each new burst added another).
@@ -336,12 +336,12 @@ const sentBy = (me: User, id: number) =>
 export async function editMessage(me: User, id: number, body: string): Promise<Result> {
   if (!(await settings()).features.messages) return no(PAUSED);
   const m = await sentBy(me, id);
-  if (!m || m.deleted_at != null) return no("That message isn't here any more.");
+  if (!m || m.deleted_at != null) return no("We couldn't find that message.");
   if (m.reaction != null) return no("A reaction can't be edited.");
   const since = Date.now() - MESSAGE_EDIT_WINDOW;
-  if (m.created_at <= since) return no("A message can be edited for 15 minutes after it's sent.");
+  if (m.created_at <= since) return no("You can only edit a message for 15 minutes after you send it.");
   const text = body.trim().slice(0, MESSAGE_LIMIT);
-  if (!text) return no("Write something, or delete the message instead.");
+  if (!text) return no("Type a message, or delete it instead.");
   // Unchanged words leave it as it was (no "edited" for nothing).
   await db().run("update messages set body = ?, edited_at = ? where id = ? and sender = ? and deleted_at is null and created_at > ? and body <> ?", text, Date.now(), id, me.id, since, text);
   return { ok: true };
@@ -352,7 +352,7 @@ export async function editMessage(me: User, id: number, body: string): Promise<R
  * cleared from the database, not just hidden, and both see "This message was deleted".
  */
 export async function deleteMessageForEveryone(me: User, id: number): Promise<Result> {
-  if (!(await sentBy(me, id))) return no("Only the one who sent a message can delete it for everyone.");
+  if (!(await sentBy(me, id))) return no("Only the sender can delete a message for everyone.");
   await db().run(
     "update messages set body = '', reaction = null, story_id = null, edited_at = null, deleted_at = ? where id = ? and sender = ? and deleted_at is null",
     Date.now(),
@@ -365,7 +365,7 @@ export async function deleteMessageForEveryone(me: User, id: number): Promise<Re
 /** Either of the two deletes a message for themselves only: the other still has it. */
 export async function deleteMessageForMe(me: User, id: number): Promise<Result> {
   const m = Number.isSafeInteger(id) && id > 0 ? await db().one<{ recipient: number }>("select recipient from messages where id = ? and (sender = ? or recipient = ?)", id, me.id, me.id) : undefined;
-  if (!m) return no("That message isn't here any more.");
+  if (!m) return no("We couldn't find that message.");
   const now = Date.now();
   await db().run("insert into message_hidden (user_id, message_id, hidden_at) values (?, ?, ?) on conflict do nothing", me.id, id, now);
   // Gone for them, so never left counting as unread.
@@ -378,7 +378,7 @@ export async function deleteMessageForMe(me: User, id: number): Promise<Result> 
  * other still has it all). If either writes again, it comes back with only the new messages.
  */
 export async function deleteChat(me: User, otherId: number): Promise<Result> {
-  if (!Number.isSafeInteger(otherId) || otherId <= 0 || otherId === me.id) return no("That conversation isn't here.");
+  if (!Number.isSafeInteger(otherId) || otherId <= 0 || otherId === me.id) return no("We couldn't find that conversation.");
   const last = await db().one<{ id: number | null }>(
     "select max(id) as id from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?)",
     me.id,

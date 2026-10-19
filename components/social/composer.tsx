@@ -135,7 +135,7 @@ export function Composer({
             </span>
           </div>
         ) : (
-          <div className="composer__audience" role="radiogroup" aria-label="Who can see it">
+          <div className="composer__audience" role="radiogroup" aria-label="Who can see this post">
             {AUDIENCE.filter((a) => a.value !== "batch" || hasBatch).map((a) => (
               <label key={a.value} className={`composer__who ${audience === a.value ? "composer__who--on" : ""}`}>
                 <input type="radio" name="audience" value={a.value} checked={audience === a.value} onChange={() => setAudience(a.value)} />
@@ -160,7 +160,7 @@ export function Composer({
         className="composer__text"
       />
       <fieldset className="composer__tags">
-        <legend>Tag it (optional)</legend>
+        <legend>Add a tag (optional)</legend>
         {SUGGESTED_TAGS.map(([tag, label]) => (
           <label key={tag} className="composer__tag">
             <input type="checkbox" name="tag" value={tag} />#{label.toLowerCase()}
@@ -177,7 +177,7 @@ export function Composer({
               <button
                 type="button"
                 className="composer__remove"
-                aria-label="Remove"
+                aria-label="Remove photo or video"
                 onClick={() => {
                   URL.revokeObjectURL(u.preview);
                   setUploads((all) => all.filter((x) => x.key !== u.key));
@@ -212,7 +212,7 @@ export function Composer({
         </p>
       )}
       <Sheet open={tagging} onClose={() => setTagging(false)} title="Tag people" className="sheet--tag">
-        <p className="sheet__note">They&apos;re mentioned in your post, and each is told (if the post is for people they&apos;re among).</p>
+        <p className="sheet__note">We add their names to your post. Each person gets a notification if they can see the post.</p>
         <PeoplePicker chosen={tagged.map((p) => p.id)} onChange={setTagged} max={TAG_LIMIT} label="Tag" />
         <div className="sheet__foot">
           <button type="button" className="composer__cancel" onClick={() => setTagging(false)}>

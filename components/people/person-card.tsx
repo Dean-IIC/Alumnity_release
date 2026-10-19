@@ -56,9 +56,9 @@ function RelationAction({ member, relation }: { member: Member; relation: Relati
   if (relation === "sent")
     // As on Instagram: "Requested", and tapping it takes the request back (after asking).
     return (
-      <ActionForm action={withdrawAction} showDone={false} confirm={`Take back your request to ${first}?`}>
+      <ActionForm action={withdrawAction} showDone={false} confirm={`Withdraw your connection request to ${first}?`}>
         <Id id={member.id} />
-        <button className="people-btn people-btn--pending" type="submit" title="Waiting for them. Tap to take it back.">
+        <button className="people-btn people-btn--pending" type="submit" title="Waiting for them to accept. Tap to withdraw your request.">
           Requested
         </button>
       </ActionForm>

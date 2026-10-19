@@ -15,9 +15,9 @@ const no = (error: string): Result => ({ ok: false, error });
 
 export async function follow(me: User, id: number): Promise<Result> {
   const other = await memberById(id);
-  if (!other || other.id === me.id) return no("That member isn't here.");
+  if (!other || other.id === me.id) return no("We couldn't find that member.");
   if (await blockedEitherWay(me.id, id)) return no("You can't follow this member.");
-  if (!(await withinLimit(`follow:${me.id}`, 100, DAY))) return no("That's a lot of following today. Try again tomorrow.");
+  if (!(await withinLimit(`follow:${me.id}`, 100, DAY))) return no("You've followed a lot of people today. Try again tomorrow.");
   const changes = await db().run("insert into follows (follower, followee, created_at) values (?, ?, ?) on conflict do nothing", me.id, id, Date.now());
   // Told the first time only: following, unfollowing and following again doesn't ping them again.
   const told = await db().one("select 1 from notifications where user_id = ? and actor = ? and kind = 'follow'", id, me.id);

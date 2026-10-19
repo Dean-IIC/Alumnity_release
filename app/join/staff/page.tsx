@@ -22,7 +22,7 @@ export default async function StaffJoinPage({ searchParams }: { searchParams: Pr
           <h1 className="page-title">
             Welcome to <span className="page-title__gold">Alumnity.</span>
           </h1>
-          <p className="page-head__text">The college desk has invited you. Confirm your email, choose a password, and you're in.</p>
+          <p className="page-head__text">The college desk has invited you. Confirm your email and choose a password to join.</p>
         </header>
         <StaffJoinForm invitedEmail={email} />
       </main>

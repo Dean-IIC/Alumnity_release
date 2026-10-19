@@ -47,25 +47,25 @@ export const ABOUT = {
 
 export const COMMUNITY = {
   intro: `Who Alumnity is for, what is open to everyone, and what members get.`,
-  lead: `Alumnity is where students and alumni of HKBK College of Engineering help each other. Students get honest interview experiences, quick answers and referrals from seniors. Alumni stay in touch with their batch and the college, and give back in the time they have.`,
+  lead: `Alumnity is where students and alumni of HKBK College of Engineering help each other. Students get honest interview experiences, quick answers and referrals from seniors. Alumni stay in touch with their batch and the college, and help students when they have time.`,
   open: ["What Alumnity is, and how to join", "The gallery of college photos", "The About, Community, Committee and Developers pages"],
   members: [
-    "The people directory, profiles, connections and messages",
-    "Home: posts, photos, stories and what your batch is up to",
+    "Network: members' pages, connections and messages",
+    "Home: posts, photos, stories and news from your batch",
     "Groups for your class, your club, your city or your field",
     "Ask a senior, and the college's events",
-    "Causes members propose and the college approves, with gifts through the college's account"
+    "Causes that members suggest and the college approves. Donations go through the college's account."
   ],
   joining: [
     "Students and alumni show they are from HKBK by finding their name in the college register. They use their name and USN, or their name, branch and joining year.",
-    "Teachers and college staff join by an invitation from the college desk.",
+    "Teachers and college staff join with an invitation from the college desk.",
     "Everyone signs up with a personal email, so the account stays theirs after graduation."
   ]
 };
 
 export const DEVELOPERS_INTRO = {
   intro: `Alumnity was designed and built by students of HKBK College of Engineering.`,
-  body: `Alumnity started as a student project in the Department of Computer Science and Engineering. The aim: one place where HKBK's students and alumni help each other, with questions answered by seniors, referrals, events, and keeping in touch with your batch.`,
+  body: `Alumnity started as a student project in the Department of Computer Science and Engineering. The aim was one place where HKBK's students and alumni help each other. Seniors answer questions and share referrals, the college shares events, and everyone stays in touch with their batch.`,
 };
 
 /** The alumni committee. Names are placeholders until the college confirms them. */

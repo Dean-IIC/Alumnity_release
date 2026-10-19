@@ -37,7 +37,7 @@ export async function answerGroupRequestAction(_: ActionState, form: FormData): 
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const accept = textFrom(form, "answer", 10) === "accept";
-  return answer(await answerRequest(me, idFrom(form), idFrom(form, "user"), accept), accept ? "Let in." : "Turned away. They aren't told.");
+  return answer(await answerRequest(me, idFrom(form), idFrom(form, "user"), accept), accept ? "Request accepted." : "Request declined. We won't tell them.");
 }
 
 export async function groupRoleAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -45,7 +45,7 @@ export async function groupRoleAction(_: ActionState, form: FormData): Promise<A
   if (!me) return SIGNED_OUT;
   const asked = textFrom(form, "action", 10);
   const action = asked === "admin" || asked === "member" || asked === "owner" ? asked : "remove";
-  const done = { remove: "Removed from the group.", admin: "Made an admin.", member: "No longer an admin.", owner: "They own the group now." }[action];
+  const done = { remove: "Removed from the group.", admin: "Made an admin.", member: "No longer an admin.", owner: "They are now the owner of this group." }[action];
   return answer(await setGroupRole(me, idFrom(form), idFrom(form, "user"), action), done);
 }
 

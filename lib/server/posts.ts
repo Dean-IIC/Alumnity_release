@@ -178,11 +178,11 @@ export async function createPost(
   const { text, ids } = await checkMentions(me, body.trim().slice(0, POST_LIMIT));
   let original: { row: PostRow; author: User } | null = null;
   if (repostOf !== null) {
-    if (groupId !== null) return no("A repost goes on Home, not into a group.");
-    if (media.length) return no("A repost can't carry photos of its own.");
+    if (groupId !== null) return no("You can't repost into a group. Reposts go on Home.");
+    if (media.length) return no("You can't add photos to a repost.");
     original = await repostable(me, repostOf);
-    if (!original) return no("That post isn't here any more.");
-    if (original.row.group_id !== null) return no("A group's posts stay in the group.");
+    if (!original) return no("This post is no longer available.");
+    if (original.row.group_id !== null) return no("Posts in a group can't be shared outside the group.");
     // The same post reposted twice with nothing new to say would only repeat it.
     if (!text && (await db().one("select 1 from posts where author = ? and repost_of = ? and body = '' and removed_at is null", me.id, original.row.id))) {
       return no("You've already reposted this.");
@@ -191,16 +191,16 @@ export async function createPost(
   if (groupId !== null) {
     if (!(await canPostInGroup(me, groupId))) return no("Join the group to post in it.");
     audience = "group";
-  } else if (!AUDIENCES.includes(audience as Audience)) return no("Choose who it's for.");
-  if (audience === "batch" && !(me.branch && me.joined)) return no("Your batch isn't known, so this can't go to it.");
+  } else if (!AUDIENCES.includes(audience as Audience)) return no("Choose who can see your post.");
+  if (audience === "batch" && !(me.branch && me.joined)) return no("We don't know your batch yet, so you can't post to it.");
   // Only your own uploads, each on one post.
   const uploads = await mediaByIds(media);
   for (const id of media) {
     const m = uploads.get(id);
-    if (!m || m.userId !== me.id || (m.kind !== "image" && m.kind !== "video")) return no("One of those photos isn't yours to post.");
+    if (!m || m.userId !== me.id || (m.kind !== "image" && m.kind !== "video")) return no("You can post only photos and videos that you uploaded.");
   }
-  if (await mediaInUse(media)) return no("That photo is already posted.");
-  if (!(await withinLimit(`post:${me.id}`, 20, HOUR))) return no("That's a lot of posts in an hour. Try again a little later.");
+  if (await mediaInUse(media)) return no("That photo or video is already in another post.");
+  if (!(await withinLimit(`post:${me.id}`, 20, HOUR))) return no("You've posted a lot in the last hour. Try again later.");
   const postId = await db().tx(async (t) => {
     const row = await t.one<{ id: number }>(
       "insert into posts (author, body, audience, group_id, created_at, repost_of) values (?, ?, ?, ?, ?, ?) returning id",
@@ -247,8 +247,8 @@ async function repostable(me: User, id: number): Promise<{ row: PostRow; author:
  */
 export async function repost(me: User, id: number, thoughts = "", audience?: string): Promise<Result & { id?: number }> {
   const original = await repostable(me, id);
-  if (!original) return no("That post isn't here any more.");
-  if (original.row.group_id !== null) return no("A group's posts stay in the group.");
+  if (!original) return no("This post is no longer available.");
+  if (original.row.group_id !== null) return no("Posts in a group can't be shared outside the group.");
   const same = original.row.audience === "batch" && !(me.branch && me.joined) ? "connections" : original.row.audience;
   return createPost(me, thoughts, audience || same, [], null, [], original.row.id);
 }
@@ -260,23 +260,23 @@ export async function repost(me: User, id: number, thoughts = "", audience?: str
  */
 export async function sendPost(me: User, postId: number, toIds: number[], note = ""): Promise<Result & { sent?: number }> {
   const post = await visiblePost(me, postId);
-  if (!post) return no("That post isn't here any more.");
+  if (!post) return no("This post is no longer available.");
   const ids = [...new Set(toIds.filter((id) => Number.isSafeInteger(id) && id > 0 && id !== me.id))];
   if (!ids.length) return no("Choose who to send it to.");
-  if (ids.length > SEND_LIMIT) return no(`Send it to up to ${SEND_LIMIT} people at a time.`);
+  if (ids.length > SEND_LIMIT) return no(`You can send it to up to ${SEND_LIMIT} people at a time.`);
   const members = await membersByIds(ids);
   for (const id of ids) {
     const to = members.get(id);
-    if (!to) return no("One of them isn't here any more.");
-    if ((await relation(me.id, id)) !== "connected") return no(`You can send posts to your connections only, and ${to.name} isn't one.`);
-    if (!(await canSeePost(to, post.author, post.row.audience, post.row.group_id))) return no(`${to.name} can't see this post, so it can't be sent to them.`);
+    if (!to) return no("One of these people is no longer on Alumnity.");
+    if ((await relation(me.id, id)) !== "connected") return no(`You can send posts only to your connections. ${to.name} is not one of your connections.`);
+    if (!(await canSeePost(to, post.author, post.row.audience, post.row.group_id))) return no(`${to.name} can't see this post, so you can't send it to them.`);
   }
   const words = note.trim().slice(0, 500);
   const body = `${words ? `${words}\n\n` : ""}A post by ${post.author.name}: /notes/${postId}`;
   let sent = 0;
   for (const id of ids) {
     const done = await sendMessage(me, id, body);
-    if (!done.ok) return sent ? no(`Sent to ${sent}, then: ${done.error}`) : done;
+    if (!done.ok) return sent ? no(`Sent to ${sent} ${sent === 1 ? "person" : "people"}, then it stopped: ${done.error}`) : done;
     sent += 1;
   }
   return { ok: true, sent };
@@ -296,7 +296,7 @@ export async function removePost(me: User, id: number): Promise<Result> {
   const row = Number.isSafeInteger(id) ? await db().one<{ author: number; group_id: number | null }>("select author, group_id from posts where id = ? and removed_at is null", id) : undefined;
   if (!row) return { ok: true }; // already gone
   if (row.author !== me.id) {
-    if (row.group_id === null || !(await managesGroup(me, row.group_id))) return no("Only the one who wrote a post can delete it.");
+    if (row.group_id === null || !(await managesGroup(me, row.group_id))) return no("Only the person who wrote this post can delete it.");
   }
   await db().run("update posts set removed_at = ? where id = ? and removed_at is null", Date.now(), id);
   return { ok: true };
@@ -319,12 +319,12 @@ async function toldOfMention(ids: number[], link: string): Promise<Set<number>> 
 export async function editPost(me: User, id: number, body: string): Promise<Result> {
   if (!(await settings()).features.notes) return no(PAUSED);
   const row = Number.isSafeInteger(id) ? await db().one<PostRow>("select * from posts where id = ? and removed_at is null", id) : undefined;
-  if (!row) return no("That post isn't here any more.");
-  if (row.author !== me.id) return no("Only the one who wrote a post can edit it.");
+  if (!row) return no("This post is no longer available.");
+  if (row.author !== me.id) return no("Only the person who wrote this post can edit it.");
   const { text, ids } = await checkMentions(me, body.trim().slice(0, POST_LIMIT));
   if (text === row.body) return { ok: true };
   if (!text && !row.repost_of && !(await db().one("select 1 from post_media where post_id = ?", id))) return no("Write something, or delete the post instead.");
-  if (!(await withinLimit(`post-edit:${me.id}`, 60, HOUR))) return no("That's a lot of editing in an hour. Try again a little later.");
+  if (!(await withinLimit(`post-edit:${me.id}`, 60, HOUR))) return no("You've made a lot of edits in the last hour. Try again later.");
   const typed = new Set(tagsIn(row.body));
   const picked = (await db().all<{ tag: string }>("select tag from post_tags where post_id = ?", id)).map((t) => t.tag).filter((t) => !typed.has(t));
   const tags = [...new Set([...tagsIn(text), ...picked])].slice(0, 5);
@@ -352,10 +352,10 @@ export async function editPost(me: User, id: number, body: string): Promise<Resu
 
 /** React to a post; the same reaction again takes it back, another one replaces it. */
 export async function react(me: User, id: number, kind: string): Promise<Result> {
-  if (!REACTIONS.includes(kind as Reaction)) return no("That isn't a reaction.");
+  if (!REACTIONS.includes(kind as Reaction)) return no("Choose one of the reactions shown.");
   const post = await visiblePost(me, id);
-  if (!post) return no("That post isn't here any more.");
-  if (!(await withinLimit(`cheer:${me.id}`, 300, HOUR))) return no("That's a lot of reacting in an hour. Try again a little later.");
+  if (!post) return no("This post is no longer available.");
+  if (!(await withinLimit(`cheer:${me.id}`, 300, HOUR))) return no("You've reacted a lot in the last hour. Try again later.");
   const had = await db().one<{ kind: string }>("select kind from post_cheers where post_id = ? and user_id = ?", id, me.id);
   if (had?.kind === kind) {
     await db().run("delete from post_cheers where post_id = ? and user_id = ?", id, me.id);
@@ -374,11 +374,11 @@ export const toggleCheer = (me: User, id: number) => react(me, id, "cheer");
 
 export async function addComment(me: User, id: number, body: string): Promise<Result> {
   const post = await visiblePost(me, id);
-  if (!post) return no("That post isn't here any more.");
+  if (!post) return no("This post is no longer available.");
   if (!(await settings()).features.notes) return no(PAUSED);
   const { text, ids } = await checkMentions(me, body.trim().slice(0, COMMENT_LIMIT));
   if (!text) return no("Write something first.");
-  if (!(await withinLimit(`comment:${me.id}`, 60, HOUR))) return no("That's a lot of comments in an hour. Try again a little later.");
+  if (!(await withinLimit(`comment:${me.id}`, 60, HOUR))) return no("You've commented a lot in the last hour. Try again later.");
   await db().run("insert into post_comments (post_id, author, body, created_at) values (?, ?, ?, ?)", id, me.id, text, Date.now());
   if (post.author.id !== me.id) await notify(post.author.id, { actor: me.id, kind: "comment", text: `${me.name} commented on your post.`, link: `/notes/${id}` });
   const mentioned = await membersByIds(ids.filter((mid) => mid !== post.author.id));
@@ -392,7 +392,7 @@ export async function addComment(me: User, id: number, body: string): Promise<Re
 
 export async function removeOwnComment(me: User, id: number): Promise<Result> {
   const changed = await db().run("update post_comments set removed_at = ? where id = ? and author = ? and removed_at is null", Date.now(), id, me.id);
-  if (!changed && (await db().one("select 1 from post_comments where id = ? and removed_at is null", id))) return no("Only the one who wrote a comment can delete it.");
+  if (!changed && (await db().one("select 1 from post_comments where id = ? and removed_at is null", id))) return no("Only the person who wrote this comment can delete it.");
   return { ok: true };
 }
 
@@ -403,14 +403,14 @@ export async function removeOwnComment(me: User, id: number): Promise<Result> {
 export async function editComment(me: User, id: number, body: string): Promise<Result> {
   if (!(await settings()).features.notes) return no(PAUSED);
   const c = Number.isSafeInteger(id) ? await db().one<{ post_id: number; author: number; body: string }>("select post_id, author, body from post_comments where id = ? and removed_at is null", id) : undefined;
-  if (!c) return no("That comment isn't here any more.");
-  if (c.author !== me.id) return no("Only the one who wrote a comment can edit it.");
+  if (!c) return no("This comment is no longer available.");
+  if (c.author !== me.id) return no("Only the person who wrote this comment can edit it.");
   const post = await visiblePost(me, c.post_id);
-  if (!post) return no("That post isn't here any more.");
+  if (!post) return no("This post is no longer available.");
   const { text, ids } = await checkMentions(me, body.trim().slice(0, COMMENT_LIMIT));
   if (!text) return no("Write something, or delete the comment instead.");
   if (text === c.body) return { ok: true };
-  if (!(await withinLimit(`comment-edit:${me.id}`, 60, HOUR))) return no("That's a lot of editing in an hour. Try again a little later.");
+  if (!(await withinLimit(`comment-edit:${me.id}`, 60, HOUR))) return no("You've made a lot of edits in the last hour. Try again later.");
   await db().run("update post_comments set body = ?, edited_at = ? where id = ? and author = ? and removed_at is null", text, Date.now(), id, me.id);
   const link = `/notes/${c.post_id}`;
   const before = new Set(mentionedIds(c.body));
@@ -726,8 +726,8 @@ export { mentionedIds };
 export async function verifyPost(me: User, id: number, on: boolean): Promise<Result> {
   if (!isModerator(me)) return no("Only the college desk can verify posts.");
   const post = await visiblePost(me, id);
-  if (!post) return no("That post isn't here any more.");
-  if (on && post.row.audience !== "everyone") return no("Only a post for everyone can go on the board.");
+  if (!post) return no("This post is no longer available.");
+  if (on && post.row.audience !== "everyone") return no("Only posts that everyone can see can go on the HKBK board.");
   const changed = await db().run(
     on ? "update posts set verified_at = ?, verified_by = ? where id = ? and verified_at is null" : "update posts set verified_at = null, verified_by = null where id = ? and verified_at is not null",
     ...(on ? [Date.now(), me.id, id] : [id])
@@ -762,7 +762,7 @@ async function tellStudentsLooking(postId: number, author: User) {
   );
   const what = tags.includes("internship") ? "an internship" : "a job";
   // notify() leaves out anyone blocked either way with the writer.
-  for (const s of students) await notify(s.id, { actor: author.id, kind: "board-work", text: `On the HKBK board: ${what} from ${author.name}. You said you're looking.`, link });
+  for (const s of students) await notify(s.id, { actor: author.id, kind: "board-work", text: `New on the HKBK board: ${what} posted by ${author.name}. You said you are looking for one.`, link });
 }
 
 const plainStart = (body: string) => body.replace(MENTION, (_, name: string) => `@${name}`).slice(0, 80);
@@ -774,14 +774,14 @@ const plainStart = (body: string) => body.replace(MENTION, (_, name: string) => 
  */
 export async function askForReferral(me: User, postId: number, note: string): Promise<Result & { as?: "request" | "message" }> {
   const post = await visiblePost(me, postId);
-  if (!post) return no("That post isn't here any more.");
-  if (post.author.id === me.id) return no("That's your own post.");
+  if (!post) return no("This post is no longer available.");
+  if (post.author.id === me.id) return no("You can't ask for a referral on your own post.");
   const tags = tagsIn(post.row.body);
   const tag = WORK_TAGS.find((t) => tags.includes(t));
-  if (!tag) return no("You can ask for a referral on a #job, #internship or #referral post.");
+  if (!tag) return no("You can ask for a referral only on a post tagged #job, #internship or #referral.");
   const why = note.trim();
-  if (why.length < 20) return no("Write a line or two about why you fit: your branch, skills, a project.");
-  const about = `Referral, about your #${tag} post: `;
+  if (why.length < 20) return no("Write a line or two about why you are a good fit, such as your branch, skills or a project.");
+  const about = `Referral request about your #${tag} post: `;
   const rel = await relation(me.id, post.author.id);
   if (rel === "connected" || rel === "received") {
     if (rel === "received") {

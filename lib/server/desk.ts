@@ -102,13 +102,13 @@ async function canReport(me: User, kind: SubjectKind, id: number): Promise<boole
 export async function report(me: User, kind: string, id: number, reason: string): Promise<Result> {
   if (!SUBJECT_KINDS.includes(kind as SubjectKind)) return no("That can't be reported.");
   // Only what the reporter can actually see (one answer for "not there" and "not yours to see").
-  if (!(await canReport(me, kind as SubjectKind, id))) return no("That isn't here any more.");
+  if (!(await canReport(me, kind as SubjectKind, id))) return no("This is no longer available.");
   const subject = await subjectOf(kind as SubjectKind, id);
-  if (!subject) return no("That isn't here any more.");
-  if (subject.owner === me.id) return no("That's yours.");
+  if (!subject) return no("This is no longer available.");
+  if (subject.owner === me.id) return no("You can't report your own content.");
   const why = reason.trim().slice(0, 500);
-  if (!why) return no("Say briefly what's wrong, so the coordinators know what to look at.");
-  if (!(await withinLimit(`report:${me.id}`, 20, DAY))) return no("That's a lot of reports today. The coordinators will get to them.");
+  if (!why) return no("Say briefly what is wrong, so the alumni coordinators know what to check.");
+  if (!(await withinLimit(`report:${me.id}`, 20, DAY))) return no("You have sent many reports today. The alumni coordinators will look at them soon.");
   await db().run("insert into reports (reporter, subject_kind, subject_id, reason, created_at) values (?, ?, ?, ?, ?)", me.id, kind, id, why, Date.now());
   return { ok: true };
 }
@@ -151,7 +151,7 @@ export async function reports(viewer: User, status: "open" | "closed" = "open"):
 export async function resolveReport(me: User, id: number, action: "remove" | "dismiss"): Promise<Result> {
   if (!isModerator(me)) return no(DESK_ONLY);
   const r = await db().one<{ subject_kind: SubjectKind; subject_id: number }>("select * from reports where id = ? and status = 'open'", id);
-  if (!r) return no("That report is already dealt with.");
+  if (!r) return no("This report has already been handled.");
   if (action === "remove") {
     const sid = r.subject_id;
     let result: Result;
@@ -211,7 +211,7 @@ export async function recentContent(me: User, kind: ContentKind, q = ""): Promis
   }));
 }
 
-const KIND_LABEL: Record<ContentKind, string> = { post: "note", comment: "comment", ask: "question" };
+const KIND_LABEL: Record<ContentKind, string> = { post: "post", comment: "comment", ask: "question" };
 
 /** Take something down. Its author is told (not by whom), so a removal is never a mystery. */
 export async function takeDown(me: User, kind: ContentKind, id: number, reason = ""): Promise<Result> {
@@ -223,19 +223,19 @@ export async function takeDown(me: User, kind: ContentKind, id: number, reason =
       : kind === "comment"
         ? await db().one<{ author: number }>("update post_comments set removed_at = ? where id = ? and removed_at is null returning author", now, id)
         : await db().one<{ author: number }>("update asks set status = 'closed' where id = ? and status != 'closed' returning author", id);
-  if (!author) return no("That's already down.");
+  if (!author) return no("This has already been taken down.");
   await audit(me, "removed", `${kind} ${id}`, reason || undefined);
-  await notify(author.author, { kind: "removed", text: `A ${KIND_LABEL[kind]} of yours was taken down by the college desk for breaking the community rules.`, link: "/how-it-works" });
+  await notify(author.author, { kind: "removed", text: `Your ${KIND_LABEL[kind]} was taken down by the college desk because it broke the community rules.`, link: "/how-it-works" });
   return { ok: true };
 }
 
 /** Bring back a note or comment taken down by mistake (administrators). */
 export async function restore(me: User, kind: ContentKind, id: number): Promise<Result> {
-  if (!isAdmin(me)) return no("Only an administrator can bring something back.");
+  if (!isAdmin(me)) return no("Only an administrator can restore content.");
   if (kind === "ask") return no("A closed question can't be reopened.");
   const table = kind === "post" ? "posts" : "post_comments";
   const changes = await db().run(`update ${table} set removed_at = null where id = ? and removed_at is not null`, id);
-  if (!changes) return no("That isn't taken down.");
+  if (!changes) return no("This has not been taken down.");
   await audit(me, "restored", `${kind} ${id}`);
   return { ok: true };
 }
@@ -247,8 +247,8 @@ export async function suspend(me: User, userId: number, paused: boolean): Promis
   if (!isModerator(me)) return no(DESK_ONLY);
   if (userId === me.id) return no("You can't pause yourself.");
   const target = await anyMember(userId);
-  if (!target) return no("That member isn't here.");
-  if (!outranks(me, target)) return no("Only someone above them on the college desk can do that.");
+  if (!target) return no("We couldn't find that member.");
+  if (!outranks(me, target)) return no("Only someone with a higher college desk role can do that.");
   await db().run("update users set suspended_at = ? where id = ?", paused ? Date.now() : null, userId);
   if (paused) await signOutMember(userId);
   await audit(me, paused ? "paused member" : "unpaused member", `member ${userId}`, target.name);
@@ -259,8 +259,8 @@ export async function suspend(me: User, userId: number, paused: boolean): Promis
 export async function signOutEverywhere(me: User, userId: number): Promise<Result> {
   if (!isModerator(me)) return no(DESK_ONLY);
   const target = await anyMember(userId);
-  if (!target) return no("That member isn't here.");
-  if (userId !== me.id && !outranks(me, target)) return no("Only someone above them on the college desk can do that.");
+  if (!target) return no("We couldn't find that member.");
+  if (userId !== me.id && !outranks(me, target)) return no("Only someone with a higher college desk role can do that.");
   const ended = await signOutMember(userId);
   await audit(me, "signed out everywhere", `member ${userId}`, ended === null ? target.name : `${target.name} · ${ended} session${ended === 1 ? "" : "s"}`);
   return { ok: true };
@@ -275,10 +275,10 @@ export async function setRole(me: User, userId: number, role: string): Promise<R
   if (!isAdmin(me)) return no("Only an administrator can change roles.");
   if (userId === me.id) return no("You can't change your own role.");
   const target = await anyMember(userId);
-  if (!target) return no("That member isn't here.");
-  if (configRole(target.email)) return no("This role is set in the server's config, so it can't be changed here.");
-  if (!outranks(me, target)) return no("You can only change the roles of people below you.");
-  if (!assignable(me).includes(role as Role)) return no(isSuperAdmin(me) ? "That isn't a role." : "Only a super administrator can make administrators.");
+  if (!target) return no("We couldn't find that member.");
+  if (configRole(target.email)) return no("This role is set by the site's technical team. You can't change it here.");
+  if (!outranks(me, target)) return no("You can only change the roles of people below you on the college desk.");
+  if (!assignable(me).includes(role as Role)) return no(isSuperAdmin(me) ? "That role does not exist." : "Only a super administrator can make administrators.");
   if (target.role === role) return { ok: true };
   await db().run("update users set role = ? where id = ?", role, userId);
   await audit(me, "changed role", `member ${userId}`, `${target.name}: ${target.role} → ${role}`);

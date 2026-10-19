@@ -28,13 +28,13 @@ const MAIN: { key: string; href: string; label: string; icon: IconName; count?: 
 ];
 
 export const MORE: { href: string; label: string; icon: IconName; note: string }[] = [
-  { href: "/ask", label: "Ask a senior", icon: "ask", note: "Questions to alumni who fit them" },
-  { href: "/board", label: "HKBK board", icon: "briefcase", note: "Jobs, internships and notices the college checked" },
+  { href: "/ask", label: "Ask a senior", icon: "ask", note: "Get answers from alumni who can help" },
+  { href: "/board", label: "HKBK board", icon: "briefcase", note: "Jobs, internships and notices checked by the college" },
   { href: "/events", label: "Events", icon: "event", note: "Reunions, talks, college days" },
-  { href: "/causes", label: "Causes", icon: "heart", note: "Give to what HKBK people care about" },
+  { href: "/causes", label: "Causes", icon: "heart", note: "Donate to scholarships and people in need" },
   { href: "/batch", label: "Your batch", icon: "batch", note: "Everyone from your year" },
-  { href: "/connections", label: "Connections", icon: "connections", note: "Requests, and the people you know" },
-  { href: "/gallery", label: "Gallery", icon: "photo", note: "HKBK through the years, in photos" }
+  { href: "/connections", label: "Connections", icon: "connections", note: "Your connections and connection requests" },
+  { href: "/gallery", label: "Gallery", icon: "photo", note: "Photos of HKBK over the years" }
 ];
 
 /** What a badge counts, said in words for screen readers ("1 connection request"). */
@@ -63,7 +63,7 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
   return (
     <header className="app-bar">
       <div className="app-bar__inner container">
-        <NavLink className="app-bar__brand" href="/home" match={[]} aria-label="Alumnity, your Home">
+        <NavLink className="app-bar__brand" href="/home" match={[]} aria-label="Alumnity, go to Home">
           <BrandLockup />
         </NavLink>
 

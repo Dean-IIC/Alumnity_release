@@ -43,7 +43,7 @@ function Preview({ post, isOwner, pinned, large = false }: { post: Post; isOwner
           <input type="hidden" name="id" value={post.id} />
           {pinned && <input type="hidden" name="unpin" value="1" />}
           <button type="submit" className="wf-link-button">
-            {pinned ? "Unpin from the top" : "Pin to the top of my page"}
+            {pinned ? "Unpin this post" : "Pin to the top of your page"}
           </button>
         </ActionForm>
       )}

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     siteName: "Alumnity",
     title: "Join HKBK's alumni and students on Alumnity",
-    description: "Find your name in the college register and join in a minute: your batch, seniors who mentor, jobs and referrals.",
+    description: "Find your name in the college register and join in a minute. Meet your batch, get help from seniors, and find jobs and referrals.",
     locale: "en_IN",
     type: "website",
     images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Alumnity: HKBK College of Engineering's students and alumni" }]
@@ -42,8 +42,8 @@ export default async function JoinPage() {
             Find your name in the <span className="page-title__gold">register.</span>
           </h1>
           <p className="page-head__text">
-            Everyone here is on the college’s own register
-            {facts.count ? `: ${facts.count.toLocaleString("en-IN")} students from every course since ${facts.from}` : ""}. Find your name, and you’re in.
+            Everyone here is on the college register
+            {facts.count ? `: ${facts.count.toLocaleString("en-IN")} students from every branch since ${facts.from}` : ""}. Find your name to join.
           </p>
         </header>
         <JoinFlow branches={facts.branches.map(({ code, name }) => ({ code, name }))} from={facts.from} to={facts.to} />

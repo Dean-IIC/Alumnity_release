@@ -30,7 +30,7 @@ export async function badgesOf(person: User, profile: Profile): Promise<Badge[]>
     const tier = helped >= 10 ? 10 : helped >= 5 ? 5 : 1;
     badges.push({ key: "helped", label: tier === 1 ? "Helped a junior" : `Helped ${tier} juniors`, detail: `Answered ${helped} ${helped === 1 ? "question" : "questions"} from students`, tone: "red" });
   }
-  if (Number(row?.hosted ?? 0) >= 1) badges.push({ key: "host", label: "Event host", detail: "Has put up an event for HKBK", tone: "blue" });
+  if (Number(row?.hosted ?? 0) >= 1) badges.push({ key: "host", label: "Event host", detail: "Has organised an event for HKBK", tone: "blue" });
   if (Number(row?.before ?? FOUNDING) < FOUNDING) badges.push({ key: "founding", label: "Founding member", detail: `One of the first ${FOUNDING} people on Alumnity`, tone: "gold" });
   return badges;
 }

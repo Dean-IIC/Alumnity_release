@@ -36,9 +36,9 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
       title={cause.title}
       intro={cause.author ? <>Started by <Link href={`/people/${cause.author.id}`}>{cause.author.name}</Link> · {timeAgo(cause.createdAt)}</> : undefined}
     >
-      {cause.status === "pending" && <p className="wf-card">Waiting for the college desk to read it. Only you and the desk can see it until then.</p>}
+      {cause.status === "pending" && <p className="wf-card">The college desk has not checked this cause yet. Until then, only you and the desk can see it.</p>}
       {cause.status === "rejected" && <p className="wf-card">The college desk didn't approve this cause{cause.reviewNote ? `: ${cause.reviewNote}` : "."}</p>}
-      {cause.status === "closed" && <p className="wf-card">This cause is closed{cause.reviewNote ? `: ${cause.reviewNote}` : "."} What was given stays on record below.</p>}
+      {cause.status === "closed" && <p className="wf-card">This cause is closed{cause.reviewNote ? `: ${cause.reviewNote}` : "."} Donations made so far are still shown below.</p>}
 
       {cause.cover && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -62,15 +62,15 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
         ))}
       </div>
 
-      {cause.status === "live" && !ended && (donationsOpen() ? <Give causeId={cause.id} name={me.name} email={me.email} /> : <p className="wf-empty">Giving opens once the college has set up payments.</p>)}
+      {cause.status === "live" && !ended && (donationsOpen() ? <Give causeId={cause.id} name={me.name} email={me.email} /> : <p className="wf-empty">You can give once the college has set up payments.</p>)}
 
       <div className="wf-actions">
         {!cause.mine && cause.status === "live" && <ReportButton kind="cause" id={cause.id} />}
         {(cause.mine || isModerator(me)) && (cause.status === "live" || cause.status === "pending") && (
-          <ActionForm action={closeCauseAction} confirm="Close this cause? No more donations; what was given stays on record.">
+          <ActionForm action={closeCauseAction} confirm="Close this cause? No one can give after this. Past donations stay on record.">
             {hidden}
             <button className="button button--secondary wf-small" type="submit">
-              Close the cause
+              Close cause
             </button>
           </ActionForm>
         )}
@@ -79,23 +79,23 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
       {isModerator(me) && cause.status === "pending" && (
         <section className="wf-card" aria-labelledby="review">
           <h2 id="review">College desk: review</h2>
-          <ActionForm action={reviewCauseAction} confirm="Approve it? It goes live for every member, and can take donations.">
+          <ActionForm action={reviewCauseAction} confirm="Approve this cause? All members will see it and can give to it.">
             {hidden}
             <input type="hidden" name="answer" value="approve" />
             <button className="button button--primary" type="submit">
-              Approve: it goes live
+              Approve cause
             </button>
           </ActionForm>
           <ActionForm action={reviewCauseAction} className="wf-stack">
             {hidden}
             <input type="hidden" name="answer" value="reject" />
             <label className="field">
-              <span className="field__label">Or turn it down, saying why (its author sees this)</span>
+              <span className="field__label">Or reject it. Say why (the person who started it will see this)</span>
               <textarea name="note" rows={2} maxLength={500} required />
             </label>
             <div>
               <button className="button button--secondary" type="submit">
-                Turn it down
+                Reject cause
               </button>
             </div>
           </ActionForm>
@@ -150,7 +150,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
                   <input name="amount" required inputMode="decimal" maxLength={12} />
                 </label>
                 <label className="field">
-                  <span className="field__label">What for, and to whom</span>
+                  <span className="field__label">What it was for, and who was paid</span>
                   <input name="note" required maxLength={300} placeholder="e.g. Semester fees, paid to the college accounts office" />
                 </label>
               </div>

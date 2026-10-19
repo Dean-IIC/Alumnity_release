@@ -18,7 +18,7 @@ export default function ForgotPage() {
           <h1 className="page-title">
             It happens to <span className="page-title__gold">everyone.</span>
           </h1>
-          <p className="page-head__text">We’ll email you a code, and you choose a new password.</p>
+          <p className="page-head__text">We’ll email you a code. Then you can choose a new password.</p>
         </header>
         <ForgotForm />
       </main>

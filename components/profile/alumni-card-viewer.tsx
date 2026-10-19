@@ -76,7 +76,7 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
     } catch (error) {
       // Closing the share sheet isn't a failure.
       if ((error as Error)?.name === "AbortError") return;
-      setNote("Sharing didn't work here. Download the card, or use the links below.");
+      setNote("Sharing did not work on this device. Download the card, or use the links below.");
     }
   }
 
@@ -91,8 +91,8 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
       <div className="acard-promo__text">
         <h2 id="alumni-card-title">Your alumni card</h2>
         <p>
-          Your digital HKBK alumni card: your member number, and a code anyone can scan to find you on Alumnity. Show it at college events, or keep it on your
-          phone.
+          Your digital HKBK alumni card. It shows your member number and a QR code that anyone can scan to find you on Alumnity. Show it at college
+          events, or keep it on your phone.
         </p>
         <button type="button" className="button button--primary" onClick={open}>
           Open your card <span aria-hidden="true">→</span>
@@ -131,7 +131,7 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
 
           <p className="acard-dialog__turn">
             <button type="button" className="wf-link-button" onClick={() => setFlipped((f) => !f)}>
-              {flipped ? "See the front" : "Turn it over"}
+              {flipped ? "See the front" : "See the back"}
             </button>
             <span className="acard-dialog__hint" aria-hidden="true">
               {" "}
@@ -158,7 +158,7 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
 
           <div className="acard-dialog__actions">
             <a className="button button--primary" href={`${CARD_URL}?download=1&theme=${theme}`} download={file}>
-              Download
+              Download the front
             </a>
             {canShare && (
               <button type="button" className="button button--secondary" onClick={share}>

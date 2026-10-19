@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   if (body.step === "start") {
     if (!(await withinLimit(`upload:${me.user.id}`, 30, 60 * 60_000))) {
-      return NextResponse.json({ ok: false, error: "That’s a lot of uploads in an hour. Try again a little later." }, { status: 429 });
+      return NextResponse.json({ ok: false, error: "You have uploaded too many files in the last hour. Try again later." }, { status: 429 });
     }
     const use = USES.includes(body.use as UploadUse) ? (body.use as UploadUse) : "cover";
     const started = await startUpload(me.user.id, use, Number(body.size));

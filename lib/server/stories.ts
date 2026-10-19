@@ -59,8 +59,8 @@ export async function createStory(me: User, mediaId: string, caption: string): P
   if (!(await settings()).features.notes) return no(PAUSED);
   const media = await mediaById(mediaId);
   if (!media || media.userId !== me.id || (media.kind !== "image" && media.kind !== "video")) return no("Add a photo or a video for your story.");
-  if (await mediaInUse([mediaId])) return no("That's already posted.");
-  if (!(await withinLimit(`story:${me.id}`, 20, STORY_LIFE))) return no("That's twenty stories today: the most in a day.");
+  if (await mediaInUse([mediaId])) return no("That photo or video is already posted.");
+  if (!(await withinLimit(`story:${me.id}`, 20, STORY_LIFE))) return no("You can add up to 20 stories in 24 hours. Try again later.");
   const now = Date.now();
   const row = await db().one<{ id: number }>(
     "insert into stories (author, media_id, caption, created_at, expires_at) values (?, ?, ?, ?, ?) returning id",
@@ -123,7 +123,7 @@ export async function reelOf(viewer: User, authorId: number, now = Date.now()): 
 /** The viewer looked at a story: remembered, so the bar can show what's new. */
 export async function markSeen(viewer: User, storyId: number): Promise<Result> {
   const row = await db().one<{ author: number }>("select author from stories where id = ? and removed_at is null and expires_at > ?", storyId, Date.now());
-  if (!row || !(await maySee(viewer, row.author))) return no("That story isn't here any more.");
+  if (!row || !(await maySee(viewer, row.author))) return no("This story is no longer available.");
   if (row.author !== viewer.id) await db().run("insert into story_views (story_id, user_id, viewed_at) values (?, ?, ?) on conflict do nothing", storyId, viewer.id, Date.now());
   return { ok: true };
 }
@@ -166,11 +166,11 @@ export const STORY_REPLY_LIMIT = 1000;
 export async function replyToStory(me: User, storyId: number, reply: { text?: string; reaction?: string }): Promise<Result> {
   const row = await db().one<{ author: number }>("select author from stories where id = ? and removed_at is null and expires_at > ?", storyId, Date.now());
   const author = row ? await memberById(row.author) : null;
-  if (!row || !author || !(await maySee(me, author.id))) return no("That story isn't here any more.");
-  if (author.id === me.id) return no("That's your own story.");
+  if (!row || !author || !(await maySee(me, author.id))) return no("This story is no longer available.");
+  if (author.id === me.id) return no("You can't reply to your own story.");
   if ((await relation(me.id, author.id)) !== "connected") return no(`Connect with ${firstName(author.name)} to reply to their story.`);
   if (reply.reaction !== undefined) {
-    if (!(STORY_REACTIONS as readonly string[]).includes(reply.reaction)) return no("That isn't a reaction.");
+    if (!(STORY_REACTIONS as readonly string[]).includes(reply.reaction)) return no("Choose one of the reactions shown.");
     return sendMessage(me, author.id, reply.reaction, { id: storyId, reaction: reply.reaction });
   }
   const text = (reply.text ?? "").trim().slice(0, STORY_REPLY_LIMIT);

@@ -56,7 +56,7 @@ const validId = (id: unknown) => typeof id === "number" && Number.isSafeInteger(
 export async function editPostNow(id: number, body: string): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!validId(id)) return { ok: false, error: "That post isn't here any more." };
+  if (!validId(id)) return { ok: false, error: "This post is no longer available." };
   return answer(await editPost(me, id, String(body ?? "").slice(0, POST_LIMIT)), "Saved.");
 }
 
@@ -67,7 +67,7 @@ export async function editPostNow(id: number, body: string): Promise<ActionState
 export async function removePostNow(id: number, back?: string): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!validId(id)) return { ok: false, error: "That post isn't here any more." };
+  if (!validId(id)) return { ok: false, error: "This post is no longer available." };
   const result = answer(await removePost(me, id), "Deleted.");
   if (result?.ok && typeof back === "string" && /^\/(home|groups\/\d{1,12})$/.test(back)) redirect(back);
   return result;
@@ -77,7 +77,7 @@ export async function removePostNow(id: number, back?: string): Promise<ActionSt
 export async function editCommentNow(id: number, body: string): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!validId(id)) return { ok: false, error: "That comment isn't here any more." };
+  if (!validId(id)) return { ok: false, error: "This comment is no longer available." };
   return answer(await editComment(me, id, String(body ?? "").slice(0, COMMENT_LIMIT)), "Saved.");
 }
 
@@ -85,7 +85,7 @@ export async function editCommentNow(id: number, body: string): Promise<ActionSt
 export async function removeCommentNow(id: number): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!validId(id)) return { ok: false, error: "That comment isn't here any more." };
+  if (!validId(id)) return { ok: false, error: "This comment is no longer available." };
   return answer(await removeOwnComment(me, id), "Deleted.");
 }
 
@@ -94,7 +94,7 @@ export async function verifyPostAction(_: ActionState, form: FormData): Promise<
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const on = textFrom(form, "on", 2) === "1";
-  return answer(await verifyPost(me, idFrom(form), on), on ? "Verified: it's on the HKBK board." : "Taken off the board.");
+  return answer(await verifyPost(me, idFrom(form), on), on ? "Verified. It is now on the HKBK board." : "Removed from the HKBK board.");
 }
 
 /** Pins one of your own posts to the top of your page ("Featured"), or unpins it. */
@@ -103,9 +103,9 @@ export async function pinPostAction(_: ActionState, form: FormData): Promise<Act
   if (!me) return SIGNED_OUT;
   const unpin = form.get("unpin") === "1";
   const id = unpin ? null : await ownPost(idFrom(form), me.id);
-  if (!unpin && id === null) return { ok: false, error: "Only your own posts can go at the top of your page." };
+  if (!unpin && id === null) return { ok: false, error: "You can pin only your own posts to the top of your page." };
   await saveProfile(me.id, { ...(await profileOf(me.id)), featured: id });
-  return answer({ ok: true }, unpin ? "Taken off the top of your page." : "Pinned to the top of your page.");
+  return answer({ ok: true }, unpin ? "Unpinned from the top of your page." : "Pinned to the top of your page.");
 }
 
 export async function cheerAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -124,7 +124,7 @@ export async function reactAction(_: ActionState, form: FormData): Promise<Actio
 export async function reactNow(postId: number, kind: string): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!Number.isSafeInteger(postId) || postId <= 0) return { ok: false, error: "That post isn't here any more." };
+  if (!Number.isSafeInteger(postId) || postId <= 0) return { ok: false, error: "This post is no longer available." };
   const result = await react(me, postId, String(kind).slice(0, 20));
   return result.ok ? { ok: true } : { ok: false, error: result.error };
 }
@@ -133,7 +133,7 @@ export async function reactNow(postId: number, kind: string): Promise<ActionStat
 export async function repostNow(postId: number): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!Number.isSafeInteger(postId) || postId <= 0) return { ok: false, error: "That post isn't here any more." };
+  if (!Number.isSafeInteger(postId) || postId <= 0) return { ok: false, error: "This post is no longer available." };
   return answer(await repost(me, postId), "Reposted.");
 }
 
@@ -148,7 +148,7 @@ export async function repostAction(_: ActionState, form: FormData): Promise<Acti
 export async function sendPostAction(postId: number, toIds: number[], note: string): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!Number.isSafeInteger(postId) || postId <= 0 || !Array.isArray(toIds)) return { ok: false, error: "That post isn't here any more." };
+  if (!Number.isSafeInteger(postId) || postId <= 0 || !Array.isArray(toIds)) return { ok: false, error: "This post is no longer available." };
   const ids = toIds.slice(0, SEND_LIMIT + 1).map(Number);
   const sent = await sendPost(me, postId, ids, String(note ?? "").slice(0, 500));
   // Nothing on the page changes for the sender, so (unlike answer()) no page is refreshed.
@@ -158,13 +158,13 @@ export async function sendPostAction(postId: number, toIds: number[], note: stri
 export async function storyAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await createStory(me, textFrom(form, "media", 40), textFrom(form, "caption", CAPTION_LIMIT)), "Your story is up for 24 hours.");
+  return answer(await createStory(me, textFrom(form, "media", 40), textFrom(form, "caption", CAPTION_LIMIT)), "Your story is posted. It will show for 24 hours.");
 }
 
 export async function removeStoryAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await removeStory(me, idFrom(form)), "Story removed.");
+  return answer(await removeStory(me, idFrom(form)), "Story deleted.");
 }
 
 /** Called by the story viewer as each story is shown (no page refresh: nothing else changes). */
@@ -201,7 +201,7 @@ export async function askAction(_: ActionState, form: FormData): Promise<ActionS
 export async function takeAskAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await takeAsk(me, idFrom(form)), "It's yours. Write to them below.");
+  return answer(await takeAsk(me, idFrom(form)), "You're now answering this question. Write your reply below.");
 }
 
 export async function replyAskAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -213,7 +213,7 @@ export async function replyAskAction(_: ActionState, form: FormData): Promise<Ac
 export async function answeredAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await markAnswered(me, idFrom(form), textFrom(form, "thanks", 300)), "Marked answered. Your thanks are on their Record.");
+  return answer(await markAnswered(me, idFrom(form), textFrom(form, "thanks", 300)), "Marked as answered. Your thanks now show on their Record.");
 }
 
 export async function closeAskAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -248,5 +248,5 @@ export async function rsvpAction(_: ActionState, form: FormData): Promise<Action
 export async function cancelEventAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await cancelEvent(me, idFrom(form)), "Cancelled. Everyone coming was told.");
+  return answer(await cancelEvent(me, idFrom(form)), "Event cancelled. We have told everyone who said they were coming.");
 }

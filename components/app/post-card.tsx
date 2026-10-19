@@ -29,10 +29,10 @@ export function PostCard({ post, full = false }: { post: Post; full?: boolean })
           </button>
         </ActionForm>
         {post.mine ? (
-          <ActionForm action={removePostAction} confirm="Remove this post? It can't be brought back.">
+          <ActionForm action={removePostAction} confirm="Delete this post? You can't undo this.">
             <input type="hidden" name="id" value={post.id} />
             <button className="wf-link-button" type="submit">
-              Remove
+              Delete post
             </button>
           </ActionForm>
         ) : (
@@ -57,7 +57,7 @@ export function PostCard({ post, full = false }: { post: Post; full?: boolean })
                   <ActionForm action={removeCommentAction}>
                     <input type="hidden" name="id" value={c.id} />
                     <button className="wf-link-button" type="submit">
-                      Remove
+                      Delete
                     </button>
                   </ActionForm>
                 ) : (

@@ -45,20 +45,22 @@ export default function PrivacyPage() {
         <Section title="What we keep, and why">
           <ul>
             <li>
-              <strong>Your entry in the college register</strong> (name, USN, branch, course, the year you joined), from the college’s own records. It’s how we know you studied
-              here; it’s never shown to anyone in full. Logged-in members can search it for someone’s name, to invite them: they see a name, branch and year, never a USN, and only a few searches an hour, so it can’t be copied out.
+              <strong>Your entry in the college register</strong> (name, USN, branch, course, the year you joined). It comes from the college’s own records. We use it to check
+              that you studied here. It’s never shown to anyone in full. Logged-in members can search it by name to invite someone. They see only a name, branch and year, never a
+              USN. They can do only a few searches an hour, so nobody can copy the register.
             </li>
             <li>
-              <strong>Your email address</strong>, to sign you in and send your codes (and, if you leave it on, one daily email when something’s waiting). Other members never see it.
+              <strong>Your email address</strong>, to log you in and send your codes. If you leave daily emails turned on, we also send you one email a day when something is
+              waiting for you. Other members never see your email address.
             </li>
             <li>
-              <strong>Your password</strong>, kept only as a one-way scrambled form by our login provider. Nobody, including the college, can read it.
+              <strong>Your password</strong>. Our login provider keeps it only in a scrambled form that can’t be turned back. Nobody, including the college, can read it.
             </li>
             <li>
               <strong>What you put on your page</strong>: what you do now, your journey, skills, links, a photo and a cover. You choose who sees each part.
             </li>
             <li>
-              <strong>What you do here</strong>: posts, comments, reactions, stories (gone after a day), messages, Asks, groups, events you’re going to, connections, follows and blocks.
+              <strong>What you do here</strong>: posts, comments, reactions, stories (they disappear after a day), messages, questions in Ask a senior, groups, events you’re going to, connections, follows and blocks.
             </li>
             <li>
               <strong>Photos and videos you upload.</strong> Hidden details inside photos (such as where they were taken) are removed when you upload them.
@@ -67,51 +69,56 @@ export default function PrivacyPage() {
               <strong>Donations</strong>: which cause, how much, when, and the payment’s reference from Razorpay. Your card, UPI or bank details go to Razorpay, never to us.
             </li>
             <li>
-              <strong>Running the site safely</strong>: when you were last here (to the hour), the browsers you’re logged in on, and, for a day, the network addresses of recent
-              attempts, so nobody can guess passwords or spam. If you turn on notifications, we also keep your browser’s notification address.
+              <strong>Running the site safely</strong>: when you last visited (to the nearest hour) and the browsers you’re logged in on. For one day, we also keep the network
+              addresses of recent attempts (for example, attempts to log in), so that nobody can guess passwords or send spam. If you turn on notifications, we also keep your
+              browser’s notification address.
             </li>
           </ul>
           <p>
-            We use all this only to run Alumnity for HKBK’s students and alumni: to verify who joins, show your page and what you share to the people you chose, deliver messages
-            and notifications, keep members safe, and handle donations. We don’t sell it, rent it, or use it for advertising, and there are no advertising or tracking cookies:
-            the only cookies keep you logged in.
+            We use all this only to run Alumnity for HKBK’s students and alumni. We use it to check who joins, to show your page and what you share to the people you chose, to
+            deliver messages and notifications, to keep members safe and to handle donations. We don’t sell it, rent it or use it for advertising. There are no advertising or
+            tracking cookies. The only cookies are the ones that keep you logged in.
           </p>
         </Section>
 
         <Section title="Who can see it">
           <ul>
-            <li>Other members see only what you share, with whom you chose (everyone, your batch, your connections, a group, or only you). People who aren’t members see nothing.</li>
-            <li>Messages are seen only by you and the person you’re writing to. A message reported to the college desk is seen by the desk.</li>
             <li>
-              The college desk (the alumni office’s coordinators and administrators) can see members’ details, what’s been reported, and donations, to keep the site safe and
-              account for money. Everything they do is recorded in an audit log.
+              Other members see only what you share with them. You choose who that is: everyone, your batch, your connections, a group, or only you. People who aren’t members
+              see nothing.
+            </li>
+            <li>Only you and the person you’re writing to can see your messages. If a message is reported to the college desk, the desk can see it.</li>
+            <li>
+              The college desk (the alumni office’s coordinators and administrators) can see members’ details, reports and donations. They need this to keep the site safe and
+              to keep track of money. Everything they do is recorded in an audit log.
             </li>
             <li>
-              If you give to a cause, your name is shown with your gift unless you choose not to be named; the amount is shown only to you and the college.
+              If you donate to a cause, your name is shown with your donation, unless you choose not to be named. Only you and the college can see the amount.
             </li>
           </ul>
         </Section>
 
         <Section title="The services that help us run it">
           <p>
-            These handle data for us, only to run Alumnity: Supabase (the database, login and file storage), Vercel (the website’s servers), Razorpay (payments), our email
-            provider (the daily email), and your browser maker’s notification service (if you turn notifications on). Some of these may keep data outside India; they’re bound
-            to protect it.
+            These services handle data for us, only to run Alumnity: Supabase (the database, login and file storage), Vercel (the website’s servers), Razorpay (payments), our
+            email provider (the daily email), and your browser maker’s notification service (if you turn notifications on). Some of them may keep data outside India. They are
+            bound to protect it.
           </p>
         </Section>
 
         <Section title="How long we keep it">
           <p>
-            As long as you have an account. Delete your account in Settings and your page, posts, comments, messages, uploads and everything else of yours go, for good. A
-            record that a donation was made (without your name) is kept as long as the law requires the college to keep its accounts; the desk’s audit log keeps a record that an
-            action happened.
+            We keep it as long as you have an account. If you delete your account in Settings, your page, posts, comments, messages, uploads and everything else of yours are
+            deleted for good. A record that a donation was made (without your name) is kept as long as the law requires the college to keep its accounts. The desk’s audit log
+            also keeps a record that an action happened.
           </p>
         </Section>
 
         <Section title="Your rights">
           <p>
-            You can see and correct what’s on your page at any time, choose who sees it, turn off emails and notifications, and delete your account. You may also ask the college
-            for a summary of what it holds about you, to correct or erase it, to name someone to act for you, and to complain: write to {contact}
+            At any time, you can see and correct what’s on your page, choose who sees it, turn off emails and notifications, and delete your account. You may also ask the
+            college for a summary of what it holds about you. You may ask it to correct or erase that data, name someone to act for you, or make a complaint. To do any of these,
+            write to {contact}
             {LEGAL.grievanceOfficer ? `. The grievance officer is ${LEGAL.grievanceOfficer}` : ""}. If you aren’t satisfied with the answer, you can go to the Data Protection Board
             of India.
           </p>
@@ -123,8 +130,8 @@ export default function PrivacyPage() {
 
         <Section title="Keeping it secure">
           <p>
-            Everything travels encrypted. Passwords are never stored readably. Only the site’s own server can reach the database. Uploads are checked, and every file is served
-            only to logged-in members who may see it. Tell {contact} at once if you think something is wrong.
+            Everything is sent in encrypted form. Passwords are never stored in a form anyone can read. Only the site’s own server can reach the database. Uploads are checked.
+            Each file is shown only to logged-in members who are allowed to see it. If you think something is wrong, tell {contact} at once.
           </p>
         </Section>
 

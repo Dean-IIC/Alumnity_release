@@ -194,11 +194,11 @@ export function ThreadView({
         const result = await sendMessageNow(other.id, body);
         if (!result?.ok) {
           // Not sent: say why, and put the words back to try again.
-          setError(result?.error ?? "That didn't send. Try again.");
+          setError(result?.error ?? "Your message wasn't sent. Try again.");
           setText((now) => now || body);
         }
       } catch {
-        setError("That didn't send: check your connection and try again.");
+        setError("Your message wasn't sent. Check your internet connection and try again.");
         setText((now) => now || body);
       }
     });
@@ -289,7 +289,7 @@ export function ThreadView({
   return (
     <section className="dm-pane dm-thread" aria-label={`Conversation with ${other.name}`}>
       <header className="dm-thread__head">
-        <Link href="/messages" className="dm-thread__back dm-icon-button" aria-label="All messages">
+        <Link href="/messages" className="dm-thread__back dm-icon-button" aria-label="Back to all messages">
           <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 5l-7 7 7 7" />
           </svg>

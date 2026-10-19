@@ -24,7 +24,7 @@ export type Acting = { kind: "message"; message: MessageTarget } | { kind: "chat
 
 type Step = "menu" | "edit" | "everyone" | "me" | "chat-menu" | "chat";
 
-const FAILED = "That didn't work: check your connection and try again.";
+const FAILED = "That didn't work. Check your internet connection and try again.";
 
 const TITLES: Record<Step, string> = {
   menu: "Message",
@@ -90,7 +90,7 @@ export function MessageActions({ acting, other, onClose }: { acting: Acting | nu
       setCopied(true);
       window.setTimeout(onClose, 700);
     } catch {
-      setError("Couldn't copy here: select the words and copy them instead.");
+      setError("Couldn't copy the text. Select it and copy it yourself.");
     }
   };
 
@@ -116,7 +116,7 @@ export function MessageActions({ acting, other, onClose }: { acting: Acting | nu
     <Sheet open={acting !== null} onClose={onClose} title={TITLES[step]} className="sheet--message" focusField={false}>
       <div ref={body} className="msg-sheet">
         {step === "menu" && m && (
-          <div className="msg-actions" role="group" aria-label="What to do with this message">
+          <div className="msg-actions" role="group" aria-label="Message options">
             {!m.deleted && m.body && (
               <button type="button" className="msg-actions__item" onClick={copy} data-first>
                 {copied ? "Copied" : "Copy text"}
@@ -140,7 +140,7 @@ export function MessageActions({ acting, other, onClose }: { acting: Acting | nu
         )}
 
         {step === "chat-menu" && (
-          <div className="msg-actions" role="group" aria-label={`This chat with ${other.name}`}>
+          <div className="msg-actions" role="group" aria-label={`Options for your chat with ${other.name}`}>
             <Link className="msg-actions__item" href={`/people/${other.id}`} onClick={onClose} data-first>
               View {other.first}&rsquo;s profile
             </Link>
@@ -190,10 +190,10 @@ export function MessageActions({ acting, other, onClose }: { acting: Acting | nu
           <>
             <p className="sheet__note">
               {step === "everyone"
-                ? `Its words are removed for you and ${other.first}. You'll both see "This message was deleted".`
+                ? `The message is removed for you and ${other.first}. You will both see "This message was deleted".`
                 : step === "me"
-                  ? `It goes from your side of the chat only: ${other.first} still has it.`
-                  : `Every message in it goes from your side only: ${other.first} still has them. If either of you writes again, the new messages show here.`}
+                  ? `The message is removed only for you. ${other.first} will still see it.`
+                  : `All messages in this chat are removed only for you. ${other.first} will still see them. If either of you sends a new message, it will show here.`}
             </p>
             {problem}
             <div className="sheet__foot">

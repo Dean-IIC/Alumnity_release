@@ -164,13 +164,13 @@ describe("sending a post privately", () => {
     const writer = await member("Tara Writer");
     await connect(writer, me);
     const { id: closed } = await posts.createPost(writer, "Connections only", "connections");
-    expect(await posts.sendPost(me, closed!, [pal.id])).toMatchObject({ ok: false, error: "Ravi Pal can't see this post, so it can't be sent to them." });
+    expect(await posts.sendPost(me, closed!, [pal.id])).toMatchObject({ ok: false, error: "Ravi Pal can't see this post, so you can't send it to them." });
 
     // Nobody, too many, or a post you can't see yourself.
     expect(await posts.sendPost(me, id!, [])).toMatchObject({ ok: false });
     expect(await posts.sendPost(me, id!, Array.from({ length: posts.SEND_LIMIT + 1 }, (_, i) => pal.id + 1000 + i))).toMatchObject({ ok: false });
     const { id: hidden } = await posts.createPost(pal, "Ravi's connections only", "connections");
-    expect(await posts.sendPost(notPal, hidden!, [pal.id])).toMatchObject({ ok: false, error: "That post isn't here any more." });
+    expect(await posts.sendPost(notPal, hidden!, [pal.id])).toMatchObject({ ok: false, error: "This post is no longer available." });
   });
 });
 

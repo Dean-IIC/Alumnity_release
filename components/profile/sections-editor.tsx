@@ -6,9 +6,9 @@ import { emptyEntry, SECTION_KINDS, SECTION_LIMITS, SECTIONS, type SectionEntry,
 
 const WHO: { value: Visibility; label: string }[] = [
   { value: "everyone", label: "Everyone" },
-  { value: "connections", label: "My connections" },
-  { value: "batch", label: "My batch" },
-  { value: "me", label: "Only me" }
+  { value: "connections", label: "Your connections" },
+  { value: "batch", label: "Your batch and connections" },
+  { value: "me", label: "Only you" }
 ];
 
 const THIS_YEAR = new Date().getFullYear();
@@ -64,7 +64,7 @@ function EntryFields({ kind, entry, index, onChange, onRemove }: { kind: Section
             <label className="editor__check section-entry__current">
               <input type="checkbox" checked={entry.current} onChange={(e) => set("current", e.target.checked)} />
               <span>
-                <b>Still here</b>
+                <b>Current (no end year)</b>
               </span>
             </label>
           )}
@@ -78,7 +78,7 @@ function EntryFields({ kind, entry, index, onChange, onRemove }: { kind: Section
       )}
       {info.detail && (
         <label className="field">
-          <span className="field__label">A few words (optional)</span>
+          <span className="field__label">Short description (optional)</span>
           <textarea value={entry.detail} rows={2} maxLength={SECTION_LIMITS.detail} onChange={(e) => set("detail", e.target.value)} />
         </label>
       )}

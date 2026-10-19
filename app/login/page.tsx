@@ -28,7 +28,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <h1 className="page-title">
             Welcome <span className="page-title__gold">back.</span>
           </h1>
-          <p className="page-head__text">Your page in the register is waiting.</p>
+          <p className="page-head__text">Log in with your email and password.</p>
         </header>
         <LoginForm />
       </main>

@@ -18,7 +18,7 @@ export function RepostCard({ repost }: { repost: NonNullable<Post["repostOf"]> }
     return (
       <div className="repost-card repost-card--gone">
         <strong>This post isn&apos;t available</strong>
-        <span>It may have been deleted, or it&apos;s shared with people you aren&apos;t among.</span>
+        <span>It may have been deleted, or only some people can see it.</span>
       </div>
     );
   }

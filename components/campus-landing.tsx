@@ -21,8 +21,8 @@ import { SiteHeader } from "./site-header";
 
 const WHAT_FOR: { icon: IconName; title: string; text: string; href: string }[] = [
   { icon: "batch", title: "Find your batch", text: "Everyone from your year and branch, on the college's own register.", href: "/join" },
-  { icon: "ask", title: "Ask a senior", text: "Placements, electives, higher studies: a question reaches seniors who know.", href: "/how-it-works" },
-  { icon: "people", title: "Mentor a junior", text: "Alumni say what they're happy to help with; students find them.", href: "/how-it-works" },
+  { icon: "ask", title: "Ask a senior", text: "Ask about placements, electives or higher studies. Your question goes to seniors who know.", href: "/how-it-works" },
+  { icon: "people", title: "Mentor a junior", text: "Alumni say what they can help with, and students can find them.", href: "/how-it-works" },
   { icon: "briefcase", title: "HKBK board", text: "Jobs, internships and referrals, checked by the college.", href: "/how-it-works" }
 ];
 
@@ -171,7 +171,7 @@ export async function CampusLanding() {
 
         {/* ---------- Alumni meets and events ---------- */}
         <section data-reveal className="lp-section container" aria-labelledby="lp-events">
-          <p className="lp-kicker">Come back</p>
+          <p className="lp-kicker">Events</p>
           <h2 id="lp-events">Alumni meets and events</h2>
           <div className="lp-events">
             {MEETS && (
@@ -209,12 +209,12 @@ export async function CampusLanding() {
                 <div className="lp-card lp-event lp-event--none">
                   <span>
                     <strong>The next alumni meet is being planned.</strong>
-                    <small>Members hear first: join, and you&apos;ll get the invitation.</small>
+                    <small>Members hear about it first. Join to get the invitation.</small>
                   </span>
                 </div>
               )}
               <Link className="lp-link" href="/gallery">
-                Photos from HKBK&apos;s years <span aria-hidden="true">→</span>
+                See photos from past years <span aria-hidden="true">→</span>
               </Link>
             </div>
           </div>
@@ -247,7 +247,7 @@ export async function CampusLanding() {
         <section data-reveal className="lp-cta container" aria-labelledby="lp-cta">
           <div>
             <h2 id="lp-cta">Studied at HKBK? Your name is already on the register.</h2>
-            <p>Find it, and you&apos;re in. It takes a minute.</p>
+            <p>Find your name to join. It takes a minute.</p>
           </div>
           <Link className="lp-btn lp-btn--gold" href="/join">
             Find your name <span aria-hidden="true">→</span>

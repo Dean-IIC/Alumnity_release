@@ -47,7 +47,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
   const q = ((await searchParams).q ?? "").slice(0, 60);
   const { mine, discover } = await groupsFor(me, q);
   return (
-    <AppPage user={me} current="groups" title="Groups" intro="Your class, your club, your city, your field: a place for people who share something.">
+    <AppPage user={me} current="groups" title="Groups" intro="Groups for your class, club, city or field of work.">
       <h2>Your groups</h2>
       {mine.length === 0 ? (
         <p className="wf-empty">You aren't in any groups yet. Find one below, or start one.</p>
@@ -87,7 +87,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
             <input name="name" required minLength={3} maxLength={GROUP_LIMITS.name} placeholder="e.g. HKBK alumni in Dubai" />
           </label>
           <label className="field">
-            <span className="field__label">What it's for</span>
+            <span className="field__label">What the group is about</span>
             <textarea name="about" rows={3} maxLength={GROUP_LIMITS.about} />
           </label>
           <fieldset className="field">
@@ -96,7 +96,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
               <input type="radio" name="kind" value="open" defaultChecked /> Open: any member can join and read it
             </label>
             <label className="wf-check">
-              <input type="radio" name="kind" value="private" /> Private: people ask to join; only members can read it
+              <input type="radio" name="kind" value="private" /> Private: people must ask to join. Only members can read it
             </label>
           </fieldset>
           <div>

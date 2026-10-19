@@ -77,7 +77,7 @@ export function LoginForm() {
             </p>
           )}
           <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
-            {busy ? "Opening your page…" : "Log in"} <span aria-hidden="true">→</span>
+            {busy ? "Logging in…" : "Log in"} <span aria-hidden="true">→</span>
           </button>
           <p className="join__fine">
             New here? <Link href="/join">Find your name in the register</Link> · Staff: <Link href="/join/staff">join with your invitation</Link>

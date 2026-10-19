@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Alumnity · HKBK College of Engineering",
     short_name: "Alumnity",
-    description: "HKBK College of Engineering's alumni and students, together.",
+    description: "The alumni and student network of HKBK College of Engineering.",
     start_url: "/home",
     scope: "/",
     display: "standalone",

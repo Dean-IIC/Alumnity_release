@@ -141,11 +141,11 @@ export function ShareSheet({ open, onClose, path, author, forEveryone }: Props) 
           )}
         </ul>
       ) : (
-        <p className="sheet__note">This post isn&apos;t for everyone, so it isn&apos;t offered to other apps. Its link opens only for people who can already see it. Use Send to pass it to a connection.</p>
+        <p className="sheet__note">Only some people can see this post, so you can&apos;t share it to other apps. The link works only for people who can already see the post. To share it with a connection, use Send.</p>
       )}
       <div className="share-link">
         <label className="sr-only" htmlFor={fieldId}>
-          The post&apos;s link
+          Link to this post
         </label>
         <input ref={field} id={fieldId} value={url} readOnly onFocus={(ev) => ev.currentTarget.select()} />
         <button type="button" className="button button--secondary wf-small" onClick={copy}>

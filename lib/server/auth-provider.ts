@@ -43,7 +43,7 @@ export type AuthProvider = {
 // ---------- Supabase ----------
 
 const SUPABASE_ERRORS: [RegExp, string][] = [
-  [/rate limit|too many|security purposes/i, "That’s a lot of tries in a short time. Wait a few minutes and try again."],
+  [/rate limit|too many|security purposes/i, "You have tried too many times. Wait a few minutes and try again."],
   [/signups? not allowed|not allowed for otp/i, "We couldn’t send a code to that address."]
 ];
 

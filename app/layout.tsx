@@ -21,11 +21,11 @@ export const metadata: Metadata = {
   // once with next/og (git history: app/opengraph-image.tsx) and saved as a JPEG.
   metadataBase: new URL(SITE),
   title: "Alumnity · HKBK College of Engineering alumni",
-  description: "A place for HKBK College of Engineering students and alumni to ask, guide and grow together.",
+  description: "A place for HKBK College of Engineering students and alumni to ask questions, help each other and stay in touch.",
   openGraph: {
     siteName: "Alumnity",
     title: "Alumnity · HKBK College of Engineering alumni",
-    description: "A place for HKBK College of Engineering students and alumni to ask, guide and grow together.",
+    description: "A place for HKBK College of Engineering students and alumni to ask questions, help each other and stay in touch.",
     locale: "en_IN",
     type: "website",
     images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Alumnity: HKBK College of Engineering's students and alumni" }]

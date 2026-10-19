@@ -89,7 +89,7 @@ export function PeoplePicker({ chosen, onChange, max, label }: Props) {
       )}
       {full && (
         <p className="picker__note" role="status">
-          That&apos;s {max}: the most at once.
+          You can choose up to {max} people.
         </p>
       )}
     </div>

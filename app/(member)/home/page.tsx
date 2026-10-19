@@ -47,7 +47,7 @@ const SHORTCUTS = [
   { href: "/groups", label: "Groups", icon: "group" },
   { href: "/batch", label: "Your batch", icon: "batch" },
   { href: "/ask", label: "Ask a senior", icon: "ask" },
-  { href: "/board", label: "Jobs board", icon: "briefcase" },
+  { href: "/board", label: "HKBK board", icon: "briefcase" },
   { href: "/events", label: "Events", icon: "event" },
   { href: "/causes", label: "Causes", icon: "heart" },
   { href: "/connections", label: "Connections", icon: "connections" },
@@ -56,11 +56,11 @@ const SHORTCUTS = [
 
 /** Where to begin, when the feed is quiet. */
 const WELCOME = [
-  { href: "/me/edit", label: "Make your page yours", note: "A photo, what you do now, what you're happy to help with", icon: "you" },
-  { href: "/batch", label: "Find your batch", note: "Everyone from your year who's here, and how many still aren't", icon: "batch" },
+  { href: "/me/edit", label: "Complete your page", note: "Add a photo, your current work and how you can help", icon: "you" },
+  { href: "/batch", label: "Find your batch", note: "See who from your year has joined, and who has not", icon: "batch" },
   { href: "/groups", label: "Join or start a group", note: "Your class, your club, your city, your field", icon: "group" },
-  { href: "/ask", label: "Ask a senior", note: "Questions go to the few alumni who fit them", icon: "ask" },
-  { href: "/causes", label: "Back a cause", note: "Scholarships and people in need, checked by the college", icon: "heart" }
+  { href: "/ask", label: "Ask a senior", note: "We send your question to alumni who can answer it", icon: "ask" },
+  { href: "/causes", label: "Support a cause", note: "Scholarships and people in need, checked by the college", icon: "heart" }
 ] as const;
 
 /** The people a filter names, as the filter bar shows them: never anyone blocked either way. */
@@ -136,24 +136,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const strength = profileStrength(me, profile);
   const pageFull = strength.percent >= 100;
   const [asked, organised] = await Promise.all([me.role === "student" ? askCount(me.id) : Promise.resolve(0), staff ? organisedCount(me.id) : Promise.resolve(0)]);
-  const mentorStep = { done: profile.happyTo.mentor, text: "Say you're happy to mentor: questions that fit you start reaching you", href: "/ask", mentor: true };
+  const mentorStep = { done: profile.happyTo.mentor, text: "Offer to mentor, so students can send you their questions", href: "/ask", mentor: true };
   const groupStep = { done: groups.mine.length > 0, text: "Join a group, or start one", href: "/groups" };
   const desk = isModerator(me);
   const { invited, announced } = desk ? await deskBeginnings() : { invited: 0, announced: 0 };
   const steps: { done: boolean; text: string; href: string; mentor?: boolean }[] = desk
     ? [
         { done: invited > 0, text: "Invite the teachers and staff who'll use Alumnity", href: "/desk?tab=team" },
-        { done: announced > 0, text: "Put up a first announcement: it shows at the top of everyone's Home", href: "/desk?tab=announcements" },
+        { done: announced > 0, text: "Post your first announcement. It shows at the top of everyone's Home page.", href: "/desk?tab=announcements" },
         mentorStep
       ]
     : me.role === "student"
       ? [
           { done: connections > 0, text: "Connect with someone from your batch", href: "/batch" },
-          { done: asked > 0, text: "Ask a senior something", href: "/ask" }
+          { done: asked > 0, text: "Ask a senior a question", href: "/ask" }
         ]
       : staff
         ? [
-            { done: organised > 0, text: "Put up an event: a talk, a reunion, a department day", href: "/events" },
+            { done: organised > 0, text: "Add an event, such as a talk, a reunion or a department day", href: "/events" },
             mentorStep,
             groupStep
           ]
@@ -307,7 +307,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <section className="sheet post-filters-empty" aria-labelledby="no-match">
               <h2 id="no-match">No posts match these filters</h2>
               <p>
-                {scope === "following" ? "Nothing from the people you follow matches. " : ""}Try fewer filters, or other words.
+                {scope === "following" ? "No posts from people you follow match. " : ""}Try fewer filters or different words.
               </p>
               <Link className="post-filters__reset" href={feedHref(NO_FILTERS, { view: scope })}>
                 Clear filters
@@ -315,11 +315,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           ) : quiet ? (
             <section className="sheet side-box welcome-card" aria-labelledby="welcome">
-              <h2 id="welcome">{scope === "following" ? "Nothing yet from your people" : "Alumnity is just getting started"}</h2>
+              <h2 id="welcome">{scope === "following" ? "No posts here yet" : "Alumnity is just getting started"}</h2>
               <p className="side-box__note">
                 {scope === "following"
-                  ? "Posts from people you're connected to or follow show here. Find your batch, or follow seniors you admire."
-                  : "Be one of the first: say hello, find your batch, and bring them in."}
+                  ? "Posts from your connections and people you follow will show here. Find your batch, or follow seniors you admire."
+                  : "Be one of the first to post. Say hello, find your batch and invite them."}
               </p>
               <ul className="welcome-card__steps">
                 {WELCOME.map((w) => (
@@ -343,7 +343,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
           {before && (
             <p className="feed-more">
-              <a href={feedHref(filters, { view: scope })}>← Newest</a>
+              <a href={feedHref(filters, { view: scope })}>← Back to newest posts</a>
             </p>
           )}
           {/* It never just stops: older posts, then "More from HKBK", as the reader scrolls (a
@@ -361,7 +361,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <aside className="feed-layout__side feed-layout__side--right" aria-label="Around you">
           {upcoming.length > 0 && (
             <section className="sheet side-box">
-              <h2>Coming up</h2>
+              <h2>Upcoming events</h2>
               <ul className="side-box__list">
                 {upcoming.slice(0, 3).map((e) => {
                   const d = new Date(e.startsAt);
@@ -374,7 +374,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                       <div>
                         <Link href={`/events/${e.id}`}>{e.title}</Link>
                         <p>
-                          {e.going} going{e.imGoing ? " · you too" : ""}
+                          {e.going} going{e.imGoing ? " · including you" : ""}
                         </p>
                       </div>
                     </li>
@@ -390,7 +390,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {causes.map((c) => (
                   <li key={c.id} className="side-cause">
                     <Link href={`/causes/${c.id}`}>{c.title}</Link>
-                    <span className="cause-bar" role="img" aria-label={`${Math.min(100, Math.round((c.raised / c.goal) * 100))}% of the goal`}>
+                    <span className="cause-bar" role="img" aria-label={`${Math.min(100, Math.round((c.raised / c.goal) * 100))}% of the goal raised`}>
                       <span style={{ width: `${Math.min(100, Math.round((c.raised / c.goal) * 100))}%` }} />
                     </span>
                     <small>

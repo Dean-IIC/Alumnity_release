@@ -138,8 +138,8 @@ describe("unread counts that clear", () => {
     const b = await member("Tara Stranger");
     expect(await m.social.sendMessage(a, b.id, "hi")).toEqual({ ok: false, error: expect.stringContaining("connections") });
     await connect(a, b);
-    expect(await m.social.sendMessage(a, b.id, "   ")).toEqual({ ok: false, error: "Write something first." });
-    expect(await m.social.sendMessage(a, 99_999_999, "hi")).toEqual({ ok: false, error: expect.stringContaining("isn't here") });
+    expect(await m.social.sendMessage(a, b.id, "   ")).toEqual({ ok: false, error: "Type a message first." });
+    expect(await m.social.sendMessage(a, 99_999_999, "hi")).toEqual({ ok: false, error: expect.stringContaining("couldn't find that member") });
   });
 });
 
@@ -222,7 +222,7 @@ describe("story replies and reactions", () => {
     // A follower sees the story but isn't connected: no reply (messages are between connections).
     expect((await m.stories.storyBar(fan)).some((r) => r.author.id === author.id)).toBe(true);
     expect(await m.stories.replyToStory(fan, s.id, { text: "nice" })).toEqual({ ok: false, error: "Connect with Zara to reply to their story." });
-    expect(await m.stories.replyToStory(author, s.id, { reaction: "❤️" })).toEqual({ ok: false, error: "That's your own story." });
+    expect(await m.stories.replyToStory(author, s.id, { reaction: "❤️" })).toEqual({ ok: false, error: "You can't reply to your own story." });
     expect((await m.stories.replyToStory(friend, s.id, { reaction: "💩" })).ok).toBe(false);
     expect((await m.stories.replyToStory(friend, s.id, { text: "   " })).ok).toBe(false);
     expect((await m.stories.replyToStory(friend, 99_999_999, { text: "hi" })).ok).toBe(false);

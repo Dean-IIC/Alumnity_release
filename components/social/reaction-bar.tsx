@@ -177,7 +177,7 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
             ref={arrow}
             type="button"
             className="post__more-reactions"
-            aria-label="All reactions"
+            aria-label="Choose a reaction"
             aria-haspopup="menu"
             aria-expanded={open}
             onClick={(e) => {

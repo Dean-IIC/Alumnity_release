@@ -17,14 +17,14 @@ export async function resolveReportAction(_: ActionState, form: FormData): Promi
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const action = textFrom(form, "action", 10) === "remove" ? "remove" : "dismiss";
-  return answer(await resolveReport(me, idFrom(form), action), action === "remove" ? "Taken down." : "Dismissed.");
+  return answer(await resolveReport(me, idFrom(form), action), action === "remove" ? "Taken down." : "Report dismissed.");
 }
 
 export async function pauseAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const paused = textFrom(form, "paused", 5) === "1";
-  return answer(await suspend(me, idFrom(form), paused), paused ? "Paused, and logged out everywhere." : "Unpaused.");
+  return answer(await suspend(me, idFrom(form), paused), paused ? "Paused. They are logged out on all devices." : "Unpaused.");
 }
 
 export async function signOutAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -53,15 +53,15 @@ export async function takeDownAction(_: ActionState, form: FormData): Promise<Ac
   if (!me) return SIGNED_OUT;
   const kind = contentKind(form);
   if (!kind) return { ok: false, error: "That can't be taken down here." };
-  return answer(await takeDown(me, kind, idFrom(form)), "Taken down. Its author was told.");
+  return answer(await takeDown(me, kind, idFrom(form)), "Taken down. We told the author.");
 }
 
 export async function restoreAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const kind = contentKind(form);
-  if (!kind) return { ok: false, error: "That can't be brought back." };
-  return answer(await restore(me, kind, idFrom(form)), "Brought back.");
+  if (!kind) return { ok: false, error: "That can't be restored." };
+  return answer(await restore(me, kind, idFrom(form)), "Restored.");
 }
 
 export async function announceAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -73,7 +73,7 @@ export async function announceAction(_: ActionState, form: FormData): Promise<Ac
       body: textFrom(form, "body", ANNOUNCEMENT_LIMITS.body),
       days: Number(textFrom(form, "days", 4))
     }),
-    "Announced. It's at the top of everyone's Home."
+    "Announcement posted. It shows at the top of everyone's Home page."
   );
 }
 
@@ -93,7 +93,7 @@ export async function settingsAction(_: ActionState, form: FormData): Promise<Ac
       features: { notes: on("notes"), asks: on("asks"), events: on("events"), messages: on("messages") },
       dailyRequests: Number(textFrom(form, "dailyRequests", 4))
     }),
-    "Saved. It's in the audit log."
+    "Settings saved. The change is in the audit log."
   );
 }
 
@@ -109,12 +109,12 @@ export async function inviteStaffAction(_: ActionState, form: FormData): Promise
     { email: textFrom(form, "email", 254), name: textFrom(form, "name", 100), role: textFrom(form, "role", 20), branch: textFrom(form, "branch", 10) },
     origin
   );
-  return answer(done, "Invited. They'll get an email with a link to join; it works for two weeks.");
+  return answer(done, "Invitation sent. They will get an email with a link to join. The link works for two weeks.");
 }
 
 export async function revokeInviteAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const { revokeInvite } = await import("../server/staff");
-  return answer(await revokeInvite(me, textFrom(form, "email", 254)), "Invitation withdrawn.");
+  return answer(await revokeInvite(me, textFrom(form, "email", 254)), "Invitation cancelled.");
 }

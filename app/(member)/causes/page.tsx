@@ -40,8 +40,8 @@ export default async function CausesPage() {
   const me = await requireUser("/causes");
   const { live, mine, past, waiting } = await causesFor(me);
   return (
-    <AppPage user={me} current="causes" title="Causes" intro="Scholarships, a classmate in need, something for the college: give to what HKBK people care about.">
-      {!donationsOpen() && <p className="wf-card">Giving opens once the college has set up payments. You can propose a cause now.</p>}
+    <AppPage user={me} current="causes" title="Causes" intro="Give to scholarships, a classmate in need, or a project for the college.">
+      {!donationsOpen() && <p className="wf-card">You can give once the college has set up payments. You can propose a cause now.</p>}
 
       {waiting.length > 0 && (
         <section className="wf-card" aria-labelledby="waiting">
@@ -77,7 +77,7 @@ export default async function CausesPage() {
 
       {mine.length > 0 && (
         <>
-          <h2>Yours</h2>
+          <h2>Your causes</h2>
           <ul className="wf-list">
             {mine.map((c) => (
               <CauseLine key={c.id} cause={c} />
@@ -89,16 +89,16 @@ export default async function CausesPage() {
       <details className="wf-fold" id="propose">
         <summary>Propose a cause</summary>
         <p className="wf-muted">
-          The college desk reads every cause before it goes live, and may ask you about it. Donations go to HKBK College of Engineering's account; the college pays the cause and
+          The college desk reads every cause before it goes live. They may ask you about it. Donations go to the bank account of HKBK College of Engineering. The college then pays for the cause and
           shows what it paid.
         </p>
         <ActionForm action={proposeCauseAction} className="wf-stack">
           <label className="field">
-            <span className="field__label">Name</span>
+            <span className="field__label">Cause name</span>
             <input name="title" required minLength={5} maxLength={CAUSE_LIMITS.title} placeholder="e.g. Fees for two first-years from Shivajinagar" />
           </label>
           <label className="field">
-            <span className="field__label">The story: who it helps, what the money is for, and who you are to it</span>
+            <span className="field__label">The story: who it helps, what the money is for, and how you are connected to it</span>
             <textarea name="story" required minLength={50} rows={7} maxLength={CAUSE_LIMITS.story} />
           </label>
           <div className="field-row">
@@ -107,7 +107,7 @@ export default async function CausesPage() {
               <input name="goal" required inputMode="numeric" pattern="[0-9,]*" maxLength={12} placeholder="e.g. 1,50,000" />
             </label>
             <label className="field">
-              <span className="field__label">Runs for</span>
+              <span className="field__label">Open for</span>
               <select name="days" defaultValue="60">
                 <option value="30">30 days</option>
                 <option value="60">60 days</option>

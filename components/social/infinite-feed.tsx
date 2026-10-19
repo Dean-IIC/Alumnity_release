@@ -90,7 +90,7 @@ export function InfiniteFeed({ scope, next: first, filters = "", empty = false }
     <>
       {pages}
       {loading && (
-        <div role="status" aria-label="Loading more">
+        <div role="status" aria-label="Loading more posts">
           <PostSkeleton />
           <PostSkeleton />
         </div>
@@ -98,13 +98,13 @@ export function InfiniteFeed({ scope, next: first, filters = "", empty = false }
       <div ref={end} className="feed-more">
         {failed ? (
           <button type="button" className="button button--secondary wf-small" onClick={loadMore}>
-            Couldn't load more. Try again
+            Couldn't load more posts. Try again
           </button>
         ) : cursor === null ? (
           filtered ? (
-            empty ? null : <p className="feed-more__end">That's every post that matches these filters.</p>
+            empty ? null : <p className="feed-more__end">No more posts match these filters.</p>
           ) : (
-            <p className="feed-more__end">You've seen everything on Alumnity for now. Come back soon: HKBK keeps posting.</p>
+            <p className="feed-more__end">You've seen everything on Alumnity for now. Come back later for new posts.</p>
           )
         ) : "posts" in cursor ? (
           <Link href={`/home?${[scope === "following" ? "view=following" : "", filters, `before=${cursor.posts}`].filter(Boolean).join("&")}`}>Older posts →</Link>

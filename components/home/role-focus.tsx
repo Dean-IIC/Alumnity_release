@@ -30,6 +30,8 @@ const hour = () => Number(new Intl.DateTimeFormat("en-IN", { hour: "numeric", ho
 const greeting = () => (hour() < 12 ? "Good morning" : hour() < 17 ? "Good afternoon" : "Good evening");
 
 const SEEKING_LABEL = { mentor: "a mentor", internship: "an internship", referral: "a referral" } as const;
+/** What a report is about, in words ("ask" is a question). */
+const KIND_WORD: Record<string, string> = { ask: "question" };
 
 function Head({ me, line }: { me: User; line: string }) {
   return (
@@ -102,7 +104,7 @@ async function StudentFocus({ me }: { me: User }) {
               <li key={a.id}>
                 <Link href={`/ask/${a.id}`} className="focus__ask">
                   <strong>{a.title}</strong>
-                  <small>{a.status === "taken" && a.taker ? `${a.taker.name} took it on: read their reply` : "Waiting for a senior to take it on"}</small>
+                  <small>{a.status === "taken" && a.taker ? `${a.taker.name} is answering. Read their reply.` : "Waiting for a senior to answer"}</small>
                 </Link>
               </li>
             ))}
@@ -131,7 +133,7 @@ async function StudentFocus({ me }: { me: User }) {
       )}
       {mentors.length > 0 && (
         <>
-          <h3>Seniors happy to mentor{me.branch ? `, ${me.branch} first` : ""}</h3>
+          <h3>Seniors happy to mentor{me.branch ? ` (${me.branch} first)` : ""}</h3>
           <People
             list={mentors.map((m) => ({ member: m.member, note: [m.profile.title, m.profile.company && `at ${m.profile.company}`].filter(Boolean).join(" ") || batchLabel(m.member) }))}
             photos={photos}
@@ -166,10 +168,10 @@ async function AlumnusFocus({ me }: { me: User }) {
       <h3>Questions for you</h3>
       {!profile.happyTo.mentor ? (
         <div className="focus__switch">
-          <p>Students' questions that fit your branch and what you know come here, a few at a time. You can stop whenever you like.</p>
+          <p>If you mentor, we send you a few student questions that match your branch and skills. You can stop at any time.</p>
           <ActionForm action={mentorAction}>
             <button className="button button--primary wf-small" type="submit">
-              I'm happy to mentor
+              Start mentoring
             </button>
           </ActionForm>
         </div>
@@ -180,7 +182,7 @@ async function AlumnusFocus({ me }: { me: User }) {
           ))}
         </ul>
       ) : (
-        <p className="focus__quiet">Nothing waiting for you. When a question fits you, it comes here and we tell you.</p>
+        <p className="focus__quiet">No questions for you right now. When a question matches you, it will show here and we will tell you.</p>
       )}
       {seeking.length > 0 && (
         <>
@@ -198,16 +200,16 @@ async function AlumnusFocus({ me }: { me: User }) {
         <>
           <h3>Your batch</h3>
           {mates.length > 0 ? (
-            <People list={mates.slice(0, 4).map((u) => ({ member: u }))} photos={photos} note={missing ? `${missing} more from your batch aren't here yet.` : undefined} />
+            <People list={mates.slice(0, 4).map((u) => ({ member: u }))} photos={photos} note={missing ? `${missing} more from your batch ${missing === 1 ? "has" : "have"} not joined yet.` : undefined} />
           ) : (
-            <p className="focus__quiet">Nobody else from your batch is here yet{onRegister ? ` (${onRegister} joined HKBK with you)` : ""}. Bring them in:</p>
+            <p className="focus__quiet">No one else from your batch has joined yet{onRegister ? ` (${onRegister} people joined HKBK with you)` : ""}. Invite them:</p>
           )}
           {missing > 0 && <Invite text="I'm on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />}
         </>
       )}
-      <h3>Hiring where you work?</h3>
+      <h3>Is your company hiring?</h3>
       <p className="focus__quiet">
-        Post it with #job or #internship. The college checks it and puts it on the HKBK board, where students look, and they can ask you for a referral.{" "}
+        Post the opening with #job or #internship. The college checks it and adds it to the HKBK board. Students see it there and can ask you for a referral.{" "}
         {/* A plain link: the composer opens on the address's #compose, which a page swap wouldn't change. */}
         <a className="wf-inline-link" href="#compose">
           Write a post
@@ -260,18 +262,18 @@ async function TeacherFocus({ me }: { me: User }) {
           ))}
         </ul>
       ) : (
-        <p className="focus__quiet">Nothing coming up from you. A guest talk by an alumnus, a reunion, a department day: alumni come back for these.</p>
+        <p className="focus__quiet">You have no upcoming events. Alumni like to come back for guest talks, reunions and department days.</p>
       )}
       <Link className="button button--secondary wf-small" href="/events?new=1#new-event">
-        Put up an event
+        Add an event
       </Link>
       <h3>Questions for you</h3>
       {!profile.happyTo.mentor ? (
         <div className="focus__switch">
-          <p>Students' questions that fit your department and what you know come here.</p>
+          <p>If you agree, student questions that match your department and skills will show here.</p>
           <ActionForm action={mentorAction}>
             <button className="button button--primary wf-small" type="submit">
-              I'm happy to answer them
+              Start answering questions
             </button>
           </ActionForm>
         </div>
@@ -323,16 +325,16 @@ async function DeskFocus({ me }: { me: User }) {
     <section className={`sheet focus focus--desk ${superAdmin ? "focus--super" : ""}`} aria-label="The college desk">
       <Head
         me={me}
-        line={superAdmin ? "The whole site: what's waiting for the desk, how it's going, and how it's set up." : "What's waiting for the college desk, and how the week is going."}
+        line={superAdmin ? "The whole site: what needs review, this week's activity and site settings." : "What needs review at the college desk, and this week's activity."}
       />
-      <h3>Waiting for the desk</h3>
+      <h3>Waiting for review</h3>
       {open.length || s.causesWaiting ? (
         <ul className="focus__asks">
           {open.slice(0, 3).map((r) => (
             <li key={r.id}>
               <Link href="/desk?tab=reports" className="focus__ask">
                 <strong>
-                  A {r.kind} reported: “{r.reason.slice(0, 80)}”
+                  Reported {KIND_WORD[r.kind] ?? r.kind}: “{r.reason.slice(0, 80)}”
                 </strong>
                 <small>{timeAgo(r.createdAt)}</small>
               </Link>
@@ -349,7 +351,7 @@ async function DeskFocus({ me }: { me: User }) {
                 <strong>
                   {s.causesWaiting} cause{s.causesWaiting === 1 ? "" : "s"} to review
                 </strong>
-                <small>Approve it so members can give, or say why not.</small>
+                <small>Approve it so members can donate, or explain why not.</small>
               </Link>
             </li>
           )}
@@ -363,7 +365,7 @@ async function DeskFocus({ me }: { me: User }) {
           <strong>{week.joined}</strong> joined
         </span>
         <span>
-          <strong>{s.signedInThisWeek}</strong> {s.signedInThisWeek === 1 ? "was" : "were"} here
+          <strong>{s.signedInThisWeek}</strong> logged in
         </span>
         <span>
           <strong>{week.posts}</strong> {week.posts === 1 ? "post" : "posts"}
@@ -374,7 +376,7 @@ async function DeskFocus({ me }: { me: User }) {
       </div>
       <div className="wf-actions focus__actions">
         <Link className="button button--secondary wf-small" href="/desk?tab=announcements">
-          Put up an announcement
+          Post an announcement
         </Link>
         <Link className="button button--secondary wf-small" href="/desk?tab=team">
           Invite staff
@@ -383,12 +385,12 @@ async function DeskFocus({ me }: { me: User }) {
           Members
         </Link>
         <Link className="button button--secondary wf-small" href="/desk">
-          The college desk →
+          Open the college desk →
         </Link>
       </div>
       {superAdmin && site && (
         <>
-          <h3>The site</h3>
+          <h3>Site status</h3>
           <ul className="focus__state">
             <li className={site.joiningOpen ? "on" : "off"}>{site.joiningOpen ? "Joining is open" : "Joining is closed"}</li>
             <li className={paused.length ? "off" : "on"}>{paused.length ? `Paused: ${paused.join(", ")}` : "Every feature is on"}</li>
@@ -398,7 +400,7 @@ async function DeskFocus({ me }: { me: User }) {
           </ul>
           {log.length > 0 && (
             <>
-              <h3>Lately on the desk</h3>
+              <h3>Recent desk activity</h3>
               <ul className="focus__log">
                 {log.map((e) => (
                   <li key={e.id}>
@@ -406,7 +408,7 @@ async function DeskFocus({ me }: { me: User }) {
                   </li>
                 ))}
               </ul>
-              <Link href="/desk?tab=audit">The audit log →</Link>
+              <Link href="/desk?tab=audit">Open the audit log →</Link>
             </>
           )}
         </>
@@ -419,7 +421,7 @@ async function DeskFocus({ me }: { me: User }) {
 export function FocusWaiting({ me }: { me: User }) {
   return (
     <section className="sheet focus focus--waiting" aria-label="For you" aria-busy="true">
-      <Head me={me} line="Gathering what’s for you…" />
+      <Head me={me} line="Loading your updates…" />
     </section>
   );
 }

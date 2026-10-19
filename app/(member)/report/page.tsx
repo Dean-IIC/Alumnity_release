@@ -25,11 +25,11 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
           <input type="hidden" name="id" value={id} />
           <label className="field">
             <span className="field__label">What's wrong?</span>
-            <textarea name="reason" rows={3} maxLength={500} required placeholder="Spam, rude, pretending to be someone, something unsafe…" />
+            <textarea name="reason" rows={3} maxLength={500} required placeholder="For example: spam, rude words, a fake account, or something unsafe" />
           </label>
           <div className="wf-actions">
             <button className="button button--primary" type="submit">
-              Send to the college desk
+              Send report
             </button>
             <a className="wf-link-button" href={back}>
               ← Back

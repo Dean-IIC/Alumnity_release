@@ -37,18 +37,18 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
         </div>
       </article>
 
-      {ask.reason && !taker && <p className="wf-muted">Why it came to you: {ask.reason}.</p>}
+      {ask.reason && !taker && <p className="wf-muted">Why we sent it to you: {ask.reason}.</p>}
 
       {ask.status === "open" && (
         <section className="wf-card">
           {asker ? (
-            <p>It's with a few seniors who fit. You'll be told when one takes it on.</p>
+            <p>We sent your question to a few seniors who match it. We will tell you when one of them takes it.</p>
           ) : isSenior(me) ? (
             <ActionForm action={takeAskAction}>
               {hidden}
-              <p>Can you help? Taking it on means you'll write to {firstName(ask.author.name)} privately, here.</p>
+              <p>Can you help? If you take this question, you will reply to {firstName(ask.author.name)} privately, on this page.</p>
               <button className="button button--primary" type="submit">
-                Take it on
+                Take this question
               </button>
             </ActionForm>
           ) : null}
@@ -59,7 +59,7 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
         <section aria-labelledby="thread">
           <h2 id="thread">{asker ? `${ask.taker.name} is helping you` : `You're helping ${ask.author.name}`}</h2>
           <div className="wf-thread">
-            {messages.length === 0 && <p className="wf-empty">{taker ? "Start with a hello and your first thoughts." : "They'll write to you here."}</p>}
+            {messages.length === 0 && <p className="wf-empty">{taker ? "Start with a hello and your first thoughts." : "They will reply to you here."}</p>}
             {messages.map((m) => (
               <div key={m.id} className={`wf-bubble ${m.mine ? "wf-bubble--mine" : ""}`}>
                 {m.body}
@@ -92,12 +92,12 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
           <ActionForm action={answeredAction} className="wf-stack">
             {hidden}
             <label className="field">
-              <span className="field__label">A line of thanks (optional; it goes on {firstName(ask.taker?.name ?? "")}'s Record)</span>
+              <span className="field__label">A short thank-you note (optional; it is shown on {firstName(ask.taker?.name ?? "")}'s Record)</span>
               <textarea name="thanks" rows={2} maxLength={300} />
             </label>
             <div>
               <button className="button button--primary wf-small" type="submit">
-                Mark it answered
+                Mark as answered
               </button>
             </div>
           </ActionForm>
@@ -112,10 +112,10 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
 
       <div className="wf-actions" style={{ marginTop: "var(--space-6)" }}>
         {asker && (ask.status === "open" || ask.status === "taken") && (
-          <ActionForm action={closeAskAction} confirm="Close this question? Nobody can reply after.">
+          <ActionForm action={closeAskAction} confirm="Close this question? No one can reply after you close it.">
             {hidden}
             <button className="wf-link-button" type="submit">
-              Close the question
+              Close question
             </button>
           </ActionForm>
         )}

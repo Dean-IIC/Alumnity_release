@@ -62,7 +62,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
               <p className="dm-composer__note">{PAUSED}</p>
             ) : (
               <p className="dm-composer__note">
-                You can write to {first} once you&rsquo;re connected. <Link href={`/people/${other.id}`}>Connect from their page</Link>.
+                You can message {first} once you&rsquo;re connected. <Link href={`/people/${other.id}`}>Go to their page to connect</Link>.
               </p>
             )
           }

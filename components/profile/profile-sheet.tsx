@@ -75,13 +75,13 @@ const LANTERNS = [
   {
     key: "mentor",
     title: "Mentors juniors",
-    note: "Ask about a decision, a project, a first job.",
+    note: "Ask about a course, a project or a first job.",
     art: <path d="M24 42V24m0 0c-1-8-7-12-14-12 0 8 6 12 14 12Zm0-4c1-7 6-11 13-11 0 7-6 11-13 11ZM14 42h20" />
   },
   {
     key: "refer",
     title: "Refers people",
-    note: "Puts a good fit forward at their company.",
+    note: "Recommends good candidates at their company.",
     art: <path d="M12 42V8h20v34M12 42h26M32 8l8 4v26l-8 4M27 26h2M6 14l4 2M4 24h5M6 34l4-2" />
   },
   {
@@ -94,9 +94,9 @@ const LANTERNS = [
 
 /* A student's side: what they're looking for, drawn the same way. */
 const WISHES = [
-  { key: "mentor", title: "Looking for a mentor", note: "A senior to talk a decision through.", art: LANTERNS[0].art },
-  { key: "internship", title: "Looking for an internship", note: "Alumni who hire, or know where to look.", art: LANTERNS[1].art },
-  { key: "referral", title: "Looking for a referral", note: "When they apply where an alumnus works.", art: LANTERNS[2].art }
+  { key: "mentor", title: "Looking for a mentor", note: "A senior who can help with a decision.", art: LANTERNS[0].art },
+  { key: "internship", title: "Looking for an internship", note: "Alumni who hire, or who know about openings.", art: LANTERNS[1].art },
+  { key: "referral", title: "Looking for a referral", note: "For when they apply to a company where an alumnus works.", art: LANTERNS[2].art }
 ] as const;
 
 const STAFF = new Set(["faculty", "coordinator", "admin", "superadmin"]);
@@ -171,7 +171,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
             ) : (
               isOwner && (
                 <p className="profile__prompt">
-                  {student ? "What are you up to: a project, a club, an internship? Add it when you edit your page." : "What are you doing now? Add it when you edit your page."}
+                  {student ? "What are you doing now? A project, a club, an internship? Add it when you edit your page." : "What are you doing now? Add it when you edit your page."}
                 </p>
               )
             )}
@@ -311,7 +311,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                             ? w.note
                             : w.key === "mentor"
                               ? "Not switched on. Edit your page to turn it on, so seniors can find you."
-                              : "Not switched on. Light it when you edit your page: seniors can find you, and you hear when a job or internship goes on the HKBK board."}
+                              : "Not switched on. Turn it on when you edit your page. Then seniors can find you, and we tell you when a job or internship is posted on the HKBK board."}
                         </span>
                       </span>
                     </li>
@@ -321,7 +321,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
             </Card>
           )}
           {(profile.links.linkedin || profile.links.website || isOwner) && (
-            <Card title={isOwner ? "Find you" : "Find them"} who={v?.links}>
+            <Card title={isOwner ? "Your links" : "Links"} who={v?.links}>
               {profile.links.linkedin || profile.links.website ? (
                 <ul className="profile__links">
                   {profile.links.linkedin && (
@@ -340,7 +340,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                   )}
                 </ul>
               ) : (
-                <p className="profile__prompt">Your LinkedIn, or a website.</p>
+                <p className="profile__prompt">Add your LinkedIn or a website when you edit your page.</p>
               )}
             </Card>
           )}

@@ -75,14 +75,14 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
             <ActionForm action={withdrawAction}>
               {hidden}
               <button className="wf-link-button" type="submit">
-                Withdraw
+                Withdraw request
               </button>
             </ActionForm>
           </div>
         )}
         {relation === "received" && (
           <div className="wf-actions">
-            <span>{first} would like to connect.</span>
+            <span>{first} sent you a connection request.</span>
             <ActionForm action={acceptAction}>
               {hidden}
               <button className="button button--primary wf-small" type="submit">
@@ -102,7 +102,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
             <Link className="button button--primary" href={`/messages/${owner.id}`}>
               Message {first}
             </Link>
-            <ActionForm action={removeConnectionAction} confirm={`Remove ${first} from your connections? They aren't told.`}>
+            <ActionForm action={removeConnectionAction} confirm={`Remove ${first} from your connections? We won't tell them.`}>
               {hidden}
               <button className="wf-link-button" type="submit">
                 Remove connection
@@ -120,7 +120,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
           <span className="wf-muted">{following ? `${first}'s posts are in your Following feed.` : `See ${first}'s posts in your Following feed, without connecting.`}</span>
         </div>
         <div className="wf-actions">
-          <ActionForm action={blockAction} confirm={`Block ${first}? You won't see each other anywhere on Alumnity, and any connection ends. They aren't told.`}>
+          <ActionForm action={blockAction} confirm={`Block ${first}? You won't see each other anywhere on Alumnity. If you are connected, the connection ends. We won't tell them.`}>
             {hidden}
             <button className="wf-link-button" type="submit">
               Block
@@ -132,7 +132,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
     );
 
   return (
-    <AppPage user={me} current="people" back={{ href: "/people", label: "Network" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections · ${counts.followers} ${counts.followers === 1 ? "follower" : "followers"}${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
+    <AppPage user={me} current="people" back={{ href: "/people", label: "Network" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections · ${counts.followers} ${counts.followers === 1 ? "follower" : "followers"}${record.count ? ` · answered ${record.count} ${record.count === 1 ? "question" : "questions"} on Ask a senior` : ""}`}>
       <StickyName name={owner.name}>
         {relation === "connected" && (
           <Link className="button button--primary wf-small" href={`/messages/${owner.id}`}>

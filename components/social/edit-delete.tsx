@@ -14,7 +14,7 @@ import "../../app/styles/posts-plus.css";
  * box); editing opens the words in one, with their @mentions kept.
  */
 
-const FAILED = "That didn't work: check your connection and try again.";
+const FAILED = "That didn't work. Check your internet connection and try again.";
 
 /** A dialog put at the end of the page: one inside a post's ⋯ menu (a <details>) would vanish as it closes. */
 function Floating({ children }: { children: ReactNode }) {
@@ -127,7 +127,7 @@ function EditSheet({
           });
         }}
       >
-        <MentionInput name="body" label="What it says" initial={initial} maxLength={limit} rows={5} className="edit-form__text" placeholder="Write something… (@ to mention)" />
+        <MentionInput name="body" label="Text" initial={initial} maxLength={limit} rows={5} className="edit-form__text" placeholder="Write something. Type @ to mention someone." />
         {note && <p className="sheet__note">{note}</p>}
         {error && (
           <p className="wf-note wf-note--error" role="alert">
@@ -139,7 +139,7 @@ function EditSheet({
             Cancel
           </button>
           <button type="submit" className="button button--primary" disabled={pending}>
-            {pending ? "Saving…" : "Save"}
+            {pending ? "Saving…" : "Save changes"}
           </button>
         </div>
       </form>
@@ -189,14 +189,14 @@ export function PostEditDelete({
             limit={limit}
             note={
               verified
-                ? "Who it's for and its photos stay as they are. It comes off the HKBK board until the college checks it again."
-                : "Who it's for and its photos stay as they are. It will show as edited."
+                ? "You can change the text only. Who can see the post and its photos stay the same. The post leaves the HKBK board until the college checks it again."
+                : "You can change the text only. Who can see the post and its photos stay the same. The post will show as edited."
             }
             run={(text) => editPostNow(id, text)}
           />
         )}
         <ConfirmSheet open={open === "delete"} onClose={close} title={mine ? "Delete post?" : "Delete this post from the group?"} confirm="Delete" run={() => removePostNow(id, after)}>
-          {mine ? "It goes for everyone, with its reactions and comments. It can't be brought back." : "It goes for everyone in the group, with its comments. It can't be brought back."}
+          {mine ? "This deletes the post for everyone, with its reactions and comments. You can't undo this." : "This deletes the post for everyone in the group, with its comments. You can't undo this."}
         </ConfirmSheet>
       </Floating>
     </>
@@ -218,7 +218,7 @@ export function CommentEditDelete({ id, body, limit }: { id: number; body: strin
       <Floating>
         <EditSheet open={open === "edit"} onClose={close} title="Edit comment" initial={body} limit={limit} run={(text) => editCommentNow(id, text)} />
         <ConfirmSheet open={open === "delete"} onClose={close} title="Delete comment?" confirm="Delete" run={() => removeCommentNow(id)}>
-          It goes for everyone. It can&rsquo;t be brought back.
+          This deletes the comment for everyone. You can&rsquo;t undo this.
         </ConfirmSheet>
       </Floating>
     </>
