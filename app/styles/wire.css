@@ -870,3 +870,18 @@
   font-size: 0.8em;
   color: var(--color-ink-muted);
 }
+
+/* People: the register's size, so the page doesn't look empty of real people before a search. */
+.people-register-note {
+  margin: 0 0 var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--color-gold);
+  border-radius: 0 10px 10px 0;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+}
+
+.people-register-note strong {
+  color: var(--color-blue);
+}
