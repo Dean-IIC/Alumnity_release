@@ -1,18 +1,18 @@
-import { memo, type CSSProperties } from "react";
+import { memo, type CSSProperties, type ReactNode } from "react";
 
 /*
  * Inside the site, each page stands on its own picture: flat blue, made of layered waves in
- * many blues that slowly come and go, with soft shadows between them, and big soft yellow
- * spheres and pills. Flat and soft, no outlines. Each page's picture is its own, chosen by
- * what its shapes make people feel (shape psychology):
+ * many blues that slowly come and go, with soft shadows between them, and gold on it: soft
+ * orbs, fine rings and arcs, and thin lines that follow the waves. Calm and grown-up, like
+ * good print: few shapes, all curved (nothing sharp to snag the eye), one idea per page,
+ * chosen for what its shapes make people feel (shape psychology):
  *
- *   circles and spheres  warmth, community, belonging: nothing to snag on
- *   pills                friendly and easy-going: a circle stretched into a step forward
- *   waves                calm, flow, things that come and go (people, news, years)
- *   arches               a gateway, achievement: the college's own arch
- *   rising steps         growth and progress (jobs, the board)
- *   ripples              something reaching you (notifications)
- *   level bands          steadiness (settings, the desk)
+ *   an orb, half sunk       warmth and welcome: a sun rising, or setting into the sea
+ *   rings, overlapping      belonging, people joined to people
+ *   arcs, one inside another  a gateway, years passing through: the college's arch
+ *   a line that rises        growth and progress (jobs, the board)
+ *   ripples                  something reaching you (notifications)
+ *   level lines              steadiness (settings, the desk)
  *
  * Each layer is its own element, so the waves drift on the graphics card without
  * repainting the page; nothing moves for anyone who prefers less motion.
@@ -34,10 +34,9 @@ export type SceneName =
   | "causes"
   | "steady";
 
-/** The blues, from deepest to lightest, and the yellows. */
+/** The blues, from deepest to lightest, and the golds. */
 const BLUE = ["#1a52b3", "#1f5fc4", "#2a6ad3", "#3479df", "#4489e8", "#5a9bf0"] as const;
-const YELLOW = { sun: "#ffd23f", deep: "#ffc21a", light: "#ffe27a" } as const;
-const ACCENT = { coral: "#ff6b6b", mint: "#3ddc97" } as const;
+const GOLD = { core: "#ffd978", edge: "#e2a62e", line: "#f3c65a" } as const;
 
 const W = 1600;
 const H = 1000;
@@ -49,7 +48,7 @@ type Wave = {
   /** Swell length, and where along it the wave starts. */
   length: number;
   shift: number;
-  /** Fills down to the bottom ("up") or up to the top ("down"). */
+  /** Fills down to the bottom, or up to the top. */
   side: "bottom" | "top";
   tone: number;
   /** Seconds for one come-and-go, and how far it travels. */
@@ -57,208 +56,224 @@ type Wave = {
   reach: number;
 };
 
-type Shape =
-  | { kind: "sphere"; x: number; y: number; r: number; tone?: keyof typeof YELLOW; behind?: number }
-  | { kind: "pill"; x: number; y: number; w: number; h: number; turn: number; tone?: keyof typeof YELLOW | keyof typeof ACCENT; behind?: number }
-  | { kind: "arch"; x: number; y: number; r: number; thick: number; tone?: keyof typeof YELLOW; behind?: number }
-  | { kind: "ripple"; x: number; y: number; r: number; rings: number; behind?: number };
+/** Gold on the picture. `behind: n` puts it under wave n (a sun setting into the sea). */
+type Shape = { behind?: number } & (
+  | { kind: "orb"; x: number; y: number; r: number }
+  | { kind: "ring"; x: number; y: number; r: number; width: number; fade?: number }
+  | { kind: "arc"; x: number; y: number; r: number; from: number; to: number; width: number; fade?: number }
+  | { kind: "ripple"; x: number; y: number; r: number; rings: number; gap: number }
+  | { kind: "line"; wave: Omit<Wave, "side" | "tone" | "drift" | "reach">; width: number; fade?: number }
+);
 
 type Scene = { waves: Wave[]; shapes: Shape[] };
 
-/** A smooth swell from one side of the picture to the other, closed off at the top or bottom. */
-function wavePath({ at, amp, length, shift, side }: Wave): string {
+/** A smooth swell across the picture: the open line, or closed off to the top or bottom. */
+function swell({ at, amp, length, shift }: Pick<Wave, "at" | "amp" | "length" | "shift">): string {
   const y = at * H;
   const start = -400 - shift * length;
   let d = `M ${start} ${y} Q ${start + length / 4} ${y - amp} ${start + length / 2} ${y}`;
   for (let x = start + length / 2; x < W + 400; x += length / 2) d += ` T ${x + length / 2} ${y}`;
-  const edge = side === "bottom" ? H + 40 : -40;
-  return `${d} L ${W + 400 + length} ${edge} L ${start} ${edge} Z`;
+  return d;
+}
+
+function wavePath(wave: Wave): string {
+  const edge = wave.side === "bottom" ? H + 40 : -40;
+  return `${swell(wave)} L ${W + 400 + wave.length} ${edge} L ${-400 - wave.shift * wave.length} ${edge} Z`;
 }
 
 const w = (at: number, amp: number, length: number, shift: number, side: Wave["side"], tone: number, drift: number, reach = 60): Wave => ({ at, amp, length, shift, side, tone, drift, reach });
+const line = (at: number, amp: number, length: number, shift: number, width = 2.5, fade = 0.7): Shape => ({ kind: "line", wave: { at, amp, length, shift }, width, fade });
 
-/** Each page's picture. Shapes with `behind: n` sit under wave n (a sun setting into the sea). */
+/** Each page's picture. */
 const SCENES: Record<SceneName, Scene> = {
-  // Home: a sun rising over the sea, a few pills drifting: a warm, open welcome.
+  // Home: a sun rising out of the sea, its light in two fine arcs: a warm welcome.
   home: {
     waves: [w(0.62, 50, 900, 0.1, "bottom", 3, 26), w(0.72, 40, 700, 0.5, "bottom", 4, 20, 80), w(0.84, 34, 560, 0.2, "bottom", 1, 31), w(0.12, 36, 820, 0.3, "top", 1, 34)],
     shapes: [
-      { kind: "sphere", x: 1360, y: 640, r: 210, behind: 1 },
-      { kind: "pill", x: 170, y: 760, w: 220, h: 64, turn: -18, tone: "deep" },
-      { kind: "pill", x: 1460, y: 260, w: 150, h: 46, turn: 24, tone: "light" },
-      { kind: "sphere", x: 120, y: 420, r: 46, tone: "light" },
-      { kind: "pill", x: 330, y: 880, w: 90, h: 28, turn: 8, tone: "coral" }
+      { kind: "orb", x: 1340, y: 640, r: 190, behind: 1 },
+      { kind: "arc", x: 1340, y: 640, r: 260, from: 200, to: 340, width: 3, fade: 0.75, behind: 1 },
+      { kind: "arc", x: 1340, y: 640, r: 320, from: 210, to: 330, width: 2, fade: 0.45, behind: 1 },
+      line(0.9, 26, 640, 0.35, 2, 0.5)
     ]
   },
-  // People: many spheres of different sizes, near each other: a crowd that belongs together.
+  // Network: rings that overlap, people joined to people.
   people: {
     waves: [w(0.7, 44, 760, 0.3, "bottom", 3, 24), w(0.82, 30, 620, 0.7, "bottom", 1, 29), w(0.16, 40, 900, 0.1, "top", 1, 33, 70)],
     shapes: [
-      { kind: "sphere", x: 1380, y: 330, r: 150 },
-      { kind: "sphere", x: 1500, y: 520, r: 80, tone: "light" },
-      { kind: "sphere", x: 1250, y: 560, r: 56, tone: "deep" },
-      { kind: "sphere", x: 160, y: 640, r: 120, behind: 0 },
-      { kind: "sphere", x: 300, y: 760, r: 60, tone: "light" },
-      { kind: "pill", x: 120, y: 300, w: 120, h: 36, turn: -12, tone: "mint" }
+      { kind: "ring", x: 1330, y: 360, r: 130, width: 3, fade: 0.85 },
+      { kind: "ring", x: 1450, y: 430, r: 110, width: 3, fade: 0.7 },
+      { kind: "ring", x: 1350, y: 500, r: 90, width: 3, fade: 0.55 },
+      { kind: "orb", x: 1395, y: 430, r: 34 },
+      { kind: "orb", x: 170, y: 700, r: 120, behind: 0 }
     ]
   },
-  // Connections: two spheres overlapping: two people meeting.
+  // Connections: two rings meeting, the space they share in gold.
   connections: {
     waves: [w(0.68, 46, 820, 0.4, "bottom", 2, 27), w(0.8, 32, 600, 0.1, "bottom", 4, 22, 80)],
     shapes: [
-      { kind: "sphere", x: 1300, y: 420, r: 170, tone: "deep" },
-      { kind: "sphere", x: 1480, y: 520, r: 150, tone: "light" },
-      { kind: "pill", x: 200, y: 780, w: 200, h: 56, turn: -10 }
+      { kind: "ring", x: 1300, y: 420, r: 150, width: 3.5, fade: 0.85 },
+      { kind: "ring", x: 1480, y: 420, r: 150, width: 3.5, fade: 0.85 },
+      { kind: "orb", x: 1390, y: 420, r: 46 },
+      line(0.88, 22, 700, 0.2, 2, 0.45)
     ]
   },
-  // Your batch: arches inside arches, like the college's gate and the years rolling through it.
+  // Your batch: arcs inside arcs, the college's gate and the years rolling through it.
   batch: {
     waves: [w(0.76, 36, 700, 0.2, "bottom", 3, 25), w(0.88, 26, 520, 0.6, "bottom", 1, 30)],
     shapes: [
-      { kind: "arch", x: 1360, y: 820, r: 330, thick: 54, tone: "deep", behind: 0 },
-      { kind: "arch", x: 1360, y: 820, r: 230, thick: 46, behind: 0 },
-      { kind: "arch", x: 1360, y: 820, r: 140, thick: 40, tone: "light", behind: 0 },
-      { kind: "sphere", x: 180, y: 360, r: 70, tone: "light" }
+      { kind: "arc", x: 1360, y: 820, r: 330, from: 180, to: 360, width: 4, fade: 0.85, behind: 0 },
+      { kind: "arc", x: 1360, y: 820, r: 260, from: 180, to: 360, width: 3, fade: 0.65, behind: 0 },
+      { kind: "arc", x: 1360, y: 820, r: 190, from: 180, to: 360, width: 2.5, fade: 0.5, behind: 0 },
+      { kind: "orb", x: 1360, y: 820, r: 110, behind: 0 }
     ]
   },
-  // Groups: a cluster of spheres, close but each its own: circles of friends.
+  // Groups: circles of different sizes gathered close, each its own.
   groups: {
     waves: [w(0.66, 50, 880, 0.2, "bottom", 4, 23), w(0.8, 34, 640, 0.5, "bottom", 2, 28), w(0.1, 30, 700, 0.6, "top", 1, 35)],
     shapes: [
-      { kind: "sphere", x: 1330, y: 360, r: 120 },
-      { kind: "sphere", x: 1480, y: 330, r: 90, tone: "deep" },
-      { kind: "sphere", x: 1410, y: 500, r: 100, tone: "light" },
-      { kind: "sphere", x: 220, y: 820, r: 140, behind: 1 },
-      { kind: "pill", x: 140, y: 380, w: 110, h: 34, turn: 20, tone: "coral" }
+      { kind: "ring", x: 1320, y: 380, r: 110, width: 3, fade: 0.8 },
+      { kind: "ring", x: 1470, y: 340, r: 80, width: 3, fade: 0.65 },
+      { kind: "orb", x: 1430, y: 500, r: 70 },
+      { kind: "orb", x: 210, y: 820, r: 130, behind: 1 }
     ]
   },
-  // Messages: rounded pills like speech going back and forth, over gentle, long waves.
+  // Messages: long fine lines riding the waves, like a conversation going back and forth.
   messages: {
     waves: [w(0.74, 30, 1000, 0.1, "bottom", 3, 30), w(0.86, 22, 820, 0.4, "bottom", 4, 24, 80), w(0.14, 26, 1000, 0.5, "top", 1, 36)],
     shapes: [
-      { kind: "pill", x: 1340, y: 300, w: 300, h: 90, turn: 0, tone: "sun" },
-      { kind: "pill", x: 1440, y: 430, w: 230, h: 76, turn: 0, tone: "light" },
-      { kind: "pill", x: 1320, y: 550, w: 180, h: 64, turn: 0, tone: "deep" },
-      { kind: "pill", x: 200, y: 760, w: 220, h: 70, turn: 0, tone: "light" },
-      { kind: "sphere", x: 120, y: 330, r: 34, tone: "sun" }
+      line(0.3, 34, 900, 0.1, 3, 0.8),
+      line(0.36, 30, 900, 0.6, 2, 0.5),
+      line(0.42, 26, 900, 0.35, 1.5, 0.35),
+      { kind: "orb", x: 1420, y: 300, r: 60 }
     ]
   },
   // Notifications: ripples spreading from a point: something reaching you.
   notifications: {
     waves: [w(0.78, 34, 760, 0.3, "bottom", 2, 26), w(0.9, 24, 560, 0.7, "bottom", 4, 21, 80)],
     shapes: [
-      { kind: "ripple", x: 1420, y: 260, r: 90, rings: 4 },
-      { kind: "sphere", x: 1420, y: 260, r: 70 },
-      { kind: "pill", x: 200, y: 700, w: 160, h: 48, turn: -20, tone: "deep" }
+      { kind: "ripple", x: 1420, y: 280, r: 70, rings: 4, gap: 52 },
+      { kind: "orb", x: 1420, y: 280, r: 56 }
     ]
   },
-  // Events: an arch to walk through, and pills scattered like confetti: a day to celebrate.
+  // Events: a tall arch to walk through, a sun beyond it: a day to look forward to.
   events: {
     waves: [w(0.72, 44, 780, 0.2, "bottom", 3, 24), w(0.84, 30, 600, 0.5, "bottom", 1, 29)],
     shapes: [
-      { kind: "arch", x: 1380, y: 760, r: 240, thick: 70, behind: 0 },
-      { kind: "pill", x: 1180, y: 250, w: 90, h: 26, turn: 35, tone: "coral" },
-      { kind: "pill", x: 1500, y: 200, w: 110, h: 30, turn: -25 },
-      { kind: "pill", x: 1300, y: 360, w: 70, h: 22, turn: 60, tone: "mint" },
-      { kind: "pill", x: 160, y: 300, w: 100, h: 28, turn: -40, tone: "light" },
-      { kind: "pill", x: 260, y: 820, w: 130, h: 34, turn: 15, tone: "deep" }
+      { kind: "orb", x: 1440, y: 600, r: 100, behind: 0 },
+      { kind: "arc", x: 1380, y: 760, r: 250, from: 180, to: 360, width: 5, fade: 0.9, behind: 0 },
+      { kind: "arc", x: 1380, y: 760, r: 300, from: 195, to: 345, width: 2, fade: 0.45, behind: 0 }
     ]
   },
-  // The board: pills climbing like steps, and waves rising to the right: progress.
+  // The board: a line climbing gently to the right, ending in a sun: progress.
   board: {
     waves: [w(0.78, 40, 700, 0.1, "bottom", 2, 25), w(0.88, 28, 520, 0.6, "bottom", 4, 21, 80)],
     shapes: [
-      { kind: "pill", x: 1180, y: 640, w: 200, h: 56, turn: -20 },
-      { kind: "pill", x: 1330, y: 500, w: 200, h: 56, turn: -20, tone: "light" },
-      { kind: "pill", x: 1480, y: 360, w: 200, h: 56, turn: -20, tone: "deep" },
-      { kind: "sphere", x: 1530, y: 190, r: 60, tone: "sun" },
-      { kind: "sphere", x: 160, y: 760, r: 90, behind: 0 }
+      { kind: "arc", x: 1700, y: 1300, r: 900, from: 205, to: 262, width: 4, fade: 0.85 },
+      { kind: "arc", x: 1700, y: 1300, r: 960, from: 210, to: 258, width: 2, fade: 0.45 },
+      { kind: "orb", x: 1580, y: 420, r: 64 }
     ]
   },
-  // Ask a senior: a sun at the corner, its light in long pills: an answer arriving.
+  // Ask a senior: a sun in the corner, its light reaching out in arcs: an answer arriving.
   ask: {
     waves: [w(0.74, 42, 820, 0.4, "bottom", 3, 27), w(0.86, 30, 640, 0.1, "bottom", 1, 23)],
     shapes: [
-      { kind: "sphere", x: 1600, y: 0, r: 260 },
-      { kind: "pill", x: 1240, y: 300, w: 240, h: 34, turn: -32, tone: "light" },
-      { kind: "pill", x: 1360, y: 420, w: 220, h: 34, turn: -52, tone: "light" },
-      { kind: "pill", x: 1520, y: 470, w: 200, h: 34, turn: -76, tone: "light" },
-      { kind: "sphere", x: 180, y: 780, r: 80, tone: "deep" }
+      { kind: "orb", x: 1600, y: 0, r: 240 },
+      { kind: "arc", x: 1600, y: 0, r: 320, from: 90, to: 180, width: 3, fade: 0.75 },
+      { kind: "arc", x: 1600, y: 0, r: 400, from: 95, to: 175, width: 2, fade: 0.5 },
+      { kind: "arc", x: 1600, y: 0, r: 480, from: 100, to: 170, width: 1.5, fade: 0.3 }
     ]
   },
-  // A profile: one long wave like a life's path, and a single big sphere: one person.
+  // A profile: one long line like a life's path, and a single orb: one person.
   profile: {
     waves: [w(0.66, 70, 1300, 0.2, "bottom", 4, 32), w(0.8, 40, 900, 0.6, "bottom", 2, 26)],
     shapes: [
-      { kind: "sphere", x: 1380, y: 320, r: 180 },
-      { kind: "sphere", x: 1460, y: 270, r: 60, tone: "light" },
-      { kind: "pill", x: 180, y: 820, w: 180, h: 52, turn: 12, tone: "deep" }
+      { kind: "orb", x: 1380, y: 320, r: 150 },
+      { kind: "ring", x: 1380, y: 320, r: 200, width: 2, fade: 0.5 },
+      line(0.55, 60, 1300, 0.2, 2.5, 0.6)
     ]
   },
-  // The gallery: pills tilted like photos laid on a table.
+  // The gallery: rings like light caught by a lens.
   gallery: {
     waves: [w(0.76, 38, 740, 0.3, "bottom", 3, 26), w(0.88, 26, 560, 0.7, "bottom", 1, 22)],
     shapes: [
-      { kind: "pill", x: 1300, y: 340, w: 220, h: 150, turn: -8, tone: "light" },
-      { kind: "pill", x: 1440, y: 420, w: 220, h: 150, turn: 10 },
-      { kind: "pill", x: 200, y: 760, w: 180, h: 120, turn: -14, tone: "deep" }
+      { kind: "ring", x: 1380, y: 380, r: 160, width: 3, fade: 0.8 },
+      { kind: "ring", x: 1380, y: 380, r: 110, width: 2, fade: 0.55 },
+      { kind: "orb", x: 1380, y: 380, r: 60 }
     ]
   },
-  // Causes: two spheres held close, warmth given and received.
+  // Causes: two orbs held close, warmth given and received.
   causes: {
     waves: [w(0.7, 46, 820, 0.2, "bottom", 4, 25), w(0.82, 32, 620, 0.5, "bottom", 2, 30)],
     shapes: [
-      { kind: "sphere", x: 1340, y: 420, r: 140, tone: "deep", behind: 0 },
-      { kind: "sphere", x: 1470, y: 420, r: 140, behind: 0 },
-      { kind: "pill", x: 1405, y: 200, w: 80, h: 26, turn: 0, tone: "coral" },
-      { kind: "sphere", x: 160, y: 380, r: 50, tone: "light" }
+      { kind: "orb", x: 1330, y: 440, r: 120, behind: 0 },
+      { kind: "orb", x: 1460, y: 440, r: 120, behind: 0 },
+      { kind: "ring", x: 1395, y: 440, r: 220, width: 2, fade: 0.5, behind: 0 }
     ]
   },
-  // Settings and the desk: level bands, a calm sea: steadiness.
+  // Settings and the desk: level lines over a calm sea: steadiness.
   steady: {
     waves: [w(0.72, 16, 1200, 0.2, "bottom", 3, 34), w(0.82, 12, 1000, 0.5, "bottom", 4, 30, 40), w(0.92, 10, 900, 0.1, "bottom", 1, 26)],
-    shapes: [
-      { kind: "pill", x: 1380, y: 300, w: 320, h: 70, turn: 0, tone: "light" },
-      { kind: "sphere", x: 1530, y: 300, r: 70 }
-    ]
+    shapes: [line(0.3, 8, 1400, 0.1, 2.5, 0.6), line(0.34, 8, 1400, 0.5, 1.5, 0.4), { kind: "orb", x: 1450, y: 300, r: 70 }]
   }
 };
 
-const fill = (tone?: string) => (tone && tone in ACCENT ? ACCENT[tone as keyof typeof ACCENT] : YELLOW[(tone as keyof typeof YELLOW) ?? "sun"] ?? YELLOW.sun);
+/** A point on a circle, for arcs (degrees, clockwise from the right, as SVG measures). */
+const at = (x: number, y: number, r: number, deg: number) => [x + r * Math.cos((deg * Math.PI) / 180), y + r * Math.sin((deg * Math.PI) / 180)] as const;
 
-function ShapeArt({ s }: { s: Shape }) {
+function ShapeArt({ s, glow }: { s: Shape; glow: string }) {
   switch (s.kind) {
-    case "sphere": {
-      const main = fill(s.tone);
-      // Flat, with one soft lighter disc towards the top left: a sphere, still flat.
-      return (
-        <g>
-          <circle cx={s.x} cy={s.y} r={s.r} fill={main} />
-          <circle cx={s.x - s.r * 0.28} cy={s.y - s.r * 0.3} r={s.r * 0.55} fill="#ffffff" opacity={0.18} />
-        </g>
-      );
+    case "orb":
+      return <circle cx={s.x} cy={s.y} r={s.r} fill={`url(#${glow})`} />;
+    case "ring":
+      return <circle cx={s.x} cy={s.y} r={s.r} fill="none" stroke={GOLD.line} strokeWidth={s.width} opacity={s.fade ?? 0.8} />;
+    case "arc": {
+      const [x1, y1] = at(s.x, s.y, s.r, s.from);
+      const [x2, y2] = at(s.x, s.y, s.r, s.to);
+      const large = s.to - s.from > 180 ? 1 : 0;
+      return <path d={`M ${x1} ${y1} A ${s.r} ${s.r} 0 ${large} 1 ${x2} ${y2}`} fill="none" stroke={GOLD.line} strokeWidth={s.width} strokeLinecap="round" opacity={s.fade ?? 0.8} />;
     }
-    case "pill":
-      return <rect x={s.x - s.w / 2} y={s.y - s.h / 2} width={s.w} height={s.h} rx={Math.min(s.w, s.h) / 2} fill={fill(s.tone)} transform={`rotate(${s.turn} ${s.x} ${s.y})`} />;
-    case "arch":
-      return <path d={`M ${s.x - s.r} ${s.y} A ${s.r} ${s.r} 0 0 1 ${s.x + s.r} ${s.y}`} fill="none" stroke={fill(s.tone)} strokeWidth={s.thick} strokeLinecap="round" />;
     case "ripple":
       return (
-        <g fill="none" stroke={YELLOW.light}>
+        <g fill="none" stroke={GOLD.line}>
           {Array.from({ length: s.rings }, (_, i) => (
-            <circle key={i} cx={s.x} cy={s.y} r={s.r + (i + 1) * 46} strokeWidth={14 - i * 3} opacity={0.75 - i * 0.16} />
+            <circle key={i} cx={s.x} cy={s.y} r={s.r + (i + 1) * s.gap} strokeWidth={3 - i * 0.5} opacity={0.75 - i * 0.16} />
           ))}
         </g>
       );
+    case "line":
+      return <path d={swell(s.wave)} fill="none" stroke={GOLD.line} strokeWidth={s.width} strokeLinecap="round" opacity={s.fade ?? 0.7} />;
   }
 }
 
 /** One full-size layer of the picture: its own element, so it can drift by itself. */
-function Layer({ children, className, style }: { children: React.ReactNode; className: string; style?: CSSProperties }) {
+function Layer({ children, className, style }: { children: ReactNode; className: string; style?: CSSProperties }) {
   return (
     <svg className={className} style={style} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
       {children}
     </svg>
+  );
+}
+
+/** The orbs' soft light: brighter at the heart, a deeper gold at the rim. */
+function Glow({ id }: { id: string }) {
+  return (
+    <defs>
+      <radialGradient id={id} cx="38%" cy="34%" r="70%">
+        <stop offset="0%" stopColor={GOLD.core} />
+        <stop offset="100%" stopColor={GOLD.edge} />
+      </radialGradient>
+    </defs>
+  );
+}
+
+function Shapes({ list, id, className }: { list: Shape[]; id: string; className: string }) {
+  return (
+    <Layer className={className}>
+      <Glow id={id} />
+      {list.map((s, k) => (
+        <ShapeArt key={k} s={s} glow={id} />
+      ))}
+    </Layer>
   );
 }
 
@@ -267,29 +282,22 @@ export const Scene = memo(function Scene({ name }: { name: SceneName }) {
   const free = shapes.filter((s) => s.behind === undefined);
   return (
     <div className="scene" data-scene={name}>
-      {waves.map((wave, i) => (
-        <div key={i} className="scene__depth">
-          {/* Shapes that sit under this wave: drawn just before it. */}
-          {shapes.some((s) => s.behind === i) && (
-            <Layer className="scene__shapes">
-              {shapes.filter((s) => s.behind === i).map((s, k) => (
-                <ShapeArt key={k} s={s} />
-              ))}
+      {waves.map((wave, i) => {
+        const under = shapes.filter((s) => s.behind === i);
+        return (
+          <div key={i} className="scene__depth">
+            {/* What sits under this wave: drawn just before it. */}
+            {under.length > 0 && <Shapes list={under} id={`glow-${name}-${i}`} className="scene__shapes" />}
+            <Layer
+              className={`scene__wave scene__wave--${wave.side}`}
+              style={{ "--drift": `${wave.drift}s`, "--reach": `${wave.reach}px`, "--delay": `${-i * 7}s` } as CSSProperties}
+            >
+              <path d={wavePath(wave)} fill={BLUE[wave.tone]} />
             </Layer>
-          )}
-          <Layer
-            className={`scene__wave scene__wave--${wave.side}`}
-            style={{ "--drift": `${wave.drift}s`, "--reach": `${wave.reach}px`, "--delay": `${-i * 7}s` } as CSSProperties}
-          >
-            <path d={wavePath(wave)} fill={BLUE[wave.tone]} />
-          </Layer>
-        </div>
-      ))}
-      <Layer className="scene__shapes scene__shapes--front">
-        {free.map((s, k) => (
-          <ShapeArt key={k} s={s} />
-        ))}
-      </Layer>
+          </div>
+        );
+      })}
+      {free.length > 0 && <Shapes list={free} id={`glow-${name}-front`} className="scene__shapes scene__shapes--front" />}
     </div>
   );
 });
