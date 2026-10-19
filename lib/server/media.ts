@@ -237,13 +237,17 @@ export async function pendingUpload(userId: number, id: string): Promise<{ size:
 /** The last step: the file has arrived. Check it, and take it in (or throw it away). */
 export async function finishUpload(userId: number, id: string): Promise<Saved> {
   if (!ID.test(id)) return { ok: false, error: "That upload has expired. Choose the file again." };
-  const row = await db().one<{ use: UploadUse }>("select use from uploads where id = ? and user_id = ? and created_at > ?", id, userId, Date.now() - UPLOAD_LIFE);
+  const row = await db().one<{ use: UploadUse; size: number }>("select use, size from uploads where id = ? and user_id = ? and created_at > ?", id, userId, Date.now() - UPLOAD_LIFE);
   if (!row) return { ok: false, error: "That upload has expired. Choose the file again." };
   const path = pendingUploadPath(userId, id);
   const bytes = await storage().read(path);
   await db().run("delete from uploads where id = ?", id);
   if (!bytes) return { ok: false, error: "The file did not upload. Try again." };
   await storage().remove([path]);
+  // The upload link takes whatever is sent to it (up to the bucket's limit), so a file
+  // bigger than the size asked for is refused here: otherwise a tiny size, asked for, and a
+  // big file, sent, would slip past the day's upload limit.
+  if (bytes.length > row.size) return { ok: false, error: "That isn’t the file you chose. Choose it again." };
   const file = check(row.use, bytes);
   if (!file.ok) return file;
   return { ok: true, media: await keep(userId, id, file) };
