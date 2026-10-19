@@ -14,7 +14,9 @@ import { PAGE_DEFAULTS, PAGE_LIMITS, pageDef, SITE_PAGES, type PageSlug, type Si
 
 type Row = { slug: string; title: string; body: string; signer_name: string | null; signer_role: string | null; updated_at: number };
 
-const toPage = (r: Row): SitePage => ({ slug: r.slug as PageSlug, title: r.title, body: r.body, signerName: r.signer_name, signerRole: r.signer_role });
+// Line endings made plain on the way out too: a seed applied from a Windows checkout can
+// carry Windows line endings into the words.
+const toPage = (r: Row): SitePage => ({ slug: r.slug as PageSlug, title: r.title, body: r.body.replace(/\r\n?/g, "\n"), signerName: r.signer_name, signerRole: r.signer_role });
 
 /** A page's words: the college's, or the code's if there are none. */
 export async function sitePage(slug: PageSlug): Promise<SitePage> {

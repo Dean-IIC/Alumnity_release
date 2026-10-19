@@ -54,6 +54,9 @@ async function counts() {
   const tables = await db().all<{ t: string }>("select table_name as t from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' order by 1");
   const out: Record<string, number> = {};
   for (const { t } of tables) out[t] = (await db().one<{ n: number }>(`select count(*) as n from "${t}"`))!.n;
+  // The college's register and showcase live in their own schemas now.
+  out.register = (await db().one<{ n: number }>("select count(*) as n from records.register"))!.n;
+  out.announcements = (await db().one<{ n: number }>("select count(*) as n from site.announcements"))!.n;
   return out;
 }
 
@@ -105,7 +108,7 @@ beforeAll(async () => {
   await person("sample", "alumnus", { sample: true });
 
   // The register (as the tests load it), kept untouched.
-  await db().run("insert into register (name, usn, branch, branch_name, programme, year) values ('Asha Rao', 'X1', 'CSE', 'Computer Science', 'B.Tech', 2012)");
+  await db().run("insert into records.register (name, usn, branch, branch_name, programme, year) values ('Asha Rao', 'X1', 'CSE', 'Computer Science', 'B.Tech', 2012)");
 
   // Pages: the admin's has a photo, cover and pinned post (all going); Asha's goes with her.
   await db().run("insert into profiles (user_id, data, updated_at) values (?, ?, ?)", admin, JSON.stringify({ photo: { id: "m1", kind: "image" }, cover: { id: "m2", kind: "image" }, featured: 1, about: "The desk" }), now);
@@ -158,7 +161,7 @@ beforeAll(async () => {
   await db().run("insert into cause_payouts (cause_id, amount, note, paid_by, created_at) values (?, 300, 'Paid', ?, ?)", c1, asha, now);
   await db().run("insert into audit (actor, action, subject, created_at) values (?, 'pause', 'member', ?), (?, 'settings', 'site', ?)", asha, now, admin, now);
   await db().run("insert into settings (key, value, updated_by, updated_at) values ('site', '{}', ?, ?)", ravi, now);
-  await db().run("insert into announcements (author, title, body, created_at) values (?, 'Welcome', 'Hi', ?)", teacher, now);
+  await db().run("insert into site.announcements (author, title, body, created_at) values (?, 'Welcome', 'Hi', ?)", teacher, now);
   await db().run("insert into staff_invites (email, name, role, invited_by, created_at, expires_at) values ('t2@college.test', 'T2', 'faculty', ?, ?, ?)", teacher, now, now);
 });
 
@@ -248,7 +251,7 @@ describe("fresh start", () => {
     expect(await db().one("select author, reviewed_by, cover, status from causes")).toEqual({ author: null, reviewed_by: ids.admin, cover: null, status: "live" });
     expect(await db().one("select amount, paid_by from cause_payouts")).toEqual({ amount: 300, paid_by: null });
     expect(await db().one("select key, updated_by from settings")).toEqual({ key: "site", updated_by: null });
-    expect(await db().one("select title, author from announcements")).toEqual({ title: "Welcome", author: null });
+    expect(await db().one("select title, author from site.announcements")).toEqual({ title: "Welcome", author: null });
     expect(await db().one("select email, invited_by from staff_invites")).toEqual({ email: "t2@college.test", invited_by: null });
 
     // Again: nothing left to do but the kept pages' empty fields, which are already empty.

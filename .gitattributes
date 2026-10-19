@@ -1,0 +1,3 @@
+# Database files keep plain line endings on every machine: a seed applied from a Windows
+# checkout would otherwise carry Windows line endings into the words it stores.
+*.sql text eol=lf
