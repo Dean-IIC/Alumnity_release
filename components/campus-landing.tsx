@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { ALBUMS } from "../lib/gallery";
 import { BRANCHES } from "../lib/branches";
 import { COLLEGE, LEADERS } from "../lib/college";
 import { upcomingForEveryone } from "../lib/server/events";
 import { memberCount } from "../lib/server/people";
 import { registerByYear, registerFacts } from "../lib/server/register";
+import { galleryAlbums } from "../lib/server/showcase";
 import { LandingIntro } from "./landing-intro";
 import { CountUp, InView, RevealOnScroll } from "./landing/in-view";
 import { Icon, type IconName } from "./social/icons";
@@ -26,14 +26,14 @@ const WHAT_FOR: { icon: IconName; title: string; text: string; href: string }[] 
   { icon: "briefcase", title: "HKBK board", text: "Jobs, internships and referrals, checked by the college.", href: "/how-it-works" }
 ];
 
-const HERO = ALBUMS.find((a) => a.slug.startsWith("graduation")) ?? ALBUMS[0];
-const MEETS = ALBUMS.find((a) => a.slug === "alumni-meets");
-
 const fmt = (n: number) => n.toLocaleString("en-IN");
 const branchName = (code: string) => BRANCHES.find(([c]) => c === code)?.[1] ?? code;
 
 export async function CampusLanding() {
-  const [facts, years, members, events] = await Promise.all([registerFacts(), registerByYear(), memberCount(), upcomingForEveryone(3)]);
+  const [facts, years, members, events, albums] = await Promise.all([registerFacts(), registerByYear(), memberCount(), upcomingForEveryone(3), galleryAlbums()]);
+  // From the college's gallery (lib/server/showcase.ts): the graduation album's cover, and the alumni meets.
+  const HERO = albums.find((a) => a.slug.startsWith("graduation")) ?? albums[0];
+  const MEETS = albums.find((a) => a.slug === "alumni-meets");
   const batches = facts ? facts.to - facts.from + 1 : 0;
   const stats: { icon: IconName; n: number; label: string }[] = [
     { icon: "everyone", n: facts?.count ?? 0, label: "Students and alumni on the register" },
@@ -55,8 +55,10 @@ export async function CampusLanding() {
       <main id="main">
         {/* ---------- Hero ---------- */}
         <section className="lp-hero" aria-labelledby="lp-title">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="lp-hero__photo" src={HERO.cover.src} alt="" width={HERO.cover.width} height={HERO.cover.height} fetchPriority="high" />
+          {HERO && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="lp-hero__photo" src={HERO.cover.src} alt="" width={HERO.cover.width} height={HERO.cover.height} fetchPriority="high" />
+          )}
           <div className="lp-hero__inner container">
             <p className="lp-tag">Alumnity · HKBK alumni network</p>
             <h1 id="lp-title">

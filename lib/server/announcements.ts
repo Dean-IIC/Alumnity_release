@@ -6,7 +6,8 @@ import type { Result } from "./social";
 
 /*
  * Announcements: notices from the college (the alumni office, a department), shown at
- * the top of every member's Home until they end. Put up by the college desk.
+ * the top of every member's Home until they end. Put up by the college desk. Part of the
+ * college's showcase, so they're in the `site` schema (`site.announcements`), not `public`.
  */
 
 export const ANNOUNCEMENT_LIMITS = { title: 120, body: 1000 } as const;
@@ -25,13 +26,13 @@ const toAnnouncement = (r: Record<string, unknown>): Announcement => ({
 
 /** What's showing now, newest first. */
 export async function activeAnnouncements(now = Date.now()): Promise<Announcement[]> {
-  return (await db().all("select * from announcements where removed_at is null and (ends_at is null or ends_at > ?) order by created_at desc limit 3", now)).map(toAnnouncement);
+  return (await db().all("select * from site.announcements where removed_at is null and (ends_at is null or ends_at > ?) order by created_at desc limit 3", now)).map(toAnnouncement);
 }
 
 export async function allAnnouncements(me: User): Promise<Announcement[]> {
   if (!isModerator(me)) return [];
   return (
-    await db().all("select announcements.*, users.name as author_name from announcements left join users on users.id = announcements.author order by announcements.created_at desc limit 50")
+    await db().all("select announcements.*, users.name as author_name from site.announcements left join users on users.id = announcements.author order by announcements.created_at desc limit 50")
   ).map(toAnnouncement);
 }
 
@@ -44,7 +45,7 @@ export async function createAnnouncement(me: User, input: { title: string; body:
   const days = Number.isInteger(input.days) && input.days > 0 && input.days <= 365 ? input.days : null;
   const now = Date.now();
   const row = await db().one<{ id: number }>(
-    "insert into announcements (author, title, body, ends_at, created_at) values (?, ?, ?, ?, ?) returning id",
+    "insert into site.announcements (author, title, body, ends_at, created_at) values (?, ?, ?, ?, ?) returning id",
     me.id,
     title,
     body,
@@ -57,7 +58,7 @@ export async function createAnnouncement(me: User, input: { title: string; body:
 
 export async function removeAnnouncement(me: User, id: number): Promise<Result> {
   if (!isModerator(me)) return { ok: false, error: "Only the college desk can do that." };
-  const changes = await db().run("update announcements set removed_at = ? where id = ? and removed_at is null", Date.now(), id);
+  const changes = await db().run("update site.announcements set removed_at = ? where id = ? and removed_at is null", Date.now(), id);
   if (changes) await audit(me, "took down announcement", `announcement ${id}`);
   return { ok: true };
 }

@@ -1,5 +1,5 @@
 // Loads the college register (a CSV: name,usn,branch,branch_name,programme,year) into the
-// database's `register` table, replacing what's there. The CSV is never committed: keep it
+// database's `records.register` table, replacing what's there. The CSV is never committed: keep it
 // on the computer that runs this.
 //
 //   DATABASE_URL=postgres://… node scripts/import-register.mjs data/college-records.csv
@@ -27,10 +27,10 @@ if (!rows.length) {
 const sql = postgres(url, { prepare: false, max: 1 });
 try {
   await sql.begin(async (tx) => {
-    await tx`delete from register`;
+    await tx`delete from records.register`;
     for (let i = 0; i < rows.length; i += 1000) {
       const batch = rows.slice(i, i + 1000).map((r) => ({ name: r.name, usn: r.usn, branch: r.branch, branch_name: r.branchName, programme: r.programme, year: r.year }));
-      await tx`insert into register ${tx(batch, "name", "usn", "branch", "branch_name", "programme", "year")}`;
+      await tx`insert into records.register ${tx(batch, "name", "usn", "branch", "branch_name", "programme", "year")}`;
     }
   });
   const years = rows.map((r) => r.year);

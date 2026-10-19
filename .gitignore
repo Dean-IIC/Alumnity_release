@@ -40,6 +40,8 @@ data/*.db*
 .mail-outbox/
 # A local PGlite database (ALUMNITY_DB=pglite:data/pglite), if used.
 data/pglite/
+# Gallery photos added from the desk while working offline (ALUMNITY_STORAGE=folder).
+data/site-files/
 .env*.local
 data/uploads/
 

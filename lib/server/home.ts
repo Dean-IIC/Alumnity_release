@@ -105,7 +105,7 @@ export async function weekInNumbers(): Promise<{ joined: number; posts: number; 
 /** For the desk's getting-started steps: whether anyone's been invited, or an announcement put up. */
 export async function deskBeginnings(): Promise<{ invited: number; announced: number }> {
   const row = await db().one<{ invited: number; announced: number }>(
-    "select (select count(*) from staff_invites) as invited, (select count(*) from announcements) as announced"
+    "select (select count(*) from staff_invites) as invited, (select count(*) from site.announcements) as announced"
   );
   return row ?? { invited: 0, announced: 0 };
 }

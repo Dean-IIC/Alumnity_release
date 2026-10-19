@@ -6,7 +6,10 @@ Alumnity runs on **Vercel** (the Next.js app) with **Supabase** behind it:
 |---|---|---|
 | Postgres | Everything members do (the schema is `supabase/migrations/`) | `lib/server/db.ts` |
 | Auth | Passwords, the emailed 6-digit codes, sessions (cookies) | `lib/server/auth-provider.ts`, `middleware.ts` |
-| Storage | Uploaded photos, videos and HTML covers (private bucket `media`) | `lib/server/storage.ts` |
+| Storage | Members' uploaded photos, videos and HTML covers (private bucket `media`); the gallery photos the college desk adds (public bucket `site`) | `lib/server/storage.ts` |
+
+Which data lives where (the register in `records`, the college's showcase in `site`,
+members' things in `public`): [data-layout.md](data-layout.md).
 
 The browser never talks to the database. Row-level security is on for every table, with
 no policies, so Supabase's public API (the anon key) can read and write **nothing**. Only
@@ -22,7 +25,8 @@ in `lib/server/` decide what each member may see and do.
    invitations). Paste each into the SQL editor and run it,
    or with the Supabase CLI: `supabase link --project-ref <ref>` then `supabase db push`.
    Each is safe to run again. **Run any you haven't yet, in order** (each is safe to run again).
-3. **Check the bucket**: Storage should now have `media`, **private**, 25 MB file limit.
+3. **Check the buckets**: Storage should now have `media`, **private**, 25 MB file limit,
+   and (from `20261019220003_site_storage.sql`) `site`, **public**, 20 MB file limit.
 
 ## 2. Supabase Auth settings
 
@@ -91,14 +95,15 @@ secrets: don't paste them into chats, issues or commits.
 | `SITE_URL` | the production address, e.g. `https://alumnity.hkbk.edu.in` | links in emails |
 | `DIGEST_BATCH` | optional | most digest emails per day (default 150; Gmail Workspace allows ~2,000/day) |
 
-Not for production: `ALUMNITY_DB`, `ALUMNITY_AUTH`, `ALUMNITY_STORAGE`, `ALUMNITY_UPLOADS`
-(tests only).
+Not for production: `ALUMNITY_DB`, `ALUMNITY_AUTH`, `ALUMNITY_STORAGE`, `ALUMNITY_UPLOADS`,
+`ALUMNITY_SITE_FILES` (tests and working offline only).
 
 ## 4. The college register
 
 The register (name, USN, branch, branch name, programme, joining year; ~9,300 lines) is
 real student data. It is **never committed** and never sent to a browser. Load it into the
-`register` table from the computer that has the CSV:
+`records.register` table (its own schema, apart from the network: see
+[data-layout.md](data-layout.md)) from the computer that has the CSV:
 
 ```bash
 DATABASE_URL="<the Session pooler or direct connection string, port 5432>" node scripts/import-register.mjs data/college-records.csv

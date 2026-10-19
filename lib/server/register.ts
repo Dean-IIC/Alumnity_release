@@ -5,8 +5,9 @@ import { nameCase } from "../format";
 import { lookup, normaliseUsn, type Lookup, type LookupResult, type RegisterRow } from "../register";
 
 /*
- * The college register, in the database (the `register` table, loaded by
- * scripts/import-register.mjs; the CSV itself is never committed). Only the server reads
+ * The college register, in the database (`records.register`: the college's records, kept
+ * apart from the social network in `public`; loaded by scripts/import-register.mjs, the
+ * CSV itself is never committed). Only the server reads
  * it. To visitors, only these answers leave: "that's you" or "not found", and counts.
  * Signed-in members can also find people on it who haven't joined yet (searchRegister):
  * a name, branch and year, never a USN, a few searches an hour.
@@ -25,17 +26,17 @@ const toRow = (r: Row): RegisterRow => ({ name: r.name, usn: r.usn, branch: r.br
 
 /** Whether the register has been loaded at all. */
 export async function registerLoaded(): Promise<boolean> {
-  return Boolean(await db().one(`select 1 from register where ${IN_NETWORK} limit 1`));
+  return Boolean(await db().one(`select 1 from records.register where ${IN_NETWORK} limit 1`));
 }
 
 /** How many on the register in one batch (branch, course, joining year): a count, never names. */
 export async function batchCount(branch: string, year: number, programme = "B.Tech"): Promise<number> {
-  return (await db().one<{ n: number }>(`select count(*) as n from register where ${IN_NETWORK} and branch = ? and year = ? and programme = ?`, branch, year, programme))?.n ?? 0;
+  return (await db().one<{ n: number }>(`select count(*) as n from records.register where ${IN_NETWORK} and branch = ? and year = ? and programme = ?`, branch, year, programme))?.n ?? 0;
 }
 
 /** How many on the register in someone's batch, them included. */
 export async function batchSizeOf(usn: string): Promise<number | undefined> {
-  const me = await db().one<Row>(`select * from register where ${IN_NETWORK} and usn = ? limit 1`, normaliseUsn(usn));
+  const me = await db().one<Row>(`select * from records.register where ${IN_NETWORK} and usn = ? limit 1`, normaliseUsn(usn));
   return me ? batchCount(me.branch, me.year, me.programme) : undefined;
 }
 
@@ -46,9 +47,9 @@ export async function batchSizeOf(usn: string): Promise<number | undefined> {
 export async function findInRegister(query: Lookup): Promise<LookupResult | null> {
   if (!(await registerLoaded())) return null;
   const rows = query.usn
-    ? await db().all<Row>(`select * from register where ${IN_NETWORK} and usn = ?`, normaliseUsn(query.usn))
+    ? await db().all<Row>(`select * from records.register where ${IN_NETWORK} and usn = ?`, normaliseUsn(query.usn))
     : query.branch && query.year
-      ? await db().all<Row>(`select * from register where ${IN_NETWORK} and branch = ? and year = ? limit 5000`, query.branch, query.year)
+      ? await db().all<Row>(`select * from records.register where ${IN_NETWORK} and branch = ? and year = ? limit 5000`, query.branch, query.year)
       : [];
   const result = lookup(rows.map(toRow), query);
   if (result.status !== "found") return result;
@@ -63,8 +64,8 @@ let facts: { at: number; value: RegisterFacts | null } | undefined;
 export async function registerFacts(): Promise<RegisterFacts | null> {
   if (facts && Date.now() - facts.at < 10 * 60_000) return facts.value;
   const [total, branches] = await Promise.all([
-    db().one<{ n: number; from: number | null; to: number | null }>(`select count(*) as n, min(year) as "from", max(year) as "to" from register where ${IN_NETWORK}`),
-    db().all<{ code: string; name: string; count: number }>(`select branch as code, min(branch_name) as name, count(*) as count from register where ${IN_NETWORK} group by branch order by count(*) desc`)
+    db().one<{ n: number; from: number | null; to: number | null }>(`select count(*) as n, min(year) as "from", max(year) as "to" from records.register where ${IN_NETWORK}`),
+    db().all<{ code: string; name: string; count: number }>(`select branch as code, min(branch_name) as name, count(*) as count from records.register where ${IN_NETWORK} group by branch order by count(*) desc`)
   ]);
   const value = total && total.n ? { count: total.n, from: total.from!, to: total.to!, branches } : null;
   facts = { at: Date.now(), value };
@@ -117,7 +118,7 @@ export async function searchRegister(
     where.push("register.year = ?");
     params.push(query.year);
   }
-  const rows = await db().all<Row>(`select * from register where ${where.join(" and ")} order by register.year desc, register.name limit ?`, ...params, limit);
+  const rows = await db().all<Row>(`select * from records.register where ${where.join(" and ")} order by register.year desc, register.name limit ?`, ...params, limit);
   return { people: rows.map((r) => ({ name: nameCase(r.name), branch: r.branch, branchName: r.branch_name, programme: r.programme, joined: r.year })), limited: false };
 }
 
@@ -146,14 +147,14 @@ export async function browseRegister(
     where.push("register.year = ?");
     params.push(query.year);
   }
-  const counted = await db().one<{ n: number }>(`select count(*) as n from register where ${where.join(" and ")}`, ...params);
+  const counted = await db().one<{ n: number }>(`select count(*) as n from records.register where ${where.join(" and ")}`, ...params);
   const total = Number(counted?.n ?? 0);
   const pages = Math.max(1, Math.ceil(total / REGISTER_PAGE_SIZE));
   const page = Math.min(Math.max(1, Math.floor(query.page ?? 1)), pages);
   if (!total) return { people: [], total, page, pages, limited: false };
   if (!(await withinLimit(`register-browse:${viewer.id}`, REGISTER_PAGES, HOUR))) return { people: [], total, page, pages, limited: true };
   const rows = await db().all<Row>(
-    `select * from register where ${where.join(" and ")} order by register.year desc, register.name limit ? offset ?`,
+    `select * from records.register where ${where.join(" and ")} order by register.year desc, register.name limit ? offset ?`,
     ...params,
     REGISTER_PAGE_SIZE,
     (page - 1) * REGISTER_PAGE_SIZE
@@ -166,7 +167,7 @@ let byYear: { at: number; value: { year: number; n: number }[] } | undefined;
 /** How many joined HKBK each year, from the register (counts only), for the landing's chart. Kept ten minutes. */
 export async function registerByYear(): Promise<{ year: number; n: number }[]> {
   if (byYear && Date.now() - byYear.at < 10 * 60_000) return byYear.value;
-  const rows = await db().all<{ year: number; n: number }>(`select year, count(*) as n from register where ${IN_NETWORK} group by year order by year`);
+  const rows = await db().all<{ year: number; n: number }>(`select year, count(*) as n from records.register where ${IN_NETWORK} group by year order by year`);
   const value = rows.map((r) => ({ year: Number(r.year), n: Number(r.n) }));
   byYear = { at: Date.now(), value };
   return value;

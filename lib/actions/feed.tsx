@@ -1,7 +1,8 @@
 "use server";
 
 import type { ReactNode } from "react";
-import { AsksCard, GroupsCard, MEMORIES, MemoryCard, PeopleCard } from "../../components/home/more-from-hkbk";
+import { AsksCard, GroupsCard, memoriesOf, MemoryCard, PeopleCard } from "../../components/home/more-from-hkbk";
+import { galleryAlbums } from "../server/showcase";
 import { Post } from "../../components/social/post";
 import { asksFor } from "../server/asks";
 import { groupsFor } from "../server/groups";
@@ -59,6 +60,7 @@ export async function moreFromHkbkAction(page: number): Promise<{ cards: ReactNo
     const first = 3 + (page - 2) * 3;
     memories = [first, first + 1, first + 2];
   }
+  const MEMORIES = memoriesOf(await galleryAlbums());
   for (const i of memories) {
     const m = MEMORIES[i];
     if (m) cards.push(<MemoryCard key={`memory-${i}`} album={m.album} photos={m.photos} />);

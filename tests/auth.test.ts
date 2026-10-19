@@ -18,7 +18,7 @@ beforeAll(async () => {
     ["Priya Nair", "1HK12EC001", "ECE", "Electronics & Communication", 2012],
     ["Ravi Kumar", "1HK24CS009", "CSE", "Computer Science & Engineering", 2024]
   ] as const) {
-    await db().run("insert into register (name, usn, branch, branch_name, programme, year) values (?, ?, ?, ?, 'B.Tech', ?)", name, usn, branch, branchName, year);
+    await db().run("insert into records.register (name, usn, branch, branch_name, programme, year) values (?, ?, ?, ?, 'B.Tech', ?)", name, usn, branch, branchName, year);
   }
 });
 

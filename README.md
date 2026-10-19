@@ -37,7 +37,7 @@ The tests need no network and no Supabase project.
 
 ## The college register
 
-Joining means finding your line in the college's own register of students. It is real data about real people, so it is **never committed** and never sent to a browser. Load it into the `register` table from the machine that holds the CSV:
+Joining means finding your line in the college's own register of students. It is real data about real people, so it is **never committed** and never sent to a browser. Load it into the `records.register` table from the machine that holds the CSV (where each kind of data lives: [docs/data-layout.md](docs/data-layout.md)):
 
 ```bash
 DATABASE_URL="<direct or session connection string, port 5432>" \

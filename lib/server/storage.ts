@@ -3,10 +3,13 @@ import { dirname, join, normalize } from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /*
- * Where uploaded files are kept: Supabase Storage (the private bucket "media") when
- * Supabase is configured, otherwise a folder on this computer (data/uploads, for the tests
- * and for working offline). Either way the browser never reads the bucket itself: every
- * file goes through /media/<id>, which checks who's asking first.
+ * Where uploaded files are kept: Supabase Storage when Supabase is configured, otherwise a
+ * folder on this computer (for the tests and for working offline). Two stores, never mixed:
+ *
+ *   "media": members' uploads. A private bucket (data/uploads offline). The browser never
+ *            reads it itself: every file goes through /media/<id>, which checks who's asking.
+ *   "site":  the college's showcase (gallery photos added from the desk). A public bucket
+ *            (data/site-files offline, served by /site-files/...): the gallery is public.
  */
 
 export type Storage = {
@@ -20,6 +23,8 @@ export type Storage = {
 };
 
 export const BUCKET = "media";
+export const SITE_BUCKET = "site";
+export type Bucket = typeof BUCKET | typeof SITE_BUCKET;
 
 const safe = (path: string) => {
   const clean = normalize(path).replace(/\\/g, "/");
@@ -39,8 +44,8 @@ export function supabaseAdmin(): SupabaseClient {
   return (admin ??= createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }));
 }
 
-function supabaseStorage(): Storage {
-  const bucket = () => supabaseAdmin().storage.from(BUCKET);
+function supabaseStorage(name: Bucket): Storage {
+  const bucket = () => supabaseAdmin().storage.from(name);
   return {
     async uploadUrl(path) {
       const { data, error } = await bucket().createSignedUploadUrl(safe(path));
@@ -68,10 +73,17 @@ function supabaseStorage(): Storage {
 
 // ---------- A folder (tests, offline) ----------
 
-const root = () => process.env.ALUMNITY_UPLOADS || join(process.cwd(), "data", "uploads");
+/** Each store's own folder: members' uploads and the showcase's files are never in the same one. */
+const ROOTS: Record<Bucket, () => string> = {
+  media: () => process.env.ALUMNITY_UPLOADS || join(process.cwd(), "data", "uploads"),
+  site: () => process.env.ALUMNITY_SITE_FILES || join(process.cwd(), "data", "site-files")
+};
 
-function folderStorage(): Storage {
-  const file = (path: string) => join(root(), safe(path));
+/** Where a file of the showcase is kept on this computer (for /site-files/...). */
+export const siteFolderFile = (path: string) => join(ROOTS.site(), safe(path));
+
+function folderStorage(name: Bucket): Storage {
+  const file = (path: string) => join(ROOTS[name](), safe(path));
   return {
     // Sent to our own endpoint, which writes it into the folder (see app/api/media/put).
     uploadUrl: async (path) => `/api/media/put?path=${encodeURIComponent(safe(path))}`,
@@ -95,5 +107,17 @@ function folderStorage(): Storage {
 
 export const usingSupabaseStorage = () => Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) && process.env.ALUMNITY_STORAGE !== "folder";
 
-let current: Storage | undefined;
-export const storage = (): Storage => (current ??= usingSupabaseStorage() ? supabaseStorage() : folderStorage());
+const stores = new Map<Bucket, Storage>();
+/** A store: members' uploads ("media", the default) or the showcase's files ("site"). */
+export const storage = (name: Bucket = BUCKET): Storage => {
+  let store = stores.get(name);
+  if (!store) stores.set(name, (store = usingSupabaseStorage() ? supabaseStorage(name) : folderStorage(name)));
+  return store;
+};
+
+/** The public address of a showcase file: Supabase's public bucket, or /site-files/... offline. */
+export function siteFileUrl(path: string): string {
+  const key = safe(path).split("/").map(encodeURIComponent).join("/");
+  if (!usingSupabaseStorage()) return `/site-files/${key}`;
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(/\/+$/, "")}/storage/v1/object/public/${SITE_BUCKET}/${key}`;
+}

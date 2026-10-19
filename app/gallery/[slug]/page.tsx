@@ -9,16 +9,18 @@ import { SoonNotice } from "../../../components/coming-soon";
 import { InkBloom } from "../../../components/ink-bloom";
 import { AlbumCard } from "../../../components/gallery/album-card";
 import { PhotoGrid } from "../../../components/gallery/photo-grid";
-import { ALBUMS, albumBySlug, albumSources, countLabel } from "../../../lib/gallery";
+import { albumSources, countLabel } from "../../../lib/gallery";
+import { galleryAlbum, galleryAlbums } from "../../../lib/server/showcase";
 import "../../styles/gallery.css";
 
 type Props = { params: Promise<{ slug: string }> };
 
-// Made per request (not ahead of time): a member gets the app's bar and tabs around it, a visitor the site's.
+// Made per request (not ahead of time): a member gets the app's bar and tabs around it, a
+// visitor the site's; and the albums are the college desk's to change.
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const album = albumBySlug((await params).slug);
+  const album = await galleryAlbum((await params).slug);
   if (!album) return {};
   return { title: `${album.title}, ${album.when} · HKBK memories · Alumnity`, description: album.description };
 }
@@ -27,9 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const seedFor = (slug: string) => [...slug].reduce((sum, ch) => (sum * 31 + ch.charCodeAt(0)) >>> 0, 7);
 
 export default async function AlbumPage({ params }: Props) {
-  const album = albumBySlug((await params).slug);
+  const album = await galleryAlbum((await params).slug);
   if (!album) notFound();
-  const others = ALBUMS.filter((other) => other !== album);
+  const others = (await galleryAlbums()).filter((other) => other.slug !== album.slug);
   // Times the event happened (a part just for videos, like a film, isn't one).
   const events = album.parts.filter((part) => part.photos.length).length;
 
