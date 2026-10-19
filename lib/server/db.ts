@@ -197,30 +197,38 @@ function fromPglite(pg: PGliteLike): Db {
   };
 }
 
+/**
+ * The schema, as on Supabase: every migration in filename order (the storage buckets' are
+ * Supabase's alone). Each is safe to run again, so a kept folder just gets what's new.
+ * The ones that move a table to another schema (the register to `records`, the notices to
+ * `site`) drop the empty copy the first migration makes again, and stop rather than lose rows.
+ */
+export async function runMigrations(pg: { exec(sql: string): Promise<unknown> }) {
+  const migrations = join(process.cwd(), "supabase", "migrations");
+  for (const file of readdirSync(migrations).filter((f) => f.endsWith(".sql") && !f.includes("storage")).sort()) {
+    await pg.exec(readFileSync(join(migrations, file), "utf8"));
+  }
+}
+
 async function connectPglite(folder?: string): Promise<Db> {
   const { PGlite, types } = await import("@electric-sql/pglite");
   const pg = new PGlite({
     dataDir: folder || undefined,
     parsers: { [types.INT8]: (v: string) => Number(v), [types.NUMERIC]: (v: string) => Number(v) }
   });
-  // The schema, as on Supabase: every migration in order (the storage bucket's is
-  // Supabase's alone). Each is safe to run again, so a kept folder just gets what's new.
-  const migrations = join(process.cwd(), "supabase", "migrations");
-  for (const file of readdirSync(migrations).filter((f) => f.endsWith(".sql") && !f.includes("storage")).sort()) {
-    await pg.exec(readFileSync(join(migrations, file), "utf8"));
-  }
+  await runMigrations(pg);
   const local = fromPglite(pg as unknown as PGliteLike);
   if (folder) await loadLocalRegister(local);
   return local;
 }
 
 /**
- * Working on this computer: the register comes from data/college-records.csv (never
- * committed), the first time the local database starts. On Supabase it's loaded by
- * scripts/import-register.mjs instead.
+ * Working on this computer: the register (records.register) comes from
+ * data/college-records.csv (never committed), the first time the local database starts.
+ * On Supabase it's loaded by scripts/import-register.mjs instead.
  */
 async function loadLocalRegister(local: Db) {
-  if (await local.one("select 1 from register limit 1")) return;
+  if (await local.one("select 1 from records.register limit 1")) return;
   let csv: string;
   try {
     csv = readFileSync(process.env.ALUMNITY_REGISTER || join(process.cwd(), "data", "college-records.csv"), "utf8");
@@ -232,7 +240,7 @@ async function loadLocalRegister(local: Db) {
   for (let i = 0; i < rows.length; i += 500) {
     const batch = rows.slice(i, i + 500);
     await local.run(
-      `insert into register (name, usn, branch, branch_name, programme, year) values ${batch.map(() => "(?, ?, ?, ?, ?, ?)").join(", ")}`,
+      `insert into records.register (name, usn, branch, branch_name, programme, year) values ${batch.map(() => "(?, ?, ?, ?, ?, ?)").join(", ")}`,
       ...batch.flatMap((r) => [r.name, r.usn, r.branch, r.branchName, r.programme, r.year])
     );
   }

@@ -1,34 +1,24 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PublicPage } from "../../components/public-page";
-import { ABOUT, DIRECTOR_MESSAGE } from "../../lib/about-content";
+import { Letter } from "../../components/site/letter";
+import { ABOUT } from "../../lib/about-content";
+import { sitePages } from "../../lib/server/site-pages";
 
-export const metadata: Metadata = { title: "About · Alumnity", description: ABOUT.intro };
+// The letter and the opening words are the college's to change from its desk (site.pages).
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { "about-intro": intro } = await sitePages("about-intro");
+  return { title: "About · Alumnity", description: intro.body };
+}
 
 /** The Director's message (the college's own words), then how Alumnity keeps people's details private. */
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { "about-intro": intro, "director-letter": letter } = await sitePages("about-intro", "director-letter");
   return (
-    <PublicPage current="about" kicker="About" title="About" gold="Alumnity" intro={ABOUT.intro}>
-      <article className="letter" aria-labelledby="director">
-        <p className="letter__from">A message from the {DIRECTOR_MESSAGE.role.toLowerCase()} · HKBK College of Engineering</p>
-        <h2 id="director" className="letter__greeting">
-          {DIRECTOR_MESSAGE.greeting}
-        </h2>
-        {DIRECTOR_MESSAGE.paragraphs.slice(0, 2).map((t) => (
-          <p key={t}>{t}</p>
-        ))}
-        {/* The rest folded away, so the page doesn't open on a wall of text; all of it a tap away. */}
-        <details className="letter__more">
-          <summary>Read the full message</summary>
-          {DIRECTOR_MESSAGE.paragraphs.slice(2).map((t) => (
-            <p key={t}>{t}</p>
-          ))}
-        </details>
-        <footer className="letter__sign">
-          <strong>{DIRECTOR_MESSAGE.name}</strong>
-          <span>{DIRECTOR_MESSAGE.role}, HKBK College of Engineering</span>
-        </footer>
-      </article>
+    <PublicPage current="about" kicker="About" title="About" gold="Alumnity" intro={intro.body}>
+      <Letter body={letter.body} signerName={letter.signerName} signerRole={letter.signerRole} />
 
       <section aria-labelledby="privacy">
         <h2 id="privacy" className="info__h2">

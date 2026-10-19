@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Album, GalleryPhoto } from "../../lib/gallery";
-import { ALBUMS } from "../../lib/gallery";
 import { batchLabel } from "../../lib/format";
 import type { User } from "../../lib/server/auth";
 import type { Ask } from "../../lib/server/asks";
@@ -18,8 +17,8 @@ import { KnowEveryone } from "./know-everyone";
  */
 
 /** Every album's photos in threes, the albums taking turns, so one card follows another from a different day. */
-export const MEMORIES: { album: Album; photos: GalleryPhoto[] }[] = (() => {
-  const runs = ALBUMS.map((album) => {
+export function memoriesOf(albums: Album[]): { album: Album; photos: GalleryPhoto[] }[] {
+  const runs = albums.map((album) => {
     const threes: GalleryPhoto[][] = [];
     for (let i = 0; i + 2 < album.photos.length; i += 3) threes.push(album.photos.slice(i, i + 3));
     return threes.map((photos) => ({ album, photos }));
@@ -27,7 +26,7 @@ export const MEMORIES: { album: Album; photos: GalleryPhoto[] }[] = (() => {
   const out: { album: Album; photos: GalleryPhoto[] }[] = [];
   for (let k = 0; runs.some((r) => k < r.length); k++) for (const r of runs) if (k < r.length) out.push(r[k]);
   return out;
-})();
+}
 
 export function MemoryCard({ album, photos }: { album: Album; photos: GalleryPhoto[] }) {
   return (

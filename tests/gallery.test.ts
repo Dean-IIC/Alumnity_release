@@ -1,15 +1,27 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
-import { ALBUMS, PHOTO_COUNT } from "../lib/gallery";
+import { beforeAll, describe, expect, it } from "vitest";
+import { photoCount, type Album } from "../lib/gallery";
+
+// The gallery is in the database's `site` schema now, loaded once from what the code held
+// (supabase/migrations/20261019220002_site_seed.sql): these are the same checks as then.
+process.env.ALUMNITY_DB = "pglite";
 
 const publicFile = (src: string) => join(__dirname, "..", "public", src);
+
+let ALBUMS: Album[];
+
+beforeAll(async () => {
+  const { galleryAlbums } = await import("../lib/server/showcase");
+  ALBUMS = await galleryAlbums();
+});
 
 describe("gallery", () => {
   it("lists every album newest first, undated ones last", () => {
     const dates = ALBUMS.map((album) => album.date);
     expect(dates).toEqual([...dates].sort().reverse());
     expect(ALBUMS.at(-1)?.date).toBe("");
+    expect(ALBUMS.slice(-2).map((album) => album.slug)).toEqual(["sports-day", "uninor-cup"]);
   });
 
   it("keeps an event that happened more than once in one album, a part for each time", () => {
@@ -24,6 +36,7 @@ describe("gallery", () => {
     for (const album of ALBUMS) {
       expect(existsSync(publicFile(album.cover.src))).toBe(true);
       expect(existsSync(publicFile(album.cover.sketch))).toBe(true);
+      expect(album.cover.sketch).not.toBe(album.cover.src);
       for (const photo of album.photos) {
         expect(existsSync(publicFile(photo.src))).toBe(true);
         expect(existsSync(publicFile(photo.thumb))).toBe(true);
@@ -37,8 +50,11 @@ describe("gallery", () => {
       for (const photo of album.photos) expect(photo.alt.length).toBeGreaterThan(10);
     }
     expect(new Set(ALBUMS.map((album) => album.slug)).size).toBe(ALBUMS.length);
-    expect(PHOTO_COUNT).toBe(72);
+    expect(photoCount(ALBUMS)).toBe(72);
     expect(ALBUMS).toHaveLength(11);
+    // The cover leads the card, as before (the job drives' is the tenth photo).
+    expect(ALBUMS.find((album) => album.slug === "job-drives")?.mosaic[0].src).toBe("/assets/gallery/job-drives/10.jpg");
+    expect(ALBUMS.find((album) => album.slug === "graduation-day-2025")?.photos[0].caption).toBe("The class of 2025 throw their caps in the air");
   });
 
   it("keeps out events that weren't the engineering college's own (checked on hkbk.edu.in)", () => {

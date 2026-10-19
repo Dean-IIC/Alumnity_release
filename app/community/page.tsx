@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
 import { PublicPage } from "../../components/public-page";
 import { COMMUNITY } from "../../lib/about-content";
+import { paragraphsOf } from "../../lib/site-pages";
+import { sitePages } from "../../lib/server/site-pages";
 
-export const metadata: Metadata = { title: "Community · Alumnity", description: COMMUNITY.intro };
+// The opening words are the college's to change from its desk (site.pages).
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { "community-intro": intro } = await sitePages("community-intro");
+  return { title: "Community · Alumnity", description: intro.body };
+}
 
 const Ticks = ({ items }: { items: readonly string[] }) => (
   <ul className="ticks">
@@ -13,10 +21,15 @@ const Ticks = ({ items }: { items: readonly string[] }) => (
 );
 
 /** Who Alumnity is for, what's open to everyone, and what members get. */
-export default function CommunityPage() {
+export default async function CommunityPage() {
+  const { "community-intro": intro, "community-lead": lead } = await sitePages("community-intro", "community-lead");
   return (
-    <PublicPage current="community" kicker="Community" title="The alumni" gold="community" intro={COMMUNITY.intro}>
-      <p className="info-lead">{COMMUNITY.lead}</p>
+    <PublicPage current="community" kicker="Community" title="The alumni" gold="community" intro={intro.body}>
+      {paragraphsOf(lead.body).map((t, i) => (
+        <p key={i} className="info-lead">
+          {t}
+        </p>
+      ))}
       <div className="info-split">
         <section className="info-card" aria-labelledby="open">
           <p className="info-card__tag">Anyone</p>
