@@ -10,7 +10,7 @@ export default function AboutPage() {
   return (
     <PublicPage current="about" kicker="About" title="About" gold="Alumnity" intro={ABOUT.intro}>
       <article className="letter" aria-labelledby="director">
-        <p className="letter__from">From the {DIRECTOR_MESSAGE.role.toLowerCase()}'s desk · HKBK College of Engineering</p>
+        <p className="letter__from">A message from the {DIRECTOR_MESSAGE.role.toLowerCase()} · HKBK College of Engineering</p>
         <h2 id="director" className="letter__greeting">
           {DIRECTOR_MESSAGE.greeting}
         </h2>
@@ -19,7 +19,7 @@ export default function AboutPage() {
         ))}
         {/* The rest folded away, so the page doesn't open on a wall of text; all of it a tap away. */}
         <details className="letter__more">
-          <summary>Read the whole letter</summary>
+          <summary>Read the full message</summary>
           {DIRECTOR_MESSAGE.paragraphs.slice(2).map((t) => (
             <p key={t}>{t}</p>
           ))}

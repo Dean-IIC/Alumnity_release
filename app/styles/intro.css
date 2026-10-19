@@ -66,7 +66,6 @@
   position: absolute;
   color: var(--color-ink-soft);
   font-family: var(--font-voice);
-  font-weight: var(--weight-bold);
   font-size: 220px;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -138,7 +137,6 @@
 .journey-shot__year {
   color: var(--color-red);
   font-family: var(--font-voice);
-  font-weight: var(--weight-bold);
   font-size: var(--world-year);
   line-height: 0.9;
   letter-spacing: -0.04em;
@@ -147,7 +145,6 @@
 .journey-shot__title {
   margin-top: 6px;
   font-family: var(--font-voice);
-  font-weight: var(--weight-bold);
   font-size: var(--world-title);
   line-height: var(--leading-snug);
 }
@@ -167,7 +164,6 @@
   margin: 0;
   color: var(--color-ink);
   font-family: var(--font-voice);
-  font-weight: var(--weight-bold);
   width: max-content;
   max-width: 88vw;
   font-size: var(--text-title);
@@ -287,5 +283,313 @@ html[data-intro="skip"] .ink-intro {
 
   .journey-backdrop span {
     font-size: 270px;
+  }
+}
+
+/* ---------- The intro's lockup (components/growing-campus-intro.tsx, IntroLockup) ----------
+   The old lockup's shape, kept for the intro alone (the header has the crest lockup):
+   "Alumnity." in the college's navy with its gold dot, on a gold swoosh, the college
+   beneath with its crest. Sized in em, so it can float into the header's "Alumnity.". */
+.intro-lockup .intro-brand {
+  display: inline-grid;
+  justify-items: start;
+  line-height: 1;
+}
+
+.intro-lockup .intro-brand .brand__name {
+  color: var(--color-blue);
+  font-family: var(--font-wordmark);
+  font-size: 1em;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wordmark);
+}
+
+.intro-lockup .intro-brand .brand__dot {
+  color: var(--color-gold);
+}
+
+.intro-lockup .intro-brand .brand__swoosh {
+  display: block;
+  width: 104%;
+  height: 0.2em;
+  margin: -0.05em 0 0 -2%;
+  overflow: visible;
+}
+
+.intro-lockup .intro-brand .brand__swoosh-reveal {
+  fill: none;
+  stroke: #fff; /* a mask: white shows the ink */
+  stroke-linecap: round;
+  stroke-width: 42;
+  stroke-dasharray: 1 1;
+}
+
+.intro-lockup .intro-brand .brand__swoosh-ink {
+  fill: var(--color-gold);
+}
+
+/* Under the wordmark, from the same left edge (so it lines up with everything below it). */
+.intro-lockup .intro-brand .brand__by {
+  display: grid;
+  justify-self: start;
+  justify-items: start;
+  margin-top: 0.12em;
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Both bylines share one cell, so the intro can crossfade between them. */
+.intro-lockup .intro-brand .brand__by > span {
+  display: flex;
+  gap: 0.4em;
+  align-items: center;
+  grid-area: 1 / 1;
+}
+
+.intro-lockup .intro-brand .brand__by-full {
+  font-size: 0.185em;
+  letter-spacing: -0.01em;
+}
+
+.intro-lockup .intro-brand .brand__by-short {
+  font-size: 0.36em;
+  letter-spacing: -0.01em;
+}
+
+.intro-lockup .intro-brand .brand__crest {
+  width: 1.7em;
+  height: 1.7em;
+  flex: none;
+}
+
+.intro-lockup .intro-brand .brand__name {
+  color: var(--color-red);
+  font-family: var(--font-ui);
+  letter-spacing: -0.05em;
+}
+
+.intro-lockup .intro-brand .brand__by {
+  color: var(--color-blue);
+}
+
+/* Above the header (which is sticky, at its own layer): the intro covers the whole page. */
+.ink-intro {
+  z-index: 100;
+}
+
+.intro-lockup {
+  z-index: 101;
+}
+
+.ink-intro__controls {
+  z-index: 102;
+}
+
+/* ---------- The finale's rings: one for every batch, rippling out behind the wordmark ---------- */
+
+.intro-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.intro-rings__ring {
+  /* This ring's own progress: starts at its delay, done by the end of the patterns' window. */
+  --q: clamp(0, calc((var(--p, 0) - var(--d)) * 2.2), 1);
+  position: absolute;
+  top: -90px;
+  left: -90px;
+  width: 180px;
+  height: 180px;
+  border: 1.5px solid rgba(18, 62, 124, 0.45);
+  border-radius: 50%;
+  opacity: calc(min(1, var(--q) * 5) * (1 - var(--q) * 0.7));
+  transform: scale(calc(0.4 + var(--q) * var(--r) * 1.6));
+}
+
+.intro-rings__ring--gold {
+  border-color: rgba(255, 180, 0, 0.85);
+  border-width: 2.5px;
+}
+
+/* Once the page opens, the rings go (the old patterns stayed on as the page's margins; the
+   rings are the intro's alone). */
+.ink-intro--revealing .intro-rings {
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+}
+
+.ink-intro--settled .intro-rings,
+html[data-intro="skip"] .intro-rings {
+  display: none;
+}
+
+/* The college's full name is longer than the old "by HKBK CE": smaller, so "Alumnity." stays
+   the lockup's widest line and the whole sits centred in the rings. */
+.intro-lockup .intro-brand .brand__by-full,
+.intro-lockup .intro-brand .brand__by-short {
+  font-size: 0.235em;
+}
+
+/* ---------- The intro at night: the college's navy, a gold pen, white words ----------
+   Its own palette, set on the intro's parts only: every colour in it reads these tokens,
+   so the paper turns navy and the ink white, while the site underneath keeps its own. */
+.ink-intro,
+.intro-lockup,
+.ink-intro__controls {
+  --color-paper: #0a2a57;
+  --color-paper-raised: #123e7c;
+  --color-paper-glass: rgba(255, 255, 255, 0.1);
+  --color-ink: #ffffff;
+  --color-ink-soft: rgba(255, 255, 255, 0.78);
+  --color-ink-muted: rgba(255, 255, 255, 0.72);
+  --color-red: #ffffff;
+  --color-blue: #ffffff;
+  --color-border: rgba(255, 255, 255, 0.35);
+  --color-line: rgba(255, 255, 255, 0.2);
+}
+
+/* The ripples on navy: light blue, and gold. */
+.intro-rings__ring {
+  border-color: rgba(143, 184, 240, 0.5);
+}
+
+.intro-rings__ring--gold {
+  border-color: rgba(255, 196, 41, 0.9);
+}
+
+.ink-intro__skip:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+/* The paper, at night: navy with a soft gold glow in the middle (not the old cream). */
+.ink-intro__paper {
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(255, 180, 0, 0.1), transparent 60%),
+    radial-gradient(ellipse at 50% 110%, #123e7c, transparent 65%),
+    #0a2a57;
+}
+
+/* Landing on the white header: the wordmark's colour turns to the header's navy as the
+   opening page passes under it (set as it flies, in growing-campus-intro.tsx). */
+
+/* ---------- The rings, vibrant: brighter, thicker, glowing, and pulsing ---------- */
+
+.intro-rings__ring {
+  border-width: 2px;
+  border-color: rgba(143, 196, 255, 0.85);
+  box-shadow: 0 0 14px rgba(143, 196, 255, 0.35), inset 0 0 10px rgba(143, 196, 255, 0.15);
+  opacity: calc(min(1, var(--q) * 5) * (1 - var(--q) * 0.25));
+}
+
+.intro-rings__ring--gold {
+  border-width: 3px;
+  border-color: #ffc61a;
+  box-shadow: 0 0 22px rgba(255, 198, 26, 0.55), inset 0 0 12px rgba(255, 198, 26, 0.25);
+}
+
+/* Ripples going out from the middle, again and again, once the finale has begun. */
+.intro-rings__wave {
+  position: absolute;
+  top: -80px;
+  left: -80px;
+  width: 160px;
+  height: 160px;
+  border: 3px solid #ffc61a;
+  border-radius: 50%;
+  box-shadow: 0 0 26px rgba(255, 198, 26, 0.6);
+  opacity: 0;
+  animation: intro-wave 2.2s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  /* Only once the rings are out (the patterns' progress): nothing before the finale. */
+  visibility: hidden;
+}
+
+.intro-rings__wave--1 {
+  border-color: #8fc4ff;
+  box-shadow: 0 0 22px rgba(143, 196, 255, 0.55);
+}
+
+.intro-rings__wave--2 {
+  border-color: #ffffff;
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.45);
+}
+
+.side-patterns-host[style*="--p: 0."] .intro-rings__wave,
+.side-patterns-host[style*="--p: 1"] .intro-rings__wave {
+  visibility: visible;
+}
+
+@keyframes intro-wave {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  12% {
+    opacity: 0.95;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(7.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-rings__wave {
+    display: none;
+  }
+}
+
+/* Gold rings at full strength: faded, gold over navy turned olive. */
+.intro-rings__ring--gold {
+  border-color: #ffb627;
+  opacity: calc(min(1, var(--q) * 5));
+}
+
+/* Calmer: fewer rings, two slow ripples, a soft glow only. */
+.intro-rings__ring {
+  box-shadow: 0 0 6px rgba(143, 196, 255, 0.25);
+}
+
+.intro-rings__ring--gold {
+  border-width: 2.5px;
+  box-shadow: 0 0 8px rgba(255, 182, 39, 0.3);
+}
+
+.intro-rings__wave {
+  border-width: 2px;
+  box-shadow: 0 0 8px rgba(255, 182, 39, 0.3);
+  animation-duration: 3.2s;
+}
+
+.intro-rings__wave--1 {
+  box-shadow: 0 0 8px rgba(143, 196, 255, 0.3);
+}
+
+/* The flight to the header: only "Alumnity." flies (it lands on the header's own). The
+   college line and the swoosh sit differently in the header (crest beside, no swoosh),
+   so they fade as the flight begins rather than land out of line. */
+body:has(.landing-ui--revealing) .intro-lockup .brand__by,
+body:has(.landing-ui--revealing) .intro-lockup .brand__swoosh {
+  opacity: 0 !important;
+  transition: opacity 250ms ease;
+}
+
+/* …and the header's crest and college line fade in around the landed name. */
+.landing--brand-in .site-nav__brand .brand__logo,
+.landing--brand-in .site-nav__brand .brand__sub {
+  animation: brand-settle 600ms var(--ease-out) both;
+}
+
+@keyframes brand-settle {
+  from {
+    opacity: 0;
   }
 }

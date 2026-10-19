@@ -56,7 +56,7 @@ export function Give({ causeId, name, email }: { causeId: number; name: string; 
     }
     // Working on this computer without Razorpay keys: a pretend payment, clearly marked.
     if (order.standIn) {
-      if (window.confirm(`Test payment (no money moves): give ₹${order.amount / 100} to “${order.title}”?`)) await finish(order.orderId, `pay_standin_${Date.now()}`, "stand-in");
+      if (window.confirm(`Test payment (no real money is paid): give ₹${order.amount / 100} to “${order.title}”?`)) await finish(order.orderId, `pay_standin_${Date.now()}`, "stand-in");
       else setBusy(false);
       return;
     }
@@ -77,12 +77,12 @@ export function Give({ causeId, name, email }: { causeId: number; name: string; 
       });
       checkout.on("payment.failed", () => {
         setBusy(false);
-        setNote({ ok: false, text: "The payment didn't go through. No money was taken; you can try again." });
+        setNote({ ok: false, text: "The payment did not go through. No money was taken. You can try again." });
       });
       checkout.open();
     } catch {
       setBusy(false);
-      setNote({ ok: false, text: "Razorpay's checkout didn't load. Check your connection and try again." });
+      setNote({ ok: false, text: "Razorpay's checkout didn't load. Check your internet connection and try again." });
     }
   };
 
@@ -109,7 +109,7 @@ export function Give({ causeId, name, email }: { causeId: number; name: string; 
         </label>
       </fieldset>
       <label className="field">
-        <span className="field__label">A few words (optional, shown with your gift)</span>
+        <span className="field__label">Message (optional, shown with your donation)</span>
         <input maxLength={200} value={message} onChange={(e) => setMessage(e.target.value)} />
       </label>
       <label className="wf-check">

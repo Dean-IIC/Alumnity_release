@@ -1,44 +1,44 @@
 import type { Metadata } from "next";
 import { PeopleToReach, ThingsToDo } from "../../../components/app/people-to-reach";
-import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
-import { readAllAction } from "../../../lib/actions/social";
+import { PulseNow } from "../../../components/app/pulse";
 import { timeAgo } from "../../../lib/format";
 import { safeNext } from "../../../lib/safe-next";
-import { notificationsFor } from "../../../lib/server/social";
+import { markNotificationsRead, notificationsFor } from "../../../lib/server/social";
 import { requireUser } from "../../../lib/server/session";
 
 export const metadata: Metadata = { title: "Notifications · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-/** What's happened that concerns you. New ones are marked until you mark them read. */
+/**
+ * What's happened that concerns you. Opening this page clears the count (as LinkedIn's
+ * does): the new ones are marked on this visit, and read from then on. A "Mark all read"
+ * button left them unread until it was pressed, and the bell kept its number.
+ */
 export default async function NotificationsPage() {
   const me = await requireUser("/notifications");
   const list = await notificationsFor(me.id);
   // Only links within Alumnity: a stored link can never send someone off-site.
   const safe = (link: string) => safeNext(link);
   const unread = list.filter((n) => !n.read).length;
+  if (unread) await markNotificationsRead(me.id);
 
   return (
     <AppPage user={me} current="notifications" title="Notifications">
-      {unread > 0 && (
-        <ActionForm action={readAllAction} showDone={false}>
-          <button className="button button--secondary wf-small" type="submit">
-            Mark all {unread} read
-          </button>
-        </ActionForm>
-      )}
+      {/* The bell's count, in the bar around this page, catches up at once (the bar isn't redrawn by moving between pages). */}
+      {unread > 0 && <PulseNow />}
+      {unread > 0 && <p className="notif-new-count">{unread === 1 ? "1 new since your last visit" : `${unread} new since your last visit`}</p>}
       {list.length === 0 ? (
         <>
-          <p className="wf-empty">Nothing here yet. Connection requests, replies and answers will show up here. A good way to start: ask a senior a question, or connect with someone.</p>
+          <p className="wf-empty">No notifications yet. Connection requests, replies and answers will show here. To get started, ask a senior a question or connect with someone.</p>
           <ThingsToDo me={me} />
           <PeopleToReach me={me} mode="connect" />
         </>
       ) : (
         <ul className="wf-list">
           {list.map((n) => (
-            <li key={n.id} className="wf-member">
-              <a href={safe(n.link)} style={{ fontWeight: n.read ? 400 : 700 }}>
+            <li key={n.id} className={`wf-member notif ${n.read ? "" : "notif--new"}`}>
+              <a href={safe(n.link)}>
                 {!n.read && <span className="sr-only">New: </span>}
                 {n.text}
               </a>

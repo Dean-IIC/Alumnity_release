@@ -291,3 +291,10 @@
     gap: var(--space-2);
   }
 }
+
+/* The landing: the header's lockup waits for the intro's wordmark to land on it (shown at
+   once when the intro is skipped). */
+html:not([data-intro="skip"]) .landing:not(.landing--intro-complete, .landing--brand-in) .site-nav__brand .brand,
+html:not([data-intro="skip"]) .landing.landing--brand-in:not(.landing--intro-complete) .site-nav__brand .brand__name {
+  visibility: hidden;
+}

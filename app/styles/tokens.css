@@ -20,10 +20,10 @@
   --color-red: #0a2a57; /* the pen, the headline, the swoosh */
   --color-blue: #123e7c; /* the wordmark, primary actions, links */
   --color-blue-deep: #0a2a57;
-  --color-gold: #f2a900;
-  --color-gold-text: #8a5d00; /* gold for large text: 4.0 : 1 on paper (the brand gold is only 2.8) */
+  --color-gold: #ffb400;
+  --color-gold-text: #c86400; /* gold for large text: 4.0 : 1 on paper (the brand gold is only 2.8) */
   /* Gold small enough to read: for labels in gold (5.6 : 1 on paper-raised). */
-  --color-gold-small: #7a5200;
+  --color-gold-small: #b45309;
   /* Green: "yes", done, connected, joined. The fourth ink, so the page isn't only blue and gold. */
   --color-green: #1f6f43; /* 6.4 : 1 on paper */
   --color-wash-green: #e4f3ea;
@@ -34,7 +34,7 @@
   --color-wash-gold: #fcf0da;
   --color-wash-blue: #e8eff9;
   --color-wash-amber: #fcf0da;
-  --color-ink-amber: #7a5200; /* the Insightful stamp's ink and label: 6.1 : 1 */
+  --color-ink-amber: #b45309; /* the Insightful stamp's ink and label: 6.1 : 1 */
   --color-fill-red: rgba(10, 42, 87, 0.08);
   --color-fill-blue: rgba(18, 62, 124, 0.06); /* a seal's inner circle */
   --color-seal-ground: #e8eff9; /* behind initials, where there's no photo */
@@ -45,6 +45,8 @@
   --color-error-on-night: #f0a59c;
   /* A real red, for errors and counts only (headings are navy, the college's). */
   --color-danger: #b42318;
+  /* The crest's red, bright: small labels, counts, the month on a date. 4.7 : 1 on white. */
+  --color-bright-red: #e0242f;
   --color-line: #e1e6ee;
   --color-border: #d5dce7;
   --color-focus: var(--color-blue);
@@ -149,6 +151,7 @@
  */
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --color-bright-red: #ff6b70;
   /* Grey-black, not brown: a cool charcoal, with the four inks lit up on it. */
   --color-paper: #0b1220;
   --color-paper-raised: #121b2e;
@@ -160,7 +163,7 @@
   --color-red: #f1f5fb;
   --color-blue: #8fb8f0;
   --color-blue-deep: #c7dbf7;
-  --color-gold: #f2a900;
+  --color-gold: #ffb400;
   --color-gold-text: #f5be3d;
   --color-gold-small: #f5be3d;
   --color-green: #7fe0a6;
@@ -199,16 +202,16 @@
   --color-red: #0a2a57;
   --color-blue: #123e7c;
   --color-blue-deep: #0a2a57;
-  --color-gold: #f2a900;
-  --color-gold-text: #8a5d00;
-  --color-gold-small: #7a5200;
+  --color-gold: #ffb400;
+  --color-gold-text: #c86400;
+  --color-gold-small: #b45309;
   --color-green: #1f6f43;
   --color-wash-red: #fae7eb;
   --color-wash-gold: #fcf0da;
   --color-wash-blue: #e8eff9;
   --color-wash-amber: #fcf0da;
   --color-wash-green: #e4f3ea;
-  --color-ink-amber: #7a5200;
+  --color-ink-amber: #b45309;
   --color-fill-red: rgba(10, 42, 87, 0.08);
   --color-fill-blue: rgba(18, 62, 124, 0.06);
   --color-seal-ground: #e8eff9;

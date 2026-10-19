@@ -5,9 +5,8 @@ import { ERAS, STUDENTS_SINCE_1998 } from "../lib/eras";
 import { blobOutline, COLOUR_SPREAD, easeInOutCubic, easeOutCubic, makeInkBlobs, outlineToPath, windowProgress } from "../lib/ink";
 import { readIntroPreference, shouldPlayIntro, writeIntroPreference } from "../lib/intro-preference";
 import { BACKDROP_PARALLAX, backdropYears, batchDotRadius, batchMarks, cameraAt, inkSplats, FINALE, GHOST_OPACITY, INTRO_END, penProgress, segmentTiming, stopTiming, worldLayout, type WorldLayout } from "../lib/journey";
-import { BrandLockup } from "./brand-lockup";
+import { LOGO } from "./brand-lockup";
 import { InkPhoto } from "./ink-photo";
-import { SidePatterns } from "./side-patterns";
 
 /*
  * The intro, on one timeline:
@@ -16,17 +15,17 @@ import { SidePatterns } from "./side-patterns";
  *      The pen never stops — it heads for the next era while this one blooms — and the
  *      camera follows once the bloom is done.
  *   2. The camera pulls back to show every era, holds, and the photos shrink away.
- *   3. Hand-drawn patterns grow in from the sides; the wordmark arrives on a swoosh,
+ *   3. Rings ripple out from the middle, one for every batch; the wordmark arrives on a swoosh,
  *      the college's name beneath it.
  *   4. The lockup floats into the nav's corner while the site is revealed from the
  *      centre outwards.
  */
 
-const INK = "#a83932";
+const INK = "#ffb400"; // the college's gold: the pen, on navy
 /** The batch labels on the timeline: --color-ink-muted. */
-const MARK_LABEL = "#73665c";
+const MARK_LABEL = "rgba(255, 255, 255, 0.88)"; // the batch labels: white on navy
 /** Ink flicked off the pen: a soft brown, behind the line. */
-const SPLAT = "rgba(111, 93, 69, 0.3)";
+const SPLAT = "rgba(255, 198, 26, 0.92)"; // bright yellow flecks off the pen (see-through, they went muddy on navy)
 const LINE_WIDTH = 13;
 /** The line bitmap's size against the world's: sharp enough at the camera's zoom, and any larger costs memory and setup time. */
 const LINE_TEXTURE_SCALE = 0.8;
@@ -74,7 +73,7 @@ async function lineTexture(layout: WorldLayout, scale = LINE_TEXTURE_SCALE): Pro
       <feTurbulence type="fractalNoise" baseFrequency="0.018 0.05" numOctaves="3" seed="9" result="pressure"/>
       <feColorMatrix in="pressure" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.65" result="grainAlpha"/>
       <feComposite in="ragged" in2="grainAlpha" operator="in" result="dry"/>
-      <feDropShadow in="dry" dx="2" dy="6" stdDeviation="4.5" flood-color="#2b1d12" flood-opacity="0.3"/>
+      <feDropShadow in="dry" dx="2" dy="6" stdDeviation="4.5" flood-color="#000814" flood-opacity="0.45"/>
     </filter>
     <g filter="url(#ink)" fill="none" stroke="${INK}" stroke-width="${LINE_WIDTH}" stroke-linecap="round" stroke-linejoin="round">${paths}</g>
   </svg>`;
@@ -362,7 +361,15 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         // Where the wordmark starts, measured once as the float begins. Its destination is
         // re-read every frame, so it lands exactly even if the nav is still settling.
         let floatFrom: DOMRect | null = null;
+        let floatOrigin: DOMRect | null = null;
         const targetName = brandTarget?.querySelector<HTMLElement>(".brand__name") ?? brandTarget;
+        // The letters themselves, not the boxes around them: the two wordmarks have different
+        // line heights, and matching boxes left the flying one a little high, then a jump.
+        const letters = (el: HTMLElement) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          return range.getBoundingClientRect();
+        };
 
         // Dev aid: ?t=2900 freezes the intro at 2.9 s so a single frame can be inspected.
         const frozenParam = new URLSearchParams(window.location.search).get("t");
@@ -560,17 +567,36 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
             revealRoot.classList.add("landing-ui--revealing");
             // Match the wordmarks themselves: the bylines differ in width, the wordmark doesn't.
             // It sits at the lockup's top-left, which is also the transform's origin.
-            floatFrom = (name ?? lockup).getBoundingClientRect();
+            floatFrom = letters(name ?? lockup);
+            floatOrigin = lockup.getBoundingClientRect();
           }
-          if (floatFrom && targetName) {
-            const to = targetName.getBoundingClientRect();
+          if (floatFrom && floatOrigin && targetName) {
+            const to = letters(targetName);
             const e = easeInOutCubic(floatP);
-            const scale = to.width / floatFrom.width;
-            lockup.style.transform = `translate(-50%, -50%) translate(${(to.left - floatFrom.left) * e}px, ${(to.top - floatFrom.top) * e}px) scale(${1 + (scale - 1) * e})`;
+            const scale = 1 + (to.width / floatFrom.width - 1) * e;
+            // The lockup scales from its own top-left corner, so the letters (a little inside
+            // it) are placed by solving for where that corner must go.
+            const x = floatFrom.left + (to.left - floatFrom.left) * e - floatOrigin.left - scale * (floatFrom.left - floatOrigin.left);
+            const y = floatFrom.top + (to.top - floatFrom.top) * e - floatOrigin.top - scale * (floatFrom.top - floatOrigin.top);
+            lockup.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`;
+            // White over the intro's navy, the header's navy once the opening page is under it:
+            // the colour follows the widening hole as it passes the letters, not a timer.
+            if (name) {
+              const cx = floatFrom.left + (to.left - floatFrom.left) * e + (floatFrom.width * scale) / 2;
+              const cy = floatFrom.top + (to.top - floatFrom.top) * e + (floatFrom.height * scale) / 2;
+              const reveal = easeInOutCubic(windowProgress(t, ...FINALE.reveal));
+              const feather = Math.min(view.width, view.height) * 0.22;
+              const radius = reveal * (Math.hypot(view.width, view.height) / 2 + feather * 1.2);
+              const distance = Math.hypot(cx - view.width / 2, cy - view.height / 2);
+              const open = Math.min(1, Math.max(0, (radius - distance) / feather));
+              name.style.color = `color-mix(in srgb, #123e7c ${Math.round(open * 100)}%, #ffffff)`;
+            }
             // The full college name gives way to "HKBK CE" as the lockup shrinks into the nav.
             const swap = easeInOutCubic(windowProgress(floatP, 0.42, 0.62));
             if (bylineFull) bylineFull.style.opacity = `${1 - swap}`;
             if (bylineShort) bylineShort.style.opacity = `${swap}`;
+            // As it settles into place, the header's crest and college line fade in around it.
+            if (floatP > 0.8) document.querySelector(".landing")?.classList.add("landing--brand-in");
           }
 
           const revealP = windowProgress(t, ...FINALE.reveal);
@@ -671,7 +697,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           </div>
         )}
         <div ref={patternsRef} className="side-patterns-host">
-          <SidePatterns />
+          <IntroRings />
         </div>
         <p className="sr-only">
           HKBK College of Engineering through the years:{" "}
@@ -682,7 +708,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
 
       {/* Above the site, so it can float into the nav while the site is revealed. */}
       <div className={`intro-lockup ${isSettled ? "intro-lockup--settled" : ""}`} ref={lockupRef} aria-hidden="true">
-        <BrandLockup byline="both" />
+        <IntroLockup />
       </div>
 
       {!isSettled && (
@@ -702,5 +728,60 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * The intro's own lockup, in the shape it animates: "Alumnity." drawn in on a gold swoosh,
+ * then the college under it, with its crest. It floats into the header's "Alumnity." at the end.
+ */
+const SWOOSH_CENTRELINE = "M10 40C92 14 200 8 290 26S372 38 392 16";
+
+function IntroLockup() {
+  return (
+    <span className="brand intro-brand">
+      <span className="brand__name">
+        Alumnity<span className="brand__dot">.</span>
+      </span>
+      <svg className="brand__swoosh" viewBox="0 0 400 56" aria-hidden="true">
+        <mask id="intro-swoosh" maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="56">
+          <path className="brand__swoosh-reveal" d={SWOOSH_CENTRELINE} pathLength={1} />
+        </mask>
+        <path className="brand__swoosh-ink" mask="url(#intro-swoosh)" d="M8 43C90 12 200 3 292 21C340 30 372 29 395 12C374 36 338 41 289 32C200 17 94 22 8 43Z" />
+      </svg>
+      <span className="brand__by">
+        <span className="brand__by-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="brand__crest" src={LOGO} alt="" width={256} height={256} />
+          HKBK College of Engineering
+        </span>
+        <span className="brand__by-short">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="brand__crest" src={LOGO} alt="" width={256} height={256} />
+          HKBK College of Engineering
+        </span>
+      </span>
+    </span>
+  );
+}
+
+/**
+ * The finale's rings: one after another out from the middle, behind the wordmark, a ring
+ * for every batch, gold among the college's blue. Driven by the patterns' progress (--p on
+ * their host); they settle as a faint halo before the page opens.
+ */
+const RINGS = 4;
+
+function IntroRings() {
+  return (
+    <div className="intro-rings" aria-hidden="true">
+      {/* Ripples that keep pulsing out while the wordmark is up: gold, light blue, white. */}
+      {Array.from({ length: 2 }, (_, i) => (
+        <span key={`w${i}`} className={`intro-rings__wave intro-rings__wave--${i % 3}`} style={{ animationDelay: `${i * 1.6}s` }} />
+      ))}
+      {Array.from({ length: RINGS }, (_, i) => (
+        <span key={i} className={i % 3 === 2 ? "intro-rings__ring intro-rings__ring--gold" : "intro-rings__ring"} style={{ "--d": `${(i / RINGS) * 0.55}`, "--r": `${1.2 + i * 0.95}` } as CSSProperties} />
+      ))}
+    </div>
   );
 }

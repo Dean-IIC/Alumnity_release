@@ -51,13 +51,13 @@ export function sameHash(a: string, b: string) {
 /** What a password must be: long enough to resist guessing, and not obviously guessable. */
 export function passwordProblem(password: string, context: string[] = []): string | null {
   if (password.length < 10) return "Use at least 10 characters.";
-  if (password.length > 200) return "That’s too long: 200 characters at most.";
-  if (/^\d+$/.test(password)) return "Not just numbers: add some letters.";
+  if (password.length > 200) return "That’s too long. Use 200 characters or fewer.";
+  if (/^\d+$/.test(password)) return "Don’t use only numbers. Add some letters too.";
   if (new Set(password).size < 4) return "Use more different characters.";
   const lower = password.toLowerCase();
   // Named, so nobody is left guessing which word it was ("Alumnity" is in every demo address).
   const common = ["password", "qwerty", "123456", "hkbk", "alumnity"].find((w) => lower.includes(w));
-  if (common) return `Leave out “${common}”: it’s too easy to guess.`;
+  if (common) return `Don’t use “${common}”. It’s too easy to guess.`;
   if (context.some((c) => c && c.length >= 4 && lower.includes(c.toLowerCase()))) return "Don’t use your name, USN or email in it.";
   return null;
 }

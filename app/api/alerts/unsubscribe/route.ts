@@ -22,7 +22,7 @@ const page = (text: string) =>
   );
 
 export async function GET(request: Request) {
-  return (await stop(request)) ? page("Done: no more daily emails. You can turn them back on in Settings.") : page("That link doesn't work any more. Turn the emails off in Settings instead.");
+  return (await stop(request)) ? page("Done. We won't send you daily emails any more. You can turn them back on in Settings.") : page("This link no longer works. You can turn off the emails in Settings.");
 }
 
 /** Mail apps' one-click unsubscribe (RFC 8058). */

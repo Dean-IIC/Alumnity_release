@@ -1,26 +1,44 @@
 "use client";
 
-import { useActionState, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useActionState, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { removeStoryAction, seenStoryAction, storyAction } from "../../lib/actions/content";
+import { storyReplyNow } from "../../lib/actions/messages";
 import { uploadFile } from "../../lib/client/upload";
 import { mediaUrl } from "../../lib/media-url";
+import { cropStyle, readPhotoKey, sharper } from "../../lib/photo-crop";
 import { Icon } from "./icons";
+import "../../app/styles/messages-plus.css";
 
 export type ReelData = {
   author: { id: number; name: string; first: string; photoId: string | null; initials: string };
   stories: { id: number; mediaId: string; kind: "image" | "video" | "html"; caption: string; ago: string }[];
   allSeen: boolean;
   mine: boolean;
+  /** Connected to its author: only then can a story be replied to (as any message). */
+  canReply?: boolean;
 };
+
+/** The quick reactions under someone's story (the same list as lib/server/stories.ts STORY_REACTIONS). */
+const REACTIONS = ["❤️", "🔥", "👏", "😂", "😮", "🎉"] as const;
 
 const IMAGE_TIME = 5000;
 
 /** A face in the stories row: their photo or initials, ringed in red pen while there's something new. */
 function Face({ reel, size = 64 }: { reel: Pick<ReelData, "author">; size?: number }) {
-  return reel.author.photoId ? (
+  if (reel.author.photoId) {
+    // A photo key (lib/photo-crop.ts): framed, it sits in a round window, as an Avatar does.
+    const { id, crop } = readPhotoKey(reel.author.photoId);
     // eslint-disable-next-line @next/next/no-img-element
-    <img className="story-face__img" src={mediaUrl(reel.author.photoId, size)} alt="" width={size} height={size} />
-  ) : (
+    const img = <img className={crop ? undefined : "story-face__img"} src={mediaUrl(id, size * sharper(crop))} alt="" width={size} height={size} style={cropStyle(crop)} />;
+    return crop ? (
+      <span className="story-face__img avatar--framed" style={{ "--avatar-size": `${size}px`, borderRadius: "50%" } as CSSProperties}>
+        {img}
+      </span>
+    ) : img;
+  }
+  return (
     <span className="story-face__initials" style={{ width: size, height: size }}>
       {reel.author.initials}
     </span>
@@ -32,11 +50,15 @@ function Face({ reel, size = 64 }: { reel: Pick<ReelData, "author">; size?: numb
  * and the people you follow, new ones first. Opens a full-screen viewer.
  */
 export function StoriesBar({ reels, me }: { reels: ReelData[]; me: ReelData["author"] }) {
-  const [open, setOpen] = useState<number | null>(null);
+  // The reels as they were when the viewer opened: Home redraws itself now and then (the
+  // pulse), and seen stories move to the end of the row, which used to move the open
+  // viewer onto someone else's story, or close it, mid-story.
+  const [open, setOpenAt] = useState<{ at: number; reels: ReelData[] } | null>(null);
   const [adding, setAdding] = useState(false);
   const mine = reels.find((r) => r.mine);
   const others = reels.filter((r) => !r.mine);
   const order = mine ? [mine, ...others] : others;
+  const setOpen = (at: number | null) => setOpenAt(at === null ? null : { at, reels: order });
 
   return (
     <section className="stories" aria-label="Stories">
@@ -79,7 +101,7 @@ export function StoriesBar({ reels, me }: { reels: ReelData[]; me: ReelData["aut
           </li>
         ))}
       </ol>
-      {open !== null && <StoryViewer reels={order} start={open} onClose={() => setOpen(null)} onAdd={() => (setOpen(null), setAdding(true))} />}
+      {open !== null && <StoryViewer reels={open.reels} start={open.at} onClose={() => setOpen(null)} onAdd={() => (setOpen(null), setAdding(true))} />}
       {adding && <AddStory onClose={() => setAdding(false)} />}
     </section>
   );
@@ -91,6 +113,9 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
   const [storyAt, setStoryAt] = useState(0);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
+  // A video starts with its sound; where the browser won't allow that (an iPhone, before a
+  // tap), it starts muted instead, with a button to turn the sound on.
+  const [muted, setMuted] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
@@ -130,10 +155,27 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
     }
   };
 
-  // Remember what was seen (not your own).
+  // Remember what was seen (not your own): once per story shown.
+  const storyId = story?.id;
+  const ownReel = reel?.mine;
   useEffect(() => {
-    if (story && !reel.mine) void seenStoryAction(story.id);
-  }, [story, reel]);
+    if (storyId && !ownReel) void seenStoryAction(storyId);
+  }, [storyId, ownReel]);
+
+  // Videos: play, with sound if the browser allows it, else muted. Without this an iPhone
+  // refused to start a video story at all (autoplay with sound needs a tap there), and it
+  // sat on a black frame that never moved on.
+  useEffect(() => {
+    const v = video.current;
+    if (!v || story?.kind !== "video") return;
+    v.muted = muted;
+    v.play().catch(() => {
+      v.muted = true;
+      setMuted(true);
+      void v.play().catch(() => undefined);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storyId]);
 
   // Photos stay five seconds; videos as long as they last. Held down, it waits.
   useEffect(() => {
@@ -153,7 +195,10 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
+      // Typing a reply: the arrows and the space bar are the writer's, not the viewer's.
+      const typing = (e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA";
       if (e.key === "Escape") onClose();
+      if (typing) return;
       if (e.key === "ArrowRight") next();
       if (e.key === "ArrowLeft") back();
       if (e.key === " " && (e.target as HTMLElement).tagName !== "BUTTON") {
@@ -183,7 +228,9 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
   });
 
   if (!story) return null;
-  return (
+  // Drawn at the end of the page, not inside the feed: nothing around it (a transformed or
+  // filtered column, a stacking layer) can then clip it or lay the bars over it.
+  return createPortal(
     <div className="story-viewer" role="dialog" aria-modal="true" aria-label={`${reel.author.name}'s story`} ref={dialog}>
       <div className="story-viewer__frame">
         <div className="story-viewer__bars">
@@ -200,6 +247,24 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
           <span>
             <strong>{reel.mine ? "Your story" : reel.author.name}</strong> <span className="story-viewer__ago">{story.ago}</span>
           </span>
+          {story.kind === "video" && (
+            <button
+              type="button"
+              className="story-viewer__pause"
+              onClick={() => {
+                const v = video.current;
+                if (v) v.muted = !muted;
+                setMuted(!muted);
+              }}
+              aria-label={muted ? "Sound on" : "Sound off"}
+              aria-pressed={!muted}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z" fill="currentColor" />
+                {muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" /> : <path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" />}
+              </svg>
+            </button>
+          )}
           <button type="button" className="story-viewer__pause" onClick={togglePause} aria-label={paused ? "Play" : "Pause"} aria-pressed={paused}>
             <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
               {paused ? <path d="M8 5.5v13l10.5-6.5z" /> : <path d="M7.5 5h3v14h-3zM13.5 5h3v14h-3z" />}
@@ -217,7 +282,7 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
           }}
           onPointerUp={() => {
             setPaused(false);
-            void video.current?.play();
+            void video.current?.play().catch(() => undefined);
           }}
         >
           {story.kind === "video" ? (
@@ -225,8 +290,8 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
               ref={video}
               key={story.id}
               src={mediaUrl(story.mediaId)}
-              autoPlay
               playsInline
+              muted={muted}
               onTimeUpdate={(e) => setProgress(e.currentTarget.currentTime / (e.currentTarget.duration || 1))}
               onEnded={next}
             />
@@ -234,25 +299,150 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
             // eslint-disable-next-line @next/next/no-img-element
             <img key={story.id} src={mediaUrl(story.mediaId, 640)} alt={story.caption || `${reel.author.name}'s story`} />
           )}
-          <button type="button" className="story-viewer__tap story-viewer__tap--back" onClick={back} aria-label="Previous" />
-          <button type="button" className="story-viewer__tap story-viewer__tap--next" onClick={next} aria-label="Next" />
+          <button type="button" className="story-viewer__tap story-viewer__tap--back" onClick={back} aria-label="Previous story" />
+          <button type="button" className="story-viewer__tap story-viewer__tap--next" onClick={next} aria-label="Next story" />
         </div>
         {story.caption && <p className="story-viewer__caption">{story.caption}</p>}
         {reel.mine && (
           <div className="story-viewer__own">
             <button type="button" className="button button--secondary wf-small" onClick={onAdd}>
-              Add another
+              Add another story
             </button>
-            <OwnStoryDelete id={story.id} />
+            <OwnStoryDelete id={story.id} onDone={onClose} />
           </div>
         )}
+        {!reel.mine && (
+          <StoryReply
+            key={story.id}
+            storyId={story.id}
+            author={reel.author}
+            canReply={Boolean(reel.canReply)}
+            onTyping={(typing) => {
+              setPaused(typing);
+              if (typing) video.current?.pause();
+              else void video.current?.play().catch(() => undefined);
+            }}
+          />
+        )}
       </div>
+    </div>,
+    document.body
+  );
+}
+
+/**
+ * Under someone else's story: a row of quick reactions and "Reply to Asha…", as on
+ * Instagram and WhatsApp. Either goes to them as a direct message showing the story. Only
+ * between connections (as every message); anyone else is told how to get there.
+ */
+function StoryReply({ storyId, author, canReply, onTyping }: { storyId: number; author: ReelData["author"]; canReply: boolean; onTyping: (typing: boolean) => void }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [burst, setBurst] = useState<{ emoji: string; n: number } | null>(null);
+
+  if (!canReply) {
+    return (
+      <p className="story-reply__locked">
+        <Link href={`/people/${author.id}`}>Connect with {author.first}</Link> to reply to their story.
+      </p>
+    );
+  }
+
+  const send = async (reply: { text?: string; reaction?: string }) => {
+    setBusy(true);
+    setNote(null);
+    try {
+      const answer = await storyReplyNow(storyId, reply);
+      if (answer?.ok) {
+        setNote({ ok: true, text: reply.reaction ? `Sent ${reply.reaction} to ${author.first}` : `Reply sent to ${author.first}` });
+        if (reply.text) {
+          // Sent: the story carries on, as it does on Instagram.
+          setText("");
+          (document.activeElement as HTMLElement | null)?.blur();
+          onTyping(false);
+        }
+      } else setNote({ ok: false, text: answer?.error ?? "That didn't send. Try again." });
+    } catch {
+      setNote({ ok: false, text: "That didn't send. Check your internet connection and try again." });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="story-reply">
+      {burst && (
+        <span key={burst.n} className="story-reply__burst" aria-hidden="true" onAnimationEnd={() => setBurst(null)}>
+          {burst.emoji}
+        </span>
+      )}
+      <div className="story-reply__reactions" role="group" aria-label={`React to ${author.first}'s story`}>
+        {REACTIONS.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            className="story-reply__reaction"
+            disabled={busy}
+            onClick={() => {
+              setBurst({ emoji, n: Date.now() });
+              void send({ reaction: emoji });
+            }}
+            aria-label={`React with ${emoji}`}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+      <form
+        className="story-reply__form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (text.trim() && !busy) void send({ text });
+        }}
+      >
+        <label className="sr-only" htmlFor={`story-reply-${storyId}`}>
+          Reply to {author.first}
+        </label>
+        <input
+          id={`story-reply-${storyId}`}
+          className="story-reply__input"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onFocus={() => onTyping(true)}
+          onBlur={() => !text.trim() && onTyping(false)}
+          placeholder={`Reply to ${author.first}…`}
+          maxLength={1000}
+          autoComplete="off"
+          enterKeyHint="send"
+        />
+        <button type="submit" className="story-reply__send" disabled={!text.trim() || busy}>
+          Send
+        </button>
+      </form>
+      <p className={`story-reply__note ${note && !note.ok ? "story-reply__note--error" : ""}`} role="status" aria-live="polite">
+        {note && (
+          <>
+            {note.text}
+            {note.ok && (
+              <>
+                {" · "}
+                <Link href={`/messages/${author.id}`}>See in Messages</Link>
+              </>
+            )}
+          </>
+        )}
+      </p>
     </div>
   );
 }
 
-function OwnStoryDelete({ id }: { id: number }) {
-  const [, run, pending] = useActionState(removeStoryAction, null);
+/** Deleting your own story; the viewer closes once it's gone (it holds the stories as they were when it opened). */
+function OwnStoryDelete({ id, onDone }: { id: number; onDone: () => void }) {
+  const [state, run, pending] = useActionState(removeStoryAction, null);
+  useEffect(() => {
+    if (state?.ok) onDone();
+  }, [state, onDone]);
   return (
     <form action={run} onSubmit={(e) => !window.confirm("Delete this story?") && e.preventDefault()}>
       <input type="hidden" name="id" value={id} />
@@ -324,15 +514,15 @@ function AddStory({ onClose }: { onClose: () => void }) {
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden onChange={(e) => choose(e.target.files?.[0])} />
         {file?.id && <input type="hidden" name="media" value={file.id} />}
         <label className="sr-only" htmlFor="story-caption">
-          A line to go with it
+          Caption (optional)
         </label>
-        <input id="story-caption" name="caption" className="story-add__caption" maxLength={200} placeholder="A line to go with it (optional)" />
+        <input id="story-caption" name="caption" className="story-add__caption" maxLength={200} placeholder="Add a caption (optional)" />
         {(file?.error || state?.error) && (
           <p className="story-add__error" role="alert">
             {file?.error ?? state?.error}
           </p>
         )}
-        <p className="story-add__note">Your connections and followers can see it for 24 hours.</p>
+        <p className="story-add__note">Your connections, followers and batchmates can see it for 24 hours.</p>
         <button className="button button--primary" type="submit" disabled={!file?.id || pending}>
           {/* Greyed out with no reason given, it was pressed again and again (a blind test of
               the site): it says what it's waiting for. */}

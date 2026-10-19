@@ -1,0 +1,671 @@
+/*
+ * The digital alumni card (components/profile/alumni-card.tsx): a bank card's shape
+ * (85.6 × 54 mm) in the college's navy, with gold linework, as on a certificate.
+ *
+ * Every size on the card is in cqw, a share of the card's own width, so the same card is
+ * as crisp as a thumbnail on the page as it is filling a phone in the dialog, and lays out
+ * exactly like the PNG that /me/card draws (1200 pixels wide: 1cqw there is 12 pixels).
+ *
+ * The card stays navy in dark mode (it's the card, not the page); there it gets a gold
+ * hairline and a deeper shadow so it doesn't sink into the dark.
+ */
+
+.acard-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* What the card's cqw are measured against. */
+.acard-size {
+  display: block;
+  container-type: inline-size;
+  width: 100%;
+}
+
+/* ---------- The card ---------- */
+
+.acard {
+  --acard-navy: #0a2a57;
+  --acard-blue: #123e7c;
+  --acard-gold: #ffb400;
+  --acard-marigold: #ee9b00;
+  --acard-red: #e0242f;
+  --acard-soft: #c9d6ea;
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  aspect-ratio: 856 / 540;
+  padding: 4.3cqw 5.3cqw 5cqw;
+  border-radius: 3.7cqw;
+  background:
+    radial-gradient(circle at 85% 18%, rgba(255, 180, 0, 0.16), transparent 42%),
+    linear-gradient(135deg, var(--acard-navy) 0%, var(--acard-blue) 55%, var(--acard-navy) 100%);
+  box-shadow:
+    0 1px 2px rgba(10, 42, 87, 0.25),
+    0 1.6cqw 4cqw rgba(10, 42, 87, 0.32);
+  color: #fff;
+  font-family: var(--font-ui);
+  line-height: 1.2;
+  text-align: left;
+  isolation: isolate;
+}
+
+/* A soft sheen across the face, as light catches a laminated card. */
+.acard::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.07) 45%, transparent 60%);
+  content: "";
+  pointer-events: none;
+}
+
+.acard > * {
+  position: relative;
+  z-index: 2;
+}
+
+.acard p,
+.acard dl,
+.acard dd {
+  margin: 0;
+}
+
+.acard .acard__pattern {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.acard__waves,
+.acard__rosette {
+  fill: none;
+  stroke: var(--acard-gold, #ffb400);
+  stroke-width: 0.9;
+  vector-effect: non-scaling-stroke;
+}
+
+.acard__waves {
+  opacity: 0.3;
+}
+
+.acard__rosette {
+  opacity: 0.24;
+}
+
+/* The gold edge along the bottom, with a line of the college's red above it. */
+.acard .acard__edge {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1.5cqw;
+  border-top: 0.33cqw solid var(--acard-red);
+  background: linear-gradient(90deg, var(--acard-marigold), var(--acard-gold), var(--acard-marigold));
+}
+
+/* ---------- The front ---------- */
+
+.acard__top {
+  display: flex;
+  gap: 2.2cqw;
+  align-items: center;
+}
+
+.acard__crest {
+  display: grid;
+  flex: none;
+  width: 8.7cqw;
+  height: 8.7cqw;
+  place-items: center;
+  border: 0.33cqw solid var(--acard-gold);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.acard__crest img {
+  width: 6.7cqw;
+  height: 6.7cqw;
+}
+
+.acard__college {
+  display: grid;
+  gap: 0.35cqw;
+  min-width: 0;
+}
+
+.acard__college strong {
+  font-size: 3cqw;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+}
+
+.acard__college span {
+  color: var(--acard-gold);
+  font-size: 1.75cqw;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.5cqw;
+  text-transform: uppercase;
+}
+
+.acard__brand {
+  margin-left: auto;
+  font-size: 3.33cqw;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.03em;
+}
+
+.acard__dot {
+  color: var(--acard-gold);
+}
+
+.acard__who {
+  display: flex;
+  flex: 1;
+  gap: 3.8cqw;
+  align-items: center;
+  min-height: 0;
+}
+
+.acard__photo {
+  display: grid;
+  overflow: hidden;
+  flex: none;
+  width: 18cqw;
+  height: 18cqw;
+  place-items: center;
+  border: 0.42cqw solid var(--acard-gold);
+  border-radius: 2.7cqw;
+  background: #f5f7fa;
+}
+
+.acard__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.acard__initials {
+  color: var(--acard-blue);
+  font-size: 7.7cqw;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.15cqw;
+}
+
+.acard__details {
+  display: grid;
+  gap: 0.35cqw;
+  min-width: 0;
+}
+
+.acard__name {
+  overflow-wrap: anywhere;
+  font-size: 4.8cqw;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+.acard__name--long {
+  font-size: 4.2cqw;
+}
+
+.acard__name--longer {
+  font-size: 3.5cqw;
+}
+
+.acard__role {
+  display: inline-block;
+  margin: 1.1cqw 0 0.9cqw;
+  padding: 0.45cqw 1.8cqw;
+  border-radius: 99px;
+  background: var(--acard-gold);
+  color: var(--acard-navy);
+  font-size: 2cqw;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.25cqw;
+  text-transform: uppercase;
+}
+
+.acard__line {
+  color: var(--acard-soft);
+  font-size: 2.25cqw;
+}
+
+.acard__foot {
+  display: flex;
+  gap: 2cqw;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.acard__numbers {
+  display: flex;
+  gap: 4.6cqw;
+}
+
+.acard__numbers dt,
+.acard__label {
+  color: var(--acard-gold);
+  font-size: 1.4cqw;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.33cqw;
+  text-transform: uppercase;
+}
+
+.acard__numbers dd {
+  margin-top: 0.2cqw;
+  font-size: 3cqw;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3cqw;
+}
+
+.acard__standing {
+  color: var(--acard-soft);
+  font-size: 1.6cqw;
+  letter-spacing: 0.08cqw;
+  text-align: right;
+}
+
+/* ---------- The back ---------- */
+
+/* A band across the top, where a plastic card has its stripe. */
+.acard .acard__stripe {
+  position: absolute;
+  top: 5.3cqw;
+  right: 0;
+  left: 0;
+  height: 7.7cqw;
+  background: linear-gradient(90deg, #051730, #0b2347, #051730);
+}
+
+.acard__verify {
+  display: flex;
+  flex: 1;
+  gap: 4.2cqw;
+  align-items: center;
+  padding-top: 12cqw;
+}
+
+.acard__qr {
+  flex: none;
+  width: 22.5cqw;
+  height: 22.5cqw;
+  padding: 0.83cqw;
+  border-radius: 1.8cqw;
+  background: #fff;
+}
+
+.acard__verify-text {
+  display: grid;
+  gap: 0.6cqw;
+  min-width: 0;
+}
+
+.acard .acard__statement {
+  margin-top: 0.4cqw;
+  font-size: 2.4cqw;
+  line-height: 1.35;
+}
+
+.acard .acard__link {
+  margin-top: 0.8cqw;
+  overflow-wrap: anywhere;
+  color: var(--acard-gold);
+  font-size: 2.2cqw;
+}
+
+.acard__number {
+  color: var(--acard-soft);
+  font-size: 1.8cqw;
+  letter-spacing: 0.17cqw;
+}
+
+.acard__foot--back {
+  margin-top: 2cqw;
+}
+
+.acard__motto {
+  color: var(--acard-gold);
+  font-size: 2.5cqw;
+  font-style: italic;
+}
+
+.acard .acard__fine {
+  margin-top: 0.3cqw;
+  color: var(--acard-soft);
+  font-size: 1.6cqw;
+}
+
+.acard__sign {
+  display: flex;
+  flex: none;
+  gap: 1.2cqw;
+  align-items: center;
+}
+
+.acard__sign img {
+  width: 5.3cqw;
+  height: 5.3cqw;
+}
+
+.acard__sign .acard__brand {
+  margin-left: 0;
+}
+
+/* ---------- Turning it over ---------- */
+
+.acard-flip {
+  cursor: pointer;
+  perspective: 1600px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.acard-flip__inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.acard-flip__inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.acard-flip__face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.acard-flip__face--back {
+  transform: rotateY(180deg);
+}
+
+/* Without motion: the other side simply appears. */
+@media (prefers-reduced-motion: reduce) {
+  .acard-flip__inner {
+    transition: none;
+  }
+}
+
+/* ---------- On /me: the section that opens it ---------- */
+
+.acard-promo {
+  display: grid;
+  grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+  gap: var(--space-5) var(--space-6);
+  align-items: center;
+  margin-top: var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  border-radius: 20px;
+  background:
+    linear-gradient(120deg, rgba(255, 180, 0, 0.1), transparent 55%),
+    var(--color-paper-raised);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.acard-promo__mini {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  cursor: pointer;
+}
+
+.acard-promo__text h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink);
+  font-size: 1.35rem;
+  font-weight: var(--weight-bold);
+}
+
+.acard-promo__text p {
+  max-width: 46ch;
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .acard-promo__mini {
+    transition: transform 0.3s ease;
+  }
+
+  .acard-promo__mini:hover {
+    transform: rotate(-2deg) translateY(-3px);
+  }
+}
+
+@media (max-width: 600px) {
+  .acard-promo {
+    grid-template-columns: 1fr;
+    padding: var(--space-5);
+  }
+
+  .acard-promo__mini {
+    max-width: 280px;
+  }
+}
+
+/* ---------- The dialog ---------- */
+
+.acard-dialog {
+  width: min(720px, calc(100vw - 24px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border: 0;
+  border-radius: 24px;
+  background: var(--color-paper-raised);
+  box-shadow: 0 30px 80px rgba(10, 18, 32, 0.45);
+  color: var(--color-ink);
+}
+
+.acard-dialog::backdrop {
+  background: rgba(10, 42, 87, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.acard-dialog__body {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.acard-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.acard-dialog__head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: var(--weight-bold);
+}
+
+.acard-dialog__close {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.acard-dialog__close:hover {
+  background: var(--color-line);
+  color: var(--color-ink);
+}
+
+.acard-dialog__close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.8;
+}
+
+.acard-dialog__turn {
+  margin: 0;
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.acard-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: center;
+}
+
+.acard-dialog__more,
+.acard-dialog__links a {
+  color: var(--color-blue);
+  font-weight: var(--weight-medium);
+}
+
+.acard-dialog__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  justify-content: center;
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 0.95rem;
+}
+
+.acard-dialog__note {
+  min-height: 1.2em;
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.acard-dialog__note:empty {
+  min-height: 0;
+}
+
+/* ---------- On someone else's page: the small mark ---------- */
+
+.acard-badge {
+  display: inline-flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0a2a57, #123e7c);
+  box-shadow: inset 0 -3px 0 #ffb400;
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.acard-badge > span:last-child {
+  display: grid;
+}
+
+.acard-badge__chip {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 8px;
+  background: #ffb400;
+}
+
+.acard-badge__chip svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: #0a2a57;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.acard-badge__meta {
+  color: #c9d6ea;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Dark mode ---------- */
+
+:root[data-theme="dark"] .acard {
+  box-shadow:
+    0 0 0 1px rgba(255, 180, 0, 0.35),
+    0 1.6cqw 5cqw rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme="dark"] .acard-promo {
+  background:
+    linear-gradient(120deg, rgba(255, 180, 0, 0.08), transparent 55%),
+    var(--color-paper-raised);
+}
+
+:root[data-theme="dark"] .acard-dialog {
+  box-shadow:
+    0 0 0 1px var(--color-line),
+    0 30px 80px rgba(0, 0, 0, 0.7);
+}
+
+:root[data-theme="dark"] .acard-dialog::backdrop {
+  background: rgba(3, 8, 18, 0.7);
+}
+
+:root[data-theme="dark"] .acard-badge {
+  box-shadow:
+    inset 0 -3px 0 #ffb400,
+    0 0 0 1px rgba(255, 180, 0, 0.3);
+}
+
+/* ---------- The card's designs (CARD_THEMES in lib/alumni-card.ts) ---------- */
+
+[data-card-theme="crimson"] .acard { --acard-navy: #5c0f12; --acard-blue: #b91c1c; }
+[data-card-theme="emerald"] .acard { --acard-navy: #053d2c; --acard-blue: #15803d; }
+[data-card-theme="royal"] .acard { --acard-navy: #2e0b5c; --acard-blue: #6d28d9; }
+[data-card-theme="midnight"] .acard { --acard-navy: #05070d; --acard-blue: #1f2937; }
+[data-card-theme="sunset"] .acard { --acard-navy: #7c2d12; --acard-blue: #d97706; }
+
+.acard-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.acard-themes__swatch {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--color-border);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.acard-themes__swatch:hover {
+  transform: scale(1.1);
+}
+
+.acard-themes__swatch[aria-checked="true"] {
+  box-shadow: 0 0 0 3px var(--color-gold);
+}

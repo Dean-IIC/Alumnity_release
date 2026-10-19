@@ -41,8 +41,8 @@ export function SiteFooter({ app = false }: { app?: boolean }) {
             Get directions <span aria-hidden="true">↗</span>
           </a>
         </div>
-        <nav aria-label="Alumni network">
-          <h2>Alumni network</h2>
+        <nav aria-label="Alumnity">
+          <h2>Alumnity</h2>
           <ul>
             {NETWORK_LINKS.map(([label, href]) => (
               <li key={href}>

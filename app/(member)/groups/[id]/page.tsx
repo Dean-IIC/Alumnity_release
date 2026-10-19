@@ -71,11 +71,11 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
           </ActionForm>
         ) : group.my.status === "pending" ? (
           <>
-            <span className="wf-tag">You've asked to join: its admins will let you in</span>
+            <span className="wf-tag">You asked to join. A group admin will review your request.</span>
             <ActionForm action={leaveGroupAction} showDone={false}>
               {hidden}
               <button className="button button--secondary wf-small" type="submit">
-                Take back the request
+                Withdraw request
               </button>
             </ActionForm>
           </>
@@ -105,7 +105,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
       </nav>
 
       {!readable ? (
-        <p className="wf-empty">This group is private: only its members see its posts and who's in it. Ask to join, and one of its admins will let you in.</p>
+        <p className="wf-empty">This group is private. Only members can see its posts and its member list. Ask to join, and a group admin will review your request.</p>
       ) : tab === "posts" ? (
         <>
           {member &&
@@ -115,9 +115,9 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
               <p className="wf-empty">{PAUSED}</p>
             ))}
           {posts.length === 0 ? (
-            <p className="wf-empty">{before ? "That's everything." : member ? "Nothing here yet. Write the first post." : "Nothing here yet."}</p>
+            <p className="wf-empty">{before ? "No more posts." : member ? "Nothing here yet. Write the first post." : "Nothing here yet."}</p>
           ) : (
-            posts.map((p) => <Post key={p.id} post={p} photos={photos} me={me} />)
+            posts.map((p) => <Post key={p.id} post={p} photos={photos} me={me} groupAdmin={manager} />)
           )}
           {posts.length === PAGE && (
             <p>
@@ -138,7 +138,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
                       <input type="hidden" name="user" value={u.id} />
                       <input type="hidden" name="answer" value="accept" />
                       <button className="button button--primary wf-small" type="submit">
-                        Let in
+                        Accept
                       </button>
                     </ActionForm>
                     <ActionForm action={answerGroupRequestAction} showDone={false}>
@@ -146,7 +146,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
                       <input type="hidden" name="user" value={u.id} />
                       <input type="hidden" name="answer" value="decline" />
                       <button className="button button--secondary wf-small" type="submit">
-                        Turn away
+                        Decline
                       </button>
                     </ActionForm>
                   </MemberLine>
@@ -207,7 +207,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
                 <input name="name" required minLength={3} maxLength={GROUP_LIMITS.name} defaultValue={group.name} />
               </label>
               <label className="field">
-                <span className="field__label">What it's for</span>
+                <span className="field__label">What the group is about</span>
                 <textarea name="about" rows={3} maxLength={GROUP_LIMITS.about} defaultValue={group.about} />
               </label>
               <fieldset className="field">
@@ -216,7 +216,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
                   <input type="radio" name="kind" value="open" defaultChecked={group.kind === "open"} /> Open: any member can join and read it
                 </label>
                 <label className="wf-check">
-                  <input type="radio" name="kind" value="private" defaultChecked={group.kind === "private"} /> Private: people ask to join; only members can read it
+                  <input type="radio" name="kind" value="private" defaultChecked={group.kind === "private"} /> Private: people must ask to join. Only members can read it
                 </label>
               </fieldset>
               <div>
@@ -227,10 +227,10 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
             </ActionForm>
           )}
           {(group.my?.role === "owner" || isModerator(me)) && (
-            <ActionForm action={removeGroupAction} confirm={`Close ${group.name} for good? Its posts go with it.`}>
+            <ActionForm action={removeGroupAction} confirm={`Close ${group.name} for good? Its posts will be removed too.`}>
               {hidden}
               <button className="button button--secondary wf-small" type="submit">
-                {group.my?.role === "owner" ? "Close the group" : "Take the group down (college desk)"}
+                {group.my?.role === "owner" ? "Close the group" : "Remove group (college desk)"}
               </button>
             </ActionForm>
           )}

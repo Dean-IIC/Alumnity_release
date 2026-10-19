@@ -19,14 +19,14 @@ export async function Overview({ me }: { me: User }) {
   const items: [string, number, string?][] = [
     ["Members", s.members],
     ["Joined this week", s.joinedThisWeek],
-    ["Signed in this week", s.signedInThisWeek],
+    ["Logged in this week", s.signedInThisWeek],
     ["Alumni", s.alumni],
     ["Students", s.students],
-    ["Happy to mentor", s.mentors],
+    ["Mentors", s.mentors],
     ["Connections", s.connections],
-    ["Asks", s.asks],
-    ["Asks answered", s.answered],
-    ["Notes", s.posts],
+    ["Questions", s.asks],
+    ["Questions answered", s.answered],
+    ["Posts", s.posts],
     ["Events", s.events],
     ["Groups", s.groups],
     ["Open reports", s.openReports, "/desk?tab=reports"],
@@ -35,7 +35,7 @@ export async function Overview({ me }: { me: User }) {
   ];
   // First, what's waiting for the desk; then the numbers.
   const waiting = [
-    s.openReports > 0 && { href: "/desk?tab=reports", text: `${s.openReports} report${s.openReports === 1 ? "" : "s"} to look at` },
+    s.openReports > 0 && { href: "/desk?tab=reports", text: `${s.openReports} report${s.openReports === 1 ? "" : "s"} to review` },
     s.causesWaiting > 0 && { href: "/causes", text: `${s.causesWaiting} cause${s.causesWaiting === 1 ? "" : "s"} to review` }
   ].filter(Boolean) as { href: string; text: string }[];
   return (
@@ -70,7 +70,7 @@ export async function Overview({ me }: { me: User }) {
           </div>
         ))}
       </div>
-      <p className="wf-muted">Totals only: no names.</p>
+      <p className="wf-muted">These are totals only. No names are shown.</p>
       <h2>Causes</h2>
       <p>
         {rupees(s.raised)} given to causes so far. <Link className="wf-inline-link" href="/causes">
@@ -80,7 +80,7 @@ export async function Overview({ me }: { me: User }) {
           <>
             {" · "}
             <a className="wf-inline-link" href="/desk/donations.csv" download>
-              Download every donation (CSV, for the accounts)
+              Download all donations (CSV, for the accounts office)
             </a>
           </>
         )}
@@ -95,10 +95,10 @@ export async function Reports({ me, closed }: { me: User; closed: boolean }) {
     <>
       <p>
         <a className="wf-link-button" href={closed ? "/desk?tab=reports" : "/desk?tab=reports&closed=1"}>
-          {closed ? "← Open reports" : "Dealt with →"}
+          {closed ? "← Open reports" : "Closed reports →"}
         </a>
       </p>
-      {list.length === 0 && <p className="wf-empty">{closed ? "Nothing dealt with yet." : "No open reports. All quiet."}</p>}
+      {list.length === 0 && <p className="wf-empty">{closed ? "No closed reports yet." : "No open reports."}</p>}
       {list.map((r) => (
         <article key={r.id} className="wf-card">
           <div className="wf-card__meta">
@@ -123,11 +123,11 @@ export async function Reports({ me, closed }: { me: User; closed: boolean }) {
               )}
             </p>
           ) : (
-            <p className="wf-muted">It's already gone.</p>
+            <p className="wf-muted">This has already been deleted.</p>
           )}
           {r.status === "open" && (
             <div className="wf-actions">
-              <ActionForm action={resolveReportAction} confirm={r.kind === "member" ? "Pause this member? They're signed out and hidden until unpaused." : "Take this down?"}>
+              <ActionForm action={resolveReportAction} confirm={r.kind === "member" ? "Pause this member? They will be logged out and hidden until you unpause them." : "Take this down?"}>
                 <input type="hidden" name="id" value={r.id} />
                 <input type="hidden" name="action" value="remove" />
                 <button className="button button--primary wf-small" type="submit">
@@ -150,9 +150,9 @@ export async function Reports({ me, closed }: { me: User; closed: boolean }) {
 }
 
 const CONTENT_TABS: [ContentKind, string][] = [
-  ["post", "Notes"],
+  ["post", "Posts"],
   ["comment", "Comments"],
-  ["ask", "Asks"]
+  ["ask", "Questions"]
 ];
 
 export async function Content({ me, kind, q }: { me: User; kind: ContentKind; q: string }) {
@@ -171,7 +171,7 @@ export async function Content({ me, kind, q }: { me: User; kind: ContentKind; q:
         <input type="hidden" name="tab" value="content" />
         <input type="hidden" name="kind" value={kind} />
         <label className="field" style={{ flex: 1, margin: 0 }}>
-          <span className="field__label">Containing</span>
+          <span className="field__label">Search for</span>
           <input name="q" defaultValue={q} maxLength={100} />
         </label>
         <button className="button button--primary wf-small" type="submit">
@@ -189,7 +189,7 @@ export async function Content({ me, kind, q }: { me: User; kind: ContentKind; q:
           <p>{c.text}</p>
           <div className="wf-actions">
             {!c.removed ? (
-              <ActionForm action={takeDownAction} confirm="Take this down? Its author is told it broke the community rules.">
+              <ActionForm action={takeDownAction} confirm="Take this down? We will tell the author it broke the community rules.">
                 <input type="hidden" name="kind" value={c.kind} />
                 <input type="hidden" name="id" value={c.id} />
                 <button className="button button--secondary wf-small" type="submit">
@@ -203,7 +203,7 @@ export async function Content({ me, kind, q }: { me: User; kind: ContentKind; q:
                   <input type="hidden" name="kind" value={c.kind} />
                   <input type="hidden" name="id" value={c.id} />
                   <button className="button button--secondary wf-small" type="submit">
-                    Bring back
+                    Restore
                   </button>
                 </ActionForm>
               )
@@ -280,7 +280,7 @@ export async function Members({ me, filter }: { me: User; filter: MemberFilter }
           </li>
         ))}
       </ul>
-      {list.length === 0 && <p className="wf-empty">Nobody matches.</p>}
+      {list.length === 0 && <p className="wf-empty">No members match.</p>}
     </>
   );
 }
@@ -295,13 +295,13 @@ export async function Announcements({ me }: { me: User }) {
           <input name="title" required maxLength={120} placeholder="e.g. Alumni Day is on 14 December" />
         </label>
         <label className="field">
-          <span className="field__label">What it says</span>
+          <span className="field__label">Message</span>
           <textarea name="body" rows={3} required maxLength={1000} />
         </label>
         <label className="field">
-          <span className="field__label">Show it for</span>
+          <span className="field__label">Show for</span>
           <select name="days" defaultValue="14">
-            <option value="3">3 days</option>
+            <option value="3">Three days</option>
             <option value="7">A week</option>
             <option value="14">Two weeks</option>
             <option value="30">A month</option>
@@ -310,7 +310,7 @@ export async function Announcements({ me }: { me: User }) {
         </label>
         <div>
           <button className="button button--primary" type="submit">
-            Announce
+            Post announcement
           </button>
         </div>
       </ActionForm>
@@ -353,14 +353,14 @@ export async function Team({ me }: { me: User }) {
   return (
     <>
       <p className="wf-muted">
-        Super administrators are set by the people who run the site, so they can't be changed here. A super administrator can make someone an
+        Super administrators are set by the site's technical team. You can't change them here. A super administrator can make someone an
         administrator. An administrator can make someone a coordinator. To give a role to someone already on Alumnity, open their name in Members.
       </p>
       {roles.length > 0 && (
         <section className="wf-card" aria-labelledby="invite-staff">
           <h2 id="invite-staff">Invite staff</h2>
           <p className="wf-muted">
-            Teachers and college staff are not in the student register, so they join by invitation. They get an email with a link. They confirm their email
+            Teachers and college staff are not in the college register, so they join by invitation. They get an email with a link. They confirm their email
             with a code, and choose a password.
           </p>
           <ActionForm action={inviteStaffAction} className="wf-stack" resetOnSuccess>
@@ -419,7 +419,7 @@ export async function Team({ me }: { me: User }) {
                     <ActionForm action={revokeInviteAction} showDone={false}>
                       <input type="hidden" name="email" value={i.email} />
                       <button className="button button--secondary wf-small" type="submit">
-                        Withdraw
+                        Cancel invitation
                       </button>
                     </ActionForm>
                   )}
@@ -441,7 +441,7 @@ export async function Team({ me }: { me: User }) {
             </div>
             <div className="wf-actions">
               <span className="wf-tag">{ROLE_LABEL[u.role]}</span>
-              {u.locked && <span className="wf-tag" title="Set by the people who run the site, not from the desk">Fixed</span>}
+              {u.locked && <span className="wf-tag" title="Set by the site's technical team. You can't change it from the college desk.">Fixed</span>}
               {u.suspended && <span className="wf-tag wf-tag--red">Paused</span>}
             </div>
           </li>
@@ -458,7 +458,7 @@ export async function SiteSettings({ me }: { me: User }) {
   const canEdit = isSuperAdmin(me);
   return (
     <ActionForm action={settingsAction} className="wf-stack">
-      {!canEdit && <p className="wf-card">Only a super administrator can change these. You can see them.</p>}
+      {!canEdit && <p className="wf-card">Only a super administrator can change these settings. You can only view them.</p>}
       <fieldset className="wf-card" disabled={!canEdit}>
         <legend>
           <strong>Joining</strong>
@@ -469,7 +469,7 @@ export async function SiteSettings({ me }: { me: User }) {
       </fieldset>
       <fieldset className="wf-card" disabled={!canEdit}>
         <legend>
-          <strong>Features</strong> (paused ones stay readable; nothing new can be added)
+          <strong>Features</strong> (people can still read paused features, but cannot add anything new)
         </legend>
         {(Object.keys(FEATURE_LABEL) as (keyof typeof FEATURE_LABEL)[]).map((k) => (
           <label key={k} className="wf-check">
@@ -482,7 +482,7 @@ export async function SiteSettings({ me }: { me: User }) {
           <strong>Limits</strong>
         </legend>
         <label className="field">
-          <span className="field__label">Connection requests one member may send in a day</span>
+          <span className="field__label">Connection requests each member can send per day</span>
           <input name="dailyRequests" type="number" min={1} max={200} defaultValue={s.dailyRequests} required />
         </label>
       </fieldset>
@@ -505,7 +505,7 @@ export async function Audit({ me, q }: { me: User; q: string }) {
         <form action="/desk" className="wf-actions" role="search">
           <input type="hidden" name="tab" value="audit" />
           <label className="field" style={{ margin: 0 }}>
-            <span className="field__label">Containing</span>
+            <span className="field__label">Search for</span>
             <input name="q" defaultValue={q} maxLength={100} placeholder="a name, “paused”, “role”…" />
           </label>
           <button className="button button--primary wf-small" type="submit">
@@ -525,8 +525,8 @@ export async function Audit({ me, q }: { me: User; q: string }) {
               <tr>
                 <th>When</th>
                 <th>Who</th>
-                <th>Did</th>
-                <th>To</th>
+                <th>Action</th>
+                <th>Details</th>
               </tr>
             </thead>
             <tbody>

@@ -8,6 +8,7 @@ import { groupsFor } from "../server/groups";
 import { peopleToMeet } from "../server/people";
 import { isSenior } from "../server/roles";
 import { feedFor, type FeedScope } from "../server/posts";
+import { readFeedFilters } from "../feed-filters";
 import { photoIdsOf } from "../server/profile";
 import { actor } from "./common";
 
@@ -18,11 +19,14 @@ const PAGE = 15;
  * The next posts of Home's feed, older than `before`, drawn on the server exactly as the
  * first page is (so reacting, commenting and reporting work the same), for the feed to add
  * as its reader scrolls. `next` is where the page after starts, or null at the end.
+ * `filters`: Home's filters as they are in its address ("tag=job&role=alumnus"), read and
+ * cleaned here just as the page reads them, so every page of a filtered feed matches.
  */
-export async function olderPostsAction(scope: FeedScope, before: number): Promise<{ posts: ReactNode; next: number | null }> {
+export async function olderPostsAction(scope: FeedScope, before: number, filters = ""): Promise<{ posts: ReactNode; next: number | null }> {
   const me = await actor();
   if (!me || !Number.isSafeInteger(before) || before <= 0) return { posts: null, next: null };
-  const posts = await feedFor(me, { limit: PAGE, before, scope: scope === "following" ? "following" : "all" });
+  const only = readFeedFilters(new URLSearchParams(typeof filters === "string" ? filters.slice(0, 1000) : ""));
+  const posts = await feedFor(me, { limit: PAGE, before, scope: scope === "following" ? "following" : "all", ...only });
   const photos = await photoIdsOf([me.id, ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)])]);
   return {
     posts: posts.map((p) => <Post key={p.id} post={p} photos={photos} me={me} />),

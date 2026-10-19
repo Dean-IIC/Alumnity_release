@@ -20,8 +20,8 @@ describe("Supabase refusing a password", () => {
 
 describe("a password with a common word in it", () => {
   it("names the word it found, not another one", () => {
-    expect(passwordProblem("Teacher1-Alumnity-2026")).toBe("Leave out “alumnity”: it’s too easy to guess.");
-    expect(passwordProblem("my hkbk days 1997")).toBe("Leave out “hkbk”: it’s too easy to guess.");
+    expect(passwordProblem("Teacher1-Alumnity-2026")).toBe("Don’t use “alumnity”. It’s too easy to guess.");
+    expect(passwordProblem("my hkbk days 1997")).toBe("Don’t use “hkbk”. It’s too easy to guess.");
     expect(passwordProblem("chalk and lanterns 41")).toBeNull();
   });
 });

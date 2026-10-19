@@ -7,19 +7,19 @@ export const metadata: Metadata = {
 };
 
 const STEPS = [
-  ["Find your name in the register", "Alumnity is only for HKBK College of Engineering people. You join by finding your name in the college register: your name and USN (or your name, branch and year). If you are not in the register, you cannot join."],
+  ["Find your name in the register", "Alumnity is only for people from HKBK College of Engineering. To join, you find your name in the college register. Search with your name and USN, or with your name, branch and year. If you are not in the register, you cannot join."],
   ["Confirm your email, choose a password", "We email you a six-digit code. Your email is never shown to other members."],
-  ["Make your page yours", "Say what you do now, what you know, and what you're happy to help with. Every part has its own “who can see this”: everyone, your batch, your connections, or only you."],
+  ["Set up your page", "Add what you do now, what you know and what you can help with. For each part of your page, you choose who can see it: everyone, your batch, your connections or only you."],
   ["Connect", "Start with your batch. You can add a short note to a connection request. The other person can accept it or decline it. Once connected, you can message each other."],
-  ["Ask a senior", "Students' questions go to a few alumni who fit them, never to everyone. One takes it on and writes back privately, and you mark it answered when it has been."],
+  ["Ask a senior", "A student's question goes to a few alumni who can help with it, not to everyone. One of them takes it and replies to the student privately. When the student has an answer, they mark the question as answered."],
   ["Stay in touch", "Home shows posts from your batch and your connections. The college posts events here. Tap “I'm going” and add them to your calendar."]
 ] as const;
 
 const SAFETY = [
   "Your email and USN are never shown to other members.",
   "You choose who sees each part of your page.",
-  "Block anyone: you won't see each other anywhere, and they aren't told.",
-  "Report anything to the college's alumni coordinators, who can take it down.",
+  "You can block anyone. You won't see each other anywhere, and we won't tell them.",
+  "You can report anything to the college's alumni coordinators. They can remove it.",
   "Connection requests and messages are limited, so nobody can spam.",
   "You can delete your account at any time, from Settings."
 ];
@@ -30,9 +30,9 @@ export default function HowItWorks() {
     <PublicPage
       current="how-it-works"
       kicker="How it works"
-      title="From the register"
+      title="From joining"
       gold="to your first answer"
-      intro="A private network for the students, alumni and faculty of HKBK College of Engineering. Here's how it goes."
+      intro="A private network for the students, alumni and faculty of HKBK College of Engineering. Here's how it works."
     >
       <ol className="steps">
         {STEPS.map(([title, text], i) => (

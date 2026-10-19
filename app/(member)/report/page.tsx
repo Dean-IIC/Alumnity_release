@@ -8,7 +8,7 @@ import { requireUser } from "../../../lib/server/session";
 export const metadata: Metadata = { title: "Report · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-const WHAT = { member: "this member", post: "this note", comment: "this comment", message: "this message", ask: "this question", group: "this group", cause: "this cause" } as const;
+const WHAT = { member: "this member", post: "this post", comment: "this comment", message: "this message", ask: "this question", group: "this group", cause: "this cause" } as const;
 
 /** Report something to the college desk. Whether it may be reported is checked when it's sent. */
 export default async function ReportPage({ searchParams }: { searchParams: Promise<{ kind?: string; id?: string; back?: string }> }) {
@@ -25,11 +25,11 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
           <input type="hidden" name="id" value={id} />
           <label className="field">
             <span className="field__label">What's wrong?</span>
-            <textarea name="reason" rows={3} maxLength={500} required placeholder="Spam, rude, pretending to be someone, something unsafe…" />
+            <textarea name="reason" rows={3} maxLength={500} required placeholder="For example: spam, rude words, a fake account, or something unsafe" />
           </label>
           <div className="wf-actions">
             <button className="button button--primary" type="submit">
-              Send to the college desk
+              Send report
             </button>
             <a className="wf-link-button" href={back}>
               ← Back

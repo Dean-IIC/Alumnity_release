@@ -1,0 +1,1058 @@
+/*
+ * Messages, laid out like Instagram's direct messages (components/messages/), and the
+ * story viewer's replies and reactions (components/social/stories.tsx).
+ *
+ * Laptop: one card the height of the window, the conversations down the left and the open
+ * one on the right. Phone: the list as a page; an open conversation fills the screen, over
+ * the bars, with its own way back (as every chat app does on a phone).
+ */
+
+.dm {
+  /* Yours in the college's blue with white words; theirs in a light grey. */
+  --dm-mine: #123e7c;
+  --dm-mine-text: #ffffff;
+  --dm-theirs: #eef1f6;
+  --dm-theirs-text: var(--color-ink);
+  --dm-hover: var(--color-paper);
+
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  height: calc(100dvh - 64px - 2 * var(--space-5));
+  min-height: 520px;
+  margin-block: var(--space-5);
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme="dark"] .dm {
+  --dm-mine: #2a5ea8;
+  --dm-theirs: #1f2a40;
+  --dm-hover: rgba(220, 230, 245, 0.06);
+}
+
+.dm-icon-button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.dm-icon-button:hover {
+  background: var(--dm-hover, var(--color-paper));
+}
+
+.dm-icon-button:focus-visible,
+.dm-item:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ---------- The list of conversations ---------- */
+
+.dm-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-right: 1px solid var(--color-line);
+}
+
+.dm-list__head {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-3) var(--space-1) var(--space-5);
+}
+
+.dm-list__title {
+  margin: 0;
+  color: var(--color-red);
+  font: var(--weight-bold) 1.5rem / 1.2 var(--font-voice);
+}
+
+.dm-list__sub {
+  margin: var(--space-3) var(--space-5) var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.dm-search {
+  display: flex;
+  flex: none;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 40px;
+  margin: var(--space-2) var(--space-4) var(--space-3);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+}
+
+.dm-search:focus-within {
+  box-shadow: 0 0 0 2px var(--color-focus);
+}
+
+.dm-search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-small);
+  outline: none;
+}
+
+.dm-list__items {
+  margin: 0;
+  padding: 0 var(--space-2) var(--space-2);
+  list-style: none;
+}
+
+.dm-list__none {
+  padding: var(--space-4) var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.dm-list__empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5) var(--space-5);
+}
+
+.dm-list__empty > p {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.dm-list__empty .wf-card {
+  width: 100%;
+}
+
+.dm-item {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 68px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 12px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.dm-item:hover {
+  background: var(--dm-hover, var(--color-paper));
+}
+
+.dm-item[aria-current="page"] {
+  background: var(--color-wash-blue);
+}
+
+.dm-item__text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dm-item__name {
+  overflow: hidden;
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dm-item__line {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.dm-item__preview {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dm-item__ago {
+  flex: none;
+}
+
+/* Unread: the name and the line in bold, and a dot, as Instagram marks them. */
+.dm-item--unread .dm-item__name {
+  font-weight: var(--weight-bold);
+}
+
+.dm-item--unread .dm-item__line {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+
+.dm-item__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-blue);
+}
+
+/* ---------- Nothing open (a laptop) ---------- */
+
+.dm-pane--empty {
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.dm-welcome {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  max-width: 380px;
+}
+
+.dm-welcome__ring {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border: 2px solid var(--color-ink);
+  border-radius: 50%;
+  color: var(--color-ink);
+}
+
+.dm-welcome h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1.25rem;
+}
+
+.dm-welcome p {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+/* ---------- One conversation ---------- */
+
+.dm-thread {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.dm-thread__head {
+  display: flex;
+  flex: none;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 68px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.dm-thread__back {
+  display: none;
+  margin-left: calc(-1 * var(--space-2));
+}
+
+.dm-thread__who {
+  display: flex;
+  flex: 1;
+  gap: var(--space-3);
+  align-items: center;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dm-thread__who > span {
+  min-width: 0;
+}
+
+.dm-thread__name {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--weight-bold) 1rem / 1.3 var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dm-thread__who:hover .dm-thread__name {
+  text-decoration: underline;
+}
+
+.dm-thread__detail {
+  display: block;
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.dm-thread__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dm-thread__intro {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: var(--space-4) 0 var(--space-5);
+  text-align: center;
+}
+
+.dm-thread__intro strong {
+  color: var(--color-ink);
+  font-size: 1.1rem;
+}
+
+.dm-thread__intro span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.dm-thread__hello {
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.dm-thread__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dm-day {
+  align-self: center;
+  margin: var(--space-4) 0 var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+}
+
+.dm-msg {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+  margin-top: 2px;
+}
+
+.dm-msg--first {
+  margin-top: var(--space-3);
+}
+
+.dm-msg--mine {
+  justify-content: flex-end;
+}
+
+.dm-msg__face {
+  flex: none;
+  width: 28px;
+  /* Level with the bubble, above the time under it. */
+  align-self: flex-end;
+  margin-bottom: 20px;
+}
+
+.dm-msg--theirs:not(.dm-msg--last) .dm-msg__face {
+  margin-bottom: 0;
+}
+
+.dm-msg__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  max-width: min(72%, 520px);
+}
+
+.dm-msg--mine .dm-msg__body {
+  align-items: flex-end;
+}
+
+.dm-bubble {
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.dm-msg--mine .dm-bubble {
+  background: var(--dm-mine);
+  color: var(--dm-mine-text);
+}
+
+.dm-msg--theirs .dm-bubble {
+  background: var(--dm-theirs);
+  color: var(--dm-theirs-text);
+}
+
+.dm-bubble:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* A run from one person reads as one: the corners between its bubbles tuck in. */
+.dm-msg--mine:not(.dm-msg--first) .dm-bubble {
+  border-top-right-radius: 6px;
+}
+
+.dm-msg--mine:not(.dm-msg--last) .dm-bubble {
+  border-bottom-right-radius: 6px;
+}
+
+.dm-msg--theirs:not(.dm-msg--first) .dm-bubble {
+  border-top-left-radius: 6px;
+}
+
+.dm-msg--theirs:not(.dm-msg--last) .dm-bubble {
+  border-bottom-left-radius: 6px;
+}
+
+.dm-msg--mine .dm-bubble a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* A post sent in a message: a clear "Open the post" on its own line. */
+.dm-bubble .message-post-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+}
+
+/* Just an emoji (or a story reaction): large, without a bubble. */
+.dm-msg .dm-bubble--emoji {
+  padding: 0 2px;
+  background: none;
+  color: inherit;
+  font-size: 2.5rem;
+  line-height: 1.15;
+}
+
+.dm-msg--sending .dm-bubble {
+  opacity: 0.6;
+}
+
+.dm-msg__meta {
+  margin: 4px 6px 0;
+  color: var(--color-ink-muted);
+  font-size: 11.5px;
+}
+
+/* Report, beside their messages: there when you point at one, or tap it. */
+.dm-msg__tools {
+  opacity: 0;
+  transition: opacity var(--duration-instant);
+}
+
+.dm-msg__meta--tools {
+  display: none;
+}
+
+.dm-msg:hover .dm-msg__tools,
+.dm-msg:focus-within .dm-msg__tools {
+  opacity: 1;
+}
+
+.dm-msg:hover .dm-msg__meta--tools,
+.dm-msg:focus-within .dm-msg__meta--tools {
+  display: block;
+}
+
+.dm-msg__tools .wf-link-button {
+  font-size: inherit;
+}
+
+/* A reply to a story: a small picture of the story above it. */
+.dm-story {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.dm-msg--mine .dm-story {
+  justify-items: end;
+}
+
+.dm-story__label {
+  color: var(--color-ink-muted);
+  font-size: 12px;
+}
+
+.dm-story__thumb {
+  width: 96px;
+  height: 160px;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-night);
+  object-fit: cover;
+}
+
+.dm-story__gone {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 120px;
+  padding: var(--space-2);
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  color: var(--color-ink-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* The box to write in, always at the bottom. */
+.dm-composer {
+  flex: none;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--color-line);
+  background: var(--color-paper-raised);
+}
+
+.dm-composer__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+  padding: 5px 5px 5px var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-paper-raised);
+}
+
+.dm-composer__row:focus-within {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 1px var(--color-blue);
+}
+
+.dm-composer textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  max-height: 140px;
+  padding: 7px 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  resize: none;
+  outline: none;
+}
+
+.dm-composer__send {
+  flex: none;
+  min-width: 64px;
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-blue);
+  color: #ffffff;
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+:root[data-theme="dark"] .dm-composer__send {
+  color: var(--color-paper);
+}
+
+.dm-composer__send:disabled {
+  background: none;
+  color: var(--color-blue);
+  cursor: default;
+  opacity: 0.55;
+}
+
+.dm-composer__error {
+  margin: 0 0 var(--space-2);
+  color: var(--color-danger);
+  font-size: var(--text-small);
+}
+
+.dm-composer__note {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  text-align: center;
+}
+
+/* ---------- "New message" ---------- */
+
+.dm-picker {
+  width: min(440px, calc(100vw - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-pop);
+}
+
+.dm-picker::backdrop {
+  background: rgba(10, 20, 40, 0.55);
+}
+
+.dm-picker__box {
+  display: flex;
+  flex-direction: column;
+  max-height: min(580px, calc(100dvh - 64px));
+}
+
+.dm-picker__head {
+  display: flex;
+  flex: none;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-3) var(--space-2) var(--space-5);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.dm-picker__head h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--weight-bold) 1.05rem / 1.2 var(--font-ui);
+}
+
+.dm-picker__search {
+  margin-top: var(--space-3);
+}
+
+.dm-picker__to {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+
+.dm-picker__list {
+  flex: 1 1 auto;
+  min-height: 120px;
+  margin: 0;
+  padding: 0 var(--space-2) var(--space-2);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.dm-picker__note {
+  margin: var(--space-3) var(--space-5);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.dm-picker__note--quiet {
+  flex: none;
+  margin-top: var(--space-1);
+  font-size: 12px;
+}
+
+/* ---------- A phone ---------- */
+
+@media (max-width: 860px) {
+  .dm {
+    display: block;
+    height: auto;
+    min-height: 0;
+    margin: var(--space-2) calc(-1 * var(--gutter)) 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .dm-list {
+    overflow: visible;
+    border-right: 0;
+  }
+
+  .dm-list__head {
+    padding-left: var(--gutter);
+  }
+
+  .dm-search {
+    margin-inline: var(--gutter);
+    background: var(--color-paper-raised);
+    box-shadow: inset 0 0 0 1px var(--color-line);
+  }
+
+  .dm-pane--empty {
+    display: none;
+  }
+
+  /* An open conversation fills the screen, over the bars, with its own way back. */
+  .dm--open .dm-list {
+    display: none;
+  }
+
+  .dm--open .dm-thread {
+    position: fixed;
+    z-index: 60;
+    inset: 0;
+    height: 100dvh;
+    background: var(--color-paper-raised);
+  }
+
+  html:has(.dm--open) {
+    overflow: hidden;
+  }
+
+  .dm-thread__back {
+    display: grid;
+  }
+
+  .dm-thread__profile {
+    display: none;
+  }
+
+  .dm-thread__head {
+    min-height: 60px;
+    padding: max(var(--space-2), env(safe-area-inset-top)) var(--space-3) var(--space-2);
+  }
+
+  .dm-thread__scroll {
+    padding-inline: var(--space-3);
+  }
+
+  .dm-msg__body {
+    max-width: 78%;
+  }
+
+  .dm-composer {
+    padding: var(--space-2) var(--space-3) max(var(--space-3), env(safe-area-inset-bottom));
+  }
+
+  /* No Shift key to hand: Enter is a new line here, and the box can be a little taller. */
+  .dm-composer textarea {
+    font-size: 1rem; /* 16 px: an iPhone doesn't zoom into it */
+  }
+
+  .dm-picker {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .dm-picker__box {
+    max-height: 100dvh;
+    height: 100%;
+  }
+}
+
+/* ---------- Replies and reactions in the story viewer ---------- */
+
+/* The viewer is always on its night ground: the progress lines are white in either theme
+   (they were the page's paper colour, which in dark mode is near-black, so they vanished). */
+.story-viewer__bar > span {
+  background: #ffffff;
+}
+
+.story-reply {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.story-reply__reactions {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+}
+
+.story-reply__reaction {
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform var(--duration-instant) var(--ease-out), background var(--duration-instant);
+}
+
+.story-reply__reaction:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(1.15);
+}
+
+.story-reply__reaction:active {
+  transform: scale(0.92);
+}
+
+.story-reply__reaction:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.story-reply__form {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 48px;
+  padding: 3px 3px 3px var(--space-4);
+  border: 1px solid var(--color-night-line);
+  border-radius: var(--radius-pill);
+}
+
+.story-reply__form:focus-within {
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+.story-reply__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #ffffff;
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+
+.story-reply__input::placeholder {
+  color: var(--color-night-quiet);
+}
+
+.story-reply__send {
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: #ffffff;
+  font: var(--weight-bold) var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.story-reply__send:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.story-reply__note {
+  min-height: 1.3em;
+  margin: 0;
+  color: var(--color-night-quiet);
+  font-size: var(--text-fine);
+  text-align: center;
+}
+
+.story-reply__note a,
+.story-reply__locked a {
+  color: #ffffff;
+  font-weight: var(--weight-semibold);
+}
+
+.story-reply__note--error {
+  color: var(--color-error-on-night);
+}
+
+.story-reply__locked {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-night-line);
+  border-radius: var(--radius-pill);
+  color: var(--color-night-text);
+  font-size: var(--text-small);
+  text-align: center;
+}
+
+/* A reaction floats up from the row as it's sent. */
+.story-reply__burst {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  font-size: 4rem;
+  line-height: 1;
+  pointer-events: none;
+  animation: story-burst 900ms var(--ease-out) forwards;
+}
+
+@keyframes story-burst {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px) scale(0.6);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -24px) scale(1.2);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -150px) scale(1);
+  }
+}
+
+/* ---------- Editing and deleting messages ---------- */
+
+/* A message's ⋯: there when you point at it or tab to it (on a phone, a long press instead). */
+.dm-msg__more {
+  display: grid;
+  flex: none;
+  place-items: center;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-instant);
+}
+
+.dm-msg--mine .dm-msg__more {
+  order: -1;
+}
+
+.dm-msg:hover .dm-msg__more,
+.dm-msg:focus-within .dm-msg__more {
+  opacity: 1;
+}
+
+.dm-msg__more:hover {
+  background: var(--dm-hover, var(--color-paper));
+  color: var(--color-ink);
+}
+
+.dm-msg__more:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Deleted for everyone: an outline where the words were, in muted italics, for both. */
+.dm-msg .dm-bubble--deleted {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  color: var(--color-ink-muted);
+  font-style: italic;
+}
+
+.dm-bubble__edited {
+  margin-left: 8px;
+  font-size: 11px;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.dm-msg .dm-bubble--emoji .dm-bubble__edited {
+  color: var(--color-ink-muted);
+  opacity: 1;
+}
+
+/* The dialog's choices: one per line, a fingertip tall; deleting in red. */
+.msg-sheet {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.msg-actions {
+  display: grid;
+  gap: 2px;
+}
+
+.msg-actions__item {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--tap-target);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--color-ink);
+  font: var(--weight-semibold) var(--text-button) / 1.2 var(--font-ui);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.msg-actions__item:hover {
+  background: var(--color-paper);
+}
+
+.msg-actions__item:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.msg-actions__item--danger {
+  color: var(--color-bright-red);
+}
+
+.msg-actions__hint {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+  font-weight: normal;
+}
+
+/* A phone: a long press on a message opens its choices (Copy text among them), so the
+   phone's own select-and-copy doesn't cover it; the ⋯ stays for screen readers only. */
+@media (hover: none) {
+  .dm-msg__more {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .dm-bubble {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-reply__burst {
+    animation-duration: 1ms;
+  }
+
+  .story-reply__reaction,
+  .dm-msg__tools,
+  .dm-msg__more {
+    transition: none;
+  }
+}

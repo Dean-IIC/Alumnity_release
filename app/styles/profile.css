@@ -776,6 +776,12 @@
   max-width: 760px;
 }
 
+/* A part or field reached by a link (profile strength's "Add a photo", /me/edit#edit-photo):
+   it lands clear of the app bar, not under it. */
+.editor [id] {
+  scroll-margin-top: calc(64px + var(--space-4));
+}
+
 .editor__part {
   margin: 0 0 var(--space-6);
   padding: var(--space-5) var(--space-5) var(--space-6);
@@ -921,6 +927,25 @@
   height: 100%;
   border: 0;
   object-fit: cover;
+}
+
+/* The cover's preview is the cover itself (the campus drawing too), in the preview's shape. */
+.picker__preview .cover {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.picker__preview .cover__caption {
+  top: var(--space-2);
+  left: var(--space-3);
+}
+
+.picker__framed {
+  margin: 0;
+  color: var(--color-green);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
 }
 
 .picker__empty {
@@ -1441,5 +1466,178 @@
 @media (prefers-reduced-motion: reduce) {
   .sticky-name {
     transition: none;
+  }
+}
+
+/* ---------- Framing a photo or a cover (components/profile/crop-tool.tsx) ---------- */
+
+dialog.crop-sheet {
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(860px, calc(100dvh - 32px));
+}
+
+.crop {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+}
+
+/* The frame: the picture moves under it. Its own gestures only: the page doesn't scroll or zoom. */
+.crop__frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.crop__frame:active {
+  cursor: grabbing;
+}
+
+.crop__frame:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.crop--photo .crop__frame {
+  width: min(300px, 100%);
+  aspect-ratio: 1;
+}
+
+.crop--photo .crop__frame > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* The circle the photo shows in; the corners outside it are dimmed (the alumni card shows them). */
+.crop__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.9),
+    0 0 0 999px rgba(10, 42, 87, 0.55);
+  pointer-events: none;
+}
+
+.crop__cover {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.crop__cover .cover,
+.crop__cover .cover__media {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Each shape's campus drawing as the page draws it there: wider on a phone (under 900px), whatever this screen is. */
+[data-shape="phone"] .cover__campus {
+  width: 72%;
+}
+
+[data-shape="wide"] .cover__campus {
+  width: min(56%, 620px);
+}
+
+.crop__zoom {
+  display: grid;
+  grid-template-columns: var(--tap-target) minmax(0, 1fr) var(--tap-target);
+  gap: var(--space-2);
+  align-items: center;
+  width: min(420px, 100%);
+}
+
+.crop__step {
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-paper-raised);
+  color: var(--color-navy);
+  font: var(--weight-bold) 22px / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.crop__step:disabled {
+  color: var(--color-ink-muted);
+  cursor: default;
+  opacity: 0.6;
+}
+
+.crop__step:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.crop__slider {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-target);
+}
+
+.crop__slider input {
+  width: 100%;
+  min-height: var(--tap-target);
+  margin: 0;
+  accent-color: var(--color-gold);
+  cursor: pointer;
+}
+
+.crop__previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  align-items: end;
+  justify-content: center;
+  width: 100%;
+}
+
+.crop__previews figure {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  margin: 0;
+}
+
+.crop__previews figcaption {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.crop__other {
+  width: min(240px, 100%);
+}
+
+.crop__other[data-shape="wide"] {
+  width: 100%;
+}
+
+.crop__foot {
+  flex-wrap: wrap;
+}
+
+.crop__foot .crop__reset {
+  min-width: var(--tap-target);
+  margin: 0 auto 0 0;
+  padding: 0 var(--space-2);
+}
+
+@media (max-width: 600px) {
+  .crop__foot .button {
+    flex: 1;
   }
 }

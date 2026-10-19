@@ -159,7 +159,7 @@ export async function addSamples(me: User | null): Promise<number> {
         "insert into notifications (user_id, actor, kind, text, link, created_at) values (?, ?, 'connect-request', ?, '/connections', ?)",
         me.id,
         ids[i],
-        `${SAMPLES[i].first} Sample would like to connect.`,
+        `${SAMPLES[i].first} Sample sent you a connection request.`,
         now
       );
     }

@@ -711,3 +711,74 @@ html:has(.lightbox[open]) {
     right: calc(50% - var(--space-8));
   }
 }
+
+/* ---------- The album card, cleaner: a navy fade, white words, "View album →" ---------- */
+
+.album-card {
+  box-shadow: 0 1px 2px rgba(10, 42, 87, 0.08), 0 6px 18px rgba(10, 42, 87, 0.08);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.album-card:hover {
+  box-shadow: 0 12px 30px rgba(10, 42, 87, 0.18);
+  transform: translateY(-3px);
+}
+
+.album-card__vine {
+  display: none;
+}
+
+.album-card__band {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  align-items: flex-end;
+  padding: 56px var(--space-4) var(--space-4);
+  border-radius: 0;
+  background: linear-gradient(to top, rgba(10, 42, 87, 0.94), rgba(10, 42, 87, 0.6) 55%, transparent);
+}
+
+.album-card__title {
+  color: #fff;
+}
+
+.album-card__meta {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.album-card__open {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--color-gold);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}
+
+.album-card__arrow {
+  transition: transform 220ms ease;
+}
+
+.album-card:hover .album-card__open {
+  background: none;
+  transform: none;
+}
+
+.album-card:hover .album-card__arrow {
+  transform: translateX(4px);
+}
+
+.album-card--compact .album-card__band {
+  padding: 40px var(--space-3) var(--space-3);
+}
+
+/* Room above the way back, under the header. */
+main.gallery > .back-link {
+  margin-top: var(--space-6);
+}

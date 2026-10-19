@@ -7,6 +7,9 @@ import { AppPage } from "../../../components/app/app-page";
 import { initialsOf } from "../../../components/profile/ink-seal";
 import { Avatar } from "../../../components/social/avatar";
 import { Composer } from "../../../components/social/composer";
+import { ProfileStrength } from "../../../components/profile/profile-strength";
+import { profileStrength } from "../../../lib/profile-strength";
+import { KnowEveryone } from "../../../components/home/know-everyone";
 import { FocusWaiting, RoleFocus } from "../../../components/home/role-focus";
 import { Icon } from "../../../components/social/icons";
 import { InfiniteFeed } from "../../../components/social/infinite-feed";
@@ -22,8 +25,12 @@ import { eventsFor, organisedCount } from "../../../lib/server/events";
 import { followCounts } from "../../../lib/server/follows";
 import { liveCauses } from "../../../lib/server/causes";
 import { groupsFor } from "../../../lib/server/groups";
-import { batchmates, peopleToMeet, relationsOf } from "../../../lib/server/people";
-import { feedFor, type FeedScope } from "../../../lib/server/posts";
+import { FeedFilterBar } from "../../../components/home/feed-filters";
+import { feedHref, filterCount, filterQuery, NO_FILTERS, readFeedFilters } from "../../../lib/feed-filters";
+import { WORK_TAGS } from "../../../lib/tags";
+import type { User } from "../../../lib/server/auth";
+import { batchmates, blockIds, membersByIds, peopleToMeet, relationsOf } from "../../../lib/server/people";
+import { feedFor, popularTags, type FeedScope } from "../../../lib/server/posts";
 import { photoIdsOf, profileOf } from "../../../lib/server/profile";
 import { requireUser } from "../../../lib/server/session";
 import { PAUSED, settings } from "../../../lib/server/settings";
@@ -40,33 +47,47 @@ const SHORTCUTS = [
   { href: "/groups", label: "Groups", icon: "group" },
   { href: "/batch", label: "Your batch", icon: "batch" },
   { href: "/ask", label: "Ask a senior", icon: "ask" },
-  { href: "/board", label: "Jobs & board", icon: "briefcase" },
+  { href: "/board", label: "HKBK board", icon: "briefcase" },
   { href: "/events", label: "Events", icon: "event" },
   { href: "/causes", label: "Causes", icon: "heart" },
   { href: "/connections", label: "Connections", icon: "connections" },
-  { href: "/people", label: "People", icon: "people" }
+  { href: "/people", label: "Network", icon: "people" }
 ] as const;
 
 /** Where to begin, when the feed is quiet. */
 const WELCOME = [
-  { href: "/me/edit", label: "Make your page yours", note: "A photo, what you do now, what you're happy to help with", icon: "you" },
-  { href: "/batch", label: "Find your batch", note: "Everyone from your year who's here, and how many still aren't", icon: "batch" },
+  { href: "/me/edit", label: "Complete your page", note: "Add a photo, your current work and how you can help", icon: "you" },
+  { href: "/batch", label: "Find your batch", note: "See who from your year has joined, and who has not", icon: "batch" },
   { href: "/groups", label: "Join or start a group", note: "Your class, your club, your city, your field", icon: "group" },
-  { href: "/ask", label: "Ask a senior", note: "Questions go to the few alumni who fit them", icon: "ask" },
-  { href: "/causes", label: "Back a cause", note: "Scholarships and people in need, checked by the college", icon: "heart" }
+  { href: "/ask", label: "Ask a senior", note: "We send your question to alumni who can answer it", icon: "ask" },
+  { href: "/causes", label: "Support a cause", note: "Scholarships and people in need, checked by the college", icon: "heart" }
 ] as const;
 
+/** The people a filter names, as the filter bar shows them: never anyone blocked either way. */
+async function filterPeople(me: User, ids: number[]): Promise<{ id: number; name: string }[]> {
+  if (!ids.length) return [];
+  const [members, blocks] = await Promise.all([membersByIds(ids), blockIds(me.id)]);
+  return ids.flatMap((id) => {
+    const m = members.get(id);
+    return m && !blocks.has(id) ? [{ id, name: m.name }] : [];
+  });
+}
+
 /** Home: stories, a word from the college, what your people are sharing, and a few people and events worth a look. */
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ before?: string; view?: string }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const me = await requireUser("/home");
   const params = await searchParams;
   const beforeParam = Number(params.before);
   const before = Number.isSafeInteger(beforeParam) && beforeParam > 0 ? beforeParam : undefined;
   const scope: FeedScope = params.view === "following" ? "following" : "all";
+  // The feed's filters (?tag=job&role=alumnus&from=12,34&q=…), cleaned and capped.
+  const filters = readFeedFilters(params);
+  const filtered = filterCount(filters) > 0;
+  const filterParams = filterQuery(filters);
 
-  const [profile, posts, reels, mates, relationTo, { upcoming }, announcements, site, connections, follows, groups, causes, others] = await Promise.all([
+  const [profile, posts, reels, mates, relationTo, { upcoming }, announcements, site, connections, follows, groups, causes, others, topTags, chosenPeople] = await Promise.all([
     profileOf(me.id),
-    feedFor(me, { limit: PAGE, before, scope }),
+    feedFor(me, { limit: PAGE, before, scope, ...filters }),
     storyBar(me),
     batchmates(me),
     relationsOf(me.id),
@@ -77,13 +98,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     followCounts(me.id),
     groupsFor(me),
     liveCauses(me, 2),
-    peopleToMeet(me, 6)
+    peopleToMeet(me, 6),
+    popularTags(me),
+    filterPeople(me, filters.authors)
   ]);
+  // The topic chips: what's being tagged lately, then the work tags; ten at most.
+  const topics = [...new Set([...topTags, ...WORK_TAGS])].slice(0, 10);
   // People to meet: your batch first; on a young site, anyone from your branch, then anyone.
   const batch = mates.filter((u) => relationTo(u.id) === "none").slice(0, 4);
   const suggestions = batch.length ? batch : others.slice(0, 4);
   const myGroups = groups.mine.filter((g) => g.my?.status === "member").slice(0, 5);
-  const quiet = posts.length === 0 && !before;
+  const quiet = posts.length === 0 && !before && !filtered;
   const notesOn = site.features.notes;
 
   const photos = await photoIdsOf([
@@ -97,47 +122,49 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     author: { id: r.author.id, name: r.author.name, first: first(r.author.name), photoId: photos.get(r.author.id) ?? null, initials: initialsOf(r.author.name) },
     stories: r.stories.map((s) => ({ id: s.id, mediaId: s.mediaId, kind: s.kind, caption: s.caption, ago: timeAgo(s.createdAt) })),
     allSeen: r.allSeen,
-    mine: r.mine
+    mine: r.mine,
+    // Replies and reactions are messages, so only between connections.
+    canReply: !r.mine && relationTo(r.author.id) === "connected"
   }));
   const meFace = { id: me.id, name: me.name, first: first(me.name), photoId: photos.get(me.id) ?? null, initials: initialsOf(me.name) };
   const now = [profile.title, profile.company && `at ${profile.company}`].filter(Boolean).join(" ");
 
   // Getting started, for who they are: a student wants help; an alumnus can give it; staff run things.
+  // Filling in their page is one step of it, shown as their profile strength (from the page
+  // already loaded) rather than as list items of its own, so nothing is asked twice.
   const staff = me.role !== "student" && me.role !== "alumnus";
-  const pageDone = Boolean(profile.title || profile.about || profile.skills.length || profile.photo);
+  const strength = profileStrength(me, profile);
+  const pageFull = strength.percent >= 100;
   const [asked, organised] = await Promise.all([me.role === "student" ? askCount(me.id) : Promise.resolve(0), staff ? organisedCount(me.id) : Promise.resolve(0)]);
-  const mentorStep = { done: profile.happyTo.mentor, text: "Say you're happy to mentor: questions that fit you start reaching you", href: "/ask", mentor: true };
+  const mentorStep = { done: profile.happyTo.mentor, text: "Offer to mentor, so students can send you their questions", href: "/ask", mentor: true };
   const groupStep = { done: groups.mine.length > 0, text: "Join a group, or start one", href: "/groups" };
   const desk = isModerator(me);
   const { invited, announced } = desk ? await deskBeginnings() : { invited: 0, announced: 0 };
   const steps: { done: boolean; text: string; href: string; mentor?: boolean }[] = desk
     ? [
-        { done: pageDone, text: "Add a photo and what you do at HKBK", href: "/me/edit" },
         { done: invited > 0, text: "Invite the teachers and staff who'll use Alumnity", href: "/desk?tab=team" },
-        { done: announced > 0, text: "Put up a first announcement: it shows at the top of everyone's Home", href: "/desk?tab=announcements" },
+        { done: announced > 0, text: "Post your first announcement. It shows at the top of everyone's Home page.", href: "/desk?tab=announcements" },
         mentorStep
       ]
     : me.role === "student"
       ? [
-          { done: pageDone, text: "Add a photo and what you're up to", href: "/me/edit" },
-          { done: Object.values(profile.seeking).some(Boolean), text: "Say what you're looking for: a mentor, an internship, a referral", href: "/me/edit" },
           { done: connections > 0, text: "Connect with someone from your batch", href: "/batch" },
-          { done: asked > 0, text: "Ask a senior something", href: "/ask" }
+          { done: asked > 0, text: "Ask a senior a question", href: "/ask" }
         ]
       : staff
         ? [
-            { done: pageDone, text: "Add a photo and what you teach", href: "/me/edit" },
-            { done: organised > 0, text: "Put up an event: a talk, a reunion, a department day", href: "/events" },
+            { done: organised > 0, text: "Add an event, such as a talk, a reunion or a department day", href: "/events" },
             mentorStep,
             groupStep
           ]
         : [
-            { done: pageDone, text: "Add a photo and what you do now", href: "/me/edit" },
             { done: connections > 0, text: "Connect with someone from your batch", href: "/batch" },
             mentorStep,
             groupStep
           ];
   const stepsLeft = steps.filter((s) => !s.done).length;
+  // "Say you're happy to mentor" is in the list (one tap); the strength doesn't suggest it as well.
+  const saidInSteps = steps.some((s) => s.mentor && !s.done) ? ["happyTo"] : [];
 
   return (
     <AppPage user={me} current="home" bare>
@@ -158,7 +185,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <Link href="/connections">
                 <strong>{connections}</strong> {connections === 1 ? "connection" : "connections"}
               </Link>
-              <Link href="/me">
+              {/* To the list of who follows you (it used to open your own page, which lists nobody). */}
+              <Link href="/connections#followers">
                 <strong>{follows.followers}</strong> {follows.followers === 1 ? "follower" : "followers"}
               </Link>
             </div>
@@ -226,20 +254,23 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           )}
 
           {/* Fetched alongside the rest of Home, not before it. */}
-          {!before && (
+          {/* Filtering, the reader is looking for posts: the greeting and the steps can wait. */}
+          {!before && !filtered && (
             <Suspense fallback={<FocusWaiting me={me} />}>
               <RoleFocus me={me} />
             </Suspense>
           )}
 
-          {stepsLeft > 0 && !before && (
+          {(stepsLeft > 0 || !pageFull) && !before && !filtered && (
             <section className="sheet side-box" aria-labelledby="steps">
+              {/* A full page counts as one of the steps; until then its strength shows here, above the rest. */}
               <h2 id="steps">
                 Getting started{" "}
                 <span className="h-count">
-                  · {steps.length - stepsLeft} of {steps.length}
+                  · {steps.length - stepsLeft + (pageFull ? 1 : 0)} of {steps.length + 1}
                 </span>
               </h2>
+              {!pageFull && <ProfileStrength strength={strength} show={2} skip={saidInSteps} heading="h3" className="strength--inline" />}
               <ul className="wf-checklist">
                 {steps.map((s) => (
                   <li key={s.text} className={s.done ? "done" : ""}>
@@ -262,21 +293,33 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
 
           <nav className="feed-tabs" aria-label="Which posts">
-            <Link href="/home" aria-current={scope === "all" ? "page" : undefined}>
+            <Link href={feedHref(filters)} aria-current={scope === "all" ? "page" : undefined}>
               Everyone
             </Link>
-            <Link href="/home?view=following" aria-current={scope === "following" ? "page" : undefined}>
+            <Link href={feedHref(filters, { view: "following" })} aria-current={scope === "following" ? "page" : undefined}>
               Following
             </Link>
           </nav>
 
-          {quiet ? (
+          <FeedFilterBar filters={filters} view={scope} topics={topics} people={chosenPeople} />
+
+          {filtered && posts.length === 0 && !before ? (
+            <section className="sheet post-filters-empty" aria-labelledby="no-match">
+              <h2 id="no-match">No posts match these filters</h2>
+              <p>
+                {scope === "following" ? "No posts from people you follow match. " : ""}Try fewer filters or different words.
+              </p>
+              <Link className="post-filters__reset" href={feedHref(NO_FILTERS, { view: scope })}>
+                Clear filters
+              </Link>
+            </section>
+          ) : quiet ? (
             <section className="sheet side-box welcome-card" aria-labelledby="welcome">
-              <h2 id="welcome">{scope === "following" ? "Nothing yet from your people" : "Alumnity is just getting started"}</h2>
+              <h2 id="welcome">{scope === "following" ? "No posts here yet" : "Alumnity is just getting started"}</h2>
               <p className="side-box__note">
                 {scope === "following"
-                  ? "Posts from people you're connected to or follow show here. Find your batch, or follow seniors you admire."
-                  : "Be one of the first: say hello, find your batch, and bring them in."}
+                  ? "Posts from your connections and people you follow will show here. Find your batch, or follow seniors you admire."
+                  : "Be one of the first to post. Say hello, find your batch and invite them."}
               </p>
               <ul className="welcome-card__steps">
                 {WELCOME.map((w) => (
@@ -300,18 +343,25 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
           {before && (
             <p className="feed-more">
-              <a href={scope === "following" ? "/home?view=following" : "/home"}>← Newest</a>
+              <a href={feedHref(filters, { view: scope })}>← Back to newest posts</a>
             </p>
           )}
-          {/* It never just stops: older posts, then "More from HKBK", as the reader scrolls. */}
-          <InfiniteFeed scope={scope} next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null} />
+          {/* It never just stops: older posts, then "More from HKBK", as the reader scrolls (a
+              filtered feed ends with its last match). Keyed, so new filters start it afresh. */}
+          <InfiniteFeed
+            key={`${scope}|${filterParams}|${before ?? ""}`}
+            scope={scope}
+            filters={filterParams}
+            empty={posts.length === 0}
+            next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null}
+          />
         </div>
 
         {/* ----- Around you ----- */}
         <aside className="feed-layout__side feed-layout__side--right" aria-label="Around you">
           {upcoming.length > 0 && (
             <section className="sheet side-box">
-              <h2>Coming up</h2>
+              <h2>Upcoming events</h2>
               <ul className="side-box__list">
                 {upcoming.slice(0, 3).map((e) => {
                   const d = new Date(e.startsAt);
@@ -324,7 +374,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                       <div>
                         <Link href={`/events/${e.id}`}>{e.title}</Link>
                         <p>
-                          {e.going} going{e.imGoing ? " · you too" : ""}
+                          {e.going} going{e.imGoing ? " · including you" : ""}
                         </p>
                       </div>
                     </li>
@@ -340,7 +390,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {causes.map((c) => (
                   <li key={c.id} className="side-cause">
                     <Link href={`/causes/${c.id}`}>{c.title}</Link>
-                    <span className="cause-bar" role="img" aria-label={`${Math.min(100, Math.round((c.raised / c.goal) * 100))}% of the goal`}>
+                    <span className="cause-bar" role="img" aria-label={`${Math.min(100, Math.round((c.raised / c.goal) * 100))}% of the goal raised`}>
                       <span style={{ width: `${Math.min(100, Math.round((c.raised / c.goal) * 100))}%` }} />
                     </span>
                     <small>
@@ -354,7 +404,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </Link>
             </section>
           )}
-          {suggestions.length > 0 && (
+          {suggestions.length === 0 ? (
+            <KnowEveryone />
+          ) : (
             <section className="sheet side-box">
               <h2>{batch.length ? "From your batch" : "People you may know"}</h2>
               <ul className="side-box__list">

@@ -1,0 +1,690 @@
+/*
+ * The colour layer: the college's gold used as a real accent (not only a thin rule), and
+ * each set of cards in its own of the college's tints, so the site reads colourful while
+ * navy stays its base. Kept in one file so its brightness can be tuned in one place.
+ */
+
+/* A gold rule under the bar, on every signed-in page. */
+:root .app-bar {
+  border-bottom: 0;
+  box-shadow: inset 0 -3px 0 var(--color-gold), 0 1px 0 var(--color-line);
+}
+
+/* Counts (people waiting, unread): gold with navy figures. */
+:root .wf-count {
+  background: var(--color-gold);
+  color: #0a2a57;
+  font-weight: var(--weight-bold);
+}
+
+/* The phone's Post button: gold. */
+:root .tab-bar__post {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+/* Every page's title: a short gold bar under it. */
+:root .page-title::after,
+:root .wf-head h1::after {
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin-top: 14px;
+  content: "";
+  border-radius: 2px;
+  background: var(--color-gold);
+}
+
+/* Chosen tabs and filters (the board's tags, Everyone/Following): gold. */
+:root .wf-tabs a[aria-current="page"],
+:root .wf-tabs a[aria-current="true"] {
+  border-color: var(--color-gold);
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+/* Home's greeting card: a gold edge, and the Ask button in gold. */
+:root .focus--student {
+  box-shadow: inset 4px 0 0 var(--color-gold);
+}
+
+:root .focus__ask-start .button--primary {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+:root .focus__ask-start .button--primary:hover {
+  background: #ffbb1f;
+}
+
+/* A gold action where it matters most: anything marked so. */
+.button--gold {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+.button--gold:hover {
+  background: #ffbb1f;
+}
+
+/* The landing's number cards and reasons: each its own colour. */
+.lp-stat:nth-child(1) .lp-stat__icon { background: #e8eff9; color: #123e7c; }
+.lp-stat:nth-child(2) .lp-stat__icon { background: #fcf0da; color: #a46a00; }
+.lp-stat:nth-child(3) .lp-stat__icon { background: #e4f3ea; color: #1f6f43; }
+.lp-stat:nth-child(4) .lp-stat__icon { background: #fae7eb; color: #a8325a; }
+
+.lp-stat:nth-child(1) { border-top: 3px solid #123e7c; }
+.lp-stat:nth-child(2) { border-top: 3px solid var(--color-gold); }
+.lp-stat:nth-child(3) { border-top: 3px solid #1f6f43; }
+.lp-stat:nth-child(4) { border-top: 3px solid #a8325a; }
+
+.lp-for li:nth-child(1) .lp-for__icon { background: #123e7c; color: var(--color-gold); }
+.lp-for li:nth-child(2) .lp-for__icon { background: #0f6e75; color: #fff; }
+.lp-for li:nth-child(3) .lp-for__icon { background: var(--color-gold); color: #0a2a57; }
+.lp-for li:nth-child(4) .lp-for__icon { background: #1f6f43; color: #fff; }
+
+/* The header's crest a size larger: the college's logo, as the college asked. */
+:root .site-nav .brand__logo {
+  width: 60px;
+  height: 60px;
+}
+
+/* Dark mode: gold keeps navy text on it; the tints go deep. */
+:root[data-theme="dark"] .lp-stat__icon {
+  filter: saturate(1.2);
+}
+
+/* ---------- Bright red, and no dull yellow ---------- */
+
+/* Small labels over sections: the crest's red, not a brownish gold. */
+:root .lp-kicker,
+:root .kicker,
+:root .lp-meet__text small,
+:root .h-count {
+  color: var(--color-bright-red);
+}
+
+/* Counts: red, as everyone expects of something unread. */
+:root .wf-count {
+  background: var(--color-bright-red);
+  color: #fff;
+}
+
+/* The hero's tag: solid gold, not a muted tint. */
+:root .lp-tag {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+/* A date's month band: red, like a calendar's. */
+:root .lp-date small,
+:root .event-card__date small {
+  background: var(--color-bright-red);
+}
+
+/* The title bar: gold with a red tip. */
+:root .page-title::after,
+:root .wf-head h1::after {
+  width: 64px;
+  background: linear-gradient(to right, var(--color-gold) 0 70%, var(--color-bright-red) 70% 100%);
+}
+
+/* The fourth number card: red. */
+.lp-stat:nth-child(4) { border-top-color: var(--color-bright-red); }
+.lp-stat:nth-child(4) .lp-stat__icon { background: #fde5e6; color: var(--color-bright-red); }
+
+/* The gold in the background drawings: full strength. */
+:root .backdrop .bd-accent {
+  fill-opacity: 0.85;
+}
+
+:root .backdrop .bd-accent-line {
+  stroke-opacity: 0.9;
+}
+
+/* The landing's year bars light up gold under the pointer; the top branch bar is gold. */
+:root .lp-hbars li:nth-child(2) .lp-hbars__fill {
+  background: var(--color-bright-red);
+}
+
+/* ---------- Icons in colour: each by what it means ---------- */
+
+:root .icon.icon--home { color: #123e7c; }
+:root .icon.icon--people,
+:root .icon.icon--connections,
+:root .icon.icon--everyone { color: #0f6e75; }
+:root .icon.icon--group { color: #6b46c1; }
+:root .icon.icon--batch { color: #c86400; }
+:root .icon.icon--message,
+:root .icon.icon--comment,
+:root .icon.icon--mention { color: #1d63c9; }
+:root .icon.icon--bell { color: #e08a00; }
+:root .icon.icon--grid,
+:root .icon.icon--more { color: #123e7c; }
+:root .icon.icon--ask { color: #0f8a8f; }
+:root .icon.icon--event { color: var(--color-bright-red); }
+:root .icon.icon--heart { color: #e0245e; }
+:root .icon.icon--briefcase { color: #1f7a45; }
+:root .icon.icon--photo,
+:root .icon.icon--story { color: #c2185b; }
+:root .icon.icon--settings,
+:root .icon.icon--shield { color: #475569; }
+:root .icon.icon--logout { color: var(--color-bright-red); }
+:root .icon.icon--search { color: #123e7c; }
+:root .icon.icon--share { color: #1d63c9; }
+:root .icon.icon--you { color: #123e7c; }
+
+/* Inside a button, chip or coloured square, an icon takes that thing's colour. */
+:root .button .icon.icon,
+:root .lp-btn .icon.icon,
+:root .pill-button .icon.icon,
+:root .tab-bar__post .icon.icon,
+:root .lp-for__icon .icon.icon,
+:root .lp-stat__icon .icon.icon,
+:root .wf-tag .icon.icon,
+:root .post__actions .icon.icon {
+  color: inherit;
+}
+
+/* Dark mode: lighter versions, so they read on the dark ground. */
+:root[data-theme="dark"] .icon.icon--home,
+:root[data-theme="dark"] .icon.icon--grid,
+:root[data-theme="dark"] .icon.icon--search,
+:root[data-theme="dark"] .icon.icon--you { color: #8fb8f0; }
+:root[data-theme="dark"] .icon.icon--people,
+:root[data-theme="dark"] .icon.icon--connections,
+:root[data-theme="dark"] .icon.icon--ask { color: #5fd3d3; }
+:root[data-theme="dark"] .icon.icon--group { color: #b69cf5; }
+:root[data-theme="dark"] .icon.icon--message { color: #7fb0ff; }
+:root[data-theme="dark"] .icon.icon--briefcase { color: #6fdc9b; }
+:root[data-theme="dark"] .icon.icon--photo,
+:root[data-theme="dark"] .icon.icon--story { color: #ff7fb0; }
+:root[data-theme="dark"] .icon.icon--settings { color: #aab2bf; }
+
+/* ---------- Bright green: yes, done, connected, verified ---------- */
+
+:root {
+  --color-bright-green: #16a34a;
+}
+
+:root .wf-tag--ok,
+:root .badge--green {
+  border-color: var(--color-bright-green);
+  background: #dcfce7;
+  color: #166534;
+}
+
+:root .profile__tick,
+:root .post__verified,
+:root .name-mark--verified {
+  color: var(--color-bright-green);
+}
+
+/* Seats taken on an event: green, filling up. */
+:root .event-card__bar span {
+  background: var(--color-bright-green);
+}
+
+/* A done step in "Getting started". */
+:root .wf-checklist li.done {
+  color: var(--color-bright-green);
+}
+
+.lp-stat:nth-child(3) { border-top-color: var(--color-bright-green); }
+.lp-stat:nth-child(3) .lp-stat__icon { background: #dcfce7; color: var(--color-bright-green); }
+:root .lp-for li:nth-child(4) .lp-for__icon { background: var(--color-bright-green); color: #fff; }
+:root .icon.icon--briefcase { color: var(--color-bright-green); }
+.backdrop--green { --bd-ink: #16a34a; --bd-wash: #dcfce7; }
+
+/* ---------- Gold words in titles: marigold ---------- */
+
+/* "Welcome back", "made at HKBK", "to your first answer", "register.": the word in
+   marigold, bold, not a brown and not a highlighter band. */
+:root .page-title__gold {
+  padding: 0;
+  background: none;
+  color: #ee9b00;
+}
+
+:root[data-theme="dark"] .page-title__gold {
+  color: #ffb627;
+}
+
+/* The landing's hero line, on navy: marigold too, bright. */
+:root .lp-hero h1 span {
+  color: #ffb627;
+}
+
+/* ---------- Notifications: the new ones, on the visit they arrive ---------- */
+
+.notif-new-count {
+  display: inline-block;
+  margin: 0 0 var(--space-4);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--color-bright-red);
+  color: #fff;
+  font-size: var(--text-fine);
+  font-weight: var(--weight-bold);
+}
+
+.notif {
+  padding-inline: var(--space-3);
+  border-radius: 10px;
+}
+
+.notif--new {
+  background: #fff8e1;
+  box-shadow: inset 4px 0 0 var(--color-gold);
+}
+
+.notif--new a {
+  font-weight: var(--weight-bold);
+}
+
+:root[data-theme="dark"] .notif--new {
+  background: rgba(255, 180, 0, 0.08);
+}
+
+/* Follow: a gold outline, apart from Connect's navy (one-way, lighter). */
+.button--follow {
+  border-color: var(--color-gold);
+  background: #fff8e1;
+  color: #0a2a57;
+}
+
+.button--follow:hover {
+  background: var(--color-gold);
+}
+
+.follow-row {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ---------- Where you are, fully marked; menus coloured while open ---------- */
+
+/* The public header: the current section as a filled marigold pill, not a thin line. */
+:root .site-nav nav a {
+  padding: 0 14px;
+  border-radius: 999px;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+:root .site-nav nav a:hover {
+  background: #fff3d6;
+  color: #0a2a57;
+}
+
+:root .site-nav nav a[aria-current] {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+:root .site-nav nav a[aria-current]::after {
+  display: none;
+}
+
+/* The header's small links, and the footer's: a slim gold rule between each, so they read
+   as separate links rather than one long line. */
+:root .site-nav nav {
+  --nav-gap: clamp(10px, 1.6vw, 22px);
+  gap: var(--nav-gap);
+  align-items: center;
+}
+
+:root .site-nav nav a + a::before,
+:root .site-footer__legal-links > * + *::before {
+  position: absolute;
+  top: 50%;
+  width: 1.5px;
+  height: 1.1em;
+  content: "";
+  border-radius: 1px;
+  background: var(--color-gold);
+  opacity: 0.7;
+  pointer-events: none;
+  translate: 0 -50%;
+}
+
+:root .site-nav nav a + a::before {
+  left: calc(var(--nav-gap) / -2 - 0.75px);
+}
+
+:root .site-footer__legal-links {
+  gap: var(--space-5);
+}
+
+:root .site-footer__legal-links > * {
+  position: relative;
+}
+
+:root .site-footer__legal-links > * + *::before {
+  left: calc(var(--space-5) / -2 - 0.75px);
+}
+
+/* Home's small "About Alumnity" links wrap onto several lines: a gold rule before each, and
+   the one that starts a line is tucked out of sight (the list is shifted left and clipped). */
+:root .side-about ul {
+  gap: 4px 0;
+  margin-left: -8px;
+  overflow: hidden;
+}
+
+:root .side-about li {
+  position: relative;
+  padding: 0 8px;
+}
+
+:root .side-about li::before {
+  position: absolute;
+  top: 22%;
+  left: -1px;
+  width: 1.5px;
+  height: 56%;
+  content: "";
+  border-radius: 1px;
+  background: var(--color-gold);
+}
+
+/* The app bar: the current place as a tinted tile, its gold rule kept under it. */
+:root .app-bar__tab {
+  border-radius: 12px;
+  transition: background-color 180ms ease;
+}
+
+:root .app-bar__tab:hover {
+  background: #f1f5fb;
+}
+
+:root .app-bar__tab[aria-current="page"] {
+  background: #fff3d6;
+  color: #0a2a57;
+}
+
+/* More and You, while their menu is open: marigold. */
+:root .app-menu[open] > summary {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+:root .app-menu[open] > summary .icon {
+  color: #0a2a57;
+}
+
+/* Menu entries: a tint as you point at them, gold for the page you're on. */
+:root .app-menu__item {
+  transition: background-color 160ms ease;
+}
+
+:root .app-menu__item:hover {
+  background: #f1f5fb;
+}
+
+:root .app-menu__item[aria-current="page"] {
+  background: #fff3d6;
+  box-shadow: inset 3px 0 0 var(--color-gold);
+}
+
+/* The phone's bottom bar: the current tab on a tinted tile too. */
+:root .tab-bar a[aria-current="page"] {
+  border-radius: 12px;
+  background: #fff3d6;
+  color: #0a2a57;
+}
+
+:root[data-theme="dark"] .app-bar__tab[aria-current="page"],
+:root[data-theme="dark"] .tab-bar a[aria-current="page"],
+:root[data-theme="dark"] .app-menu__item[aria-current="page"] {
+  background: rgba(255, 180, 0, 0.14);
+  color: #fff;
+}
+
+/* ---------- The way back: a proper button on every page ---------- */
+
+:root .back-link {
+  gap: 8px;
+  min-height: 38px;
+  margin-bottom: var(--space-3);
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-paper-raised);
+  color: #0a2a57;
+  font-size: var(--text-small);
+  box-shadow: 0 1px 2px rgba(10, 42, 87, 0.06);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+:root .back-link span {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  color: #0a2a57;
+  font-size: 13px;
+  line-height: 1;
+}
+
+:root .back-link:hover {
+  border-color: var(--color-gold);
+  background: #fff3d6;
+}
+
+:root[data-theme="dark"] .back-link {
+  color: #fff;
+}
+
+/* ---------- Reactions: bright filled icons, a little bigger ---------- */
+
+:root .stamp:not(.stamp--blank) {
+  background: none;
+}
+
+.stamp__art {
+  transition: transform 180ms ease;
+  transform-origin: 12px 12px;
+}
+
+/* In the picker, each pops as you point at it. */
+:root .reaction-picker__item:hover .stamp__art {
+  transform: scale(1.18) translateY(-1px);
+}
+
+:root .reaction-picker__item:hover .stamp {
+  transform: none;
+}
+
+/* The counts' little row of reactions: overlapping, on white rings so they read. */
+:root .post__stamp {
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* ---------- Cards: each kind fills with its own pattern, spreading from where you point ----------
+   Not one polka dot for everything: a pattern that means something for each kind of card,
+   drawn as a small SVG tile, revealed slowly like ink spreading from the pointer (or the
+   middle, for a tap or the keyboard). components/card-motion.tsx sets --mx/--my. */
+
+:root {
+  /* Number cards: rings rising from a corner. */
+  --pat-rings: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='200'%3E%3Cg fill='none' stroke-width='2'%3E%3Ccircle cx='320' cy='200' r='40' stroke='%23ffb400' stroke-opacity='.55'/%3E%3Ccircle cx='320' cy='200' r='75' stroke='%23123e7c' stroke-opacity='.25'/%3E%3Ccircle cx='320' cy='200' r='110' stroke='%23ffb400' stroke-opacity='.45'/%3E%3Ccircle cx='320' cy='200' r='145' stroke='%23123e7c' stroke-opacity='.2'/%3E%3Ccircle cx='320' cy='200' r='180' stroke='%23e0242f' stroke-opacity='.25'/%3E%3Ccircle cx='320' cy='200' r='215' stroke='%23123e7c' stroke-opacity='.15'/%3E%3C/g%3E%3C/svg%3E");
+  /* Find your batch: a chain of linked rings, classmates. */
+  --pat-chain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='26'%3E%3Cg fill='none' stroke-width='1.6'%3E%3Ccircle cx='13' cy='13' r='8' stroke='%23123e7c' stroke-opacity='.35'/%3E%3Ccircle cx='31' cy='13' r='8' stroke='%23ffb400' stroke-opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+  /* Ask a senior: speech bubbles. */
+  --pat-bubbles: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='54'%3E%3Cg fill='none' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M6 8h22a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H14l-6 5v-5H6a4 4 0 0 1-4-4v-8a4 4 0 0 1 4-4z' stroke='%230f8a8f' stroke-opacity='.55'/%3E%3Cpath d='M40 30h18a4 4 0 0 1 4 4v7a4 4 0 0 1-4 4h-2v5l-6-5H40a4 4 0 0 1-4-4v-7a4 4 0 0 1 4-4z' stroke='%23ffb400' stroke-opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+  /* Mentor a junior: a staircase going up. */
+  --pat-stairs: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M2 46h10V36h10V26h10V16h10V6h4' fill='none' stroke='%23ffb400' stroke-opacity='.75' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='44' cy='6' r='2.5' fill='%23e0242f' fill-opacity='.6'/%3E%3C/svg%3E");
+  /* HKBK board: little bar charts climbing. */
+  --pat-bars: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='44'%3E%3Cg%3E%3Crect x='6' y='26' width='8' height='14' rx='2' fill='%2316a34a' fill-opacity='.35'/%3E%3Crect x='18' y='18' width='8' height='22' rx='2' fill='%2316a34a' fill-opacity='.5'/%3E%3Crect x='30' y='8' width='8' height='32' rx='2' fill='%23ffb400' fill-opacity='.6'/%3E%3C/g%3E%3C/svg%3E");
+  /* Events: a calendar's days, a few of them marked. */
+  --pat-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='48'%3E%3Cg fill='none' stroke='%23e0242f' stroke-opacity='.25' stroke-width='1.2'%3E%3Crect x='3' y='3' width='18' height='18' rx='4'/%3E%3Crect x='27' y='3' width='18' height='18' rx='4'/%3E%3Crect x='51' y='3' width='18' height='18' rx='4'/%3E%3Crect x='3' y='27' width='18' height='18' rx='4'/%3E%3Crect x='51' y='27' width='18' height='18' rx='4'/%3E%3C/g%3E%3Crect x='27' y='27' width='18' height='18' rx='4' fill='%23ffb400' fill-opacity='.55'/%3E%3Crect x='51' y='3' width='18' height='18' rx='4' fill='%23e0242f' fill-opacity='.25'/%3E%3C/svg%3E");
+  /* Leaders: guilloche waves, like a certificate's border. */
+  --pat-guilloche: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='36'%3E%3Cg fill='none' stroke-width='1.2'%3E%3Cpath d='M0 18c15-14 45-14 60 0s45 14 60 0' stroke='%23ffb400' stroke-opacity='.65'/%3E%3Cpath d='M0 18c15 14 45 14 60 0s45-14 60 0' stroke='%23123e7c' stroke-opacity='.3'/%3E%3Cpath d='M0 8c15-8 45-8 60 0s45 8 60 0M0 28c15 8 45 8 60 0s45-8 60 0' stroke='%23e0242f' stroke-opacity='.18'/%3E%3C/g%3E%3C/svg%3E");
+  /* People: a constellation, people joined up. */
+  --pat-constellation: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cg stroke='%230f8a8f' stroke-opacity='.4' stroke-width='1.2'%3E%3Cpath d='M12 18 44 34 70 14M44 34 36 70 80 62 70 14M36 70 10 84'/%3E%3C/g%3E%3Cg fill='%230f8a8f' fill-opacity='.55'%3E%3Ccircle cx='12' cy='18' r='3'/%3E%3Ccircle cx='36' cy='70' r='3'/%3E%3Ccircle cx='80' cy='62' r='3'/%3E%3Ccircle cx='10' cy='84' r='2.5'/%3E%3C/g%3E%3Ccircle cx='44' cy='34' r='4' fill='%23ffb400' fill-opacity='.8'/%3E%3Ccircle cx='70' cy='14' r='3.5' fill='%23e0242f' fill-opacity='.5'/%3E%3C/svg%3E");
+  /* Photo memories: a film strip's holes. */
+  --pat-film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='18'%3E%3Crect x='6' y='5' width='14' height='8' rx='2' fill='%23c2185b' fill-opacity='.22'/%3E%3C/svg%3E");
+  /* Everything else: soft contour lines, a journey's map. */
+  --pat-contours: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='180'%3E%3Cg fill='none' stroke-width='1.3'%3E%3Cellipse cx='210' cy='40' rx='30' ry='18' stroke='%23ffb400' stroke-opacity='.6'/%3E%3Cellipse cx='210' cy='40' rx='60' ry='36' stroke='%23123e7c' stroke-opacity='.22'/%3E%3Cellipse cx='210' cy='40' rx='95' ry='58' stroke='%23ffb400' stroke-opacity='.4'/%3E%3Cellipse cx='210' cy='40' rx='135' ry='84' stroke='%23123e7c' stroke-opacity='.16'/%3E%3Cellipse cx='210' cy='40' rx='180' ry='112' stroke='%2316a34a' stroke-opacity='.18'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+}
+
+/* The pattern layer: hidden in a point, spreading out to fill the card. */
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card)::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: var(--pat, var(--pat-contours)) var(--pat-at, 0 0) / var(--pat-size, auto) var(--pat-repeat, repeat), var(--pat-wash, linear-gradient(135deg, rgba(255, 180, 0, 0.1), rgba(18, 62, 124, 0.06)));
+  clip-path: circle(0% at var(--mx, 50%) var(--my, 50%));
+  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card):is(:hover, :focus-within, :active)::before {
+  clip-path: circle(150% at var(--mx, 50%) var(--my, 50%));
+}
+
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .person-card, .request-card):hover {
+  border-color: var(--color-gold);
+  box-shadow: 0 14px 30px rgba(10, 42, 87, 0.14);
+  transform: translateY(-3px);
+}
+
+/* Which pattern where. */
+:root .lp-stat { --pat: var(--pat-rings); --pat-at: right bottom; --pat-size: 320px 200px; --pat-repeat: no-repeat; --pat-wash: linear-gradient(135deg, rgba(255, 180, 0, 0.12), rgba(18, 62, 124, 0.05)); }
+:root .lp-for li:nth-child(1) .lp-card { --pat: var(--pat-chain); --pat-wash: linear-gradient(135deg, rgba(18, 62, 124, 0.08), rgba(255, 180, 0, 0.1)); }
+:root .lp-for li:nth-child(2) .lp-card { --pat: var(--pat-bubbles); --pat-wash: linear-gradient(135deg, rgba(15, 138, 143, 0.1), rgba(255, 180, 0, 0.08)); }
+:root .lp-for li:nth-child(3) .lp-card { --pat: var(--pat-stairs); --pat-wash: linear-gradient(135deg, rgba(255, 180, 0, 0.14), rgba(224, 36, 47, 0.05)); }
+:root .lp-for li:nth-child(4) .lp-card { --pat: var(--pat-bars); --pat-wash: linear-gradient(135deg, rgba(22, 163, 74, 0.1), rgba(255, 180, 0, 0.08)); }
+:root .event-card { --pat: var(--pat-calendar); --pat-wash: linear-gradient(135deg, rgba(224, 36, 47, 0.06), rgba(255, 180, 0, 0.1)); }
+:root .lp-leader { --pat: var(--pat-guilloche); --pat-wash: linear-gradient(135deg, rgba(255, 180, 0, 0.1), rgba(18, 62, 124, 0.06)); }
+:root :is(.focus__person, .person-card, .request-card) { --pat: var(--pat-constellation); --pat-wash: linear-gradient(135deg, rgba(15, 138, 143, 0.08), rgba(255, 180, 0, 0.08)); }
+:root .more-card--memory { --pat: var(--pat-film); --pat-wash: linear-gradient(135deg, rgba(194, 24, 91, 0.06), rgba(255, 180, 0, 0.08)); }
+
+/* The old dots and their per-card colours: replaced by the patterns above. */
+:root :is(.lp-stat:nth-child(3), .lp-stat:nth-child(4), .event-card, .lp-for li .lp-card)::before {
+  background: var(--pat, var(--pat-contours)) var(--pat-at, 0 0) / var(--pat-size, auto) var(--pat-repeat, repeat), var(--pat-wash);
+}
+
+/* ---------- Every card rises into place as it's reached (components/card-motion.tsx) ---------- */
+
+.cards-ready :is(.sheet, .wf-card, .event-card, .person-card, .request-card, .album-card, .lp-card, .lp-stat, .focus__person) {
+  transition: box-shadow 260ms ease, border-color 260ms ease, clip-path 900ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card)::before {
+    transition: none;
+  }
+
+  :root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .person-card, .request-card):hover {
+    transform: none;
+  }
+}
+
+/* Buttons and links: a simpler lift and fill, no pattern (patterns are for cards). */
+:root :is(.button, .lp-btn):hover {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader):hover {
+    transform: none;
+  }
+}
+
+/* ---------- "You know everyone here!": a small celebration ---------- */
+
+.know-everyone {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  text-align: center;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 180, 0, 0.28), transparent 45%),
+    radial-gradient(circle at 85% 25%, rgba(224, 36, 47, 0.18), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(22, 163, 74, 0.18), transparent 50%),
+    linear-gradient(160deg, #fff8e1, #eef4ff);
+  border: 1px solid #ffd77a;
+}
+
+.know-everyone h2 {
+  margin: 0 0 var(--space-2);
+  color: #0a2a57;
+}
+
+.know-everyone p {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink-soft);
+  font-size: var(--text-small);
+}
+
+.know-everyone__emoji {
+  margin: 0 0 var(--space-2) !important;
+  font-size: 2.4rem;
+  line-height: 1;
+  animation: know-pop 1.6s ease-in-out infinite;
+}
+
+@keyframes know-pop {
+  0%, 100% { transform: rotate(-8deg) scale(1); }
+  50% { transform: rotate(8deg) scale(1.12); }
+}
+
+/* Confetti falling through the card. */
+.know-everyone__confetti {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.know-everyone__confetti i {
+  position: absolute;
+  top: -12px;
+  left: calc(var(--i) * 7%);
+  width: 7px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--color-gold);
+  animation: know-fall calc(2.6s + var(--i) * 0.13s) linear calc(var(--i) * -0.37s) infinite;
+}
+
+.know-everyone__confetti i:nth-child(3n) { background: var(--color-bright-red); }
+.know-everyone__confetti i:nth-child(3n + 1) { background: #1d63c9; }
+.know-everyone__confetti i:nth-child(4n) { background: var(--color-bright-green); }
+
+@keyframes know-fall {
+  to {
+    transform: translateY(260px) rotate(540deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .know-everyone__emoji,
+  .know-everyone__confetti i {
+    animation: none;
+  }
+
+  .know-everyone__confetti {
+    display: none;
+  }
+}
+
+/* The spread: slow and even (about a second and a half), the pattern soft enough that the
+   card's words stay crisp over it. */
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card)::before {
+  opacity: 0.62;
+  transition: clip-path 1400ms cubic-bezier(0.45, 0.05, 0.25, 1);
+}

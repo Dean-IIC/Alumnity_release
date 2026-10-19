@@ -27,7 +27,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const hidden = <input type="hidden" name="id" value={event.id} />;
 
   return (
-    <AppPage user={me} current="events" back={{ href: "/events", label: "Events" }} title={event.title} intro={event.organiser ? `Put up by ${event.organiser.name}` : undefined}>
+    <AppPage user={me} current="events" back={{ href: "/events", label: "Events" }} title={event.title} intro={event.organiser ? `Organised by ${event.organiser.name}` : undefined}>
       <article className="wf-card">
         {event.cancelled && <p className="wf-note wf-note--error">This event was cancelled.</p>}
         <p>
@@ -79,10 +79,10 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             </ul>
           )}
           {!event.cancelled && !over && (
-            <ActionForm action={cancelEventAction} confirm="Cancel this event? Everyone coming is told.">
+            <ActionForm action={cancelEventAction} confirm="Cancel this event? We will tell everyone who is going.">
               {hidden}
               <button className="wf-link-button" type="submit" style={{ marginTop: "var(--space-4)" }}>
-                Cancel the event
+                Cancel event
               </button>
             </ActionForm>
           )}

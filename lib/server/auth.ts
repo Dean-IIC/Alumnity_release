@@ -44,8 +44,8 @@ const CODE_LIFE = 15 * MINUTE;
 const SETUP_LIFE = 30 * MINUTE;
 const CODE_TRIES = 5;
 
-export const SLOW_DOWN = "That’s a lot of tries in a short time. Wait a few minutes and try again.";
-const WRONG_CODE = "That code isn’t right. Check the email, or ask for a new one.";
+export const SLOW_DOWN = "You have tried too many times. Wait a few minutes and try again.";
+const WRONG_CODE = "That code is wrong. Check the email we sent, or ask for a new code.";
 
 export { toUser };
 
@@ -176,17 +176,17 @@ export type JoinStart = { name: string; usn?: string; branch?: string; year?: nu
 
 /** Step 1: the register check, again on the server, then a code to the email. */
 export async function startJoin(input: JoinStart): Promise<Outcome<{ ticket: string }>> {
-  if (!(await settings()).joiningOpen) return { ok: false, error: "Joining is paused by the college for now. Please try again later." };
+  if (!(await settings()).joiningOpen) return { ok: false, error: "The college has paused joining for now. Please try again later." };
   const email = normaliseEmail(input.email);
   if (!looksLikeEmail(email)) return { ok: false, error: "That doesn’t look like an email address." };
   if (!(await withinLimit(`join:ip:${input.ip}`, 6, 60 * MINUTE)) || !(await withinLimit(`join:email:${email}`, 3, 60 * MINUTE))) return { ok: false, error: SLOW_DOWN };
 
   const found = await findInRegister({ name: input.name, usn: input.usn, branch: input.branch, year: input.year });
-  if (!found) return { ok: false, error: "The register isn’t reachable just now. Please try again in a little while." };
-  if (found.status !== "found") return { ok: false, error: "We couldn’t find that line in the register." };
+  if (!found) return { ok: false, error: "We can’t reach the register right now. Please try again later." };
+  if (found.status !== "found") return { ok: false, error: "We couldn’t find that entry in the register." };
 
   if (await db().one("select 1 from users where usn = ?", found.usn)) {
-    return { ok: false, error: "That line in the register already has an account. Log in, or reset your password if you’ve forgotten it." };
+    return { ok: false, error: "This person in the register already has an account. Log in, or reset your password if you’ve forgotten it." };
   }
   // An email that already has an account: the visitor isn't told, and no code is sent,
   // so the ticket leads nowhere.
@@ -210,7 +210,7 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
   const auth = await authProvider();
   const session = await auth.session();
   if (!row?.verified_at || !row.found || row.verified_at + SETUP_LIFE < Date.now() || !session || session.authId !== row.auth_id) {
-    return { ok: false, error: "This sign-up has expired. Please start again." };
+    return { ok: false, error: "Your joining session has expired. Please start again." };
   }
   const found = JSON.parse(row.found) as Found;
   const problem = passwordProblem(password, passwordContext({ name: found.name, usn: found.usn, email: row.email }));
@@ -243,14 +243,14 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
   if (!inserted) {
     // The USN or the email was taken while this sign-up was waiting.
     await auth.signOut("local");
-    return { ok: false, error: "That line or that email already has an account. Log in instead." };
+    return { ok: false, error: "Someone has already joined with these register details or this email. Log in instead." };
   }
   return { ok: true, user: toUser(inserted) };
 }
 
 // ---------- Logging in ----------
 
-const NO_MATCH = "That email and password don’t match. Check them, or reset your password.";
+const NO_MATCH = "Wrong email or password. Check them, or reset your password.";
 
 export async function logIn(emailInput: string, password: string, ip: string): Promise<Outcome<{ user: User }>> {
   const email = normaliseEmail(emailInput);
@@ -267,7 +267,7 @@ export async function logIn(emailInput: string, password: string, ip: string): P
   }
   if (row.suspended_at) {
     await auth.signOut("local");
-    return { ok: false, error: "This account is paused by the college. Write to the alumni office to sort it out." };
+    return { ok: false, error: "The college has paused this account. Please write to the alumni office for help." };
   }
   return { ok: true, user: toUser(row) };
 }
@@ -310,7 +310,7 @@ export async function completeReset(ticket: string, code: string, password: stri
   await auth.signOut("others");
   if (userRow.suspended_at) {
     await auth.signOut("local");
-    return { ok: false, error: "This account is paused by the college. Write to the alumni office to sort it out." };
+    return { ok: false, error: "The college has paused this account. Please write to the alumni office for help." };
   }
   return { ok: true, user };
 }

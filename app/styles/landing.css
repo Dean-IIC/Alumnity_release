@@ -634,3 +634,179 @@ a.lp-card:hover {
     margin: 0;
   }
 }
+
+/* ---------- Under the intro ---------- */
+
+.landing-ui {
+  position: relative;
+  z-index: var(--z-site);
+}
+
+/* Returning visitors who skip the intro get a short fade instead. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-intro="skip"] .landing-ui {
+    animation: site-in 400ms var(--ease-out) both;
+  }
+}
+
+@keyframes site-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Charts that grow in as they're reached (components/landing/in-view.tsx) ---------- */
+
+.lp-bars__bar {
+  position: relative;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition:
+    transform 700ms cubic-bezier(0.23, 1, 0.32, 1) calc(var(--i, 0) * 35ms),
+    background 180ms ease;
+}
+
+.lp-charts.is-in .lp-bars__bar {
+  transform: scaleY(1);
+}
+
+.lp-hbars__fill {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 900ms cubic-bezier(0.23, 1, 0.32, 1) calc(var(--i, 0) * 90ms);
+}
+
+.lp-charts.is-in .lp-hbars__fill {
+  transform: scaleX(1);
+}
+
+/* The year under the pointer: a clear navy bubble with the number, not a tiny tooltip. */
+.lp-bars__bar::after {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  padding: 8px 12px;
+  content: attr(data-tip);
+  border-radius: 10px;
+  background: #0a2a57;
+  color: #fff;
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgba(10, 42, 87, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 6px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.lp-bars__bar::before {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  content: "";
+  background: #0a2a57;
+  opacity: 0;
+  transform: translateX(-50%) rotate(45deg);
+  transition: opacity 160ms ease;
+}
+
+/* Each year's full-height column is what the pointer finds (the bar inside it may be tiny). */
+.lp-bars__col {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  align-items: flex-end;
+  min-width: 0;
+  height: 100%;
+}
+
+.lp-bars__col .lp-bars__bar {
+  flex: 1 1 auto;
+}
+
+.lp-bars__col:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--color-blue);
+  outline-offset: 1px;
+}
+
+.lp-bars__col:hover,
+.lp-bars__col:focus-visible {
+  /* Above its neighbours, so its bubble isn't drawn under them. */
+  z-index: 3;
+}
+
+.lp-bars__col:hover .lp-bars__bar,
+.lp-bars__col:focus-visible .lp-bars__bar {
+  background: var(--color-gold);
+}
+
+.lp-bars__col:hover .lp-bars__bar::after,
+.lp-bars__col:focus-visible .lp-bars__bar::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.lp-bars__col:hover .lp-bars__bar::before,
+.lp-bars__col:focus-visible .lp-bars__bar::before {
+  opacity: 1;
+}
+
+/* Near the ends, the bubble opens inwards so it stays on the chart. */
+.lp-bars__col[data-edge="start"] .lp-bars__bar::after {
+  left: -4px;
+  transform: translate(0, 6px);
+}
+
+.lp-bars__col[data-edge="end"] .lp-bars__bar::after {
+  right: -4px;
+  left: auto;
+  transform: translate(0, 6px);
+}
+
+.lp-bars__col[data-edge]:is(:hover, :focus-visible) .lp-bars__bar::after {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-bars__bar,
+  .lp-hbars__fill {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---------- Sections rise into place as they're reached (RevealOnScroll) ---------- */
+
+/* Only once the script is running (no script: everything simply shows). */
+.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 650ms var(--ease-out), transform 650ms var(--ease-out);
+}
+
+.reveal-ready [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* The cards inside a section follow one after another. */
+.reveal-ready [data-reveal] :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *) {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out);
+}
+
+.reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *) {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(2) { transition-delay: 90ms; }
+.reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(3) { transition-delay: 180ms; }
+.reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(4) { transition-delay: 270ms; }

@@ -22,7 +22,7 @@ export default async function DevSeed() {
       <header className="wf-head">
         <h1>Sample members (development only)</h1>
         <p className="wf-muted">
-          Twelve made-up members, all named “… Sample”, with pages, a few connections, notes and an event. Nobody can sign in as them. {me ? `Two of them will ask to connect with you (${me.name}).` : "Log in first and two of them will ask to connect with you."}
+          Twelve made-up members, all named “… Sample”, with pages, a few connections, notes and an event. Nobody can log in as them. {me ? `Two of them will send you a connection request (${me.name}).` : "Log in first, and two of them will send you a connection request."}
         </p>
       </header>
       <p>
@@ -36,7 +36,7 @@ export default async function DevSeed() {
         </ActionForm>
         <ActionForm action={removeSamplesAction} confirm="Remove every sample member and everything they made?">
           <button className="button button--secondary" type="submit" disabled={count === 0}>
-            Remove them
+            Remove sample members
           </button>
         </ActionForm>
       </div>

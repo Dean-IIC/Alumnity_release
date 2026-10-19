@@ -3,7 +3,8 @@ import { batchYears, ROLE_LABEL } from "../../lib/format";
 import { mediaUrl } from "../../lib/media-url";
 import { ERAS } from "../../lib/eras";
 import type { Profile, Visibility } from "../../lib/server/profile";
-import { Cover } from "./cover";
+import { cropStyle, sharper } from "../../lib/photo-crop";
+import { Cover, type DefaultCover } from "./cover";
 import { InkSeal } from "./ink-seal";
 import { Journey, type Stop } from "./journey";
 import type { Badge } from "../../lib/server/badges";
@@ -74,13 +75,13 @@ const LANTERNS = [
   {
     key: "mentor",
     title: "Mentors juniors",
-    note: "Ask about a decision, a project, a first job.",
+    note: "Ask about a course, a project or a first job.",
     art: <path d="M24 42V24m0 0c-1-8-7-12-14-12 0 8 6 12 14 12Zm0-4c1-7 6-11 13-11 0 7-6 11-13 11ZM14 42h20" />
   },
   {
     key: "refer",
     title: "Refers people",
-    note: "Puts a good fit forward at their company.",
+    note: "Recommends good candidates at their company.",
     art: <path d="M12 42V8h20v34M12 42h26M32 8l8 4v26l-8 4M27 26h2M6 14l4 2M4 24h5M6 34l4-2" />
   },
   {
@@ -93,37 +94,45 @@ const LANTERNS = [
 
 /* A student's side: what they're looking for, drawn the same way. */
 const WISHES = [
-  { key: "mentor", title: "Looking for a mentor", note: "A senior to talk a decision through.", art: LANTERNS[0].art },
-  { key: "internship", title: "Looking for an internship", note: "Alumni who hire, or know where to look.", art: LANTERNS[1].art },
-  { key: "referral", title: "Looking for a referral", note: "When they apply where an alumnus works.", art: LANTERNS[2].art }
+  { key: "mentor", title: "Looking for a mentor", note: "A senior who can help with a decision.", art: LANTERNS[0].art },
+  { key: "internship", title: "Looking for an internship", note: "Alumni who hire, or who know about openings.", art: LANTERNS[1].art },
+  { key: "referral", title: "Looking for a referral", note: "For when they apply to a company where an alumnus works.", art: LANTERNS[2].art }
 ] as const;
 
 const STAFF = new Set(["faculty", "coordinator", "admin", "superadmin"]);
 
-const linkLabel = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
-
-export function ProfileSheet({ person, profile, isOwner, batchSize, actions, badges = [] }: { person: SheetPerson; profile: Profile; isOwner: boolean; batchSize?: number; actions?: ReactNode; badges?: Badge[] }) {
-  const years = person.programme === "B.Tech" ? 4 : 2;
-  const graduated = person.joined && person.role !== "student" ? person.joined + years : null;
-  const branch = person.branch ?? "HKBK";
-  const ring = `${branch} · ${person.joined ?? ""} · HKBK CE · ${branch} · ${person.joined ?? ""} ·`;
-  const now = [profile.title, profile.company && `at ${profile.company}`].filter(Boolean).join(" ");
-  const v = isOwner ? profile.visibility : undefined;
-
-  // The campus as it was when they joined (the latest era at or before that year); staff, who
-  // didn't join as students, get the campus as it is now.
+/**
+ * The campus on their cover until they add their own (the editor shows it too, to frame it):
+ * as it was when they joined (the latest era at or before that year); staff, who didn't
+ * join as students, get the campus as it is now.
+ */
+export function campusCover(person: { role: string; joined: number | null }): DefaultCover {
   const staff = STAFF.has(person.role) && !person.joined;
   const era = staff ? ERAS[ERAS.length - 1] : ([...ERAS].reverse().find((e) => person.joined && e.year <= person.joined) ?? ERAS[0]);
   // Today's campus stands in for 1998 and 2016: say so, and keep a batch's own line ("The
   // biggest batch") for that batch. A 2023 student was shown 2016's.
   const today = era.photo.source === "Today's campus";
-  const coverFallback = {
+  return {
     src: era.photo.photo,
     sketch: era.photo.sketch,
     year: era.year,
     title: today && person.joined !== era.year ? "The campus you know" : era.title,
     kicker: today ? "HKBK today" : undefined
   };
+}
+
+const linkLabel = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+
+/** `underTop`: something only the owner sees, just under the top of the page (their profile strength, on /me). */
+export function ProfileSheet({ person, profile, isOwner, batchSize, actions, badges = [], underTop }: { person: SheetPerson; profile: Profile; isOwner: boolean; batchSize?: number; actions?: ReactNode; badges?: Badge[]; underTop?: ReactNode }) {
+  const years = person.programme === "B.Tech" ? 4 : 2;
+  const graduated = person.joined && person.role !== "student" ? person.joined + years : null;
+  const branch = person.branch ?? "HKBK";
+  const ring = `${branch} · ${person.joined ?? ""} · HKBK CE · ${branch} · ${person.joined ?? ""} ·`;
+  const now = [profile.title, profile.company && `at ${profile.company}`].filter(Boolean).join(" ");
+  const v = isOwner ? profile.visibility : undefined;
+  const staff = STAFF.has(person.role) && !person.joined;
+  const coverFallback = campusCover(person);
 
   // The journey is optional: it appears once they've added a stop of their own.
   const stops: Stop[] = profile.journey.length
@@ -145,12 +154,12 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
     <article className="profile">
       {/* The top: their cover, their photo (or their seal) over its edge, then who they are. */}
       <header className="profile__top">
-        <Cover cover={profile.cover} fallback={coverFallback} name={person.name} seed={person.id} />
+        <Cover cover={profile.cover} fallback={coverFallback} name={person.name} seed={person.id} campusCrop={profile.campusCrop} />
         <div className="profile__intro">
           <div className="profile__avatar">
             {profile.photo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={mediaUrl(profile.photo.id, 200)} alt={person.name} />
+              <img src={mediaUrl(profile.photo.id, 200 * sharper(profile.photo.crop))} alt={person.name} style={cropStyle(profile.photo.crop)} />
             ) : (
               <InkSeal name={person.name} ring={ring} seed={person.id} size={148} />
             )}
@@ -162,7 +171,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
             ) : (
               isOwner && (
                 <p className="profile__prompt">
-                  {student ? "What are you up to: a project, a club, an internship? Add it when you edit your page." : "What are you doing now? Add it when you edit your page."}
+                  {student ? "What are you doing now? A project, a club, an internship? Add it when you edit your page." : "What are you doing now? Add it when you edit your page."}
                 </p>
               )
             )}
@@ -203,6 +212,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
           {actions && <div className="profile__actions">{actions}</div>}
         </div>
       </header>
+      {isOwner && underTop}
 
       <div className="profile__body">
         <div className="profile__main">
@@ -276,7 +286,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                       </svg>
                       <span>
                         <b>{l.key === "refer" && profile.company && on ? `Refers people at ${profile.company}` : l.title}</b>
-                        <span>{on ? l.note : "Not switched on. Edit your page to light it."}</span>
+                        <span>{on ? l.note : "Not switched on. Edit your page to turn it on."}</span>
                       </span>
                     </li>
                   );
@@ -300,8 +310,8 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                           {on
                             ? w.note
                             : w.key === "mentor"
-                              ? "Not switched on. Edit your page to light it, so seniors can find you."
-                              : "Not switched on. Light it when you edit your page: seniors can find you, and you hear when a job or internship goes on the HKBK board."}
+                              ? "Not switched on. Edit your page to turn it on, so seniors can find you."
+                              : "Not switched on. Turn it on when you edit your page. Then seniors can find you, and we tell you when a job or internship is posted on the HKBK board."}
                         </span>
                       </span>
                     </li>
@@ -311,7 +321,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
             </Card>
           )}
           {(profile.links.linkedin || profile.links.website || isOwner) && (
-            <Card title={isOwner ? "Find you" : "Find them"} who={v?.links}>
+            <Card title={isOwner ? "Your links" : "Links"} who={v?.links}>
               {profile.links.linkedin || profile.links.website ? (
                 <ul className="profile__links">
                   {profile.links.linkedin && (
@@ -330,7 +340,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                   )}
                 </ul>
               ) : (
-                <p className="profile__prompt">Your LinkedIn, or a website.</p>
+                <p className="profile__prompt">Add your LinkedIn or a website when you edit your page.</p>
               )}
             </Card>
           )}

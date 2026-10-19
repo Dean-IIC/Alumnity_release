@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { pieces } from "../../lib/mentions";
+import { tagHref } from "../../lib/feed-filters";
 import { tagPieces } from "../../lib/tags";
 
 /**
  * Post or comment text: plain text, with @mentions as links to the member (name as text,
- * id as a number only) and #tags as links to the HKBK board for that tag.
+ * id as a number only) and #tags as links to Home's feed, filtered to that tag.
  */
 export function RichText({ body }: { body: string }) {
   return (
@@ -15,7 +16,7 @@ export function RichText({ body }: { body: string }) {
             "text" in t ? (
               <span key={`${i}-${j}`}>{t.text}</span>
             ) : (
-              <Link key={`${i}-${j}`} className="hashtag" href={`/board?tag=${t.tag}`}>
+              <Link key={`${i}-${j}`} className="hashtag" href={tagHref(t.tag)}>
                 {t.shown}
               </Link>
             )

@@ -2,6 +2,7 @@ import { db } from "./db";
 import type { User } from "./auth";
 import { mediaById, removeMedia, type MediaKind } from "./media";
 import { SECTION_KINDS, SECTION_LIMITS, SECTIONS, type SectionEntry, type SectionKind } from "../profile-sections";
+import { cleanCrop, photoKey, type Crop } from "../photo-crop";
 
 /*
  * A member's page: what they're doing now, a few lines about them, what they're good at,
@@ -17,14 +18,19 @@ export type Visibility = "everyone" | "connections" | "batch" | "me";
 /** A stop on the way since HKBK: "2006 · Moved to Pune for my first job". */
 export type Milestone = { year: number; text: string };
 
-/** An upload in use on a page: its id (served at /media/<id>) and what it is. */
-export type MediaRef = { id: string; kind: MediaKind };
+/**
+ * An upload in use on a page: its id (served at /media/<id>), what it is, and how its owner
+ * framed it (lib/photo-crop.ts; absent: as it comes, centred). A new upload starts unframed.
+ */
+export type MediaRef = { id: string; kind: MediaKind; crop?: Crop };
 
 export type Profile = {
   /** Their own photo; without one, their ink seal. */
   photo: MediaRef | null;
   /** Their cover: an image, a video or an HTML file; without one, the campus of their year. */
   cover: MediaRef | null;
+  /** Without a cover of their own: where they've moved the campus drawing to (null: where it always sits). */
+  campusCrop: Crop | null;
   title: string;
   company: string;
   city: string;
@@ -47,6 +53,7 @@ export type Profile = {
 export const EMPTY_PROFILE: Profile = {
   photo: null,
   cover: null,
+  campusCrop: null,
   title: "",
   company: "",
   city: "",
@@ -111,7 +118,7 @@ function parseSections(input: unknown): { sections: Profile["sections"] } | { er
       let to = info.years === "range" && !current ? year(raw?.to) : null;
       if (from && to && to < from) to = from;
       const link = info.link ? cleanLink(raw?.link) : "";
-      if (link === null) return { error: `A link in ${info.label} doesn’t look right.` };
+      if (link === null) return { error: `A link in ${info.label} is not a valid web address. Check it and try again.` };
       const detail = info.detail ? (typeof raw?.detail === "string" ? raw.detail.trim().slice(0, SECTION_LIMITS.detail) : "") : "";
       entries.push({ title, org, from, to, current, link, detail });
     }
@@ -146,7 +153,9 @@ async function ownMedia(value: unknown, ownerId: number | undefined, imageOnly: 
   if (typeof id !== "string" || ownerId === undefined) return false;
   const media = await mediaById(id);
   if (!media || media.userId !== ownerId || (imageOnly && media.kind !== "image")) return false;
-  return { id: media.id, kind: media.kind };
+  // An HTML cover lays itself out to fit: there's nothing to frame.
+  const crop = media.kind === "html" ? undefined : cleanCrop((value as { crop?: unknown }).crop);
+  return crop ? { id: media.id, kind: media.kind, crop } : { id: media.id, kind: media.kind };
 }
 
 export async function parseProfile(input: Record<string, unknown>, ownerId?: number): Promise<{ profile: Profile } | { error: string }> {
@@ -165,9 +174,9 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
   const seek = (input.seeking ?? {}) as Record<string, unknown>;
   const links = (input.links ?? {}) as Record<string, unknown>;
   const linkedin = cleanLink(links.linkedin, true);
-  if (linkedin === null) return { error: "That LinkedIn link doesn’t look like a LinkedIn profile." };
+  if (linkedin === null) return { error: "Enter a LinkedIn profile link, such as linkedin.com/in/your-name." };
   const website = cleanLink(links.website);
-  if (website === null) return { error: "That website link doesn’t look right." };
+  if (website === null) return { error: "Your website link is not a valid web address. Check it and try again." };
   const parsed = parseSections(input.sections);
   if ("error" in parsed) return parsed;
   const sentWho = (input.sectionsVisibility ?? {}) as Record<string, unknown>;
@@ -175,7 +184,7 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
   for (const kind of SECTION_KINDS) if (isVisibility(sentWho[kind])) sectionsVisibility[kind] = sentWho[kind] as Visibility;
   const [photo, cover] = await Promise.all([ownMedia(input.photo, ownerId, true), ownMedia(input.cover, ownerId, false)]);
   const featured = await ownPost(input.featured, ownerId);
-  if (photo === false || cover === false) return { error: "That upload isn’t yours, or has gone. Upload it again." };
+  if (photo === false || cover === false) return { error: "We couldn't find that file. It may have been deleted. Please upload it again." };
   const about = typeof input.about === "string" ? input.about.trim().slice(0, LIMITS.about) : "";
   const thisYear = new Date().getFullYear();
   const journey = (Array.isArray(input.journey) ? input.journey : [])
@@ -187,6 +196,7 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
     profile: {
       photo,
       cover,
+      campusCrop: cleanCrop(input.campusCrop) ?? null,
       title: clean(input.title, LIMITS.title),
       company: clean(input.company, LIMITS.company),
       city: clean(input.city, LIMITS.city),
@@ -252,6 +262,7 @@ export function profileFor(
   return {
     photo: profile.photo,
     cover: profile.cover,
+    campusCrop: profile.campusCrop,
     title: show("now") ? profile.title : "",
     company: show("now") ? profile.company : "",
     city: show("now") ? profile.city : "",
@@ -272,13 +283,25 @@ export function profileFor(
   };
 }
 
-/** Members' profile photos (upload ids), for avatars in lists: one query for many people. */
+/**
+ * Members' profile photos, for avatars in lists: one query for many people. Each is a photo
+ * key (lib/photo-crop.ts): the upload id, with how they framed it when they have, so every
+ * face shows as they chose without asking again.
+ */
 export async function photoIdsOf(ids: number[]): Promise<Map<number, string>> {
   const unique = [...new Set(ids)].filter(Number.isSafeInteger).slice(0, 2000);
   if (!unique.length) return new Map();
-  const rows = await db().all<{ user_id: number; photo: string | null }>(
-    `select user_id, data::jsonb -> 'photo' ->> 'id' as photo from profiles where user_id in (${unique.map(() => "?").join(",")})`,
+  const rows = await db().all<{ user_id: number; photo: string | null; crop: string | null }>(
+    `select user_id, data::jsonb -> 'photo' ->> 'id' as photo, data::jsonb -> 'photo' ->> 'crop' as crop from profiles where user_id in (${unique.map(() => "?").join(",")})`,
     ...unique
   );
-  return new Map(rows.filter((r) => r.photo).map((r) => [r.user_id, r.photo!]));
+  return new Map(rows.filter((r) => r.photo).map((r) => [r.user_id, photoKey(r.photo!, r.crop ? cleanCrop(parseJson(r.crop)) : undefined)]));
 }
+
+const parseJson = (text: string): unknown => {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+};

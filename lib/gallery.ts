@@ -80,7 +80,7 @@ type Slug = keyof typeof manifest;
 
 const COPY: Record<Slug, AlbumCopy> = {
   "graduation-day-2025": {
-    title: "Graduation day",
+    title: "Graduation Day",
     date: "2025-09-30",
     when: "September 2025",
     description: "The class of 2025 on their graduation day.",
@@ -118,7 +118,7 @@ const COPY: Record<Slug, AlbumCopy> = {
     title: "Swachh Bharat",
     date: "2024-12-11",
     when: "11 December 2024",
-    description: "57 final-year AIML students cleaned up the grounds of the government school in Nagawara.",
+    description: "Fifty-seven final-year AIML students cleaned up the grounds of the government school in Nagawara.",
     parts: { all: { when: "11 December 2024", source: "portal", captions: ["AIML students clearing the school grounds"] } }
   },
   "job-drives": {
@@ -148,7 +148,7 @@ const COPY: Record<Slug, AlbumCopy> = {
           "The college’s welcome sign for the Indian Army",
           "In the college office",
           "Army officers in the college office",
-          "A full talk in the big tent",
+          "A packed talk in the big tent",
           "Students at the talk",
           "Students waiting their turn",
           "Waiting in the hall",
@@ -206,7 +206,7 @@ const COPY: Record<Slug, AlbumCopy> = {
     }
   },
   "sports-day": {
-    title: "Sports day",
+    title: "Sports Day",
     date: "",
     when: "Before 2014",
     description: "Games and races on the college ground.",

@@ -1,13 +1,14 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { Profile, Visibility } from "../../lib/server/profile";
 import { emptyEntry, SECTION_KINDS, SECTION_LIMITS, SECTIONS, type SectionEntry, type SectionKind } from "../../lib/profile-sections";
 
 const WHO: { value: Visibility; label: string }[] = [
   { value: "everyone", label: "Everyone" },
-  { value: "connections", label: "My connections" },
-  { value: "batch", label: "My batch" },
-  { value: "me", label: "Only me" }
+  { value: "connections", label: "Your connections" },
+  { value: "batch", label: "Your batch and connections" },
+  { value: "me", label: "Only you" }
 ];
 
 const THIS_YEAR = new Date().getFullYear();
@@ -63,7 +64,7 @@ function EntryFields({ kind, entry, index, onChange, onRemove }: { kind: Section
             <label className="editor__check section-entry__current">
               <input type="checkbox" checked={entry.current} onChange={(e) => set("current", e.target.checked)} />
               <span>
-                <b>Still here</b>
+                <b>Current (no end year)</b>
               </span>
             </label>
           )}
@@ -77,7 +78,7 @@ function EntryFields({ kind, entry, index, onChange, onRemove }: { kind: Section
       )}
       {info.detail && (
         <label className="field">
-          <span className="field__label">A few words (optional)</span>
+          <span className="field__label">Short description (optional)</span>
           <textarea value={entry.detail} rows={2} maxLength={SECTION_LIMITS.detail} onChange={(e) => set("detail", e.target.value)} />
         </label>
       )}
@@ -92,6 +93,11 @@ function EntryFields({ kind, entry, index, onChange, onRemove }: { kind: Section
 export function SectionsEditor({ profile, onChange }: { profile: Profile; onChange: (next: Pick<Profile, "sections" | "sectionsVisibility">) => void }) {
   const added = SECTION_KINDS.filter((k) => profile.sections[k]);
   const left = SECTION_KINDS.filter((k) => !profile.sections[k]);
+  // Arriving from profile strength's "Add your experience" (/me/edit#edit-sections): the menu is open.
+  const menu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (window.location.hash === "#edit-sections" && menu.current) menu.current.open = true;
+  }, []);
   const setList = (kind: SectionKind, list: SectionEntry[] | undefined) => {
     const sections = { ...profile.sections };
     if (list) sections[kind] = list;
@@ -148,7 +154,7 @@ export function SectionsEditor({ profile, onChange }: { profile: Profile; onChan
       })}
 
       {left.length > 0 && (
-        <details className="add-section">
+        <details className="add-section" id="edit-sections" ref={menu}>
           <summary className="button button--secondary">+ Add a section</summary>
           <ul className="add-section__menu">
             {left.map((kind) => (

@@ -83,7 +83,7 @@ export async function routeFor(author: User, title: string, topics: string[]): P
     if (shared.length) reasons.push(`knows ${shared.slice(0, 3).join(", ")}`);
     if (user.branch && user.branch === author.branch) {
       score += 2;
-      reasons.push(`also ${user.branch}`);
+      reasons.push(`same branch (${user.branch})`);
     }
     if (circle.has(id)) {
       score += 1;
@@ -103,9 +103,9 @@ export async function createAsk(me: User, input: { title: string; body: string; 
   const title = input.title.trim().slice(0, ASK_LIMITS.title);
   const body = input.body.trim().slice(0, ASK_LIMITS.body);
   const topics = [...new Set(input.topics.split(",").map((t) => t.trim().slice(0, ASK_LIMITS.topic)).filter(Boolean))].slice(0, ASK_LIMITS.topics);
-  if (!title) return no("Say what you'd like to ask, in a line.");
-  if (!body) return no("Add a few lines: what you've tried, what you're stuck on.");
-  if (!(await withinLimit(`ask:${me.id}`, 5, DAY))) return no("That's five Asks today: the most in a day. Try again tomorrow.");
+  if (!title) return no("Write your question in one line.");
+  if (!body) return no("Add a few more details: what you have tried and where you are stuck.");
+  if (!(await withinLimit(`ask:${me.id}`, 5, DAY))) return no("You can ask up to five questions a day. Please try again tomorrow.");
   const routes = await routeFor(me, title, topics);
   const id = await db().tx(async (t) => {
     const row = await t.one<{ id: number }>(
@@ -119,7 +119,7 @@ export async function createAsk(me: User, input: { title: string; body: string; 
     for (const { user, reason } of routes) await t.run("insert into ask_routes (ask_id, user_id, reason) values (?, ?, ?) on conflict do nothing", row!.id, user.id, reason);
     return row!.id;
   });
-  for (const { user } of routes) await notify(user.id, { actor: me.id, kind: "ask", text: `${me.name} has a question that fits you: “${title}”`, link: `/ask/${id}` });
+  for (const { user } of routes) await notify(user.id, { actor: me.id, kind: "ask", text: `${me.name} asked a question you may be able to answer: “${title}”`, link: `/ask/${id}` });
   return { ok: true, id };
 }
 
@@ -245,12 +245,12 @@ export async function asksFor(viewer: User): Promise<{ mine: Ask[]; forMe: Ask[]
 
 export async function takeAsk(me: User, id: number): Promise<Result> {
   const row = await rowById(id);
-  if (!row || !(await mayView(me, row))) return no("That Ask isn't here.");
-  if (!isSenior(me)) return no("Asks are taken on by alumni and faculty.");
-  if (row.author === me.id) return no("You can't take your own Ask.");
+  if (!row || !(await mayView(me, row))) return no("We couldn't find that question.");
+  if (!isSenior(me)) return no("Only alumni and faculty can answer questions.");
+  if (row.author === me.id) return no("You can't answer your own question.");
   const changes = await db().run("update asks set status = 'taken', taker = ?, taken_at = ? where id = ? and status = 'open'", me.id, Date.now(), id);
-  if (!changes) return no("Someone has just taken this one on.");
-  await notify(row.author, { actor: me.id, kind: "ask-taken", text: `${me.name} took on your question “${row.title}”.`, link: `/ask/${id}` });
+  if (!changes) return no("Another senior has just taken this question.");
+  await notify(row.author, { actor: me.id, kind: "ask-taken", text: `${me.name} will help with your question “${row.title}”.`, link: `/ask/${id}` });
   return { ok: true };
 }
 
@@ -272,12 +272,12 @@ export async function askThread(viewer: User, id: number): Promise<AskMessage[]>
 
 export async function replyToAsk(me: User, id: number, body: string): Promise<Result> {
   const row = await rowById(id);
-  if (!row || (row.author !== me.id && row.taker !== me.id)) return no("Only the asker and the senior who took it on can write here.");
-  if (row.status !== "taken" && row.status !== "answered") return no("This Ask isn't open for replies.");
+  if (!row || (row.author !== me.id && row.taker !== me.id)) return no("Only the person who asked and the senior helping them can write here.");
+  if (row.status !== "taken" && row.status !== "answered") return no("This question is closed to replies.");
   if (await pairBlocked(row)) return no("This conversation is closed.");
   const text = body.trim().slice(0, ASK_LIMITS.reply);
   if (!text) return no("Write something first.");
-  if (!(await withinLimit(`ask-reply:${me.id}`, 120, 60 * 60_000))) return no("That's a lot of replies in an hour. Take a breather and try again.");
+  if (!(await withinLimit(`ask-reply:${me.id}`, 120, 60 * 60_000))) return no("You have sent many replies in the last hour. Please wait a while and try again.");
   await db().run("insert into ask_messages (ask_id, author, body, created_at) values (?, ?, ?, ?)", id, me.id, text, Date.now());
   const other = me.id === row.author ? row.taker : row.author;
   if (other) await notify(other, { actor: me.id, kind: "ask-reply", text: `${me.name} replied on “${row.title}”.`, link: `/ask/${id}` });
@@ -287,8 +287,8 @@ export async function replyToAsk(me: User, id: number, body: string): Promise<Re
 /** The asker marks it answered, with a line of thanks that goes on the senior's Record. */
 export async function markAnswered(me: User, id: number, thanks: string): Promise<Result> {
   const row = await rowById(id);
-  if (!row || row.author !== me.id) return no("Only the asker can mark it answered.");
-  if (row.status !== "taken" || !row.taker) return no("A senior has to take it on first.");
+  if (!row || row.author !== me.id) return no("Only the person who asked can mark it as answered.");
+  if (row.status !== "taken" || !row.taker) return no("A senior must take this question first.");
   const note = thanks.trim().slice(0, 300) || null;
   await db().run("update asks set status = 'answered', thanks = ?, answered_at = ? where id = ?", note, Date.now(), id);
   await notify(row.taker, {

@@ -1,7 +1,8 @@
 /*
  * #tags in posts. A post is a post: what makes one a job, an internship or a notice is the
  * tag its writer gave it (#job, #internship…), typed or picked in the composer. Shared by
- * the server (which files the tags) and the pages (which turn them into links to the board).
+ * the server (which files the tags) and the pages (which turn them into links to Home's
+ * feed, filtered to that tag).
  */
 
 /** A tag: # then a letter, then letters, digits or hyphens (2 to 30 in all). Not inside a word or an address. */

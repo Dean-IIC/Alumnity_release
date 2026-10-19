@@ -47,13 +47,13 @@ export function SettingsPanel({ email }: { email: string }) {
     <div className="settings">
       <Section title="Your email">
         <p className="settings__value">{email}</p>
-        <p className="join__fine">Only you see it. You log in with it, and your codes go to it.</p>
+        <p className="join__fine">Only you can see this. You use it to log in, and we send your login codes to it.</p>
       </Section>
 
       <Section title="Light or dark">
         <ThemeChoicePicker />
       </Section>
-      <Section title="Alerts">
+      <Section title="Notifications">
         <AlertsPanel />
       </Section>
 
@@ -68,7 +68,7 @@ export function SettingsPanel({ email }: { email: string }) {
               const answer = await post("/api/auth/password", { current: data.get("current"), password: data.get("password") });
               if (!answer.ok) return { ok: false, text: answer.error };
               form.reset();
-              return { ok: true, text: "Your password is changed. Anywhere else you were logged in, you’ve been logged out." };
+              return { ok: true, text: "Your password has been changed. We have logged you out on all your other devices." };
             });
           }}
         >
@@ -85,7 +85,7 @@ export function SettingsPanel({ email }: { email: string }) {
       </Section>
 
       <Section title="Where you’re logged in">
-        <p className="join__fine">Lost a phone, or logged in on a shared computer? Log out everywhere except here.</p>
+        <p className="join__fine">Lost your phone, or logged in on a shared computer? Log out of all your other devices.</p>
         {sessions.note}
         <button
           type="button"
@@ -95,17 +95,17 @@ export function SettingsPanel({ email }: { email: string }) {
             sessions.run(async () => {
               const answer = await post<{ ended: number }>("/api/auth/sessions", {});
               if (!answer.ok) return { ok: false, text: answer.error };
-              return { ok: true, text: answer.ended ? `Logged out of ${answer.ended} other ${answer.ended === 1 ? "place" : "places"}.` : "You weren’t logged in anywhere else." };
+              return { ok: true, text: answer.ended ? `Logged out of ${answer.ended} other ${answer.ended === 1 ? "device" : "devices"}.` : "You were not logged in on any other device." };
             })
           }
         >
-          Log out everywhere else
+          Log out of other devices
         </button>
       </Section>
 
       <Section title="Delete your account">
         <p className="join__fine">
-          This deletes your account and your page from Alumnity for good. Your name stays in the college register, so you can join again later if you want.
+          This permanently deletes your account and your page from Alumnity. Your name stays in the college register, so you can join again later if you want.
         </p>
         <form
           method="post"

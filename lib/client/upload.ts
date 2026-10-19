@@ -5,7 +5,7 @@
 
 export type Uploaded = { ok: true; id: string; kind: "image" | "video" | "html" } | { ok: false; error: string };
 
-const OFFLINE = "The upload didn’t get through. Check your connection and try again.";
+const OFFLINE = "Your file did not upload. Check your internet connection and try again.";
 
 const call = (body: object) =>
   fetch("/api/media", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());

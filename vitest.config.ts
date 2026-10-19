@@ -8,6 +8,8 @@ export default defineConfig({
     // Each file starts its own Postgres (PGlite) on first use: a few seconds, longer when
     // files run side by side, so the first test in a file gets room for that.
     testTimeout: 30_000,
-    hookTimeout: 30_000
+    hookTimeout: 30_000,
+    // Agents' worktrees hold copies of the tests; only this checkout's run.
+    exclude: ["**/node_modules/**", "**/.claude/**", "**/.next*/**"]
   }
 });

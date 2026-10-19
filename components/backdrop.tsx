@@ -2,6 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { memo, type ReactNode } from "react";
+import "../app/styles/member-navy.css";
+import { Scene, type SceneName } from "./scene";
 
 /*
  * Each part of the site has its own background: a drawn motif in one of the college's
@@ -49,10 +51,10 @@ const ROUTES: [prefix: string, motif: Motif, tone: Tone][] = [
   ["/admin", "blueprint", "blue"]
 ];
 
-function pick(path: string): [Motif, Tone] | null {
+function pick(path: string): [Motif, Tone, inside: boolean] | null {
   if (path === "/") return null; // the landing has its own hero
-  for (const [prefix, motif, tone] of ROUTES) if (path === prefix || path.startsWith(`${prefix}/`)) return [motif, tone];
-  return ["blueprint", "blue"];
+  for (const [prefix, motif, tone] of ROUTES) if (path === prefix || path.startsWith(`${prefix}/`)) return [motif, tone, true];
+  return ["blueprint", "blue", false];
 }
 
 /** A small seeded random: the same drawing on every visit. */
@@ -65,121 +67,121 @@ function seeded(seed: number) {
 }
 
 const W = 1440;
-const H = 520;
+const H = 900;
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
+/** Drawn over the whole screen: strongest in the margins (CSS fades it under the page's column). */
 function draw(motif: Motif): ReactNode {
   const rand = seeded(motif.length * 7919 + motif.charCodeAt(0));
   switch (motif) {
     case "dots": {
       const out: ReactNode[] = [];
-      for (let y = 24; y < H; y += 28)
-        for (let x = 24; x < W; x += 28) {
-          const d = Math.hypot(x - W * 0.82, y - 60) / 700;
-          if (d > 1) continue;
-          const accent = rand() < 0.035;
-          out.push(<circle key={`${x}-${y}`} cx={x} cy={y} r={accent ? 3.2 : r1(2.2 - d * 1.4)} className={accent ? "bd-accent" : "bd-ink"} opacity={accent ? 0.9 : r1(0.55 - d * 0.45)} />);
+      for (let y = 20; y < H; y += 30)
+        for (let x = 20; x < W; x += 30) {
+          const accent = rand() < 0.03;
+          out.push(<circle key={`${x}-${y}`} cx={x} cy={y} r={accent ? 3.4 : 1.9} className={accent ? "bd-accent" : "bd-ink"} opacity={accent ? 0.9 : 0.42} />);
         }
       return out;
     }
     case "constellation": {
-      const pts = Array.from({ length: 34 }, () => [r1(W * 0.45 + rand() * W * 0.55), r1(rand() * H * 0.9)] as const);
+      const pts = Array.from({ length: 70 }, () => [r1(rand() * W), r1(rand() * H)] as const);
       const lines: ReactNode[] = [];
       pts.forEach(([x, y], i) =>
         pts.slice(i + 1).forEach(([x2, y2], j) => {
-          if (Math.hypot(x - x2, y - y2) < 170) lines.push(<line key={`${i}-${j}`} x1={x} y1={y} x2={x2} y2={y2} className="bd-line" />);
+          if (Math.hypot(x - x2, y - y2) < 150) lines.push(<line key={`${i}-${j}`} x1={x} y1={y} x2={x2} y2={y2} className="bd-line" />);
         })
       );
-      return [
-        ...lines,
-        ...pts.map(([x, y], i) => <circle key={`p${i}`} cx={x} cy={y} r={i % 7 === 0 ? 6 : 3.5} className={i % 7 === 0 ? "bd-accent" : "bd-ink"} />)
-      ];
+      return [...lines, ...pts.map(([x, y], i) => <circle key={`p${i}`} cx={x} cy={y} r={i % 7 === 0 ? 6 : 3.5} className={i % 7 === 0 ? "bd-accent" : "bd-ink"} />)];
     }
     case "rings":
-      return Array.from({ length: 26 }, (_, i) => (
-        <circle key={i} cx={W * 0.9} cy={-40} r={60 + i * 22 + (i % 3) * 4} className={i % 5 === 4 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 5 === 4 ? 2.2 : 1.1} />
-      ));
+      return [
+        ...Array.from({ length: 22 }, (_, i) => <circle key={`a${i}`} cx={W + 20} cy={-20} r={60 + i * 26} className={i % 5 === 4 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 5 === 4 ? 2.2 : 1.1} />),
+        ...Array.from({ length: 16 }, (_, i) => <circle key={`b${i}`} cx={-30} cy={H + 30} r={60 + i * 26} className={i % 5 === 2 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 5 === 2 ? 2.2 : 1.1} />)
+      ];
     case "circles":
-      return Array.from({ length: 9 }, (_, i) => {
-        const r = 70 + rand() * 120;
-        return <circle key={i} cx={r1(W * 0.5 + rand() * W * 0.5)} cy={r1(rand() * H * 0.7)} r={r1(r)} className={i % 3 === 0 ? "bd-fill" : "bd-line"} strokeWidth={1.4} />;
+      return Array.from({ length: 16 }, (_, i) => {
+        const r = 60 + rand() * 120;
+        return <circle key={i} cx={r1(rand() * W)} cy={r1(rand() * H)} r={r1(r)} className={i % 3 === 0 ? "bd-fill" : "bd-line"} strokeWidth={1.4} />;
       });
     case "currents":
-      return Array.from({ length: 14 }, (_, i) => {
-        const y = 30 + i * 30;
-        const a = 18 + (i % 4) * 6;
-        return <path key={i} d={`M ${W * 0.3} ${y} C ${W * 0.5} ${y - a}, ${W * 0.62} ${y + a * 2}, ${W * 0.8} ${y + a} S ${W * 1.02} ${y - a}, ${W + 20} ${y}`} className={i === 4 || i === 9 ? "bd-accent-line" : "bd-line"} strokeWidth={i === 4 || i === 9 ? 2 : 1.2} />;
+      return Array.from({ length: 26 }, (_, i) => {
+        const y = 20 + i * 34;
+        const a = 18 + (i % 4) * 7;
+        return <path key={i} d={`M -20 ${y} C ${W * 0.2} ${y - a}, ${W * 0.35} ${y + a * 2}, ${W * 0.5} ${y + a} S ${W * 0.8} ${y - a}, ${W + 20} ${y}`} className={i % 7 === 3 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 7 === 3 ? 2 : 1.1} />;
       });
     case "signal":
       return [
-        ...Array.from({ length: 12 }, (_, i) => <circle key={i} cx={W * 0.86} cy={90} r={30 + i * 34} className={i % 4 === 1 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 4 === 1 ? 2.4 : 1.2} strokeDasharray={i % 2 ? "2 9" : undefined} />),
-        <circle key="c" cx={W * 0.86} cy={90} r={9} className="bd-accent" />
+        ...Array.from({ length: 14 }, (_, i) => <circle key={`a${i}`} cx={W - 60} cy={80} r={30 + i * 40} className={i % 4 === 1 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 4 === 1 ? 2.4 : 1.2} strokeDasharray={i % 2 ? "2 9" : undefined} />),
+        ...Array.from({ length: 9 }, (_, i) => <circle key={`b${i}`} cx={60} cy={H - 60} r={30 + i * 40} className={i % 4 === 2 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 4 === 2 ? 2.4 : 1.2} />),
+        <circle key="c" cx={W - 60} cy={80} r={9} className="bd-accent" />
       ];
     case "calendar": {
       const out: ReactNode[] = [];
-      for (let row = 0; row < 7; row++)
-        for (let col = 0; col < 22; col++) {
-          const x = W * 0.42 + col * 36;
-          const y = 26 + row * 36;
-          if (x > W - 10) continue;
+      for (let y = 18; y < H; y += 46)
+        for (let x = 18; x < W; x += 46) {
           const v = rand();
-          out.push(<rect key={`${row}-${col}`} x={x} y={y} width={26} height={26} rx={6} className={v < 0.1 ? "bd-accent" : v < 0.38 ? "bd-fill-strong" : "bd-line"} strokeWidth={1} />);
+          out.push(<rect key={`${x}-${y}`} x={x} y={y} width={30} height={30} rx={7} className={v < 0.07 ? "bd-accent" : v < 0.3 ? "bd-fill-strong" : "bd-line"} strokeWidth={1} />);
         }
       return out;
     }
     case "rising": {
-      const bars = Array.from({ length: 24 }, (_, i) => {
-        const h = 40 + i * 9 + rand() * 60;
-        return <rect key={i} x={W * 0.4 + i * 36} y={H - 70 - h} width={22} height={h} rx={4} className={i % 6 === 5 ? "bd-accent" : "bd-fill-strong"} />;
+      const n = 36;
+      const step = W / n;
+      const bars = Array.from({ length: n }, (_, i) => {
+        const h = 60 + i * 12 + rand() * 90;
+        return <rect key={i} x={r1(i * step + 6)} y={r1(H - h)} width={r1(step - 14)} height={r1(h)} rx={4} className={i % 7 === 6 ? "bd-accent" : "bd-fill-strong"} />;
       });
-      const line = Array.from({ length: 24 }, (_, i) => `${W * 0.4 + i * 36 + 11},${r1(H - 140 - i * 11 - Math.sin(i / 2) * 22)}`).join(" ");
+      const line = Array.from({ length: n }, (_, i) => `${r1(i * step + step / 2)},${r1(H - 160 - i * 14 - Math.sin(i / 2) * 26)}`).join(" ");
       return [...bars, <polyline key="l" points={line} className="bd-accent-line" strokeWidth={2.4} />];
     }
-    case "rays":
+    case "rays": {
+      const fan = (cx: number, cy: number, from: number, span: number, key: string) =>
+        Array.from({ length: 26 }, (_, i) => {
+          const a = from + (i / 25) * span;
+          const len = 420 + (i % 3) * 160;
+          return <line key={`${key}${i}`} x1={cx} y1={cy} x2={r1(cx + Math.cos(a) * len)} y2={r1(cy + Math.sin(a) * len)} className={i % 5 === 2 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 5 === 2 ? 2 : 1.1} />;
+        });
       return [
-        ...Array.from({ length: 28 }, (_, i) => {
-          const a = Math.PI * 0.52 + (i / 27) * Math.PI * 0.6;
-          const len = 300 + (i % 3) * 110;
-          return <line key={i} x1={W * 0.86} y1={-10} x2={r1(W * 0.86 + Math.cos(a) * len)} y2={r1(-10 + Math.sin(a) * len)} className={i % 5 === 2 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 5 === 2 ? 2 : 1.1} />;
-        }),
-        ...Array.from({ length: 18 }, (_, i) => <circle key={`d${i}`} cx={r1(W * 0.55 + rand() * W * 0.42)} cy={r1(rand() * H * 0.8)} r={2.6} className="bd-ink" />)
+        ...fan(W - 20, -10, Math.PI * 0.5, Math.PI * 0.5, "a"),
+        ...fan(20, H + 10, -Math.PI * 0.5, Math.PI * 0.5, "b"),
+        ...Array.from({ length: 30 }, (_, i) => <circle key={`d${i}`} cx={r1(rand() * W)} cy={r1(rand() * H)} r={2.6} className="bd-ink" />)
       ];
-    case "contours":
-      return Array.from({ length: 13 }, (_, i) => {
-        const cx = W * 0.8;
-        const cy = 120;
-        const rx = 60 + i * 42;
-        const ry = 34 + i * 26;
-        const wob = (k: number) => r1((rand() - 0.5) * 18 * (1 + k / 6));
-        return (
-          <path
-            key={i}
-            d={`M ${cx - rx} ${cy} C ${cx - rx + wob(i)} ${cy - ry}, ${cx + rx + wob(i)} ${cy - ry + wob(i)}, ${cx + rx} ${cy} S ${cx - rx + wob(i)} ${cy + ry + wob(i)}, ${cx - rx} ${cy} Z`}
-            className={i % 4 === 3 ? "bd-accent-line" : "bd-line"}
-            strokeWidth={i % 4 === 3 ? 2 : 1.1}
-          />
-        );
-      });
+    }
+    case "contours": {
+      const ring = (cx: number, cy: number, n: number, key: string) =>
+        Array.from({ length: n }, (_, i) => {
+          const rx = 60 + i * 44;
+          const ry = 34 + i * 28;
+          const wob = () => r1((rand() - 0.5) * 22);
+          return <path key={`${key}${i}`} d={`M ${cx - rx} ${cy} C ${cx - rx + wob()} ${cy - ry}, ${cx + rx + wob()} ${cy - ry + wob()}, ${cx + rx} ${cy} S ${cx - rx + wob()} ${cy + ry + wob()}, ${cx - rx} ${cy} Z`} className={i % 4 === 3 ? "bd-accent-line" : "bd-line"} strokeWidth={i % 4 === 3 ? 2 : 1.1} />;
+        });
+      return [...ring(W * 0.85, 140, 13, "a"), ...ring(W * 0.12, H - 120, 10, "b")];
+    }
     case "frames":
-      return Array.from({ length: 11 }, (_, i) => {
-        const w = 110 + rand() * 90;
+      return Array.from({ length: 22 }, (_, i) => {
+        const w = 100 + rand() * 90;
         const h = w * (0.66 + rand() * 0.2);
-        const x = r1(W * 0.42 + rand() * W * 0.5);
-        const y = r1(rand() * H * 0.6);
+        const x = r1(rand() * (W - 100));
+        const y = r1(rand() * (H - 80));
         return <rect key={i} x={x} y={y} width={r1(w)} height={r1(h)} rx={8} transform={`rotate(${r1((rand() - 0.5) * 16)} ${x + w / 2} ${y + h / 2})`} className={i % 4 === 0 ? "bd-fill-strong" : "bd-line"} strokeWidth={1.4} />;
       });
-    case "petals":
-      return Array.from({ length: 16 }, (_, i) => (
-        <ellipse key={i} cx={W * 0.84} cy={90} rx={36} ry={150} transform={`rotate(${i * 22.5} ${W * 0.84} 90) translate(0 -110)`} className={i % 4 === 0 ? "bd-fill-strong" : "bd-line"} strokeWidth={1.2} />
-      ));
+    case "petals": {
+      const flower = (cx: number, cy: number, key: string) =>
+        Array.from({ length: 16 }, (_, i) => (
+          <ellipse key={`${key}${i}`} cx={cx} cy={cy} rx={36} ry={150} transform={`rotate(${i * 22.5} ${cx} ${cy}) translate(0 -110)`} className={i % 4 === 0 ? "bd-fill-strong" : "bd-line"} strokeWidth={1.2} />
+        ));
+      return [...flower(W - 120, 120, "a"), ...flower(140, H - 120, "b")];
+    }
     case "blueprint": {
       const out: ReactNode[] = [];
-      for (let x = W * 0.4; x < W; x += 48) out.push(<line key={`v${x}`} x1={x} y1={0} x2={x} y2={H} className="bd-grid" />);
-      for (let y = 0; y < H; y += 48) out.push(<line key={`h${y}`} x1={W * 0.4} y1={y} x2={W} y2={y} className="bd-grid" />);
-      out.push(<circle key="a" cx={W * 0.8} cy={140} r={150} className="bd-line" strokeWidth={1.4} />);
-      out.push(<circle key="b" cx={W * 0.8} cy={140} r={96} className="bd-accent-line" strokeWidth={1.8} strokeDasharray="4 8" />);
-      out.push(<line key="c" x1={W * 0.8 - 210} y1={140} x2={W * 0.8 + 210} y2={140} className="bd-line" />);
-      out.push(<line key="d" x1={W * 0.8} y1={-70} x2={W * 0.8} y2={350} className="bd-line" />);
+      for (let x = 0; x < W; x += 48) out.push(<line key={`v${x}`} x1={x} y1={0} x2={x} y2={H} className="bd-grid" />);
+      for (let y = 0; y < H; y += 48) out.push(<line key={`h${y}`} x1={0} y1={y} x2={W} y2={y} className="bd-grid" />);
+      for (const [cx, cy, k] of [[W - 200, 160, "a"], [200, H - 160, "b"]] as const) {
+        out.push(<circle key={`${k}1`} cx={cx} cy={cy} r={150} className="bd-line" strokeWidth={1.4} />);
+        out.push(<circle key={`${k}2`} cx={cx} cy={cy} r={96} className="bd-accent-line" strokeWidth={1.8} strokeDasharray="4 8" />);
+        out.push(<line key={`${k}3`} x1={cx - 210} y1={cy} x2={cx + 210} y2={cy} className="bd-line" />);
+        out.push(<line key={`${k}4`} x1={cx} y1={cy - 210} x2={cx} y2={cy + 210} className="bd-line" />);
+      }
       return out;
     }
   }
@@ -187,17 +189,48 @@ function draw(motif: Motif): ReactNode {
 
 const Drawing = memo(function Drawing({ motif }: { motif: Motif }) {
   return (
-    <svg className="backdrop__art" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMaxYMin slice" aria-hidden="true" focusable="false">
+    <svg className="backdrop__art" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
       {draw(motif)}
     </svg>
   );
 });
 
 /** The current page's background: the motif and its colour, chosen by where we are. */
+/** Each part of the signed-in site's picture (components/scene.tsx). */
+const SCENE_FOR: [prefix: string, scene: SceneName][] = [
+  ["/home", "home"],
+  ["/notes", "home"],
+  ["/people", "people"],
+  ["/connections", "connections"],
+  ["/batch", "batch"],
+  ["/groups", "groups"],
+  ["/messages", "messages"],
+  ["/notifications", "notifications"],
+  ["/events", "events"],
+  ["/board", "board"],
+  ["/openings", "board"],
+  ["/ask", "ask"],
+  ["/me", "profile"],
+  ["/gallery", "gallery"],
+  ["/causes", "causes"]
+];
+
+const sceneFor = (path: string): SceneName => SCENE_FOR.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`))?.[1] ?? "steady";
+
+/** The current page's background: the motif and its colour, chosen by where we are. */
 export function Backdrop() {
-  const chosen = pick(usePathname() ?? "/");
+  const path = usePathname() ?? "/";
+  const chosen = pick(path);
   if (!chosen) return null;
-  const [motif, tone] = chosen;
+  const [motif, tone, inside] = chosen;
+  // Inside the site, each page stands on its own flat blue picture of waves, spheres and
+  // pills (components/scene.tsx), so signing in doesn't feel like another site.
+  if (inside)
+    return (
+      <div className="backdrop backdrop--navy" aria-hidden="true">
+        <Scene name={sceneFor(path)} />
+      </div>
+    );
   return (
     <div className={`backdrop backdrop--${tone}`} data-motif={motif} aria-hidden="true">
       <Drawing motif={motif} />

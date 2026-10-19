@@ -4,6 +4,7 @@ import { SiteFooter } from "../../components/site-footer";
 import { SoonNotice } from "../../components/coming-soon";
 import { ForgotForm } from "../../components/join/forgot-form";
 import "../styles/join.css";
+import "../styles/join-scan.css";
 
 export const metadata: Metadata = { title: "Reset your password · Alumnity" };
 
@@ -17,7 +18,7 @@ export default function ForgotPage() {
           <h1 className="page-title">
             It happens to <span className="page-title__gold">everyone.</span>
           </h1>
-          <p className="page-head__text">We’ll email you a code, and you choose a new password.</p>
+          <p className="page-head__text">We’ll email you a code. Then you can choose a new password.</p>
         </header>
         <ForgotForm />
       </main>

@@ -1,0 +1,233 @@
+/*
+ * Inside the site: the top bar stays white (with its gold rule); the page under it is a flat
+ * blue picture of layered waves in many blues, with big soft yellow spheres and pills, each
+ * page its own (components/scene.tsx). Cards are white on it, as the landing's cards sit on
+ * its navy, so signing in no longer feels like another site.
+ *
+ * Words straight on the blue (a page's title, its line under it, a section's heading) turn
+ * white; everything inside a card, a field or a pill keeps the paper's colours. Dark mode
+ * is already dark: it keeps its own look.
+ */
+
+/* ---------- The page: the picture ---------- */
+
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) {
+  background: #2a6ad3;
+}
+
+:root:not([data-theme="dark"]) .backdrop.backdrop--navy {
+  background: #2a6ad3;
+}
+
+.scene,
+.scene__version {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* The page's quiet pattern, tiled over the blue behind everything else. */
+.scene__pattern {
+  position: absolute;
+  inset: 0;
+  background-image: var(--pattern);
+  background-size: 300px 300px;
+}
+
+@media (max-width: 700px) {
+  .scene__pattern {
+    background-size: 230px 230px;
+  }
+}
+
+/* Each picture is drawn three times, for a computer, a tablet and a phone: only the one
+   made for this screen is shown, so nothing is stretched or awkwardly cropped. */
+.scene__version--tablet,
+.scene__version--phone {
+  display: none;
+}
+
+@media (min-width: 701px) and (max-width: 1100px) {
+  .scene__version--computer {
+    display: none;
+  }
+
+  .scene__version--tablet {
+    display: block;
+  }
+}
+
+.scene svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* A wave a little wider than the screen, so it can drift without showing an edge (the
+   drawings stay true to the screen, where they were placed). */
+.scene .scene__wave {
+  left: -6%;
+  width: 112%;
+}
+
+/* A soft shadow under each wave's edge, so the layers sit one over another. */
+.scene__wave--bottom {
+  filter: drop-shadow(0 -10px 18px rgba(10, 40, 100, 0.28));
+}
+
+.scene__wave--top {
+  filter: drop-shadow(0 10px 18px rgba(10, 40, 100, 0.28));
+}
+
+.scene__shapes {
+  filter: drop-shadow(0 14px 24px rgba(10, 40, 100, 0.3));
+}
+
+/* The waves come and go, slowly, each at its own pace. */
+@media (prefers-reduced-motion: no-preference) {
+  .scene__wave {
+    animation: scene-drift var(--drift, 28s) ease-in-out var(--delay, 0s) infinite alternate;
+    will-change: transform;
+  }
+
+  .scene__shapes--front {
+    animation: scene-float 22s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+}
+
+@keyframes scene-drift {
+  from {
+    transform: translateX(calc(var(--reach, 60px) * -1));
+  }
+
+  to {
+    transform: translateX(var(--reach, 60px));
+  }
+}
+
+@keyframes scene-float {
+  from {
+    transform: translateY(-8px);
+  }
+
+  to {
+    transform: translateY(8px);
+  }
+}
+
+/* A phone: the picture wider, and still. The cards cover most of it, and a phone's
+   graphics are better spent on scrolling smoothly than on drifting waves behind them. */
+@media (max-width: 700px) {
+  .scene__version--computer {
+    display: none;
+  }
+
+  .scene__version--phone {
+    display: block;
+  }
+
+  .scene .scene__wave {
+    left: 0;
+    width: 100%;
+  }
+
+  /* On a phone the page's words run the full width, over the drawing: it stays a soft
+     texture behind them rather than competing. */
+  .scene__version--phone .scene__shapes {
+    opacity: 0.7;
+  }
+
+  .scene__wave,
+  .scene__shapes--front {
+    animation: none;
+    will-change: auto;
+  }
+}
+
+/*
+ * Words straight on the navy: white. Everything else keeps the paper's colours, because it
+ * sits on something white: a card, a field, a pill. Forms, lists and quiet notes that used
+ * to sit on the bare page get a white surface of their own instead (below), so nothing dark
+ * is ever left on the navy.
+ */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(h1, h2, .wf-head p, p.wf-muted, .page-head__text, .people-section__note, .h-count, .more-heading span):not(:is(.sheet, .pcard, .wf-card, .wf-fold, .wf-empty, .wf-list, .wf-members, .wf-tabs, .wf-search, .register-pages, .people-empty, .people-register-note, .profile__intro, .settings__section, .editor__part, .person-card, .request-card, .event-card, .album-card, .side-box, .dm-pane, .dm-list, .acard-promo, .board__tags, .feed-tabs, .strength, .people-requests, .know-everyone, form, dialog) *) {
+  color: #ffffff;
+  /* Crisp over every blue in the picture, the lighter waves too. */
+  text-shadow: 0 1px 3px rgba(8, 34, 84, 0.45);
+}
+
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-head p, p.wf-muted, .page-head__text, .people-section__note):not(:is(.sheet, .pcard, .wf-card, .wf-fold, .wf-empty, .wf-list, .wf-members, .wf-tabs, .wf-search, .register-pages, .people-empty, .people-register-note, .profile__intro, .settings__section, .editor__part, .person-card, .request-card, .event-card, .album-card, .side-box, .dm-pane, .dm-list, .acard-promo, .board__tags, .feed-tabs, .strength, .people-requests, .know-everyone, form, dialog) *) {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* A search or filter form straight on the page: on white too. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main > form,
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main > section > form {
+  padding: var(--space-4);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--color-ink);
+  box-shadow: 0 10px 28px rgba(4, 18, 43, 0.2);
+}
+
+/* The line either side of "More from HKBK", in gold on the navy. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main .more-heading::before,
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main .more-heading::after {
+  background: rgba(255, 180, 0, 0.55);
+}
+
+/* A page's title: white, with the landing's gold-and-red rule under it. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) .wf-head h1::after {
+  background: linear-gradient(to right, var(--color-gold) 0 70%, #ff4d55 70% 100%);
+}
+
+/* Forms, lists, tabs, pagers and notes that sat on the bare page: on white, like the rest. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-fold, .wf-empty, .people-empty, .people-register-note, .wf-list, .wf-members, .register-pages, .dm-list, .board__tags, .wf-search) {
+  padding: var(--space-4);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--color-ink);
+  box-shadow: 0 10px 28px rgba(4, 18, 43, 0.28);
+}
+
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-tabs, .feed-tabs) {
+  padding: 4px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(4, 18, 43, 0.25);
+}
+
+/* People found or suggested, as a list on a phone: each a white card. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main .person-card {
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+/* Cards everywhere lift off the navy a little more than they did off the paper. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.sheet, .wf-card, .pcard, .event-card, .person-card, .request-card, .album-card) {
+  box-shadow: 0 12px 30px rgba(4, 18, 43, 0.3);
+}
+
+@media (prefers-contrast: more) {
+  :root:not([data-theme="dark"]) body:has(.backdrop--navy) {
+    background: #1a56b8;
+  }
+}
+
+/* A phone: the cards stop short of the edges, rounded, so the blue frames each of them
+   (edge to edge, the page read as white with blue cracks). */
+@media (max-width: 700px) {
+  :root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.sheet, .wf-card, .pcard, .stories, .composer, .post):not(dialog) {
+    width: auto;
+    margin-inline: 10px;
+    border-radius: 16px;
+  }
+}
+
+/* Dark mode: the same picture, dimmed to a night version of itself. */
+:root[data-theme="dark"] .scene {
+  filter: brightness(0.32) saturate(0.85);
+}

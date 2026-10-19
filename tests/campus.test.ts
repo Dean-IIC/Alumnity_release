@@ -11,7 +11,7 @@ import { momentum, passing, settle } from "../lib/motion";
 describe("campus blocks", () => {
   it("lists the campus photos the eras use", () => {
     expect(CAMPUS_BLOCKS.map((block) => block.id)).toEqual(["a-cse", "c"]);
-    expect(findCampusBlock("c")?.label).toBe("C block");
+    expect(findCampusBlock("c")?.label).toBe("C Block");
     expect(findCampusBlock("unknown")).toBeUndefined();
   });
 
@@ -244,7 +244,8 @@ describe("landing copy", () => {
 
   it("intro can be skipped, opted out of, and respects reduced motion", () => {
     const source = readFileSync(resolve(process.cwd(), "components/growing-campus-intro.tsx"), "utf8");
-    expect(source).toContain(">Skip intro <");
+    expect(source).toContain("Skip intro <");
+    expect(source).toContain("ink-intro__skip"); // the class the <head> script listens for
     expect(source).toContain("Don’t play the intro next time");
     expect(source).toContain("shouldPlayIntro()");
     // The pre-paint script honours both the stored opt-out and reduced motion, and ?intro=1 overrides.

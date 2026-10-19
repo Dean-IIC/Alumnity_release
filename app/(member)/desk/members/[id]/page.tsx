@@ -34,27 +34,27 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
           <strong>Batch:</strong> {batchLabel(m) || "—"} {m.programme ? `· ${m.programme}` : ""}
           <br />
           <strong>Role:</strong> {ROLE_LABEL[m.role]}
-          {m.configRole ? " (set by the people who run the site)" : ""}
+          {m.configRole ? " (set by the site's technical team)" : ""}
           <br />
           <strong>Status:</strong> {m.suspended ? "Paused" : "Active"}
           {m.sample ? " · sample member" : ""}
           <br />
           <strong>Joined Alumnity:</strong> {when(m.createdAt)}
           <br />
-          <strong>Signed in on:</strong> {m.sessions.count} device{m.sessions.count === 1 ? "" : "s"}
-          {m.sessions.lastSignIn ? ` · last sign-in ${timeAgo(m.sessions.lastSignIn)}` : ""}
+          <strong>Logged in on:</strong> {m.sessions.count} device{m.sessions.count === 1 ? "" : "s"}
+          {m.sessions.lastSignIn ? ` · last login ${timeAgo(m.sessions.lastSignIn)}` : ""}
         </p>
         <div className="wf-actions">
           <span className="wf-tag">{m.counts.connections} connections</span>
-          <span className="wf-tag">{m.counts.notes} notes</span>
-          <span className="wf-tag">{m.counts.asks} Asks</span>
-          <span className="wf-tag">{m.counts.answered} answered</span>
+          <span className="wf-tag">{m.counts.notes} posts</span>
+          <span className="wf-tag">{m.counts.asks} questions asked</span>
+          <span className="wf-tag">{m.counts.answered} questions answered</span>
           <span className={`wf-tag ${m.counts.reportsAbout ? "wf-tag--red" : ""}`}>{m.counts.reportsAbout} reports about them</span>
           <span className="wf-tag">{m.counts.reportsMade} reports made</span>
         </div>
         {!m.suspended && (
           <p style={{ marginTop: "var(--space-3)" }}>
-            <Link href={`/people/${m.id}`}>Their page as members see it →</Link>
+            <Link href={`/people/${m.id}`}>See their page as members see it →</Link>
           </p>
         )}
       </section>
@@ -67,17 +67,17 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
         <>
           <h2>Access</h2>
           <div className="wf-actions">
-            <ActionForm action={pauseAction} confirm={m.suspended ? undefined : `Pause ${m.name}? They're signed out everywhere and hidden from everyone until unpaused.`}>
+            <ActionForm action={pauseAction} confirm={m.suspended ? undefined : `Pause ${m.name}? They will be logged out on all devices and hidden from everyone until you unpause them.`}>
               {hidden}
               <input type="hidden" name="paused" value={m.suspended ? "0" : "1"} />
               <button className={`button wf-small ${m.suspended ? "button--primary" : "button--secondary"}`} type="submit">
                 {m.suspended ? "Unpause" : "Pause"}
               </button>
             </ActionForm>
-            <ActionForm action={signOutAction} confirm={`Sign ${m.name} out on every device?`}>
+            <ActionForm action={signOutAction} confirm={`Log ${m.name} out on every device?`}>
               {hidden}
               <button className="button button--secondary wf-small" type="submit" disabled={m.sessions.count === 0}>
-                Sign out everywhere
+                Log out everywhere
               </button>
             </ActionForm>
           </div>
@@ -102,20 +102,20 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
                 </button>
               </ActionForm>
               <p className="wf-muted">
-                {isSuperAdmin(me) ? "You can make administrators." : "Only a super administrator can make administrators."} They're told when their role changes.
+                {isSuperAdmin(me) ? "You can make administrators." : "Only a super administrator can make administrators."} We tell them when their role changes.
               </p>
             </>
           )}
 
           {isSuperAdmin(me) && (
             <>
-              <h2>Delete for good</h2>
+              <h2>Delete permanently</h2>
               <details className="wf-card">
-                <summary>Delete {m.name} and everything they made</summary>
+                <summary>Delete {m.name} and everything they posted</summary>
                 <ActionForm action={deleteMemberAction} className="wf-stack">
                   {hidden}
                   <p className="wf-note wf-note--error">
-                    This can't be undone: their page, notes, comments, messages, Asks and connections all go. Pausing is usually enough.
+                    This can't be undone. Their page, posts, comments, messages, questions and connections will all be deleted. Pausing the account is usually enough.
                   </p>
                   <label className="field">
                     <span className="field__label">Type their name to confirm: {m.name}</span>
@@ -123,7 +123,7 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
                   </label>
                   <div>
                     <button className="button button--primary wf-small" type="submit">
-                      Delete for good
+                      Delete permanently
                     </button>
                   </div>
                 </ActionForm>

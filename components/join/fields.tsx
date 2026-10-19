@@ -18,7 +18,7 @@ export function CodeField({ email }: { email: string }) {
         placeholder="123456"
         className="field__code"
       />
-      <span className="field__hint">Sent to {email}. It works for 15 minutes. Not there? Check spam, or ask for a new one below.</span>
+      <span className="field__hint">We sent it to {email}. It works for 15 minutes. Can’t find it? Check your spam folder, or ask for a new code below.</span>
     </label>
   );
 }
@@ -49,7 +49,7 @@ export function PasswordField({ label = "Choose a password", autoComplete = "new
       </span>
       {isNew && (
         <span className="field__hint" id={`${id}-hint`}>
-          At least 10 characters. A few words you’ll remember works well.
+          Use at least 10 characters. A few words you can remember work well.
         </span>
       )}
     </div>

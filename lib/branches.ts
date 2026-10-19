@@ -6,8 +6,8 @@ export const BRANCHES = [
   ["ISE", "Information Science"],
   ["EEE", "Electrical & Electronics"],
   ["CIVIL", "Civil"],
-  ["AIML", "AI & Machine Learning"],
-  ["GEN", "MBA"]
+  ["AIML", "AI & Machine Learning"]
+  // MBA ("GEN") is left out of the network: see LEFT_OUT in lib/server/register.ts.
 ] as const;
 
 export const isBranch = (code: unknown): code is string => BRANCHES.some(([c]) => c === code);

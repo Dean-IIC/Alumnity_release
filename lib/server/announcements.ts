@@ -39,8 +39,8 @@ export async function createAnnouncement(me: User, input: { title: string; body:
   if (!isModerator(me)) return { ok: false, error: "Only the college desk can do that." };
   const title = input.title.trim().slice(0, ANNOUNCEMENT_LIMITS.title);
   const body = input.body.trim().slice(0, ANNOUNCEMENT_LIMITS.body);
-  if (!title) return { ok: false, error: "Give it a title." };
-  if (!body) return { ok: false, error: "Say what it's about." };
+  if (!title) return { ok: false, error: "Add a title." };
+  if (!body) return { ok: false, error: "Add the announcement text." };
   const days = Number.isInteger(input.days) && input.days > 0 && input.days <= 365 ? input.days : null;
   const now = Date.now();
   const row = await db().one<{ id: number }>(

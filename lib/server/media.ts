@@ -80,7 +80,7 @@ const UPLOAD_LIFE = 2 * 60 * 60_000;
 const ID = /^[\w-]{1,64}$/;
 
 const tooBig = (kind: MediaKind) =>
-  `That’s too big: ${kind === "video" ? "videos" : kind === "html" ? "HTML files" : "images"} can be up to ${LIMITS[kind] / 1024 / 1024} MB.`;
+  `This file is too big. ${kind === "video" ? "Videos" : kind === "html" ? "HTML files" : "Images"} can be up to ${LIMITS[kind] / 1024 / 1024} MB.`;
 
 /** Where a started upload's bytes land, before they're checked. */
 export const pendingUploadPath = (userId: number, id: string) => `pending/${userId}/${id}`;
@@ -90,9 +90,9 @@ type Checked = { ok: true; kind: MediaKind; mime: string; ext: string; data: Uin
 /** What a file is, and whether it may be used for `use`: a photo is an image; posts and stories take images and videos; only a cover may be HTML. */
 function check(use: UploadUse, bytes: Uint8Array): Checked {
   const found = sniff(bytes);
-  if (!found) return { ok: false, error: "That file isn’t one we can use. Photos: JPEG, PNG, WebP or GIF. Videos: MP4 or WebM." };
+  if (!found) return { ok: false, error: "That file isn’t one we can use. Photos must be JPEG, PNG, WebP or GIF. Videos must be MP4 or WebM." };
   if (use === "photo" && found.kind !== "image") return { ok: false, error: "Your photo needs to be an image (JPEG, PNG, WebP or GIF)." };
-  if ((use === "post" || use === "story") && found.kind === "html") return { ok: false, error: "Posts and stories take photos and videos." };
+  if ((use === "post" || use === "story") && found.kind === "html") return { ok: false, error: "Posts and stories can only have photos and videos." };
   if (bytes.length > LIMITS[found.kind]) return { ok: false, error: tooBig(found.kind) };
   // The photo's hidden details (EXIF) come off in preparePhoto, after it's been turned the right way up.
   return { ok: true, ...found, data: bytes };
@@ -219,9 +219,9 @@ export type Started = { ok: true; id: string; url: string } | { ok: false; error
 export async function startUpload(userId: number, use: UploadUse, size: number): Promise<Started> {
   if (!Number.isSafeInteger(size) || size <= 0) return { ok: false, error: "Choose a file first.", status: 400 };
   if (size > (use === "photo" ? LIMITS.image : LIMITS.video)) {
-    return { ok: false, error: use === "photo" ? tooBig("image") : "That’s too big: videos can be up to 25 MB, images 5 MB.", status: 413 };
+    return { ok: false, error: use === "photo" ? tooBig("image") : "This file is too big. Videos can be up to 25 MB, and images up to 5 MB.", status: 413 };
   }
-  if ((await uploadedToday(userId)) + size > DAILY_BYTES) return { ok: false, error: "That's a lot of uploading today. Try again tomorrow.", status: 429 };
+  if ((await uploadedToday(userId)) + size > DAILY_BYTES) return { ok: false, error: "You’ve reached today’s upload limit. Try again tomorrow.", status: 429 };
   const id = randomToken(15);
   await db().run("delete from uploads where created_at < ?", Date.now() - UPLOAD_LIFE);
   await db().run("insert into uploads (id, user_id, use, size, created_at) values (?, ?, ?, ?, ?)", id, userId, use, size, Date.now());
@@ -242,7 +242,7 @@ export async function finishUpload(userId: number, id: string): Promise<Saved> {
   const path = pendingUploadPath(userId, id);
   const bytes = await storage().read(path);
   await db().run("delete from uploads where id = ?", id);
-  if (!bytes) return { ok: false, error: "The file didn’t arrive. Try again." };
+  if (!bytes) return { ok: false, error: "The file did not upload. Try again." };
   await storage().remove([path]);
   const file = check(row.use, bytes);
   if (!file.ok) return file;

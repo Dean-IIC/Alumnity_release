@@ -3,7 +3,7 @@ export default function Loading() {
   return (
     <div className="page-loading" role="status" aria-live="polite">
       <span className="page-loading__line" aria-hidden="true" />
-      <span className="sr-only">Opening…</span>
+      <span className="sr-only">Loading…</span>
     </div>
   );
 }

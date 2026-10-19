@@ -6,9 +6,17 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import type { ActionState } from "../../lib/action-state";
 import { postAction } from "../../lib/actions/content";
 import { uploadFile } from "../../lib/client/upload";
+import type { PickPerson } from "../../lib/people-pick";
+import { MEDIA_LIMIT } from "../../lib/post-limits";
 import { Icon } from "./icons";
 import { MentionInput } from "./mention-input";
+import { PeoplePicker } from "./people-picker";
+import { Sheet } from "./sheet";
 import { SUGGESTED_TAGS } from "../../lib/tags";
+import "../../app/styles/posts-plus.css";
+
+/** People tagged in one go (each is told; the server allows twenty mentions a post). */
+const TAG_LIMIT = 20;
 
 type Upload = { key: string; id?: string; kind: "image" | "video"; preview: string; error?: string };
 
@@ -19,8 +27,10 @@ const AUDIENCE = [
 ] as const;
 
 /**
- * Writing a post: a few words, up to four photos or videos (uploaded as they're chosen),
- * @mentions, and who it's for. Folded to one line until it's tapped.
+ * Writing a post: a few words, up to ten photos or videos (uploaded as they're chosen),
+ * @mentions, and who it's for. Folded to one line until it's tapped. People can be tagged
+ * by typing @ or with "Tag people", which picks from your connections; either way each
+ * tagged person who can see the post is told.
  */
 export function Composer({
   firstName,
@@ -41,6 +51,9 @@ export function Composer({
   const [audience, setAudience] = useState<string>("everyone");
   const [text, setText] = useState("");
   const [sentCount, setSentCount] = useState(0);
+  const [tagging, setTagging] = useState(false);
+  const [tagged, setTagged] = useState<PickPerson[]>([]);
+  const [insert, setInsert] = useState<{ key: number; people: PickPerson[] } | undefined>(undefined);
   const [state, run, pending] = useActionState(async (prev: ActionState, form: FormData) => {
     const answer = await postAction(prev, form);
     if (answer?.ok) {
@@ -64,7 +77,7 @@ export function Composer({
 
   const add = async (list: FileList | null) => {
     if (!list) return;
-    const room = 4 - uploads.length;
+    const room = MEDIA_LIMIT - uploads.length;
     for (const file of [...list].slice(0, room)) {
       const key = `${file.name}-${file.size}-${Math.random()}`;
       const kind = file.type.startsWith("video/") ? "video" : "image";
@@ -122,7 +135,7 @@ export function Composer({
             </span>
           </div>
         ) : (
-          <div className="composer__audience" role="radiogroup" aria-label="Who can see it">
+          <div className="composer__audience" role="radiogroup" aria-label="Who can see this post">
             {AUDIENCE.filter((a) => a.value !== "batch" || hasBatch).map((a) => (
               <label key={a.value} className={`composer__who ${audience === a.value ? "composer__who--on" : ""}`}>
                 <input type="radio" name="audience" value={a.value} checked={audience === a.value} onChange={() => setAudience(a.value)} />
@@ -142,11 +155,12 @@ export function Composer({
         placeholder="What's new? Type @ to mention someone."
         resetKey={sentCount}
         onTextChange={setText}
+        insert={insert}
         autoFocus
         className="composer__text"
       />
       <fieldset className="composer__tags">
-        <legend>Tag it (optional)</legend>
+        <legend>Add a tag (optional)</legend>
         {SUGGESTED_TAGS.map(([tag, label]) => (
           <label key={tag} className="composer__tag">
             <input type="checkbox" name="tag" value={tag} />#{label.toLowerCase()}
@@ -154,7 +168,7 @@ export function Composer({
         ))}
       </fieldset>
       {uploads.length > 0 && (
-        <ul className={`composer__media composer__media--${Math.min(uploads.length, 4)}`}>
+        <ul className={`composer__media composer__media--${Math.min(uploads.length, 4)} ${uploads.length > 4 ? "composer__media--many" : ""}`}>
           {uploads.map((u) => (
             <li key={u.key} className={u.error ? "composer__media--failed" : u.id ? "" : "composer__media--loading"}>
               {u.kind === "video" ? <video src={u.preview} muted playsInline /> : <img src={u.preview} alt="" />}
@@ -163,7 +177,7 @@ export function Composer({
               <button
                 type="button"
                 className="composer__remove"
-                aria-label="Remove"
+                aria-label="Remove photo or video"
                 onClick={() => {
                   URL.revokeObjectURL(u.preview);
                   setUploads((all) => all.filter((x) => x.key !== u.key));
@@ -176,11 +190,15 @@ export function Composer({
         </ul>
       )}
       <div className="composer__foot">
-        <button type="button" className="composer__tool" onClick={() => files.current?.click()} disabled={uploads.length >= 4} aria-label="Add photos or videos">
+        <button type="button" className="composer__tool" onClick={() => files.current?.click()} disabled={uploads.length >= MEDIA_LIMIT} aria-label="Add photos or videos">
           <Icon name="photo" size={22} className="icon--gold" />
         </button>
         <input ref={files} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple hidden onChange={(e) => add(e.target.files)} />
-        <span className={`composer__hint ${uploads.length ? "" : "composer__hint--long"}`}>{uploads.length ? `${uploads.length} of 4` : "Up to 4 photos or videos"}</span>
+        <button type="button" className="composer__tool composer__tag-people" onClick={() => setTagging(true)} aria-haspopup="dialog" aria-label="Tag people">
+          <Icon name="tag-people" size={22} className="icon--blue" />
+          <span>Tag people</span>
+        </button>
+        <span className={`composer__hint ${uploads.length ? "" : "composer__hint--long"}`}>{uploads.length ? `${uploads.length} of ${MEDIA_LIMIT}` : `Up to ${MEDIA_LIMIT} photos or videos`}</span>
         <button type="button" className="composer__cancel" onClick={() => setOpen(false)}>
           Cancel
         </button>
@@ -193,6 +211,27 @@ export function Composer({
           {state.error}
         </p>
       )}
+      <Sheet open={tagging} onClose={() => setTagging(false)} title="Tag people" className="sheet--tag">
+        <p className="sheet__note">We add their names to your post. Each person gets a notification if they can see the post.</p>
+        <PeoplePicker chosen={tagged.map((p) => p.id)} onChange={setTagged} max={TAG_LIMIT} label="Tag" />
+        <div className="sheet__foot">
+          <button type="button" className="composer__cancel" onClick={() => setTagging(false)}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="button button--primary"
+            disabled={tagged.length === 0}
+            onClick={() => {
+              setInsert((i) => ({ key: (i?.key ?? 0) + 1, people: tagged }));
+              setTagged([]);
+              setTagging(false);
+            }}
+          >
+            {tagged.length > 1 ? `Tag ${tagged.length} people` : "Tag"}
+          </button>
+        </div>
+      </Sheet>
     </form>
   );
 }

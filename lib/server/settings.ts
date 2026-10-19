@@ -39,9 +39,9 @@ export async function saveSettings(next: Settings, by: number) {
 }
 
 export const FEATURE_LABEL: Record<keyof Settings["features"], string> = {
-  notes: "Notes on Home (posting and comments)",
+  notes: "Posts on Home (posting and comments)",
   asks: "Ask a senior (new questions)",
-  events: "Events (putting up new ones)",
+  events: "Events (adding new ones)",
   messages: "Messages"
 };
 

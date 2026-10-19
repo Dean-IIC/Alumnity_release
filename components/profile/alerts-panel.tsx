@@ -26,14 +26,30 @@ export function AlertsPanel() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const [failed, setFailed] = useState(false);
+
   useEffect(() => {
-    fetch("/api/alerts", { cache: "no-store" })
+    // Never "Loading…" for ever: no answer in 15 seconds, or a wrong one, says so.
+    const stop = new AbortController();
+    const late = setTimeout(() => stop.abort(), 15_000);
+    fetch("/api/alerts", { cache: "no-store", signal: stop.signal })
       .then((r) => r.json())
-      .then((s) => s.ok && setState(s))
-      .catch(() => undefined);
+      .then((s) => (s.ok ? setState(s) : setFailed(true)))
+      .catch(() => setFailed(true))
+      .finally(() => clearTimeout(late));
     if (supported()) navigator.serviceWorker.getRegistration("/sw.js").then((reg) => reg?.pushManager.getSubscription().then(setHere));
+    return () => {
+      clearTimeout(late);
+      stop.abort();
+    };
   }, []);
 
+  if (!state && failed)
+    return (
+      <p className="join__fine" role="alert">
+        Your alert settings didn&apos;t load. Check your internet connection, then reload the page.
+      </p>
+    );
   if (!state) return <p className="join__fine">Loading…</p>;
 
   const save = async (change: Partial<Pick<State, "emailDigest" | "push">>) => {
@@ -60,7 +76,7 @@ export function AlertsPanel() {
       if (!state.push) await post("/api/alerts", { push: true });
       setNote({ ok: true, text: "Notifications are on for this browser." });
     } catch {
-      setNote({ ok: false, text: "Notifications couldn't be turned on here. Try again, or in another browser." });
+      setNote({ ok: false, text: "We couldn't turn on notifications in this browser. Try again, or use another browser." });
     } finally {
       setBusy(false);
     }
@@ -82,16 +98,16 @@ export function AlertsPanel() {
       <div>
         <strong>Notifications on this {isIos() ? "phone" : "device"}</strong>
         {!state.pushKey ? (
-          <p className="join__fine">Not available yet: the college is setting them up.</p>
+          <p className="join__fine">Not available yet. The college is still setting this up.</p>
         ) : !supported() ? (
           <p className="join__fine">
             {isIos() && !installed()
-              ? "On an iPhone, first add Alumnity to your home screen (Share → Add to Home Screen), open it from there, and turn them on in its Settings."
+              ? "On an iPhone, first add Alumnity to your home screen (Share → Add to Home Screen). Then open Alumnity from your home screen and turn on notifications in Settings."
               : "This browser can't show notifications."}
           </p>
         ) : here ? (
           <p className="join__fine">
-            On: new messages, requests, mentions and replies show here.{" "}
+            Notifications are on. New messages, connection requests, mentions and replies will show in this browser.{" "}
             <button type="button" className="join__switch" onClick={turnOff} disabled={busy}>
               Turn off for this browser
             </button>
@@ -111,7 +127,7 @@ export function AlertsPanel() {
         )}
       </div>
       <label className="wf-check">
-        <input type="checkbox" checked={state.emailDigest} onChange={(e) => save({ emailDigest: e.target.checked })} /> A daily email when something's waiting for me (at most one a day)
+        <input type="checkbox" checked={state.emailDigest} onChange={(e) => save({ emailDigest: e.target.checked })} /> Send me an email when something is waiting for me (no more than one a day)
       </label>
       {note && (
         <p className={note.ok ? "join__note" : "join__problem"} role={note.ok ? "status" : "alert"}>

@@ -59,7 +59,7 @@ export const ERAS: Era[] = [
   },
   {
     year: 2008,
-    title: "Alumni come home",
+    title: "Alumni come back",
     detail: "The BE alumni meet",
     photo: archive("era-2008-alumni-meet", `${OLD_SITE}: alumni/Group Photos/2008BE-Alumni-Meet`)
   },
