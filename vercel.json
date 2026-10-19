@@ -2,5 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["bom1"],
   "crons": [{ "path": "/api/cron/digest", "schedule": "30 3 * * *" }],
-  "git": { "deploymentEnabled": { "alpha-4": false } }
+  "git": { "deploymentEnabled": { "alpha-4": false, "dev": false } }
 }
