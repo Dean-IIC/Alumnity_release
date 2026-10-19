@@ -16,9 +16,9 @@ import "../app/styles/info.css";
 
 const PAGES = [
   { href: "/about", title: "About", line: "The Director's message, and how your details stay private" },
-  { href: "/how-it-works", title: "How it works", line: "From finding your name in the register to your first answer from a senior" },
+  { href: "/how-it-works", title: "How it works", line: "From finding your name to your first answer from a senior" },
   { href: "/community", title: "Community", line: "Who Alumnity is for, and what members get" },
-  { href: "/committee", title: "Committee", line: "The people who look after the alumni association" },
+  { href: "/committee", title: "Committee", line: "The people who run the alumni association" },
   { href: "/developers", title: "Developers", line: "The students who built it, and who guided them" }
 ] as const;
 

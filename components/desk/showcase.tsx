@@ -31,7 +31,7 @@ function AlbumFields({ album }: { album?: DeskAlbum }) {
         <label className="field">
           <span className="field__label">Date</span>
           <input name="date" maxLength={10} defaultValue={album?.date} placeholder="2026-12-14" pattern="\d{4}(-\d{2}(-\d{2})?)?" />
-          <span className="wf-muted">Year-month-day, or just the year. Albums go newest first.</span>
+          <span className="wf-muted">Like 2026-12-14, or just 2026. Newest albums come first.</span>
         </label>
         <label className="field">
           <span className="field__label">When, in words</span>
@@ -226,7 +226,7 @@ async function AlbumEditor({ me, id }: { me: User; id: number }) {
                     </ActionForm>
                   )}
                   <ConfirmDelete action={deletePhotoAction} id={p.id} label="Delete photo" title="Delete this photo?" confirm="Delete">
-                    It comes off the gallery at once, and can&apos;t be brought back.
+                    It comes off the gallery right away. You can&apos;t get it back.
                   </ConfirmDelete>
                 </div>
               </div>
@@ -237,9 +237,9 @@ async function AlbumEditor({ me, id }: { me: User; id: number }) {
 
       <section className="wf-card" aria-labelledby="album-delete">
         <h2 id="album-delete">Delete the album</h2>
-        <p className="wf-muted">To take it off the gallery for now, untick &ldquo;Show on the gallery&rdquo; above instead.</p>
+        <p className="wf-muted">To hide it for now, untick &ldquo;Show on the gallery&rdquo; above instead.</p>
         <ConfirmDelete action={deleteAlbumAction} id={album.id} label="Delete album" title={`Delete “${album.title}”?`} confirm="Delete album">
-          The album and its {album.list.length === 1 ? "photo" : `${album.list.length} photos`} come off the gallery and can&apos;t be brought back.
+          The album and its {album.list.length === 1 ? "photo" : `${album.list.length} photos`} come off the gallery. You can&apos;t get them back.
         </ConfirmDelete>
       </section>
     </>

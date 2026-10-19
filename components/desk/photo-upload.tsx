@@ -73,7 +73,7 @@ export function PhotoUpload({ album, parts }: { album: number; parts: { key: str
       <label className="field">
         <span className="field__label">Photos</span>
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy !== null} />
-        <span className="wf-muted">JPEG, PNG or WebP, up to 20 MB each. You can choose several at once. They are added at the end of the album.</span>
+        <span className="wf-muted">JPEG, PNG or WebP, up to 20 MB each. You can pick more than one. New photos go at the end.</span>
       </label>
       <div className="wf-actions">
         <button type="button" className="button button--primary" onClick={upload} disabled={busy !== null}>

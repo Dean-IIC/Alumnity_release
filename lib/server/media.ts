@@ -90,8 +90,8 @@ type Checked = { ok: true; kind: MediaKind; mime: string; ext: string; data: Uin
 /** What a file is, and whether it may be used for `use`: a photo is an image; posts and stories take images and videos; only a cover may be HTML. */
 function check(use: UploadUse, bytes: Uint8Array): Checked {
   const found = sniff(bytes);
-  if (!found) return { ok: false, error: "That file isn’t one we can use. Photos must be JPEG, PNG, WebP or GIF. Videos must be MP4 or WebM." };
-  if (use === "photo" && found.kind !== "image") return { ok: false, error: "Your photo needs to be an image (JPEG, PNG, WebP or GIF)." };
+  if (!found) return { ok: false, error: "That file isn’t one we can use. Use a JPEG, PNG, WebP or GIF photo, or an MP4 or WebM video." };
+  if (use === "photo" && found.kind !== "image") return { ok: false, error: "Your photo must be a JPEG, PNG, WebP or GIF file." };
   if ((use === "post" || use === "story") && found.kind === "html") return { ok: false, error: "Posts and stories can only have photos and videos." };
   if (bytes.length > LIMITS[found.kind]) return { ok: false, error: tooBig(found.kind) };
   // The photo's hidden details (EXIF) come off in preparePhoto, after it's been turned the right way up.
@@ -236,9 +236,9 @@ export async function pendingUpload(userId: number, id: string): Promise<{ size:
 
 /** The last step: the file has arrived. Check it, and take it in (or throw it away). */
 export async function finishUpload(userId: number, id: string): Promise<Saved> {
-  if (!ID.test(id)) return { ok: false, error: "That upload has expired. Choose the file again." };
+  if (!ID.test(id)) return { ok: false, error: "That upload ran out of time. Choose the file again." };
   const row = await db().one<{ use: UploadUse; size: number }>("select use, size from uploads where id = ? and user_id = ? and created_at > ?", id, userId, Date.now() - UPLOAD_LIFE);
-  if (!row) return { ok: false, error: "That upload has expired. Choose the file again." };
+  if (!row) return { ok: false, error: "That upload ran out of time. Choose the file again." };
   const path = pendingUploadPath(userId, id);
   const bytes = await storage().read(path);
   await db().run("delete from uploads where id = ?", id);

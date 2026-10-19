@@ -22,6 +22,9 @@ export const DIRECTOR_MESSAGE = {
   ],
 } as const;
 
+/** The director's letter in a line or two, shown above it on the About page (only while the letter is this one). */
+export const DIRECTOR_SUMMARY = "In short: the director is proud of HKBK's alumni and welcomes you home. He asks you to share your story with today's students.";
+
 /** The students who built Alumnity, and the faculty member who guided them (the Developers page). */
 export const DEVELOPERS = {
   team: [
@@ -37,35 +40,37 @@ export const DEVELOPERS = {
 } as const;
 
 export const ABOUT = {
-  intro: `The alumni and student network of HKBK College of Engineering, Bengaluru. It is one place for everyone who studied or taught here to find each other, help each other and stay in touch.`,
+  intro: `Alumnity is for everyone who studied or taught at HKBK College of Engineering, Bengaluru. Find each other, help each other and stay in touch.`,
   privacy: [
-    { title: "Private by default", text: "Your USN and email are never shown to other members. Nothing about you appears on any public page." },
-    { title: "You choose who sees what", text: "Every part of your page has its own setting: everyone on Alumnity, your batch, your connections, or only you." },
-    { title: "Only HKBK people", text: "Every member is checked against the college register. Members can search the register to invite people, but they only see a name, branch and year, never a USN. Messages are only between connections." }
+    { title: "Private from the start", text: "Your USN and email are never shown to other members. Nothing about you is shown on any public page." },
+    { title: "You choose who sees what", text: "For each part of your page, pick who sees it. Choose everyone on Alumnity, your batch, your connections or only you." },
+    { title: "Only HKBK people", text: "Every member is checked against the college register. Messages are only between connections." },
+    { title: "Safe invites", text: "Members can search the register to invite people. They see only a name, branch and joining year, never a USN." }
   ]
 };
 
 export const COMMUNITY = {
-  intro: `Who Alumnity is for, what is open to everyone, and what members get.`,
-  lead: `Alumnity is where students and alumni of HKBK College of Engineering help each other. Students get honest interview experiences, quick answers and referrals from seniors. Alumni stay in touch with their batch and the college, and help students when they have time.`,
+  intro: `Who can join, what anyone can see, and what members get.`,
+  lead: `Here, students and alumni of HKBK College of Engineering help each other.\n\nStudents get real interview stories, quick answers and referrals from seniors. Alumni keep in touch with their batch and college, and help when they can.`,
   open: ["What Alumnity is, and how to join", "The gallery of college photos", "The About, Community, Committee and Developers pages"],
   members: [
     "Network: members' pages, connections and messages",
     "Home: posts, photos, stories and news from your batch",
     "Groups for your class, your club, your city or your field",
     "Ask a senior, and the college's events",
-    "Causes that members suggest and the college approves. Donations go through the college's account."
+    "Causes that members suggest and the college agrees to. Money you give goes through the college's account."
   ],
   joining: [
-    "Students and alumni show they are from HKBK by finding their name in the college register. They use their name and USN, or their name, branch and joining year.",
+    "Students and alumni find their name in the college register. They search with name and USN, or name, branch and joining year.",
     "Teachers and college staff join with an invitation from the college desk.",
-    "Everyone signs up with a personal email, so the account stays theirs after graduation."
+    "Everyone uses a personal email, so they keep their account after college."
   ]
 };
 
 export const DEVELOPERS_INTRO = {
-  intro: `Alumnity was designed and built by students of HKBK College of Engineering.`,
-  body: `Alumnity started as a student project in the Department of Computer Science and Engineering. The aim was one place where HKBK's students and alumni help each other. Seniors answer questions and share referrals, the college shares events, and everyone stays in touch with their batch.`,
+  intro: `Students of HKBK College of Engineering made Alumnity.`,
+  body: `It began as a student project in the Computer Science and Engineering department. The idea was one place where HKBK's students and alumni help each other.`,
+  points: ["Seniors answer questions and share referrals.", "The college shares its events.", "Everyone stays in touch with their batch."],
 };
 
 /** The alumni committee. Names are placeholders until the college confirms them. */

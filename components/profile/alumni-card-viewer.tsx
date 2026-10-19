@@ -90,10 +90,8 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
       </button>
       <div className="acard-promo__text">
         <h2 id="alumni-card-title">Your Alumnity card</h2>
-        <p>
-          Your digital Alumnity card. It shows your member number and a QR code that anyone can scan to find you on Alumnity. Show it at college
-          events, or keep it on your phone.
-        </p>
+        <p>It shows your member number and a QR code. Anyone can scan the code to find you on Alumnity.</p>
+        <p>Show it at college events, or keep it on your phone.</p>
         <button type="button" className="button button--primary" onClick={open}>
           Open your card <span aria-hidden="true">→</span>
         </button>

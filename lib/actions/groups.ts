@@ -37,7 +37,7 @@ export async function answerGroupRequestAction(_: ActionState, form: FormData): 
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const accept = textFrom(form, "answer", 10) === "accept";
-  return answer(await answerRequest(me, idFrom(form), idFrom(form, "user"), accept), accept ? "Request accepted." : "Request declined. We won't tell them.");
+  return answer(await answerRequest(me, idFrom(form), idFrom(form, "user"), accept), accept ? "Accepted. They're in the group now." : "Declined. We won't tell them.");
 }
 
 export async function groupRoleAction(_: ActionState, form: FormData): Promise<ActionState> {

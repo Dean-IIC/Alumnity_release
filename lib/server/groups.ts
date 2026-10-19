@@ -116,8 +116,8 @@ export async function createGroup(me: User, input: { name: string; about: string
   const name = input.name.replace(/\s+/g, " ").trim().slice(0, GROUP_LIMITS.name);
   const about = input.about.trim().slice(0, GROUP_LIMITS.about);
   if (name.length < 3) return no("Give the group a name (at least three letters).");
-  if (input.kind !== "open" && input.kind !== "private") return no("Choose whether it's open or private.");
-  if (!(await withinLimit(`group:${me.id}`, 3, DAY))) return no("You can create up to three groups a day. Please try again tomorrow.");
+  if (input.kind !== "open" && input.kind !== "private") return no("Choose open or private.");
+  if (!(await withinLimit(`group:${me.id}`, 3, DAY))) return no("You can start up to three groups a day. Please try again tomorrow.");
   const id = await db().tx(async (t) => {
     const row = await t.one<{ id: number }>("insert into groups (name, about, kind, created_by, created_at) values (?, ?, ?, ?, ?) returning id", name, about, input.kind, me.id, Date.now());
     await t.run("insert into group_members (group_id, user_id, role, status, created_at) values (?, ?, 'owner', 'member', ?)", row!.id, me.id, Date.now());
@@ -192,7 +192,7 @@ export async function answerRequest(me: User, id: number, userId: number, accept
   const changes = accept
     ? await db().run("update group_members set status = 'member', created_at = ? where group_id = ? and user_id = ? and status = 'pending'", Date.now(), id, userId)
     : await db().run("delete from group_members where group_id = ? and user_id = ? and status = 'pending'", id, userId);
-  if (!changes) return no("This request has already been handled.");
+  if (!changes) return no("Someone has already answered this.");
   if (accept) await notify(userId, { actor: me.id, kind: "group-joined", text: `You are now a member of ${g.name}.`, link: `/groups/${id}` });
   return { ok: true };
 }

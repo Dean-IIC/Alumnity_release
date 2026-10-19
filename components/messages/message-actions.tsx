@@ -142,7 +142,7 @@ export function MessageActions({ acting, other, onClose }: { acting: Acting | nu
         {step === "chat-menu" && (
           <div className="msg-actions" role="group" aria-label={`Options for your chat with ${other.name}`}>
             <Link className="msg-actions__item" href={`/people/${other.id}`} onClick={onClose} data-first>
-              View {other.first}&rsquo;s profile
+              See {other.first}&rsquo;s page
             </Link>
             <button type="button" className="msg-actions__item msg-actions__item--danger" onClick={() => go("chat")}>
               Delete chat
@@ -190,10 +190,10 @@ export function MessageActions({ acting, other, onClose }: { acting: Acting | nu
           <>
             <p className="sheet__note">
               {step === "everyone"
-                ? `The message is removed for you and ${other.first}. You will both see "This message was deleted".`
+                ? `This deletes it for you and ${other.first}. You will both see "This message was deleted".`
                 : step === "me"
-                  ? `The message is removed only for you. ${other.first} will still see it.`
-                  : `All messages in this chat are removed only for you. ${other.first} will still see them. If either of you sends a new message, it will show here.`}
+                  ? `This deletes it only for you. ${other.first} will still see it.`
+                  : `This deletes every message here, but only for you. ${other.first} will still see them. New messages from either of you will show here.`}
             </p>
             {problem}
             <div className="sheet__foot">

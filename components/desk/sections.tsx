@@ -5,7 +5,7 @@ import { BRANCHES } from "../../lib/branches";
 import { batchLabel, capital, ROLE_LABEL, rupees, timeAgo, when } from "../../lib/format";
 import type { User } from "../../lib/server/auth";
 import { allAnnouncements } from "../../lib/server/announcements";
-import { auditLog, deskMembers, deskSettings, recentContent, reports, stats, team, type ContentKind, type MemberFilter } from "../../lib/server/desk";
+import { auditLog, deskMembers, deskSettings, recentContent, reports, stats, team, type ContentKind, type MemberFilter, type SubjectKind } from "../../lib/server/desk";
 import { assignable, isAdmin, isSuperAdmin } from "../../lib/server/roles";
 import { invites, STAFF_ROLES } from "../../lib/server/staff";
 import { FEATURE_LABEL } from "../../lib/server/settings";
@@ -30,13 +30,13 @@ export async function Overview({ me }: { me: User }) {
     ["Events", s.events],
     ["Groups", s.groups],
     ["Open reports", s.openReports, "/desk?tab=reports"],
-    ["Causes to review", s.causesWaiting, "/causes"],
+    ["Causes to check", s.causesWaiting, "/causes"],
     ["Paused", s.paused, "/desk?tab=members&status=paused"]
   ];
   // First, what's waiting for the desk; then the numbers.
   const waiting = [
-    s.openReports > 0 && { href: "/desk?tab=reports", text: `${s.openReports} report${s.openReports === 1 ? "" : "s"} to review` },
-    s.causesWaiting > 0 && { href: "/causes", text: `${s.causesWaiting} cause${s.causesWaiting === 1 ? "" : "s"} to review` }
+    s.openReports > 0 && { href: "/desk?tab=reports", text: `${s.openReports} report${s.openReports === 1 ? "" : "s"} to check` },
+    s.causesWaiting > 0 && { href: "/causes", text: `${s.causesWaiting} cause${s.causesWaiting === 1 ? "" : "s"} to check` }
   ].filter(Boolean) as { href: string; text: string }[];
   return (
     <>
@@ -51,7 +51,7 @@ export async function Overview({ me }: { me: User }) {
             ))}
           </ul>
         ) : (
-          <p className="wf-muted">No reports and no causes to review. You can invite staff from the Team tab, or post an announcement from the Announcements tab.</p>
+          <p className="wf-muted">No reports or causes to check. You can invite staff in the Team tab, or post in the Announcements tab.</p>
         )}
       </section>
       <div className="wf-grid">
@@ -89,6 +89,9 @@ export async function Overview({ me }: { me: User }) {
   );
 }
 
+/** Display names for what was reported (the stored kinds stay as they are). */
+const REPORT_KIND: Record<SubjectKind, string> = { member: "Member", post: "Post", comment: "Comment", message: "Message", ask: "Question", group: "Group", cause: "Cause" };
+
 export async function Reports({ me, closed }: { me: User; closed: boolean }) {
   const list = await reports(me, closed ? "closed" : "open");
   return (
@@ -102,9 +105,9 @@ export async function Reports({ me, closed }: { me: User; closed: boolean }) {
       {list.map((r) => (
         <article key={r.id} className="wf-card">
           <div className="wf-card__meta">
-            <span className="wf-tag">{r.kind}</span>
+            <span className="wf-tag">{REPORT_KIND[r.kind] ?? r.kind}</span>
             <span>Reported {timeAgo(r.createdAt)}</span>
-            {r.status !== "open" && <span className="wf-tag">{r.status}</span>}
+            {r.status !== "open" && <span className="wf-tag">{r.status === "dismissed" ? "Dismissed" : r.kind === "member" ? "Paused" : r.kind === "cause" ? "Closed" : "Taken down"}</span>}
           </div>
           <p>
             <strong>Why:</strong> {r.reason}
@@ -352,17 +355,25 @@ export async function Team({ me }: { me: User }) {
   const roles = STAFF_ROLES.filter((r) => assignable(me).includes(r));
   return (
     <>
-      <p className="wf-muted">
-        Super administrators are set by the site's technical team. You can't change them here. A super administrator can make someone an
-        administrator. An administrator can make someone a coordinator. To give a role to someone already on Alumnity, open their name in Members.
-      </p>
+      <div className="wf-prose wf-muted">
+        <ul>
+          <li>Only the site's technical team can set super administrators. You can't change them here.</li>
+          <li>A super administrator can make someone an administrator.</li>
+          <li>An administrator can make someone a coordinator.</li>
+          <li>Someone already on Alumnity? Open their name in Members to give them a role.</li>
+        </ul>
+      </div>
       {roles.length > 0 && (
         <section className="wf-card" aria-labelledby="invite-staff">
           <h2 id="invite-staff">Invite staff</h2>
-          <p className="wf-muted">
-            Teachers and college staff are not in the college register, so they join by invitation. They get an email with a link. They confirm their email
-            with a code, and choose a password.
-          </p>
+          <p className="wf-muted">Teachers and college staff aren't in the college register. They join by invitation:</p>
+          <div className="wf-prose wf-muted">
+            <ol>
+              <li>They get an email with a link.</li>
+              <li>They check their email with a code.</li>
+              <li>They choose a password.</li>
+            </ol>
+          </div>
           <ActionForm action={inviteStaffAction} className="wf-stack" resetOnSuccess>
             <div className="field-row">
               <label className="field">
@@ -399,7 +410,7 @@ export async function Team({ me }: { me: User }) {
             </div>
             <div>
               <button className="button button--primary" type="submit">
-                Send the invitation
+                Send invitation
               </button>
             </div>
           </ActionForm>
@@ -412,7 +423,7 @@ export async function Team({ me }: { me: User }) {
                     <span className="wf-member__name">{i.name}</span>
                     <span className="wf-muted">
                       {i.email} · {ROLE_LABEL[i.role]}
-                      {i.branchName ? ` · ${i.branchName}` : ""} · {i.used ? "joined" : i.expiresAt < Date.now() ? "expired" : `invited ${timeAgo(i.createdAt)}`}
+                      {i.branchName ? ` · ${i.branchName}` : ""} · {i.used ? "joined" : i.expiresAt < Date.now() ? "link ran out" : `invited ${timeAgo(i.createdAt)}`}
                     </span>
                   </div>
                   {!i.used && (
@@ -469,7 +480,7 @@ export async function SiteSettings({ me }: { me: User }) {
       </fieldset>
       <fieldset className="wf-card" disabled={!canEdit}>
         <legend>
-          <strong>Features</strong> (people can still read paused features, but cannot add anything new)
+          <strong>Features</strong> (when one is off, people can still read it but can't add new things)
         </legend>
         {(Object.keys(FEATURE_LABEL) as (keyof typeof FEATURE_LABEL)[]).map((k) => (
           <label key={k} className="wf-check">

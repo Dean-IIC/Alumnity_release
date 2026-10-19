@@ -38,7 +38,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
     >
       {cause.status === "pending" && <p className="wf-card">The college desk has not checked this cause yet. Until then, only you and the desk can see it.</p>}
       {cause.status === "rejected" && <p className="wf-card">The college desk didn't approve this cause{cause.reviewNote ? `: ${cause.reviewNote}` : "."}</p>}
-      {cause.status === "closed" && <p className="wf-card">This cause is closed{cause.reviewNote ? `: ${cause.reviewNote}` : "."} Donations made so far are still shown below.</p>}
+      {cause.status === "closed" && <p className="wf-card">This cause is closed{cause.reviewNote ? `: ${cause.reviewNote}` : "."} Money given so far is still shown below.</p>}
 
       {cause.cover && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -62,7 +62,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
         ))}
       </div>
 
-      {cause.status === "live" && !ended && (donationsOpen() ? <Give causeId={cause.id} name={me.name} email={me.email} /> : <p className="wf-empty">You can give once the college has set up payments.</p>)}
+      {cause.status === "live" && !ended && (donationsOpen() ? <Give causeId={cause.id} name={me.name} email={me.email} /> : <p className="wf-empty">You can give once the college sets up payments.</p>)}
 
       <div className="wf-actions">
         {!cause.mine && cause.status === "live" && <ReportButton kind="cause" id={cause.id} />}
@@ -78,7 +78,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
 
       {isModerator(me) && cause.status === "pending" && (
         <section className="wf-card" aria-labelledby="review">
-          <h2 id="review">College desk: review</h2>
+          <h2 id="review">College desk: check this cause</h2>
           <ActionForm action={reviewCauseAction} confirm="Approve this cause? All members will see it and can give to it.">
             {hidden}
             <input type="hidden" name="answer" value="approve" />
@@ -90,7 +90,7 @@ export default async function CausePage({ params }: { params: Promise<{ id: stri
             {hidden}
             <input type="hidden" name="answer" value="reject" />
             <label className="field">
-              <span className="field__label">Or reject it. Say why (the person who started it will see this)</span>
+              <span className="field__label">Or reject it and say why. The person who started it will see this.</span>
               <textarea name="note" rows={2} maxLength={500} required />
             </label>
             <div>

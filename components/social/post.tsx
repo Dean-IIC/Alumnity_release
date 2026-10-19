@@ -66,7 +66,7 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
           </span>
           {post.archive && (
             <span className="post__archive" title="Moved here from the old HKBK alumni website. It keeps its original date.">
-              From the old HKBK alumni portal
+              From the old HKBK alumni website
             </span>
           )}
           <span className="post__meta">
@@ -88,7 +88,7 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
           </span>
           {post.verifiedAt && (
             <Link className="post__verified" href="/board" title="The college checked this post. It is on the HKBK board.">
-              <span aria-hidden="true">✓</span> Verified by HKBK
+              <span aria-hidden="true">✓</span> Checked by HKBK
             </Link>
           )}
         </div>
@@ -113,7 +113,7 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
               <ActionForm action={verifyPostAction} showDone={false}>
                 <input type="hidden" name="id" value={post.id} />
                 <input type="hidden" name="on" value={post.verifiedAt ? "0" : "1"} />
-                <button type="submit">{post.verifiedAt ? "Remove from the HKBK board" : "Verify and add to the HKBK board"}</button>
+                <button type="submit">{post.verifiedAt ? "Remove from the HKBK board" : "Add to the HKBK board"}</button>
               </ActionForm>
             )}
             <a href={href}>Open post</a>
@@ -149,8 +149,8 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
             <input type="hidden" name="id" value={post.id} />
             <label className="field">
               <span className="field__label">Why you are a good fit</span>
-              <textarea name="note" rows={3} required minLength={20} maxLength={1500} placeholder="Your branch and year, and what you have built or studied that fits. Keep it short." />
-              <span className="field__hint">If you are not connected yet, we send this note with a connection request. If you are connected, we send it as a message.</span>
+              <textarea name="note" rows={3} required minLength={20} maxLength={1500} placeholder="Your branch and year. What you've built or studied that fits. Keep it short." />
+              <span className="field__hint">Not connected yet? We send it with a connection request. Connected? We send it as a message.</span>
             </label>
             <div>
               <button className="button button--primary wf-small" type="submit">

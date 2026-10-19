@@ -55,5 +55,5 @@ export async function confirmDonationNow(orderId: string, paymentId: string, sig
   if (!me) return SIGNED_OUT;
   const done = await confirmDonation(me, String(orderId).slice(0, 60), String(paymentId).slice(0, 60), String(signature).slice(0, 200));
   if (done.ok) revalidatePath("/causes", "layout");
-  return done.ok ? { ok: true, message: "Thank you. We have received your donation." } : done;
+  return done.ok ? { ok: true, message: "Thank you. We got your donation." } : done;
 }

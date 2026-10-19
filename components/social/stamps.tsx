@@ -12,7 +12,7 @@ export const REACTION_LABEL: Record<Reaction, string> = {
   congrats: "Celebrate",
   support: "Support",
   proud: "Love",
-  insightful: "Insightful"
+  insightful: "Useful"
 };
 
 /** The order they're offered in, as on LinkedIn. */

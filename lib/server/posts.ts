@@ -724,7 +724,7 @@ export { mentionedIds };
  * audit log; the writer is told when theirs is verified.
  */
 export async function verifyPost(me: User, id: number, on: boolean): Promise<Result> {
-  if (!isModerator(me)) return no("Only the college desk can verify posts.");
+  if (!isModerator(me)) return no("Only the college desk can check posts for the HKBK board.");
   const post = await visiblePost(me, id);
   if (!post) return no("This post is no longer available.");
   if (on && post.row.audience !== "everyone") return no("Only posts that everyone can see can go on the HKBK board.");
@@ -735,7 +735,7 @@ export async function verifyPost(me: User, id: number, on: boolean): Promise<Res
   if (!changed) return { ok: true };
   const { audit } = await import("./desk");
   await audit(me, on ? "verified" : "unverified", `post ${id}`, plainStart(post.row.body));
-  if (on && post.author.id !== me.id) await notify(post.author.id, { actor: me.id, kind: "post-verified", text: "The college verified your post. It's on the HKBK board now.", link: `/notes/${id}` });
+  if (on && post.author.id !== me.id) await notify(post.author.id, { actor: me.id, kind: "post-verified", text: "The college checked your post. It's on the HKBK board now.", link: `/notes/${id}` });
   if (on) await tellStudentsLooking(id, post.author);
   return { ok: true };
 }
@@ -778,10 +778,10 @@ export async function askForReferral(me: User, postId: number, note: string): Pr
   if (post.author.id === me.id) return no("You can't ask for a referral on your own post.");
   const tags = tagsIn(post.row.body);
   const tag = WORK_TAGS.find((t) => tags.includes(t));
-  if (!tag) return no("You can ask for a referral only on a post tagged #job, #internship or #referral.");
+  if (!tag) return no("You can ask for a referral only on #job, #internship or #referral posts.");
   const why = note.trim();
-  if (why.length < 20) return no("Write a line or two about why you are a good fit, such as your branch, skills or a project.");
-  const about = `Referral request about your #${tag} post: `;
+  if (why.length < 20) return no("Say in a line or two why you're a good fit. For example, your branch, skills or a project.");
+  const about = `Asking for a referral for your #${tag} post: `;
   const rel = await relation(me.id, post.author.id);
   if (rel === "connected" || rel === "received") {
     if (rel === "received") {

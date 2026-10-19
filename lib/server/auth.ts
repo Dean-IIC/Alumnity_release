@@ -159,7 +159,7 @@ export const intent = (ticket: string, purpose: "join" | "reset" | "staff") =>
 /** Checks a typed code: five tries, fifteen minutes. Right, and this browser is signed in to that Supabase account. */
 export async function verify(row: IntentRow | undefined, code: string): Promise<Outcome<{ authId: string }>> {
   if (!row) return { ok: false, error: WRONG_CODE };
-  if (row.expires_at < Date.now()) return { ok: false, error: "That code has expired. Ask for a new one." };
+  if (row.expires_at < Date.now()) return { ok: false, error: "That code is too old. Ask for a new one." };
   if (row.attempts >= CODE_TRIES) return { ok: false, error: "Too many wrong codes. Ask for a new one." };
   await db().run("update auth_intents set attempts = attempts + 1 where ticket = ?", row.ticket);
   const typed = code.replace(/\D/g, "");
@@ -183,10 +183,10 @@ export async function startJoin(input: JoinStart): Promise<Outcome<{ ticket: str
 
   const found = await findInRegister({ name: input.name, usn: input.usn, branch: input.branch, year: input.year });
   if (!found) return { ok: false, error: "We can’t reach the register right now. Please try again later." };
-  if (found.status !== "found") return { ok: false, error: "We couldn’t find that entry in the register." };
+  if (found.status !== "found") return { ok: false, error: "We couldn’t find you in the register." };
 
   if (await db().one("select 1 from users where usn = ?", found.usn)) {
-    return { ok: false, error: "This person in the register already has an account. Log in, or reset your password if you’ve forgotten it." };
+    return { ok: false, error: "This name on the register already has an account. Log in, or reset your password." };
   }
   // An email that already has an account: the visitor isn't told, and no code is sent,
   // so the ticket leads nowhere.
@@ -210,7 +210,7 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
   const auth = await authProvider();
   const session = await auth.session();
   if (!row?.verified_at || !row.found || row.verified_at + SETUP_LIFE < Date.now() || !session || session.authId !== row.auth_id) {
-    return { ok: false, error: "Your joining session has expired. Please start again." };
+    return { ok: false, error: "Your time to join ran out. Please start again." };
   }
   const found = JSON.parse(row.found) as Found;
   const problem = passwordProblem(password, passwordContext({ name: found.name, usn: found.usn, email: row.email }));
@@ -243,7 +243,7 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
   if (!inserted) {
     // The USN or the email was taken while this sign-up was waiting.
     await auth.signOut("local");
-    return { ok: false, error: "Someone has already joined with these register details or this email. Log in instead." };
+    return { ok: false, error: "Someone already joined with these details or this email. Log in instead." };
   }
   return { ok: true, user: toUser(inserted) };
 }
@@ -301,7 +301,7 @@ export async function completeReset(ticket: string, code: string, password: stri
   const auth = await authProvider();
   if (checked.authId !== userRow.auth_id) {
     await auth.signOut("local");
-    return { ok: false, error: "This reset has expired. Please start again." };
+    return { ok: false, error: "This reset didn’t work. Please start again." };
   }
   const refused = await auth.setPassword(password);
   if (refused) return { ok: false, error: refused };

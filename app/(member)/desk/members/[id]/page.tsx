@@ -62,12 +62,12 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
       {self ? (
         <p className="wf-muted">This is you. Use Settings to change your own account.</p>
       ) : !above ? (
-        <p className="wf-card">They're at your level or above on the college desk, so you can't change anything here.</p>
+        <p className="wf-card">They're at your level or higher on the college desk. You can't change anything here.</p>
       ) : (
         <>
           <h2>Access</h2>
           <div className="wf-actions">
-            <ActionForm action={pauseAction} confirm={m.suspended ? undefined : `Pause ${m.name}? They will be logged out on all devices and hidden from everyone until you unpause them.`}>
+            <ActionForm action={pauseAction} confirm={m.suspended ? undefined : `Pause ${m.name}? They'll be logged out on all devices. Nobody will see them until you unpause them.`}>
               {hidden}
               <input type="hidden" name="paused" value={m.suspended ? "0" : "1"} />
               <button className={`button wf-small ${m.suspended ? "button--primary" : "button--secondary"}`} type="submit">
@@ -109,21 +109,22 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
 
           {isSuperAdmin(me) && (
             <>
-              <h2>Delete permanently</h2>
+              <h2>Delete forever</h2>
               <details className="wf-card">
                 <summary>Delete {m.name} and everything they posted</summary>
                 <ActionForm action={deleteMemberAction} className="wf-stack">
                   {hidden}
                   <p className="wf-note wf-note--error">
-                    This can't be undone. Their page, posts, comments, messages, questions and connections will all be deleted. Pausing the account is usually enough.
+                    This can't be undone. Their page, posts, comments, messages, questions and connections will all be deleted.
                   </p>
+                  <p className="wf-muted">Pausing the account is usually enough.</p>
                   <label className="field">
-                    <span className="field__label">Type their name to confirm: {m.name}</span>
+                    <span className="field__label">To delete, type their name: {m.name}</span>
                     <input name="confirm" autoComplete="off" required />
                   </label>
                   <div>
                     <button className="button button--primary wf-small" type="submit">
-                      Delete permanently
+                      Delete forever
                     </button>
                   </div>
                 </ActionForm>

@@ -158,7 +158,7 @@ export function CardBackImage({ card, crest, theme }: { card: AlumniCard; crest:
             <img src={qrImage(card.link)} width={250} height={250} alt="" />
           </div>
           <div style={{ display: "flex", flexDirection: "column", marginLeft: 50, maxWidth: 760 }}>
-            <Label>Scan to verify</Label>
+            <Label>Scan to check</Label>
             <div style={{ display: "flex", fontSize: 29, lineHeight: 1.35, marginTop: 12, color: "#fff" }}>
               {`${card.name} is a member of ${COLLEGE.name} on Alumnity.`}
             </div>

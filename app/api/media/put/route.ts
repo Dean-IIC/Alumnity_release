@@ -18,7 +18,7 @@ export async function PUT(request: Request) {
   const id = path.split("/").at(-1) ?? "";
   const pending = await pendingUpload(me.user.id, id);
   // Only to the place the server gave out, for an upload of yours that's still waiting.
-  if (!pending || path !== pendingUploadPath(me.user.id, id)) return NextResponse.json({ ok: false, error: "That upload has expired." }, { status: 404 });
+  if (!pending || path !== pendingUploadPath(me.user.id, id)) return NextResponse.json({ ok: false, error: "That upload ran out of time. Choose the file again." }, { status: 404 });
   const bytes = new Uint8Array(await request.arrayBuffer());
   if (bytes.length > pending.size) return NextResponse.json({ ok: false, error: "That isn’t the file you chose." }, { status: 413 });
   await storage().write(path, bytes, "application/octet-stream");

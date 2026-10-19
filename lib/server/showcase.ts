@@ -267,7 +267,7 @@ function checkAlbum(input: AlbumInput): { ok: false; error: string } | { ok: tru
   const title = input.title.trim().slice(0, ALBUM_LIMITS.title);
   const date = input.date.trim();
   if (!title) return { ok: false, error: "Add a name for the album." };
-  if (date && !DATE.test(date)) return { ok: false, error: "Write the date as year-month-day (2025-09-30), year-month (2025-09) or just the year." };
+  if (date && !DATE.test(date)) return { ok: false, error: "Write the date like 2025-09-30, 2025-09 or just 2025." };
   const when = input.when.trim().slice(0, ALBUM_LIMITS.when) || whenFromDate(date);
   return { ok: true, value: { title, date, when, about: input.about.trim().slice(0, ALBUM_LIMITS.about), published: input.published } };
 }
@@ -515,7 +515,7 @@ export async function addSitePhoto(me: User, albumId: number, bytes: Uint8Array,
 /** The last step: the photo's bytes have arrived. Check them, and put the photo in the album (or throw it away). */
 export async function finishSitePhoto(me: User, albumId: number, token: string, partKey = ""): Promise<Result & { id?: number }> {
   if (!isModerator(me)) return { ok: false, error: NO };
-  if (!TOKEN.test(token)) return { ok: false, error: "That upload has expired. Choose the photo again." };
+  if (!TOKEN.test(token)) return { ok: false, error: "That upload ran out of time. Choose the photo again." };
   const path = sitePendingPath(me.id, token);
   const bytes = await storage().read(path);
   await storage().remove([path]);

@@ -41,7 +41,7 @@ export const SECTIONS: Record<SectionKind, KindInfo> = {
     label: "Experience",
     hint: "Jobs and internships",
     title: { label: "Role", placeholder: "Software engineer, intern" },
-    org: { label: "Company or organisation", placeholder: "Infosys" },
+    org: { label: "Company or group", placeholder: "Infosys" },
     years: "range",
     link: false,
     detail: true
@@ -59,13 +59,13 @@ export const SECTIONS: Record<SectionKind, KindInfo> = {
     label: "Projects",
     hint: "Things you've built or made",
     title: { label: "Project", placeholder: "Smart traffic signal" },
-    org: { label: "Who it was with or for (optional)", placeholder: "Final-year project, a hackathon" },
+    org: { label: "Who it was with or for (you can skip this)", placeholder: "Final-year project, a hackathon" },
     years: "year",
     link: true,
     detail: true
   },
   certifications: {
-    label: "Certifications",
+    label: "Certificates",
     hint: "Courses and certificates you've earned",
     title: { label: "Certificate", placeholder: "AWS Cloud Practitioner" },
     org: { label: "Given by", placeholder: "Amazon Web Services" },
@@ -74,16 +74,16 @@ export const SECTIONS: Record<SectionKind, KindInfo> = {
     detail: false
   },
   organisations: {
-    label: "Clubs and organisations",
+    label: "Clubs and groups",
     hint: "Student chapters, clubs, societies",
     title: { label: "Your role", placeholder: "Chair, Treasurer, Member" },
-    org: { label: "Club or organisation", placeholder: "IEEE HKBKCE Student Chapter" },
+    org: { label: "Club or group", placeholder: "IEEE HKBKCE Student Chapter" },
     years: "range",
     link: false,
     detail: false
   },
   honours: {
-    label: "Honours and awards",
+    label: "Awards and prizes",
     hint: "Prizes, ranks, scholarships",
     title: { label: "Award", placeholder: "First prize, Technovate 2026" },
     org: { label: "Given by", placeholder: "HKBK College of Engineering" },

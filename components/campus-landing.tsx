@@ -22,7 +22,7 @@ import { SiteHeader } from "./site-header";
 const WHAT_FOR: { icon: IconName; title: string; text: string; href: string }[] = [
   { icon: "batch", title: "Find your batch", text: "Everyone from your year and branch, on the college's own register.", href: "/join" },
   { icon: "ask", title: "Ask a senior", text: "Ask about placements, electives or higher studies. Your question goes to seniors who know.", href: "/how-it-works" },
-  { icon: "people", title: "Mentor a junior", text: "Alumni say what they can help with, and students can find them.", href: "/how-it-works" },
+  { icon: "people", title: "Help a junior", text: "Alumni say what they can help with. Students can find them.", href: "/how-it-works" },
   { icon: "briefcase", title: "HKBK board", text: "Jobs, internships and referrals, checked by the college.", href: "/how-it-works" }
 ];
 
@@ -65,7 +65,7 @@ export async function CampusLanding() {
               Stay connected to <span>where it began.</span>
             </h1>
             <p className="lp-hero__text">
-              Alumnity is the alumni network of {COLLEGE.name}. Find your batch, ask a senior, help a junior and come back for the alumni meets.
+              Alumnity is the alumni network of {COLLEGE.name}. Find your batch, ask a senior and help a junior. Come back for the alumni meets.
             </p>
             <div className="lp-hero__actions">
               <Link className="lp-btn lp-btn--gold" href="/join">
@@ -95,7 +95,7 @@ export async function CampusLanding() {
             </div>
           ))}
         </section>
-        <p className="lp-stats__note container">From the college&apos;s own register of students. The figures update as the register and the network grow.</p>
+        <p className="lp-stats__note container">From the college&apos;s own register of students. The numbers change as the register and the network grow.</p>
 
         {/* ---------- What it's for ---------- */}
         <section data-reveal className="lp-section container" aria-labelledby="lp-for">
@@ -210,7 +210,7 @@ export async function CampusLanding() {
               ) : (
                 <div className="lp-card lp-event lp-event--none">
                   <span>
-                    <strong>The next alumni meet is being planned.</strong>
+                    <strong>We&apos;re planning the next alumni meet.</strong>
                     <small>Members hear about it first. Join to get the invitation.</small>
                   </span>
                 </div>

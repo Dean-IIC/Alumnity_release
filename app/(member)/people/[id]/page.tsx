@@ -59,7 +59,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
           <ActionForm action={connectAction} className="wf-stack">
             {hidden}
             <label className="field">
-              <span className="field__label">A note with your request (optional)</span>
+              <span className="field__label">Add a note (you can skip this)</span>
               <textarea name="note" rows={2} maxLength={300} placeholder={`How you know ${first}, or why you'd like to connect`} />
             </label>
             <div>
@@ -75,7 +75,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
             <ActionForm action={withdrawAction}>
               {hidden}
               <button className="wf-link-button" type="submit">
-                Withdraw request
+                Cancel request
               </button>
             </ActionForm>
           </div>
@@ -147,7 +147,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
       {record.thanks.length > 0 && (
         <section aria-labelledby="record">
           <h2 id="record">{first}'s Record</h2>
-          <p className="wf-muted">Thanks from people {first} helped through Ask a senior.</p>
+          <p className="wf-muted">Thanks from people {first} helped on Ask a senior.</p>
           {record.thanks.map((t, i) => (
             <blockquote key={i} className="wf-card">
               <p>“{t}”</p>

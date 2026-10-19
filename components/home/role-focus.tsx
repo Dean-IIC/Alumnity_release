@@ -85,7 +85,7 @@ async function StudentFocus({ me }: { me: User }) {
   const live = mine.filter((a) => a.status === "open" || a.status === "taken").slice(0, 3);
   return (
     <section className="sheet focus focus--student" aria-label="For you">
-      <Head me={me} line="Ask a senior who has been in your place. Ask about electives, projects, placements or life after college." />
+      <Head me={me} line="Seniors were students here too. Ask them about subjects, projects, placements or life after college." />
       <form className="focus__ask-start" action="/ask">
         <label className="sr-only" htmlFor="focus-ask">
           Your question for a senior
@@ -113,7 +113,7 @@ async function StudentFocus({ me }: { me: User }) {
       )}
       {openings.length > 0 && (
         <>
-          <h3>Jobs and internships the college has checked</h3>
+          <h3>Jobs and internships checked by the college</h3>
           <ul className="focus__asks">
             {openings.map((o) => (
               <li key={o.id}>
@@ -164,11 +164,11 @@ async function AlumnusFocus({ me }: { me: User }) {
   const missing = Math.max(0, onRegister - mates.length - 1);
   return (
     <section className="sheet focus focus--alumnus" aria-label="For you">
-      <Head me={me} line="A few minutes of your time can really help a junior. Here you can see who needs help, and who from your batch has joined." />
+      <Head me={me} line="A few minutes of your time can really help a junior. See who needs help, and who from your batch is here." />
       <h3>Questions for you</h3>
       {!profile.happyTo.mentor ? (
         <div className="focus__switch">
-          <p>If you mentor, we send you a few student questions that match your branch and skills. You can stop at any time.</p>
+          <p>Start mentoring and we'll send you a few student questions. They fit your branch and skills, and you can stop any time.</p>
           <ActionForm action={mentorAction}>
             <button className="button button--primary wf-small" type="submit">
               Start mentoring
@@ -182,7 +182,7 @@ async function AlumnusFocus({ me }: { me: User }) {
           ))}
         </ul>
       ) : (
-        <p className="focus__quiet">No questions for you right now. When a question matches you, it will show here and we will tell you.</p>
+        <p className="focus__quiet">No questions for you right now. When one fits you, we'll show it here and tell you.</p>
       )}
       {seeking.length > 0 && (
         <>
@@ -202,14 +202,15 @@ async function AlumnusFocus({ me }: { me: User }) {
           {mates.length > 0 ? (
             <People list={mates.slice(0, 4).map((u) => ({ member: u }))} photos={photos} note={missing ? `${missing} more from your batch ${missing === 1 ? "has" : "have"} not joined yet.` : undefined} />
           ) : (
-            <p className="focus__quiet">No one else from your batch has joined yet{onRegister ? ` (${onRegister} people joined HKBK with you)` : ""}. Invite them:</p>
+            <p className="focus__quiet">No one else from your batch is here yet.{onRegister ? ` ${onRegister} people joined HKBK with you.` : ""} Invite them:</p>
           )}
           {missing > 0 && <Invite text="I'm on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />}
         </>
       )}
       <h3>Is your company hiring?</h3>
+      <p className="focus__quiet">Post the job with #job or #internship. The college checks it and puts it on the HKBK board.</p>
       <p className="focus__quiet">
-        Post the opening with #job or #internship. The college checks it and adds it to the HKBK board. Students see it there and can ask you for a referral.{" "}
+        Students see it there and can ask you for a referral.{" "}
         {/* A plain link: the composer opens on the address's #compose, which a page swap wouldn't change. */}
         <a className="wf-inline-link" href="#compose">
           Write a post
@@ -262,7 +263,7 @@ async function TeacherFocus({ me }: { me: User }) {
           ))}
         </ul>
       ) : (
-        <p className="focus__quiet">You have no upcoming events. Alumni like to come back for guest talks, reunions and department days.</p>
+        <p className="focus__quiet">You have no events coming up. Alumni like to come back for talks, reunions and department days.</p>
       )}
       <Link className="button button--secondary wf-small" href="/events?new=1#new-event">
         Add an event
@@ -270,10 +271,10 @@ async function TeacherFocus({ me }: { me: User }) {
       <h3>Questions for you</h3>
       {!profile.happyTo.mentor ? (
         <div className="focus__switch">
-          <p>If you agree, student questions that match your department and skills will show here.</p>
+          <p>Turn this on to see student questions that fit your department and skills.</p>
           <ActionForm action={mentorAction}>
             <button className="button button--primary wf-small" type="submit">
-              Start answering questions
+              Start answering
             </button>
           </ActionForm>
         </div>
@@ -325,9 +326,9 @@ async function DeskFocus({ me }: { me: User }) {
     <section className={`sheet focus focus--desk ${superAdmin ? "focus--super" : ""}`} aria-label="The college desk">
       <Head
         me={me}
-        line={superAdmin ? "The whole site: what needs review, this week's activity and site settings." : "What needs review at the college desk, and this week's activity."}
+        line={superAdmin ? "The whole site: what to check, this week's numbers and site settings." : "What the college desk needs to check, and this week's numbers."}
       />
-      <h3>Waiting for review</h3>
+      <h3>Waiting to be checked</h3>
       {open.length || s.causesWaiting ? (
         <ul className="focus__asks">
           {open.slice(0, 3).map((r) => (
@@ -349,15 +350,15 @@ async function DeskFocus({ me }: { me: User }) {
             <li>
               <Link href="/causes" className="focus__ask">
                 <strong>
-                  {s.causesWaiting} cause{s.causesWaiting === 1 ? "" : "s"} to review
+                  {s.causesWaiting} cause{s.causesWaiting === 1 ? "" : "s"} to check
                 </strong>
-                <small>Approve it so members can donate, or explain why not.</small>
+                <small>Approve it so members can give, or say why not.</small>
               </Link>
             </li>
           )}
         </ul>
       ) : (
-        <p className="focus__quiet">Nothing waiting. No reports, no causes to review.</p>
+        <p className="focus__quiet">Nothing waiting. No reports and no causes to check.</p>
       )}
       <h3>This week</h3>
       <div className="focus__numbers">

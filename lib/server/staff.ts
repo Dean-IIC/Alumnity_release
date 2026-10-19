@@ -70,11 +70,13 @@ export async function inviteStaff(me: User, input: { email: string; name: string
       greeting: `Dear ${name},`,
       lines: [
         `${me.name} has invited you to join Alumnity as ${LABEL[role]}.`,
-        "Alumnity is where HKBK's students and alumni help each other. Seniors answer questions, and members join events and groups and stay in touch.",
-        "Join with this email address. We'll send you a code to confirm it. The invitation works for two weeks."
+        "On Alumnity, HKBK's students and alumni help each other.",
+        "Seniors answer questions. Members join events and groups, and stay in touch.",
+        "To join, use this email address. We'll send you a code to check it.",
+        "This invitation works for two weeks."
       ],
       button: { text: "Join Alumnity", href: `${origin}/join/staff?email=${encodeURIComponent(email)}` },
-      footer: "If you weren't expecting this email, you can ignore it. Nothing happens unless you join."
+      footer: "Not expecting this email? You can ignore it. Nothing happens unless you join."
     })
   }).catch(() => false);
   return { ok: true };
@@ -105,7 +107,7 @@ export async function startStaffJoin(emailInput: string, ip: string): Promise<Ou
   if (!looksLikeEmail(email)) return { ok: false, error: "That doesn’t look like an email address." };
   if (!(await withinLimit(`staff-join:ip:${ip}`, 6, 60 * 60_000)) || !(await withinLimit(`staff-join:email:${email}`, 3, 60 * 60_000))) return { ok: false, error: SLOW_DOWN };
   const invite = await openInvite(email);
-  if (!invite) return { ok: false, error: "We can't find a valid invitation for that email. Check that it's the email the college wrote to, or ask the alumni office to invite you again." };
+  if (!invite) return { ok: false, error: "We can't find a working invitation for that email. Use the email the college wrote to. Or ask the alumni office to invite you again." };
   if (await db().one("select 1 from users where email = ?", email)) return { ok: false, error: "That email already has an account. Log in instead." };
   const ticket = await newIntent("staff", email, { role: invite.role });
   const sent = await (await authProvider()).sendCode(email, true);
@@ -125,7 +127,7 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
   const session = await auth.session();
   const invite = row && (await openInvite(row.email));
   if (!row?.verified_at || !invite || row.verified_at + SETUP_LIFE < Date.now() || !session || session.authId !== row.auth_id) {
-    return { ok: false, error: "Your joining session has expired. Please start again." };
+    return { ok: false, error: "Your time to join ran out. Please start again." };
   }
   const problem = passwordProblem(password, passwordContext({ name: invite.name, usn: null, email: row.email }));
   if (problem) return { ok: false, error: problem };
@@ -169,7 +171,7 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
     return {
       ok: false,
       error: byLogin
-        ? "This login is already linked to another member's account. Please ask the college desk for help."
+        ? "This login already belongs to another member. Please ask the college desk for help."
         : "That email already has an account. Log in instead."
     };
   }

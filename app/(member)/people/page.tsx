@@ -109,14 +109,14 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
           )}
           {results.count === 0 ? (
             <p className="people-empty">
-              Nobody matches your search. Try fewer words or a different spelling, or <Link href={peopleHref({})}>clear the search</Link>.
+              Nobody matches your search. Try fewer words or another spelling. Or <Link href={peopleHref({})}>clear the search</Link>.
             </p>
           ) : (
             <Cards cards={results.cards} photos={photos} />
           )}
           {results.registerLimited && (
             <p className="wf-note">
-              You can search the college register {REGISTER_SEARCHES} times an hour, and you have reached that limit. Members still show here. Try the register again later.
+              You can search the college register {REGISTER_SEARCHES} times an hour. You&apos;ve used them all. Members still show here. Try the register again later.
             </p>
           )}
         </section>
@@ -125,12 +125,14 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
           {quiet && (
             <section className="wf-card" aria-labelledby="young">
               <h2 id="young">You&apos;re one of the first {members === 1 ? "member" : `${members} members`}</h2>
-              <p className="wf-muted">
-                Alumnity has only just opened, so there aren&apos;t many people to find yet.
-                {onRegister > 0 &&
-                  ` ${onRegister} people joined HKBK in your batch. ${mates.length === 0 ? "None of them have joined Alumnity yet." : `${mates.length} of them ${mates.length === 1 ? "has" : "have"} joined so far.`}`}{" "}
-                Alumnity gets more useful with each person who joins. Invite your batch.
-              </p>
+              <p className="wf-muted">Alumnity is new, so there aren&apos;t many people here yet.</p>
+              {onRegister > 0 && (
+                <p className="wf-muted">
+                  {onRegister} people joined HKBK in your batch.{" "}
+                  {mates.length === 0 ? "None of them have joined Alumnity yet." : `${mates.length} of them ${mates.length === 1 ? "has" : "have"} joined so far.`}
+                </p>
+              )}
+              <p className="wf-muted">Alumnity gets better with each person who joins. Invite your batch.</p>
               <Invite text="I'm on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />
             </section>
           )}
@@ -188,7 +190,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
           {college && (
             <p className="people-register-note">
               <strong>{college.count.toLocaleString("en-IN")} people</strong> are on HKBK&apos;s register ({college.from}–{college.to}). Type a name or USN above to find
-              anyone, or <a href="#register-all">look through everyone who hasn&apos;t joined yet</a>.
+              anyone. Or <a href="#register-all">look through everyone who hasn&apos;t joined yet</a>.
             </p>
           )}
         </>
@@ -202,11 +204,11 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             </h2>
           </div>
           <p className="wf-muted">
-            These names come from the college&apos;s register of students{query.branch || query.year ? ", for the branch and year you chose above" : ""}. Use Filters to see one batch.
-            Know someone here? Send them the link. They join by finding their name.
+            These names come from the college register{query.branch || query.year ? ", for the branch and year you chose" : ""}. Use Filters to see one batch.
           </p>
+          <p className="wf-muted">Know someone here? Send them the link. They join by finding their name.</p>
           {browse.limited ? (
-            <p className="wf-note">You can look through {REGISTER_PAGES} pages of the register an hour, and you have reached that limit. Try again later.</p>
+            <p className="wf-note">You can look at {REGISTER_PAGES} pages of the register an hour. You&apos;ve used them all. Try again later.</p>
           ) : (
             <ul className="people-grid">
               {browse.people.map((p, i) => (

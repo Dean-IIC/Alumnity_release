@@ -76,7 +76,7 @@ export async function requestConnection(from: User, toId: number, note: string):
   if (rel === "sent") return no("You’ve already sent them a connection request.");
   if (rel === "received") return acceptConnection(from, to.id);
   const daily = (await settings()).dailyRequests;
-  if (!(await withinLimit(`connect:${from.id}`, daily, DAY))) return no(`You’ve sent ${daily} connection requests today. That’s the daily limit. Try again tomorrow.`);
+  if (!(await withinLimit(`connect:${from.id}`, daily, DAY))) return no(`You’ve sent ${daily} connection requests today. That’s the most for one day. Try again tomorrow.`);
   await db().tx(async (t) => {
     await t.run("delete from connections where (requester = ? and addressee = ?) or (requester = ? and addressee = ?)", from.id, to.id, to.id, from.id);
     await t.run("insert into connections (requester, addressee, status, note, created_at) values (?, ?, 'pending', ?, ?)", from.id, to.id, note.trim().slice(0, NOTE_LIMIT), Date.now());
@@ -99,7 +99,7 @@ export async function acceptConnection(me: User, fromId: number): Promise<Result
     fromId,
     me.id
   );
-  if (!changes) return no("This connection request has already been answered or withdrawn.");
+  if (!changes) return no("This connection request was already answered or taken back.");
   await notify(fromId, { actor: me.id, kind: "connect-accepted", text: `${me.name} accepted your connection request. You’re now connected.`, link: `/people/${me.id}` });
   return { ok: true };
 }
@@ -228,7 +228,7 @@ export async function sendMessage(from: User, toId: number, body: string, story?
   if (!text) return no("Type a message first.");
   if (!(await memberById(toId))) return no("We couldn't find that member.");
   if ((await relation(from.id, toId)) !== "connected") return no("You can only message your connections. Connect with them first, or use Ask a senior.");
-  if (!(await withinLimit(`message:${from.id}`, 120, 60 * 60_000))) return no("You’ve sent too many messages in the last hour. Please wait a while and try again.");
+  if (!(await withinLimit(`message:${from.id}`, 120, 60 * 60_000))) return no("You’ve sent too many messages in the last hour. Wait a while, then try again.");
   // One notification per conversation until it's read, not one per message: none while
   // earlier messages wait unread, nor while the last "new message" notification does (a
   // thread read some other way used to leave that one behind, and each new burst added another).
@@ -337,7 +337,7 @@ export async function editMessage(me: User, id: number, body: string): Promise<R
   if (!(await settings()).features.messages) return no(PAUSED);
   const m = await sentBy(me, id);
   if (!m || m.deleted_at != null) return no("We couldn't find that message.");
-  if (m.reaction != null) return no("A reaction can't be edited.");
+  if (m.reaction != null) return no("You can't edit a reaction.");
   const since = Date.now() - MESSAGE_EDIT_WINDOW;
   if (m.created_at <= since) return no("You can only edit a message for 15 minutes after you send it.");
   const text = body.trim().slice(0, MESSAGE_LIMIT);

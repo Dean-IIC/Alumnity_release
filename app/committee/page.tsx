@@ -4,7 +4,7 @@ import { PublicPage } from "../../components/public-page";
 import { rosterOf } from "../../lib/site-pages";
 import { sitePages } from "../../lib/server/site-pages";
 
-export const metadata: Metadata = { title: "Committee · Alumnity", description: "The HKBK alumni association's office bearers and committee." };
+export const metadata: Metadata = { title: "Committee · Alumnity", description: "The people who run the HKBK alumni association." };
 
 // The names are the college's to fill in from its desk (site.pages).
 export const dynamic = "force-dynamic";
@@ -38,10 +38,10 @@ export default async function CommitteePage() {
   const COMMITTEE = rosterOf(pages["committee-members"].body);
   const waiting = [...OFFICE_BEARERS, ...COMMITTEE].every((p) => !isNamed(p.name));
   return (
-    <PublicPage current="committee" kicker="Committee" title="The alumni association" gold="committee" intro="The office bearers of HKBK's alumni association, and a representative from each department.">
+    <PublicPage current="committee" kicker="Committee" title="The alumni association" gold="committee" intro="The leaders of HKBK's alumni association, and one person from each department.">
       {waiting && (
         <p className="info-note">
-          The association is choosing its first committee. The names will appear here as soon as the college confirms them.
+          The association is choosing its first committee. You&apos;ll see the names here once the college shares them.
         </p>
       )}
       <section>

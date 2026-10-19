@@ -115,7 +115,7 @@ export class FreshStartAborted extends Error {
   // (No constructor parameter properties: plain Node can't strip them.)
   readonly blockers: string[];
   constructor(blockers: string[]) {
-    super(`Fresh start stopped; nothing was changed:\n${blockers.map((b) => `  - ${b}`).join("\n")}`);
+    super(`Fresh start stopped. Nothing was changed:\n${blockers.map((b) => `  - ${b}`).join("\n")}`);
     this.name = "FreshStartAborted";
     this.blockers = blockers;
   }
@@ -241,12 +241,12 @@ async function work(d: Db, rule: KeepRule): Promise<{ steps: Planned[]; blockers
     const what = to === usersLabel ? `${from}.${fk.column} → null where it named a removed account` : `${from}.${fk.column} → null (it pointed into ${to}, which is emptied)`;
     if (fk.columns > 1) {
       const n = (await d.one<{ n: number }>(`select count(*) as n from ${target} where ${where.sql}`, ...where.params))?.n ?? 0;
-      if (n) blockers.push(`${from} has a several-column key into ${to} (${n} rows affected): handle it by hand.`);
+      if (n) blockers.push(`${from} has a key of several columns into ${to} (${n} rows). Fix it by hand.`);
       continue;
     }
     if (fk.not_null) {
       const n = (await d.one<{ n: number }>(`select count(*) as n from ${target} where ${where.sql}`, ...where.params))?.n ?? 0;
-      if (n) blockers.push(`${from}.${fk.column} can't be null, and ${n} of its rows point at ${to === usersLabel ? "accounts that would be removed" : `${to}, which would be emptied`}. A kept row is never deleted, so nothing was done.`);
+      if (n) blockers.push(`${from}.${fk.column} can't be null. ${n} of its rows point at ${to === usersLabel ? "accounts that would be removed" : `${to}, which would be emptied`}. Kept rows are never deleted, so nothing was done.`);
       continue;
     }
     add({ kind: "null", table: from, column: fk.column, what, sql: `update ${target} set ${col} = null where ${where.sql}`, params: where.params, count: { sql: `select count(*) as n from ${target} where ${where.sql}`, params: where.params } });
@@ -348,7 +348,7 @@ export function describePlan(plan: FreshStartPlan, opts: { listFiles?: boolean }
   const out: string[] = [];
   out.push(`Accounts kept (${plan.kept.length}):`);
   for (const k of plan.kept) out.push(`  #${k.id}  ${k.role.padEnd(11)} ${k.email}  (${k.name}): ${k.reasons.join(", ")}`);
-  if (!plan.kept.some((k) => k.role === "admin")) out.push("  (none of them is an administrator: run make-test-accounts afterwards, or the desk has nobody)");
+  if (!plan.kept.some((k) => k.role === "admin")) out.push("  (None of them is an administrator. Run make-test-accounts after this, or nobody can use the college desk.)");
   const byRole = new Map<string, number>();
   for (const r of plan.removed) byRole.set(r.role, (byRole.get(r.role) ?? 0) + 1);
   out.push("");
@@ -361,7 +361,7 @@ export function describePlan(plan: FreshStartPlan, opts: { listFiles?: boolean }
     out.push(`  ${verb} ${String(s.rows).padStart(7)}  ${s.what}`);
   }
   out.push("");
-  if (plan.files === null) out.push("Stored files: couldn't be listed (see above); all of the bucket's files would be deleted.");
+  if (plan.files === null) out.push("Stored files: couldn't list them (see above). Every file in the bucket would be deleted.");
   else {
     out.push(`Stored files to delete: ${plan.files.length}`);
     if (opts.listFiles) for (const f of plan.files) out.push(`  ${f}`);
@@ -369,7 +369,7 @@ export function describePlan(plan: FreshStartPlan, opts: { listFiles?: boolean }
   }
   if (plan.blockers.length) {
     out.push("");
-    out.push("IT WOULD STOP, CHANGING NOTHING:");
+    out.push("IT WOULD STOP AND CHANGE NOTHING:");
     for (const b of plan.blockers) out.push(`  - ${b}`);
   }
   return out;
@@ -411,7 +411,7 @@ export async function runFreshStart(d: Db, services: FreshStartServices, rule: K
       log(`  Auth user ${r.authId} (${r.email}) not deleted: ${(e as Error).message}`);
     }
   }
-  log(`Auth users deleted: ${authDeleted}${authFailed.length ? `, ${authFailed.length} failed (harmless leftovers: no member row points at them)` : ""}.`);
+  log(`Auth users deleted: ${authDeleted}${authFailed.length ? `, ${authFailed.length} failed (left behind, but harmless: no member row points at them)` : ""}.`);
 
   let files: string[] = [];
   const filesFailed: string[] = [];
@@ -429,7 +429,7 @@ export async function runFreshStart(d: Db, services: FreshStartServices, rule: K
       log(`  ${batch.length} files not deleted: ${(e as Error).message}`);
     }
   }
-  log(`Stored files deleted: ${files.length - filesFailed.length}${filesFailed.length ? `, ${filesFailed.length} failed (harmless leftovers: nothing points at them)` : ""}.`);
+  log(`Stored files deleted: ${files.length - filesFailed.length}${filesFailed.length ? `, ${filesFailed.length} failed (left behind, but harmless: nothing points at them)` : ""}.`);
 
   return { plan: { kept, removed, steps: steps.map(publicStep), blockers: [], files }, authDeleted, authFailed, filesDeleted: files.length - filesFailed.length, filesFailed };
 }

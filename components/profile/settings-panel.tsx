@@ -68,7 +68,7 @@ export function SettingsPanel({ email }: { email: string }) {
               const answer = await post("/api/auth/password", { current: data.get("current"), password: data.get("password") });
               if (!answer.ok) return { ok: false, text: answer.error };
               form.reset();
-              return { ok: true, text: "Your password has been changed. We have logged you out on all your other devices." };
+              return { ok: true, text: "Your password is changed. We logged you out on all your other devices." };
             });
           }}
         >
@@ -104,15 +104,14 @@ export function SettingsPanel({ email }: { email: string }) {
       </Section>
 
       <Section title="Delete your account">
-        <p className="join__fine">
-          This permanently deletes your account and your page from Alumnity. Your name stays in the college register, so you can join again later if you want.
-        </p>
+        <p className="join__fine">This deletes your account and your page from Alumnity forever. You can’t undo it.</p>
+        <p className="join__fine">Your name stays in the college register, so you can join again later.</p>
         <form
           method="post"
           onSubmit={(event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
-            if (data.get("confirm") !== "DELETE") return remove.run(async () => ({ ok: false, text: "Type DELETE (in capitals) to confirm." }));
+            if (data.get("confirm") !== "DELETE") return remove.run(async () => ({ ok: false, text: "Type DELETE in capital letters first." }));
             remove.run(async () => {
               const answer = await post("/api/auth/delete", { password: data.get("password") });
               if (!answer.ok) return { ok: false, text: answer.error };
@@ -126,7 +125,7 @@ export function SettingsPanel({ email }: { email: string }) {
             <input name="password" type="password" autoComplete="current-password" required />
           </label>
           <label className="field">
-            <span className="field__label">Type DELETE to confirm</span>
+            <span className="field__label">Type DELETE to be sure</span>
             <input name="confirm" autoComplete="off" required spellCheck={false} />
           </label>
           {remove.note}

@@ -51,7 +51,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
               </p>
             )}
             <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
-              {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
+              {busy ? "Sending…" : "Send code"} <span aria-hidden="true">→</span>
             </button>
             <p className="join__fine">
               A student or alumnus? <Link href="/join">Find your name in the register</Link> · Already joined? <Link href="/login">Log in</Link>
@@ -66,7 +66,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
               setBusy(true);
               setProblem(null);
               const checked = await post("/api/auth/staff/verify", { ticket, code: form.get("code") });
-              if (!checked.ok && !/expired|Too many/.test(checked.error)) {
+              if (!checked.ok && !/too old|Too many/.test(checked.error)) {
                 // A wrong code: say so, and let them type it again.
                 setBusy(false);
                 return setProblem(checked.error);

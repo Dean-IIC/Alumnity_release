@@ -55,12 +55,12 @@ export function ThingsToDo({ me }: { me: User }) {
   const items =
     me.role === "student"
       ? [
-          ["/ask", "Ask a senior a question", "Your question goes to a few seniors who can best answer it."],
+          ["/ask", "Ask a senior a question", "We send your question to a few seniors who can answer it."],
           ["/batch", "Find your batch", "Connect with the people you study with."],
           ["/groups", "Join a group", "Clubs, cities, interests."]
         ]
       : [
-          ["/ask", "Answer a student's question", "Say you're happy to mentor. Questions that match what you know will come to you."],
+          ["/ask", "Answer a student's question", "Say you'll mentor. You'll get questions about what you know."],
           ["/batch", "Find your batch", "See who's here from your year."],
           ["/events", "See upcoming events", "Reunions, talks, college days."]
         ];

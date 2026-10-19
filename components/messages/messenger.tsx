@@ -105,8 +105,8 @@ export function Messenger({
                 the way on is to find them in Network and ask to connect. */}
             {q && shown.length === 0 && others.length === 0 && (
               <li className="dm-list__none">
-                No conversations or connections match “{query.trim()}”. You can message your connections.{" "}
-                <Link href={`/people?q=${encodeURIComponent(query.trim())}`}>Find “{query.trim()}” in Network</Link> and send a connection request.
+                No chats or connections match “{query.trim()}”. You can only message connections.{" "}
+                <Link href={`/people?q=${encodeURIComponent(query.trim())}`}>Find “{query.trim()}” in Network</Link> and ask to connect.
               </li>
             )}
           </ul>
@@ -141,7 +141,8 @@ export function Messenger({
               <Icon name="message" size={44} />
             </span>
             <h2>Your messages</h2>
-            <p>Send a private message to a connection. To message someone new, connect with them first, or use Ask a senior.</p>
+            <p>Send a private message to a connection.</p>
+            <p>Someone new? Connect with them first, or use Ask a senior.</p>
             <button type="button" className="button button--primary" onClick={() => setPicking(true)}>
               New message
             </button>
@@ -193,10 +194,12 @@ function NewMessage({ contacts, onClose }: { contacts: Contact[]; onClose: () =>
           <input id="dm-picker-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your connections" autoComplete="off" autoFocus maxLength={80} />
         </div>
         {contacts.length === 0 ? (
-          <p className="dm-picker__note">
-            You can only message your connections, and you don&rsquo;t have any yet. <Link href="/people">Find people to connect with</Link>, or{" "}
-            <Link href="/ask">ask a senior</Link>.
-          </p>
+          <>
+            <p className="dm-picker__note">You can only message your connections. You don&rsquo;t have any yet.</p>
+            <p className="dm-picker__note">
+              <Link href="/people">Find people to connect with</Link>, or <Link href="/ask">ask a senior</Link>.
+            </p>
+          </>
         ) : (
           <ul className="dm-picker__list">
             {shown.map((c) => (

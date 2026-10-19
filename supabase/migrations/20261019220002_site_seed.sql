@@ -12,14 +12,14 @@ insert into site.albums (slug, title, about, happened_on, when_text, cover_src, 
 select v.slug, v.title, v.about, v.happened_on, v.when_text, v.cover_src, v.cover_sketch, v.cover_width::integer, v.cover_height::integer, 0, true, 1792411200000, 1792411200000
 from (values
   ('graduation-day-2025', 'Graduation Day', 'The class of 2025 on their graduation day.', '2025-09-30', 'September 2025', '/assets/gallery/graduation-day-2025/cover.jpg', '/assets/gallery/graduation-day-2025/cover-sketch.jpg', 1000, 666),
-  ('swagatha-2025', 'Swagatha ’25', 'Engineering orientation day: the college welcomes its new first-year students.', '2025-09-29', 'September 2025', '/assets/gallery/swagatha-2025/cover.jpg', '/assets/gallery/swagatha-2025/cover-sketch.jpg', 1000, 666),
+  ('swagatha-2025', 'Swagatha ’25', 'Welcome day for the college’s new first-year engineering students.', '2025-09-29', 'September 2025', '/assets/gallery/swagatha-2025/cover.jpg', '/assets/gallery/swagatha-2025/cover-sketch.jpg', 1000, 666),
   ('onam-2025', 'Onam', 'Onam on campus: a dance on stage.', '2025-09-28', 'September 2025', '/assets/gallery/onam-2025/cover.jpg', '/assets/gallery/onam-2025/cover-sketch.jpg', 1000, 666),
   ('independence-day-2025', 'Independence Day', 'The 79th Independence Day: raising the flag, and celebrations on campus.', '2025-08-15', '15 August 2025', '/assets/gallery/independence-day-2025/cover.jpg', '/assets/gallery/independence-day-2025/cover-sketch.jpg', 1000, 666),
-  ('around-campus-2024-25', 'Around campus', 'Yoga Day, a poster competition, mock interviews, a food carnival and a road safety show, and two films about the college.', '2025-06-21', '2024 – 2025', '/assets/gallery/around-campus-2024-25/cover.jpg', '/assets/gallery/around-campus-2024-25/cover-sketch.jpg', 1000, 562),
-  ('cyber-security-conclave-2025', 'Cyber Security Conclave', 'ICSC 2025, the college’s International Cyber Security Conclave at CMA Royal, Bengaluru: talks and panels on keeping computers and data safe.', '2025-02-06', '6 February 2025', '/assets/gallery/cyber-security-conclave-2025/cover.jpg', '/assets/gallery/cyber-security-conclave-2025/cover-sketch.jpg', 1000, 666),
+  ('around-campus-2024-25', 'Around campus', 'Yoga Day, a poster competition, practice interviews, a food carnival and a road safety show. Plus two films about the college.', '2025-06-21', '2024 – 2025', '/assets/gallery/around-campus-2024-25/cover.jpg', '/assets/gallery/around-campus-2024-25/cover-sketch.jpg', 1000, 562),
+  ('cyber-security-conclave-2025', 'Cyber Security Conclave', 'ICSC 2025, the college’s International Cyber Security Conclave, at CMA Royal, Bengaluru. Talks on keeping computers and data safe.', '2025-02-06', '6 February 2025', '/assets/gallery/cyber-security-conclave-2025/cover.jpg', '/assets/gallery/cyber-security-conclave-2025/cover-sketch.jpg', 1000, 666),
   ('swachh-bharat-2024', 'Swachh Bharat', 'Fifty-seven final-year AIML students cleaned up the grounds of the government school in Nagawara.', '2024-12-11', '11 December 2024', '/assets/gallery/swachh-bharat-2024/cover.jpg', '/assets/gallery/swachh-bharat-2024/cover-sketch.jpg', 942, 1000),
-  ('job-drives', 'Job drives', 'The days the Indian Army and the Indian Air Force came to the college to hire students.', '2011-01', '2010 and 2011', '/assets/gallery/job-drives/cover.jpg', '/assets/gallery/job-drives/cover-sketch.jpg', 800, 533),
-  ('alumni-meets', 'Alumni meets', 'Former students back at the college to meet each other and today’s students.', '2009-01', '2008 and 2009', '/assets/gallery/alumni-meets/cover.jpg', '/assets/gallery/alumni-meets/cover-sketch.jpg', 800, 533),
+  ('job-drives', 'Job drives', 'The Indian Army and the Indian Air Force came to the college to hire students.', '2011-01', '2010 and 2011', '/assets/gallery/job-drives/cover.jpg', '/assets/gallery/job-drives/cover-sketch.jpg', 800, 533),
+  ('alumni-meets', 'Alumni meets', 'Past students come back to meet each other and today’s students.', '2009-01', '2008 and 2009', '/assets/gallery/alumni-meets/cover.jpg', '/assets/gallery/alumni-meets/cover-sketch.jpg', 800, 533),
   ('sports-day', 'Sports Day', 'Games and races on the college ground.', '', 'Before 2014', '/assets/gallery/sports-day/cover.jpg', '/assets/gallery/sports-day/cover-sketch.jpg', 800, 533),
   ('uninor-cup', 'The Uninor Cup', 'The college team in blue, and the prize-giving at the Uninor Cup.', '', 'Before 2014', '/assets/gallery/uninor-cup/cover.jpg', '/assets/gallery/uninor-cup/cover-sketch.jpg', 800, 533)
 ) as v(slug, title, about, happened_on, when_text, cover_src, cover_sketch, cover_width, cover_height)
@@ -77,7 +77,7 @@ from (values
   ('independence-day-2025', 'all', '/assets/gallery/independence-day-2025/08.jpg', '/assets/gallery/independence-day-2025/08-thumb.jpg', 1600, 1066, 640, 'Independence Day, 15 August 2025', null, 7),
   ('independence-day-2025', 'all', '/assets/gallery/independence-day-2025/09.jpg', '/assets/gallery/independence-day-2025/09-thumb.jpg', 1600, 1066, 640, 'Independence Day, 15 August 2025', null, 8),
   ('around-campus-2024-25', 'yoga-day-2025', '/assets/gallery/around-campus-2024-25/01.jpg', '/assets/gallery/around-campus-2024-25/01-thumb.jpg', 1600, 900, 640, 'Students doing yoga on the college ground', 'Students doing yoga on the college ground', 0),
-  ('around-campus-2024-25', 'cse-poster-competition-2024', '/assets/gallery/around-campus-2024-25/02.jpg', '/assets/gallery/around-campus-2024-25/02-thumb.jpg', 707, 630, 640, 'Winners receiving their certificates', 'Winners receiving their certificates', 1),
+  ('around-campus-2024-25', 'cse-poster-competition-2024', '/assets/gallery/around-campus-2024-25/02.jpg', '/assets/gallery/around-campus-2024-25/02-thumb.jpg', 707, 630, 640, 'Winners getting their certificates', 'Winners getting their certificates', 1),
   ('around-campus-2024-25', 'ece-mock-interviews-2024', '/assets/gallery/around-campus-2024-25/03.jpg', '/assets/gallery/around-campus-2024-25/03-thumb.jpg', 1600, 900, 640, 'Final-year ECE students in a practice group discussion', 'Final-year ECE students in a practice group discussion', 2),
   ('around-campus-2024-25', 'food-carnival-2024', '/assets/gallery/around-campus-2024-25/04.jpg', '/assets/gallery/around-campus-2024-25/04-thumb.jpg', 1280, 960, 640, 'Third-semester students and teachers at the food stalls', 'Third-semester students and teachers at the food stalls', 3),
   ('around-campus-2024-25', 'vyom-2024', '/assets/gallery/around-campus-2024-25/05.jpg', '/assets/gallery/around-campus-2024-25/05-thumb.jpg', 960, 1280, 640, 'A stunt rider at the road safety show', 'A stunt rider at the road safety show', 4),
@@ -183,9 +183,11 @@ This is our collective journey, one that thrives on meaningful relationships, co
 To each of you, I extend a warm and heartfelt welcome back home. HKBK will always remain your home away from home, a place where your contributions, your memories, and your dreams will always be cherished. Let us come together to honour our shared past, inspire the present, and build a future where HKBK and its alumni community shine brighter than ever before.
 
 Welcome home!', 'Shri C M Faiz Mohammed', 'Director'),
-  ('about-intro', 'About: opening words', 'The alumni and student network of HKBK College of Engineering, Bengaluru. It is one place for everyone who studied or taught here to find each other, help each other and stay in touch.', null, null),
-  ('community-intro', 'Community: opening words', 'Who Alumnity is for, what is open to everyone, and what members get.', null, null),
-  ('community-lead', 'Community: first paragraph', 'Alumnity is where students and alumni of HKBK College of Engineering help each other. Students get honest interview experiences, quick answers and referrals from seniors. Alumni stay in touch with their batch and the college, and help students when they have time.', null, null),
+  ('about-intro', 'About: opening words', 'Alumnity is for everyone who studied or taught at HKBK College of Engineering, Bengaluru. Find each other, help each other and stay in touch.', null, null),
+  ('community-intro', 'Community: opening words', 'Who can join, what anyone can see, and what members get.', null, null),
+  ('community-lead', 'Community: first paragraph', 'Here, students and alumni of HKBK College of Engineering help each other.
+
+Students get real interview stories, quick answers and referrals from seniors. Alumni keep in touch with their batch and college, and help when they can.', null, null),
   ('committee-office-bearers', 'Committee: office bearers', 'President: To be announced
 Vice President: To be announced
 Secretary: To be announced

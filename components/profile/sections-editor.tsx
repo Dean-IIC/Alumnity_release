@@ -64,7 +64,7 @@ function EntryFields({ kind, entry, index, onChange, onRemove }: { kind: Section
             <label className="editor__check section-entry__current">
               <input type="checkbox" checked={entry.current} onChange={(e) => set("current", e.target.checked)} />
               <span>
-                <b>Current (no end year)</b>
+                <b>Still doing this (no end year)</b>
               </span>
             </label>
           )}
@@ -72,13 +72,13 @@ function EntryFields({ kind, entry, index, onChange, onRemove }: { kind: Section
       )}
       {info.link && (
         <label className="field">
-          <span className="field__label">Link (optional)</span>
+          <span className="field__label">Link (you can skip this)</span>
           <input value={entry.link} inputMode="url" maxLength={SECTION_LIMITS.link} placeholder="github.com/you/project" onChange={(e) => set("link", e.target.value)} />
         </label>
       )}
       {info.detail && (
         <label className="field">
-          <span className="field__label">Short description (optional)</span>
+          <span className="field__label">A few words about it (you can skip this)</span>
           <textarea value={entry.detail} rows={2} maxLength={SECTION_LIMITS.detail} onChange={(e) => set("detail", e.target.value)} />
         </label>
       )}

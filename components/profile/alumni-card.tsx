@@ -119,7 +119,7 @@ export function AlumniCardBack({ card }: { card: AlumniCard }) {
           <path d={qrPath(modules, 4)} fill="#0a2a57" />
         </svg>
         <div className="acard__verify-text">
-          <p className="acard__label">Scan to verify</p>
+          <p className="acard__label">Scan to check</p>
           <p className="acard__statement">
             {card.name} is a member of {COLLEGE.name} on Alumnity.
           </p>

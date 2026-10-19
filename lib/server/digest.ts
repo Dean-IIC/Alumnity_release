@@ -86,7 +86,7 @@ export async function runDigest(origin: string, now = Date.now()): Promise<{ sen
         ...rows.slice(0, 5).map((r) => `• ${r.text}`)
       ],
       button: { text: "Open Alumnity", href: `${origin}/notifications` },
-      footer: `We send at most one email a day, and only when you have something new. ${stop ? `To stop these emails: ${stop}` : "You can turn these emails off in Settings."}`
+      footer: `We send at most one email a day. We only send it when you have something new. ${stop ? `To stop these emails: ${stop}` : "You can turn these emails off in Settings."}`
     });
     try {
       await sendMail({ to: m.email, subject: summary[0] ? `Alumnity: ${summary[0]}` : "You have new notifications on Alumnity", ...body, unsubscribe: stop });

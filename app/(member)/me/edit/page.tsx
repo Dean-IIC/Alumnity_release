@@ -20,7 +20,7 @@ export default async function EditPage() {
         <header className="page-head">
           <BackLink fallback="/me" label="Your page" />
           <h1 className="page-title">Edit your page</h1>
-          <p className="page-head__text">Everything here is optional. For each part, choose who can see it.</p>
+          <p className="page-head__text">You can skip any part. For each part, choose who can see it.</p>
         </header>
         <ProfileEditor initial={await profileOf(user.id)} role={user.role} name={user.name} campus={campusCover(user)} seed={user.id} />
       </div>

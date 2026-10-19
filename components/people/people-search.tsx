@@ -164,7 +164,7 @@ export function PeopleSearch({
                 inputMode="numeric"
                 pattern="[0-9]{4}"
                 maxLength={4}
-                placeholder="Any year, e.g. 2012"
+                placeholder="Any year, like 2012"
                 defaultValue={query.year ?? ""}
                 key={`y-${query.year ?? ""}`}
                 aria-label="Joining year"

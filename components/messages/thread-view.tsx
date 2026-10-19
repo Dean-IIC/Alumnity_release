@@ -108,7 +108,7 @@ function StoryCard({ m }: { m: ChatMessage }) {
           <img className="dm-story__thumb" src={mediaUrl(s.mediaId, 120)} alt="The story" loading="lazy" />
         )
       ) : (
-        <span className="dm-story__gone">Story no longer available</span>
+        <span className="dm-story__gone">This story is gone</span>
       )}
     </div>
   );
@@ -302,7 +302,7 @@ export function ThreadView({
           </span>
         </Link>
         <Link href={`/people/${other.id}`} className="pill-button dm-thread__profile">
-          View profile
+          See their page
         </Link>
         {shown.some((m) => m.id > 0) && (
           <button type="button" className="dm-icon-button dm-thread__more" aria-label="Chat options" aria-haspopup="dialog" title="Chat options" onClick={() => setActing({ kind: "chat" })}>
@@ -324,7 +324,7 @@ export function ThreadView({
           <strong>{other.name}</strong>
           {other.detail && <span>{other.detail}</span>}
           <Link href={`/people/${other.id}`} className="pill-button">
-            View profile
+            See their page
           </Link>
         </div>
         {shown.length === 0 ? (

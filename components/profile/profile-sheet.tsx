@@ -81,22 +81,22 @@ const LANTERNS = [
   {
     key: "refer",
     title: "Refers people",
-    note: "Recommends good candidates at their company.",
+    note: "Suggests good people for jobs at their company.",
     art: <path d="M12 42V8h20v34M12 42h26M32 8l8 4v26l-8 4M27 26h2M6 14l4 2M4 24h5M6 34l4-2" />
   },
   {
     key: "talk",
     title: "Gives talks",
-    note: "A guest lecture, or a session for a department.",
+    note: "A guest talk, or a session for a department.",
     art: <path d="M16 42h16M24 42V30M14 30h20l-3-8H17l-3 8Zm10-8v-6m-6-8a6 6 0 0 1 12 0M14 6a12 12 0 0 1 20 0" />
   }
 ] as const;
 
 /* A student's side: what they're looking for, drawn the same way. */
 const WISHES = [
-  { key: "mentor", title: "Looking for a mentor", note: "A senior who can help with a decision.", art: LANTERNS[0].art },
-  { key: "internship", title: "Looking for an internship", note: "Alumni who hire, or who know about openings.", art: LANTERNS[1].art },
-  { key: "referral", title: "Looking for a referral", note: "For when they apply to a company where an alumnus works.", art: LANTERNS[2].art }
+  { key: "mentor", title: "Looking for a mentor", note: "A senior who can help them choose.", art: LANTERNS[0].art },
+  { key: "internship", title: "Looking for an internship", note: "Alumni who hire, or who know of jobs.", art: LANTERNS[1].art },
+  { key: "referral", title: "Looking for a referral", note: "An alumnus who can suggest them for a job.", art: LANTERNS[2].art }
 ] as const;
 
 const STAFF = new Set(["faculty", "coordinator", "admin", "superadmin"]);
@@ -223,10 +223,10 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
               ) : (
                 <p className="profile__prompt">
                   {student
-                    ? "A few lines about you: what you're studying, what you'd like to do after HKBK, what you'd ask a senior."
+                    ? "Write a few lines about you. What do you study, and what do you want to do next?"
                     : staff
-                      ? "A few lines about you: what you teach, what you research, how students and alumni can work with you."
-                      : "A few lines about you: what you work on, what you loved at HKBK, what a junior could ask you."}
+                      ? "Write a few lines about what you teach and research. Say how students and alumni can work with you."
+                      : "Write a few lines about your work and your time at HKBK. Say what a junior could ask you."}
                 </p>
               )}
             </Card>
@@ -267,7 +267,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
           {isOwner && SECTION_KINDS.every((k) => !profile.sections[k]?.length) && (
             <Card title="More about you">
               <p className="profile__prompt">
-                Add sections when you edit your page: experience, education, projects, certificates, clubs, awards and languages.
+                Add more when you edit your page. For example: experience, education, projects, certificates, clubs, awards, languages.
               </p>
             </Card>
           )}
@@ -311,7 +311,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                             ? w.note
                             : w.key === "mentor"
                               ? "Not switched on. Edit your page to turn it on, so seniors can find you."
-                              : "Not switched on. Turn it on when you edit your page. Then seniors can find you, and we tell you when a job or internship is posted on the HKBK board."}
+                              : "Not switched on. Turn it on when you edit your page, so seniors can find you. We'll also tell you about new jobs and internships on the HKBK board."}
                         </span>
                       </span>
                     </li>

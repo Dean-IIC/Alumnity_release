@@ -17,7 +17,7 @@ export function KnowEveryone() {
         🎉
       </p>
       <h2 id="know-everyone">You know everyone here!</h2>
-      <p>We have no one else to suggest right now. Alumnity grows when your batch joins, so invite them.</p>
+      <p>We have no one else to show you right now. Invite your batch to join.</p>
       <Link className="button button--gold wf-small" href="/batch">
         Invite your batch
       </Link>

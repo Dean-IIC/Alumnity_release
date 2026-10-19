@@ -53,7 +53,7 @@ export function passwordProblem(password: string, context: string[] = []): strin
   if (password.length < 10) return "Use at least 10 characters.";
   if (password.length > 200) return "That’s too long. Use 200 characters or fewer.";
   if (/^\d+$/.test(password)) return "Don’t use only numbers. Add some letters too.";
-  if (new Set(password).size < 4) return "Use more different characters.";
+  if (new Set(password).size < 4) return "Use more different letters, numbers or symbols.";
   const lower = password.toLowerCase();
   // Named, so nobody is left guessing which word it was ("Alumnity" is in every demo address).
   const common = ["password", "qwerty", "123456", "hkbk", "alumnity"].find((w) => lower.includes(w));
