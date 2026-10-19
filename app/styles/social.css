@@ -1992,6 +1992,12 @@ html.story-open {
   .ask-send .button {
     width: 100%;
   }
+
+  /* A field the browser points at (left empty) scrolls clear of the floating button, so
+     its "Please fill out this field" is seen, not hidden behind Send. */
+  .wf-stack :is(input, textarea) {
+    scroll-margin-bottom: 180px;
+  }
 }
 
 /* A phone: the people in a row to swipe, not a card each down the screen. Four of them

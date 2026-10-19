@@ -101,7 +101,14 @@ export function Messenger({
                 </Link>
               </li>
             ))}
-            {q && shown.length === 0 && others.length === 0 && <li className="dm-list__none">No conversations match “{query.trim()}”.</li>}
+            {/* Messages are between connections: someone not found here may not be one yet, so
+                the way on is to find them in Network and ask to connect. */}
+            {q && shown.length === 0 && others.length === 0 && (
+              <li className="dm-list__none">
+                No conversations or connections match “{query.trim()}”. You can message your connections.{" "}
+                <Link href={`/people?q=${encodeURIComponent(query.trim())}`}>Find “{query.trim()}” in Network</Link> and send a connection request.
+              </li>
+            )}
           </ul>
         )}
 

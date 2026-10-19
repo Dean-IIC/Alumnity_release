@@ -55,7 +55,7 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
         <input name="title" required maxLength={140} placeholder="e.g. How did you prepare for campus placements?" defaultValue={started} autoFocus={Boolean(started)} />
       </label>
       <label className="field">
-        <span className="field__label">More details</span>
+        <span className="field__label">More details (needed, so a senior can really help)</span>
         <textarea name="body" rows={4} required maxLength={2000} placeholder="What have you tried? Where are you stuck? What would help?" />
       </label>
       <label className="field">
