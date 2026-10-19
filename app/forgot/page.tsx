@@ -4,6 +4,7 @@ import { SiteFooter } from "../../components/site-footer";
 import { SoonNotice } from "../../components/coming-soon";
 import { ForgotForm } from "../../components/join/forgot-form";
 import "../styles/join.css";
+import "../styles/join-scan.css";
 
 export const metadata: Metadata = { title: "Reset your password · Alumnity" };
 

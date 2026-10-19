@@ -86,7 +86,7 @@ export function ForgotForm() {
           </form>
         )}
       </div>
-      <RegisterBook state={busy ? "searching" : "idle"} />
+      <RegisterBook state={busy ? "searching" : "idle"} tone="login" />
     </div>
   );
 }

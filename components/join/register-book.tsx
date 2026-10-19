@@ -1,111 +1,156 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import { useEffect, useRef } from "react";
 
 /*
- * The college register, drawn: a ruled page of the old book, its lines in faint pencil.
- * Looking someone up riffles through its pages; when they're found, the pen writes their line in,
- * the register's red stamp lands on it, and a gust of wind carries a few leaves across.
- * Motion is all CSS (app/styles/join.css), and still for reduced motion.
+ * The college register, on a tablet. While someone is being looked up, records stream
+ * past and a marigold scan line sweeps up and down over them, like a database search.
+ * When they're found, the line stops on a highlighted row, their line is written into it
+ * and a green "On the register" stamp lands. When they aren't found, a red "Not found"
+ * stamp lands over the stopped list.
+ *
+ * The records that stream past are made up here, in the browser, from a fixed seed: they
+ * are never real register data (the server only ever sends back the one line that matched).
+ * Their names are scrambled and blurred, and their USNs masked, so nobody mistakes them
+ * for real people.
+ *
+ * All motion is CSS (app/styles/join-scan.css). With reduced motion the panel just shows
+ * each state, still.
  */
 
 export type BookState = "idle" | "searching" | "found" | "not-found";
 
 export type BookLine = { name: string; usn: string; branch: string; joined: number };
 
-const ROWS = 9;
-/** The found line is written on this row. */
-const YOURS = 5;
+/** How many made-up records stream past (drawn twice, so the loop has no seam). */
+const FAKE_ROWS = 12;
+const BRANCHES = ["CS", "EC", "ME", "CV", "EE", "IS", "AI", "TE"];
+const LETTERS = "abcdefghiklmnoprstuvy";
 
-/** A pencil scribble standing in for a name nobody can read: wobbly, a different length each row. */
-function scribble(row: number, from: number, to: number) {
-  const y = 12;
-  let d = `M${from} ${y}`;
-  for (let x = from, i = 0; x < to; x += 9, i++) {
-    const up = (row * 7 + i * 13) % 5;
-    d += `q4.5 ${-(3 + up)} 9 0`;
-  }
-  return d;
+/** A small fixed-seed number generator: the same rows on the server and in the browser. */
+function seeded(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 1103515245 + 12345) % 2147483648;
+    return s / 2147483648;
+  };
 }
 
-const WIDTHS = [150, 118, 170, 132, 160, 104, 146, 124, 166];
+/** Gibberish shaped like a name: two scrambled words, nobody's. */
+function scrambled(next: () => number) {
+  const word = (length: number) => {
+    let w = "";
+    for (let i = 0; i < length; i++) w += LETTERS[Math.floor(next() * LETTERS.length)];
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  };
+  return `${word(4 + Math.floor(next() * 4))} ${word(5 + Math.floor(next() * 5))}`;
+}
 
-export function RegisterBook({ state, line }: { state: BookState; line?: BookLine }) {
+type FakeRow = { usn: string; name: string; branch: string; joined: number };
+
+const FAKES: FakeRow[] = (() => {
+  const next = seeded(1997);
+  return Array.from({ length: FAKE_ROWS }, () => {
+    const branch = BRANCHES[Math.floor(next() * BRANCHES.length)];
+    return {
+      // Masked: the shape of a USN, never one.
+      usn: `1HK••${branch}•••`,
+      name: scrambled(next),
+      branch,
+      joined: 1998 + Math.floor(next() * 27)
+    };
+  });
+})();
+
+/** What the panel's status chip says, for joining and for logging in. */
+const STATUS = {
+  join: { idle: "Ready to search", searching: "Searching the register…", found: "1 record found", "not-found": "No match" },
+  login: { idle: "Your page is in here", searching: "Checking…", found: "Signed in", "not-found": "Not signed in" }
+} as const;
+
+export function RegisterBook({
+  state,
+  line,
+  tone = "join",
+  reveal = false
+}: {
+  state: BookState;
+  line?: BookLine;
+  /** "login": a calmer panel (slow scan when idle, "checking" while signing in). */
+  tone?: "join" | "login";
+  /** Bring the panel into view when a search starts (on a phone it sits above the form, out of sight). */
+  reveal?: boolean;
+}) {
+  const panel = useRef<HTMLElement>(null);
+
+  // On a phone the panel is above the form, and the button that starts the search is at the
+  // form's foot: by the time the result lands, the panel had scrolled out of sight above.
+  // So when a search starts, scroll just enough to show it (never on a wide screen, where
+  // it's already beside the form).
+  useEffect(() => {
+    if (!reveal || state !== "searching" || !panel.current) return;
+    const box = panel.current.getBoundingClientRect();
+    if (box.top >= 0 && box.bottom <= window.innerHeight) return;
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    panel.current.scrollIntoView({ block: "nearest", behavior: still ? "auto" : "smooth" });
+  }, [reveal, state]);
+
+  const row = (r: FakeRow, key: string) => (
+    <li key={key} className="register-scan__row">
+      <span className="register-scan__usn">{r.usn}</span>
+      <span className="register-scan__name">{r.name}</span>
+      <span>{r.branch}</span>
+      <span>{r.joined}</span>
+    </li>
+  );
+
   return (
-    <figure className={`register-book register-book--${state}`} aria-hidden="true">
-      <div className="register-book__page">
-        <header className="register-book__head">
-          <span className="register-book__title">HKBK College of Engineering</span>
-          <span className="register-book__sub">Register of students · since 1998</span>
+    <figure ref={panel} className={`register-scan register-scan--${state} register-scan--${tone}`} aria-hidden="true">
+      <div className="register-scan__screen">
+        <header className="register-scan__head">
+          <span className="register-scan__title">HKBK College of Engineering</span>
+          <span className="register-scan__sub">Register of students · since 1998</span>
+          <span className="register-scan__status">{STATUS[tone][state]}</span>
         </header>
-        <div className="register-book__columns">
+        <div className="register-scan__columns">
           <span>USN</span>
           <span>Name</span>
           <span>Branch</span>
           <span>Joined</span>
         </div>
-        <ol className="register-book__rows">
-          {Array.from({ length: ROWS }, (_, row) => (
-            <li key={row} className={row === YOURS ? "register-book__row register-book__row--yours" : "register-book__row"} style={{ "--row": row } as CSSProperties}>
-              {row === YOURS && state === "found" && line ? (
-                <span className="register-book__written">
-                  <span>{line.usn}</span>
-                  <span>{line.name}</span>
-                  <span>{line.branch}</span>
-                  <span>{line.joined}</span>
-                </span>
-              ) : (
-                <svg viewBox="0 0 340 24" preserveAspectRatio="none">
-                  <path d={scribble(row, 6, 60)} />
-                  <path d={scribble(row + 3, 76, 76 + WIDTHS[row])} />
-                  <path d={scribble(row + 5, 262, 292)} />
-                  <path d={scribble(row + 1, 306, 334)} />
-                </svg>
-              )}
-              {/* The register's stamp, inked on the found line. */}
-              {row === YOURS && (
-                <svg className="register-book__stamp" viewBox="0 0 120 120">
-                  <defs>
-                    <path id="stamp-ring" d="M60 60m-41 0a41 41 0 1 1 82 0a41 41 0 1 1 -82 0" />
-                  </defs>
-                  <circle cx="60" cy="60" r="54" />
-                  <circle cx="60" cy="60" r="31" />
-                  <text>
-                    <textPath href="#stamp-ring" startOffset="2%">ON THE REGISTER · HKBK CE ·</textPath>
-                  </text>
-                  <text x="60" y="66" textAnchor="middle" className="register-book__stamp-mark">✓</text>
-                </svg>
-              )}
-            </li>
-          ))}
-        </ol>
-        {/* Not found: the register's other stamp, in brown ink across the page. */}
-        <svg className="register-book__seal" viewBox="0 0 160 160">
-          <defs>
-            <path id="seal-ring" d="M80 80m-58 0a58 58 0 1 1 116 0a58 58 0 1 1 -116 0" />
-          </defs>
-          <circle cx="80" cy="80" r="72" />
-          <circle cx="80" cy="80" r="66" className="register-book__seal-dash" />
-          <circle cx="80" cy="80" r="44" />
-          <text>
-            <textPath href="#seal-ring" startOffset="1%">NOT FOUND ON THE REGISTER · HKBK CE ·</textPath>
-          </text>
-          <text x="80" y="76" textAnchor="middle" className="register-book__seal-mark">?</text>
-          <text x="80" y="98" textAnchor="middle" className="register-book__seal-note">CHECK &amp; TRY AGAIN</text>
-        </svg>
-        {/* Looking you up: leaves of the register lift and turn over at the spine, one after another. */}
-        <div className="register-book__flips">
-          {[0, 1, 2].map((f) => (
-            <span key={f} className="register-book__flip" style={{ "--f": f } as CSSProperties} />
-          ))}
+        <div className="register-scan__window">
+          <ol className="register-scan__stream">
+            {FAKES.map((r, i) => row(r, `a${i}`))}
+            {FAKES.map((r, i) => row(r, `b${i}`))}
+          </ol>
+
+          {/* The row the scan stops on: the person's own line, from the server's answer. */}
+          {state === "found" && line && (
+            <div className="register-scan__hit">
+              <span className="register-scan__usn">{line.usn}</span>
+              <span>{line.name}</span>
+              <span>{line.branch}</span>
+              <span>{line.joined}</span>
+            </div>
+          )}
+
+          <span className="register-scan__beam" />
+
+          {state === "found" && (
+            <span className="register-scan__stamp register-scan__stamp--yes">
+              {tone === "login" ? "Welcome back" : "On the register"} <span className="register-scan__tick">✓</span>
+            </span>
+          )}
+          {state === "not-found" && (
+            <span className="register-scan__stamp register-scan__stamp--no">
+              Not found
+              <small>Check &amp; try again</small>
+            </span>
+          )}
         </div>
       </div>
-      {/* A gust of wind when you're found: a few leaves carried across the page. */}
-      <div className="register-book__wind">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <svg key={i} className="register-book__leaf" viewBox="-4 -24 78 32" style={{ "--i": i } as CSSProperties}>
-            <path d="M0 0c18 -22 52 -24 70 -6c-20 20 -52 22 -70 6zM0 0l58 -8" />
-          </svg>
-        ))}
-      </div>
+      {/* The tablet's camera, a dot on its frame: just enough to read as a device. */}
+      <span className="register-scan__camera" />
     </figure>
   );
 }

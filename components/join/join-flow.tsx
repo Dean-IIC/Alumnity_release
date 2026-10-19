@@ -28,8 +28,11 @@ const ROLES: { value: Role; label: string; note: string }[] = [
   { value: "faculty", label: "I teach here", note: "Bring your department's people together." }
 ];
 
-/** The book turns three pages while it looks (join.css: 1050 ms each, 340 ms apart); the answer waits for the last. */
-const MIN_SEARCH = 1750;
+/**
+ * The register scans for at least this long (join-scan.css: a sweep is 1.1 s each way), so
+ * even a quick answer reads as a search before the result stamp lands.
+ */
+const MIN_SEARCH = 1600;
 
 export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: number; to: number }) {
   const [role, setRole] = useState<Role>("alumnus");
@@ -312,7 +315,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
           </div>
         )}
       </div>
-      <RegisterBook state={book} line={line} />
+      <RegisterBook state={book} line={line} reveal />
     </div>
   );
 }
