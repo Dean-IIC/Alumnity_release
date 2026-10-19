@@ -175,3 +175,8 @@
     border-radius: 16px;
   }
 }
+
+/* Dark mode: the same picture, dimmed to a night version of itself. */
+:root[data-theme="dark"] .scene {
+  filter: brightness(0.32) saturate(0.85);
+}
