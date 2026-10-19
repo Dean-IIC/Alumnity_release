@@ -715,21 +715,62 @@ a.lp-card:hover {
   transition: opacity 160ms ease;
 }
 
-.lp-bars__bar:hover,
-.lp-bars__bar:focus-visible {
-  background: var(--color-gold);
-  outline: none;
+/* Each year's full-height column is what the pointer finds (the bar inside it may be tiny). */
+.lp-bars__col {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  align-items: flex-end;
+  min-width: 0;
+  height: 100%;
 }
 
-.lp-bars__bar:hover::after,
-.lp-bars__bar:focus-visible::after {
+.lp-bars__col .lp-bars__bar {
+  flex: 1 1 auto;
+}
+
+.lp-bars__col:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--color-blue);
+  outline-offset: 1px;
+}
+
+.lp-bars__col:hover,
+.lp-bars__col:focus-visible {
+  /* Above its neighbours, so its bubble isn't drawn under them. */
+  z-index: 3;
+}
+
+.lp-bars__col:hover .lp-bars__bar,
+.lp-bars__col:focus-visible .lp-bars__bar {
+  background: var(--color-gold);
+}
+
+.lp-bars__col:hover .lp-bars__bar::after,
+.lp-bars__col:focus-visible .lp-bars__bar::after {
   opacity: 1;
   transform: translate(-50%, 0);
 }
 
-.lp-bars__bar:hover::before,
-.lp-bars__bar:focus-visible::before {
+.lp-bars__col:hover .lp-bars__bar::before,
+.lp-bars__col:focus-visible .lp-bars__bar::before {
   opacity: 1;
+}
+
+/* Near the ends, the bubble opens inwards so it stays on the chart. */
+.lp-bars__col[data-edge="start"] .lp-bars__bar::after {
+  left: -4px;
+  transform: translate(0, 6px);
+}
+
+.lp-bars__col[data-edge="end"] .lp-bars__bar::after {
+  right: -4px;
+  left: auto;
+  transform: translate(0, 6px);
+}
+
+.lp-bars__col[data-edge]:is(:hover, :focus-visible) .lp-bars__bar::after {
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

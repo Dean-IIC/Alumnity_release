@@ -517,13 +517,8 @@
 
 /* ---------- Every card rises into place as it's reached (components/card-motion.tsx) ---------- */
 
-.cards-ready :is(.sheet, .wf-card, .event-card, .person-card, .request-card, .album-card, .lp-card, .lp-stat, .focus__person):not(.is-shown) {
-  opacity: 0;
-  transform: translateY(18px);
-}
-
 .cards-ready :is(.sheet, .wf-card, .event-card, .person-card, .request-card, .album-card, .lp-card, .lp-stat, .focus__person) {
-  transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out), box-shadow 260ms ease, border-color 260ms ease, clip-path 900ms ease;
+  transition: box-shadow 260ms ease, border-color 260ms ease, clip-path 900ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

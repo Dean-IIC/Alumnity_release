@@ -130,9 +130,13 @@ export async function CampusLanding() {
                   </figcaption>
                   <div className="lp-bars" role="img" aria-label={`Students by joining year: ${years.map((y) => `${y.year}, ${y.n}`).join("; ")}`}>
                     {years.map((y, i) => (
-                      <span key={y.year} className="lp-bars__bar" style={{ height: `${Math.max(4, (y.n / top) * 100)}%`, "--i": i } as CSSProperties} data-tip={`${y.year} · ${fmt(y.n)} students`} tabIndex={0}>
-                        <span className="sr-only">
-                          {y.year}: {y.n}
+                      // The whole column answers the pointer, so a short year is as easy to read as a tall one;
+                      // near either end its bubble opens inwards rather than off the chart.
+                      <span key={y.year} className="lp-bars__col" data-edge={i < years.length / 4 ? "start" : i >= (years.length * 3) / 4 ? "end" : undefined} tabIndex={0}>
+                        <span className="lp-bars__bar" style={{ height: `${Math.max(4, (y.n / top) * 100)}%`, "--i": i } as CSSProperties} data-tip={`${y.year} · ${fmt(y.n)} students`}>
+                          <span className="sr-only">
+                            {y.year}: {y.n}
+                          </span>
                         </span>
                       </span>
                     ))}
