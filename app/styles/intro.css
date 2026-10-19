@@ -593,3 +593,45 @@ body:has(.landing-ui--revealing) .intro-lockup .brand__swoosh {
     opacity: 0;
   }
 }
+
+/* ---------- Skip, where it can be seen ---------- */
+
+/* "Skip intro" sat at the bottom in a see-through pill: over the intro's pale last photo it
+   all but vanished, and on a phone the browser's own bar can cover the bottom of the
+   screen. So it stands at the top right, solid navy with a gold edge, and the "don't play it
+   next time" choice stays at the bottom, solid too. Clear of a phone's notch and bars. */
+.ink-intro__skip {
+  position: fixed;
+  z-index: 103;
+  top: calc(env(safe-area-inset-top, 0px) + var(--space-4));
+  right: calc(env(safe-area-inset-right, 0px) + var(--space-4));
+  min-height: 46px;
+  padding: 0 var(--space-5);
+  border: 2px solid #ffb400;
+  background: #0a2a57;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: var(--weight-bold);
+  box-shadow: 0 6px 18px rgba(4, 18, 43, 0.4);
+}
+
+.ink-intro__skip:hover,
+.ink-intro__skip:focus-visible {
+  background: #123e7c;
+  color: #ffffff;
+}
+
+.ink-intro__skip:focus-visible {
+  outline: 3px solid #ffb400;
+  outline-offset: 2px;
+}
+
+.ink-intro__controls {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-5));
+}
+
+.ink-intro__remember {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(10, 42, 87, 0.92);
+  color: #ffffff;
+}

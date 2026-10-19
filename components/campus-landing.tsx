@@ -29,7 +29,8 @@ const WHAT_FOR: { icon: IconName; title: string; text: string; href: string }[] 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 const branchName = (code: string) => BRANCHES.find(([c]) => c === code)?.[1] ?? code;
 
-export async function CampusLanding() {
+/** `then`: where a signed-in member goes once the intro is over (they came for the intro, not the landing). */
+export async function CampusLanding({ then }: { then?: string } = {}) {
   const [facts, years, members, events, albums] = await Promise.all([registerFacts(), registerByYear(), memberCount(), upcomingForEveryone(3), galleryAlbums()]);
   // From the college's gallery (lib/server/showcase.ts): the graduation album's cover, and the alumni meets.
   const HERO = albums.find((a) => a.slug.startsWith("graduation")) ?? albums[0];
@@ -47,7 +48,7 @@ export async function CampusLanding() {
 
   return (
     <div className="landing force-light">
-      <LandingIntro />
+      <LandingIntro then={then} />
       {/* The intro opens over this from the centre, and floats its wordmark into the header. */}
       <div className="landing-ui" data-reveal-root>
       <SiteHeader landing />
