@@ -279,7 +279,12 @@ function roundTable(x: number, y: number, s: number, seats = 7): Shape[] {
 }
 
 /** Your card: a member's card, a little turned, with you on it and a gold star. */
-function idCard(x: number, y: number, s: number): Shape[] {
+function idCard(x: number, y: number, s: number, tone: "blue" | "green" | "gold" = "blue"): Shape[] {
+  const look = {
+    blue: { card: "#eaf2fd", band: B[1], disc: B[5], lines: B[5] },
+    green: { card: "#e6f6ee", band: GREEN[1], disc: GREEN[2], lines: "#9fd9bd" },
+    gold: { card: "#fff5dc", band: GOLD.edge, disc: GOLD.core, lines: "#f1d28f" }
+  }[tone];
   const turn = -7;
   const t = (dx: number, dy: number) => {
     const a = (turn * Math.PI) / 180;
@@ -289,11 +294,11 @@ function idCard(x: number, y: number, s: number): Shape[] {
   const [sx, sy] = t(150, -105);
   return [
     { kind: "block", x: x + 26 * s, y: y + 22 * s, w: 360 * s, h: 230 * s, round: 22 * s, fill: B[0], fade: 0.55, turn: 4 },
-    { kind: "block", x, y, w: 360 * s, h: 230 * s, round: 22 * s, fill: "#eaf2fd", turn },
-    { kind: "block", ...pt(t(0, -88)), w: 360 * s, h: 54 * s, round: 22 * s, fill: B[1], turn },
-    { kind: "circle", x: ax, y: ay, r: 58 * s, fill: B[5] },
+    { kind: "block", x, y, w: 360 * s, h: 230 * s, round: 22 * s, fill: look.card, turn },
+    { kind: "block", ...pt(t(0, -88)), w: 360 * s, h: 54 * s, round: 22 * s, fill: look.band, turn },
+    { kind: "circle", x: ax, y: ay, r: 58 * s, fill: look.disc },
     ...person(ax, ay + 50 * s, 0.95 * s, GOLD.core),
-    ...[-14, 18, 50].map((dy, i): Shape => ({ kind: "block", ...pt(t(70, dy)), w: (i === 1 ? 120 : 150) * s, h: 14 * s, round: 7 * s, fill: B[5], turn })),
+    ...[-14, 18, 50].map((dy, i): Shape => ({ kind: "block", ...pt(t(70, dy)), w: (i === 1 ? 120 : 150) * s, h: 14 * s, round: 7 * s, fill: look.lines, turn })),
     { kind: "sparkle", x: sx, y: sy, r: 28 * s, fill: GOLD.core }
   ];
 }
@@ -332,6 +337,11 @@ function beatingHeart(x: number, y: number, s: number, fill: string, side: 1 | -
     squiggle(x + side * 124 * s, y - 10 * s, side > 0 ? 0 : 180, 74 * s, 6 * s, RED[0], 5 * s),
     squiggle(x + side * 108 * s, y + 52 * s, side > 0 ? 30 : 150, 66 * s, 6 * s, "#b3262e", 5 * s)
   ];
+}
+
+/** A heart with its lines of movement, and a coin laid over its lower edge: giving. */
+function givingHeart(x: number, y: number, s: number, side: 1 | -1): Shape[] {
+  return [...beatingHeart(x, y, s, RED[1], side), ...coin(x - side * 40 * s, y + 52 * s, 0.85 * s)];
 }
 
 /** A program's window, a gear behind it, and its switches popping out of it. */
@@ -477,34 +487,46 @@ const SCENES: Record<SceneName, Scene> = {
     phone: { ...P, layers: [horizon(0.36), art({ kind: "rain", x: 0, y: 0, w: 420, h: 320, count: 14, seed: 13 }), art({ kind: "stars", x: 220, y: 50, w: 190, h: 250, count: 7, seed: 9, size: 1.1 }, { kind: "sparkle", x: 260, y: 90, r: 12, fill: GOLD.light })] }
   },
 
-  // Connections: two pieces about to fit together.
+  // Connections: two pieces about to fit together, and again across the page.
   connections: {
-    computer: { ...C, layers: [art(puzzle(1465, 420, 1.15)), wave(0.76, 36, 700, 0.1, "bottom", B[4], 22, 80), wave(0.88, 26, 520, 0.5, "bottom", B[2], 28)] },
-    tablet: { ...T, layers: [horizon(0.254), art(puzzle(830, 250, 0.95))] },
-    phone: { ...P, layers: [horizon(0.36), art(puzzle(340, 220, 0.6))] }
+    computer: {
+      ...C,
+      layers: [art(puzzle(1440, 300, 1.55), puzzle(160, 800, 1.35)), wave(0.8, 36, 700, 0.1, "bottom", B[4], 22, 80), wave(0.9, 26, 520, 0.5, "bottom", B[2], 28)]
+    },
+    tablet: { ...T, layers: [horizon(0.254), art(puzzle(840, 240, 1.1))] },
+    phone: { ...P, layers: [horizon(0.36), art(puzzle(335, 215, 0.72))] }
   },
 
-  // Your batch: a crowd as an animator draws one, a melded mass, and a few people in front,
-  // two in gold: you, among your batch.
+  // Your batch: one big crowd along the bottom, as an animator draws one: a melded mass,
+  // and a few people drawn properly in front, some in gold. You, among your batch.
   batch: {
     computer: {
       ...C,
       layers: [
-        art(crowdMass(1290, 1640, 830, 1.3, B[1], 4, 50), crowdMass(1300, 1640, 860, 1.5, B[0], 8), crowdMass(-20, 290, 860, 1.3, B[1], 12)),
-        art(person(1400, 880, 1.9, GOLD.core), person(1470, 890, 2.1, "#eaf2fd"), person(1545, 880, 1.9, GOLD.core), person(150, 890, 1.7, GOLD.core)),
-        wave(0.9, 18, 600, 0.2, "bottom", B[4], 25),
-        wave(0.96, 14, 480, 0.6, "bottom", B[2], 30)
+        wave(0.62, 30, 900, 0.3, "bottom", B[4], 28),
+        art(crowdMass(-40, 1640, 900, 1.5, B[2], 4, 60), crowdMass(-40, 1640, 960, 1.75, B[1], 8, 10)),
+        art(
+          person(150, 1010, 2.3, B[0]),
+          person(420, 1000, 2.1, GOLD.core),
+          person(1180, 1005, 2.2, "#eaf2fd"),
+          person(1330, 1000, 2.4, GOLD.core),
+          person(1480, 1010, 2.2, B[0])
+        )
       ]
     },
-    tablet: { ...T, layers: [horizon(0.254), art(crowdMass(560, 1010, 360, 0.95, B[0], 5), person(760, 370, 1.3, GOLD.core), person(830, 374, 1.4, "#eaf2fd"))] },
-    phone: { ...P, layers: [horizon(0.36), art(crowdMass(230, 430, 330, 0.55, B[0], 6), person(320, 336, 0.8, GOLD.core), person(360, 338, 0.85, "#eaf2fd"))] }
+    tablet: { ...T, layers: [horizon(0.254), art(crowdMass(-40, 1040, 1300, 1.3, B[1], 5, 40), person(320, 1310, 1.8, GOLD.core), person(720, 1310, 1.9, "#eaf2fd"))] },
+    phone: { ...P, layers: [horizon(0.36), art(crowdMass(-20, 440, 900, 0.8, B[1], 6, 20), person(130, 905, 1, GOLD.core), person(300, 905, 1.05, "#eaf2fd"))] }
   },
 
-  // Groups: a round table seen from above, people seated all round it, one in gold.
+  // Groups: round tables seen from above, people seated all round, one in gold; two of
+  // them, across the page from each other.
   groups: {
-    computer: { ...C, layers: [wave(0.1, 30, 700, 0.6, "top", B[2], 35), art(roundTable(1468, 430, 0.72)), wave(0.82, 34, 640, 0.5, "bottom", B[4], 28), wave(0.92, 26, 520, 0.2, "bottom", B[2], 23)] },
-    tablet: { ...T, layers: [horizon(0.254), art(roundTable(830, 230, 0.6))] },
-    phone: { ...P, layers: [horizon(0.36), art(roundTable(345, 220, 0.42, 6))] }
+    computer: {
+      ...C,
+      layers: [wave(0.1, 30, 700, 0.6, "top", B[2], 35), art(roundTable(1440, 330, 1.05), roundTable(170, 720, 0.95, 6)), wave(0.86, 30, 640, 0.5, "bottom", B[4], 28), wave(0.94, 22, 520, 0.2, "bottom", B[2], 23)]
+    },
+    tablet: { ...T, layers: [horizon(0.254), art(roundTable(830, 230, 0.75))] },
+    phone: { ...P, layers: [horizon(0.36), art(roundTable(345, 215, 0.5, 6))] }
   },
 
   // Messages: speech going back and forth.
@@ -577,11 +599,11 @@ const SCENES: Record<SceneName, Scene> = {
     phone: { ...P, layers: [art(sunCorner(420, 120))] }
   },
 
-  // A profile: your card, with you on it.
+  // A profile: your card, and a green one across the page: you, and your page.
   profile: {
-    computer: { ...C, layers: [art(idCard(1462, 400, 0.66)), wave(0.8, 30, 900, 0.6, "bottom", B[4], 26), wave(0.9, 22, 700, 0.2, "bottom", B[2], 32)] },
-    tablet: { ...T, layers: [horizon(0.254), art(idCard(820, 230, 0.6))] },
-    phone: { ...P, layers: [horizon(0.36), art(idCard(335, 215, 0.36))] }
+    computer: { ...C, layers: [art(idCard(1450, 320, 0.8), idCard(170, 720, 0.72, "green")), wave(0.86, 30, 900, 0.6, "bottom", B[4], 26), wave(0.94, 22, 700, 0.2, "bottom", B[2], 32)] },
+    tablet: { ...T, layers: [horizon(0.254), art(idCard(820, 230, 0.7))] },
+    phone: { ...P, layers: [horizon(0.36), art(idCard(335, 215, 0.42))] }
   },
 
   // The gallery: photos laid out.
@@ -598,27 +620,23 @@ const SCENES: Record<SceneName, Scene> = {
     phone: { ...P, layers: [horizon(0.36), art(frame(315, 200, 96, 74, -6), frame(385, 240, 86, 68, 6))] }
   },
 
-  // Causes: two hearts turned to each other, a coin between them, and movement around them:
-  // giving, and the warmth that comes back.
+  // Causes: a heart with a coin laid over it and its lines of movement, and again across the
+  // page: giving, and the warmth that comes back.
   causes: {
     computer: {
       ...C,
-      layers: [
-        art(beatingHeart(1395, 380, 0.62, RED[1], -1), beatingHeart(1530, 380, 0.62, RED[0], 1), coin(1462, 440, 0.7)),
-        wave(0.78, 46, 820, 0.2, "bottom", B[4], 25),
-        wave(0.9, 32, 620, 0.5, "bottom", B[2], 30)
-      ]
+      layers: [art(givingHeart(1430, 320, 1.05, 1), givingHeart(180, 700, 0.95, -1)), wave(0.84, 40, 820, 0.2, "bottom", B[4], 25), wave(0.93, 28, 620, 0.5, "bottom", B[2], 30)]
     },
-    tablet: { ...T, layers: [horizon(0.254), art(beatingHeart(760, 220, 0.6, RED[1], -1), beatingHeart(890, 220, 0.6, RED[0], 1), coin(825, 280, 0.62))] },
-    phone: { ...P, layers: [horizon(0.36), art(beatingHeart(300, 205, 0.36, RED[1], -1), beatingHeart(378, 205, 0.36, RED[0], 1), coin(339, 240, 0.38))] }
+    tablet: { ...T, layers: [horizon(0.254), art(givingHeart(820, 220, 0.75, 1))] },
+    phone: { ...P, layers: [horizon(0.36), art(givingHeart(330, 205, 0.48, 1))] }
   },
 
-  // Settings and the desk: a program's window, a gear turning behind it, its switches
-  // lifting off it.
+  // Settings and the desk: a program's window, big across the page, a gear turning behind
+  // it, its switches lifting off it.
   steady: {
-    computer: { ...C, layers: [art(settingsWindow(1450, 430, 0.66)), wave(0.84, 16, 1200, 0.2, "bottom", B[4], 34), wave(0.92, 12, 900, 0.1, "bottom", B[2], 26)] },
-    tablet: { ...T, layers: [horizon(0.254), art(settingsWindow(800, 240, 0.55))] },
-    phone: { ...P, layers: [horizon(0.36), art(settingsWindow(320, 215, 0.34))] }
+    computer: { ...C, layers: [art(settingsWindow(1080, 470, 2.05)), wave(0.88, 16, 1200, 0.2, "bottom", B[4], 34), wave(0.95, 12, 900, 0.1, "bottom", B[2], 26)] },
+    tablet: { ...T, layers: [horizon(0.254), art(settingsWindow(640, 330, 1.25))] },
+    phone: { ...P, layers: [horizon(0.36), art(settingsWindow(250, 300, 0.75))] }
   }
 };
 
