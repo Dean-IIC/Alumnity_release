@@ -8,13 +8,26 @@ import { signedInUser, type Outcome, type User } from "./auth";
  */
 
 /**
+ * Whether the browser's Origin header is this site. "null" (a sandboxed frame, a file) or
+ * anything that isn't an address is simply not this site: it used to throw, a server error.
+ */
+function sameSite(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!origin || !host) return false;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Only this site may call these (a form on another site can't log someone in or out):
  * the browser's Origin header must be our own, and the body must be JSON.
  */
 export async function readJson(request: Request): Promise<Record<string, unknown> | NextResponse> {
-  const origin = request.headers.get("origin");
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  if (!origin || !host || new URL(origin).host !== host) return NextResponse.json({ ok: false, error: "Not allowed." }, { status: 403 });
+  if (!sameSite(request)) return NextResponse.json({ ok: false, error: "Not allowed." }, { status: 403 });
   if (!request.headers.get("content-type")?.includes("application/json")) return NextResponse.json({ ok: false, error: "Not allowed." }, { status: 415 });
   const body = await request.json().catch(() => null);
   return body && typeof body === "object" ? (body as Record<string, unknown>) : NextResponse.json({ ok: false, error: "Nothing was sent." }, { status: 400 });
@@ -44,9 +57,7 @@ export async function signedIn(): Promise<{ user: User } | NextResponse> {
 
 /** Only from this site: the browser's Origin must be our own (for uploads, which aren't JSON). */
 export function fromThisSite(request: Request): NextResponse | null {
-  const origin = request.headers.get("origin");
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  return origin && host && new URL(origin).host === host ? null : NextResponse.json({ ok: false, error: "Not allowed." }, { status: 403 });
+  return sameSite(request) ? null : NextResponse.json({ ok: false, error: "Not allowed." }, { status: 403 });
 }
 
 /**

@@ -79,8 +79,12 @@ async function timed<T>(text: string, work: () => Promise<T>): Promise<T> {
 /** Whether this process has opened its database yet (a fresh serverless instance hasn't). */
 export const opened = () => current !== undefined;
 
-/** Undefined means null to the database. */
-const values = (params: unknown[]) => params.map((p) => (p === undefined ? null : p));
+/**
+ * Undefined means null to the database. A NUL character (\0) can't be kept in Postgres text
+ * at all: one typed or pasted into a post, a name or a search used to make the query fail
+ * (a server error, not the words saved), so it's dropped here, for every query alike.
+ */
+const values = (params: unknown[]) => params.map((p) => (p === undefined ? null : typeof p === "string" && p.includes("\0") ? p.replace(/\0/g, "") : p));
 
 // ---------- Postgres (Supabase) ----------
 
