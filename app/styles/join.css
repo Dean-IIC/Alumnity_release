@@ -173,7 +173,7 @@
   color: var(--color-ink);
   font-family: var(--font-voice);
   font-size: var(--text-title);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-bold);
   line-height: var(--leading-snug);
 }
 
@@ -223,6 +223,7 @@
 .register-book__title {
   color: var(--color-ink);
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
 }
@@ -295,6 +296,7 @@
   width: 100%;
   color: var(--color-blue);
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   font-size: var(--text-body);
   white-space: nowrap;
 }
@@ -441,7 +443,7 @@
 }
 
 .register-book__stamp .register-book__stamp-mark {
-  font: 30px / 1 var(--font-voice);
+  font: var(--weight-bold) 30px / 1 var(--font-voice);
   letter-spacing: 0;
 }
 
@@ -503,7 +505,7 @@
 }
 
 .register-book__seal .register-book__seal-mark {
-  font: 34px / 1 var(--font-voice);
+  font: var(--weight-bold) 34px / 1 var(--font-voice);
   letter-spacing: 0;
 }
 
@@ -670,6 +672,7 @@
   margin: var(--space-2) 0 0;
   color: var(--color-ink);
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   font-size: var(--text-card);
   overflow-wrap: anywhere;
 }

@@ -1,55 +1,30 @@
-import { useId, type HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 
 /**
- * The Alumnity lockup: wordmark, red swoosh, and the college beneath. Sized entirely in
- * em, so the intro's big centred copy and the nav's small one are the same shape at two
- * sizes and the intro can float one exactly onto the other.
- *
- * Alumnity is for HKBK College of Engineering, not the wider HKBK group, so the byline
- * names the college: in full where there is room, "HKBK CE" in the nav. The intro's
- * copy carries both and crossfades from one to the other as it floats into the nav.
+ * The lockup, as the college's own site has it: the HKBK crest, the college's name in
+ * bold, and "Alumni Network" under it. This is the college's alumni network (a subdomain of
+ * hkbkce.in), so it carries the college's name and logo, not a brand of its own.
  */
-export const SWOOSH_CENTRELINE = "M10 40C92 14 200 8 290 26S372 38 392 16";
-
 export const COLLEGE_NAME = "HKBK College of Engineering";
-export const COLLEGE_SHORT_NAME = "HKBK CE";
-/** The college's own crest ("HKBK College of Engineering · Estd 1997"). Shown at 1.7em: a 144 px copy is plenty, even on sharp screens. */
-const CREST = "/assets/brand/hkbk-crest.webp"; // a 144 px WebP of the 180 px PNG: a third of its size
+export const COLLEGE_SHORT_NAME = "HKBK";
+export const NETWORK_NAME = "Alumni Network";
+/** The college's standard logo, from hkbkce.in (256 px). */
+export const LOGO = "/college/hkbk-logo.png";
 
 type BrandLockupProps = HTMLAttributes<HTMLSpanElement> & {
   "data-brand-target"?: boolean;
+  /** "full" adds the college's place under the name, where there's room (the landing page). */
   byline?: "full" | "short" | "both";
 };
 
 export function BrandLockup({ byline = "short", ...props }: BrandLockupProps) {
-  const maskId = useId();
   return (
     <span {...props} className={`brand ${props.className ?? ""}`}>
-      <span className="brand__name">alumnity<span className="brand__dot">.</span></span>
-      <svg className="brand__swoosh" viewBox="0 0 400 56" aria-hidden="true">
-        <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="56">
-          {/* The intro draws this stroke along the swoosh; settled, it is fully drawn. */}
-          <path className="brand__swoosh-reveal" d={SWOOSH_CENTRELINE} pathLength={1} />
-        </mask>
-        <path
-          className="brand__swoosh-ink"
-          mask={`url(#${maskId})`}
-          d="M8 43C90 12 200 3 292 21C340 30 372 29 395 12C374 36 338 41 289 32C200 17 94 22 8 43Z"
-        />
-      </svg>
-      <span className="brand__by">
-        {byline !== "short" && (
-          <span className="brand__by-full">
-            <img className="brand__crest" src={CREST} alt="" width={180} height={180} />
-            by {COLLEGE_NAME}
-          </span>
-        )}
-        {byline !== "full" && (
-          <span className="brand__by-short">
-            <img className="brand__crest" src={CREST} alt="" width={180} height={180} />
-            by {COLLEGE_SHORT_NAME}
-          </span>
-        )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="brand__logo" src={LOGO} alt="" width={256} height={256} />
+      <span className="brand__text">
+        <span className="brand__name">{COLLEGE_NAME}</span>
+        <span className="brand__sub">{byline === "short" ? NETWORK_NAME : `${NETWORK_NAME} · Nagawara, Bengaluru`}</span>
       </span>
     </span>
   );

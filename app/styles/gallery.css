@@ -126,7 +126,7 @@
   color: var(--color-ink);
   font-family: var(--font-voice);
   font-size: var(--text-card);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-bold);
   line-height: var(--leading-snug);
 }
 
@@ -307,7 +307,7 @@
   margin: 0 0 var(--space-5);
   font-family: var(--font-voice);
   font-size: var(--text-caption);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-bold);
 }
 
 /* ---------- Opening an album: its cover blooms in, as on the landing page ---------- */
@@ -365,7 +365,7 @@
   margin: 0;
   font-family: var(--font-voice);
   font-size: var(--text-caption);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-bold);
 }
 
 .album-part__head p {
@@ -401,6 +401,7 @@
 .video-tile__title {
   color: var(--color-ink);
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   font-size: var(--text-card);
   line-height: var(--leading-snug);
 }

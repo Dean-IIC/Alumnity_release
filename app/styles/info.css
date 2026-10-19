@@ -22,7 +22,7 @@
 .info__h2 {
   margin: 0 0 var(--space-4);
   color: var(--color-ink);
-  font: var(--weight-regular) var(--text-title) / 1.2 var(--font-voice);
+  font: var(--weight-bold) var(--text-title) / 1.2 var(--font-voice);
 }
 
 .info__aside {
@@ -43,7 +43,7 @@
   padding-left: var(--space-5);
   border-left: 3px solid var(--color-gold);
   color: var(--color-ink);
-  font: var(--weight-regular) clamp(19px, 2.2vw, 23px) / 1.55 var(--font-voice);
+  font: var(--weight-medium) clamp(19px, 2.2vw, 23px) / 1.55 var(--font-voice);
 }
 
 .info-note {
@@ -89,7 +89,7 @@
 .letter__greeting {
   margin: 0 0 var(--space-4);
   color: var(--color-red);
-  font: var(--weight-regular) var(--text-title) / 1.25 var(--font-voice);
+  font: var(--weight-bold) var(--text-title) / 1.25 var(--font-voice);
 }
 
 .letter__sign {
@@ -102,7 +102,7 @@
 
 .letter__sign strong {
   color: var(--color-blue);
-  font: var(--weight-regular) 24px / 1.2 var(--font-voice);
+  font: var(--weight-bold) 24px / 1.2 var(--font-voice);
 }
 
 .letter__sign span {
@@ -133,7 +133,7 @@
 
 .info-point strong {
   color: var(--color-ink);
-  font: var(--weight-regular) 20px / 1.25 var(--font-voice);
+  font: var(--weight-bold) 20px / 1.25 var(--font-voice);
 }
 
 .info-point p {
@@ -151,7 +151,7 @@
   border-radius: 50%;
   background: var(--color-wash-gold);
   color: var(--color-gold-small);
-  font: var(--weight-regular) 17px / 1 var(--font-voice);
+  font: var(--weight-bold) 17px / 1 var(--font-voice);
 }
 
 /* The points take the inks in turn: red, green, blue. */
@@ -225,7 +225,7 @@
 
 .info-card h2 {
   margin: 0 0 var(--space-4);
-  font: var(--weight-regular) 24px / 1.2 var(--font-voice);
+  font: var(--weight-bold) 24px / 1.2 var(--font-voice);
 }
 
 .info-card__tag {
@@ -266,7 +266,7 @@
   outline-offset: 3px;
   background: var(--color-seal-ground);
   color: var(--color-blue);
-  font: var(--weight-regular) 17px / 1 var(--font-voice);
+  font: var(--weight-bold) 17px / 1 var(--font-voice);
 }
 
 .seal--large {
@@ -362,7 +362,7 @@
 
 .people-card strong {
   color: var(--color-ink);
-  font: var(--weight-regular) 21px / 1.2 var(--font-voice);
+  font: var(--weight-bold) 21px / 1.2 var(--font-voice);
 }
 
 .people-card span {
@@ -427,7 +427,7 @@
   border-radius: 50%;
   background: var(--color-paper);
   color: var(--color-red);
-  font: var(--weight-regular) 24px / 1 var(--font-voice);
+  font: var(--weight-bold) 24px / 1 var(--font-voice);
 }
 
 .steps__step > div {
@@ -440,7 +440,7 @@
 .steps__step h2 {
   margin: 0 0 var(--space-2);
   color: var(--color-ink);
-  font: var(--weight-regular) 21px / 1.25 var(--font-voice);
+  font: var(--weight-bold) 21px / 1.25 var(--font-voice);
 }
 
 .steps__step p {
@@ -490,7 +490,7 @@
 
 .info-more__card strong {
   color: var(--color-blue);
-  font: var(--weight-regular) 20px / 1.2 var(--font-voice);
+  font: var(--weight-bold) 20px / 1.2 var(--font-voice);
 }
 
 .info-more__card span {
@@ -536,7 +536,7 @@
 .info-join h2 {
   margin: 0 0 var(--space-2);
   color: #fffdf7;
-  font: var(--weight-regular) clamp(22px, 2.6vw, 28px) / 1.2 var(--font-voice);
+  font: var(--weight-bold) clamp(22px, 2.6vw, 28px) / 1.2 var(--font-voice);
 }
 
 .info-join p {

@@ -66,6 +66,7 @@
   position: absolute;
   color: var(--color-ink-soft);
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   font-size: 220px;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -137,6 +138,7 @@
 .journey-shot__year {
   color: var(--color-red);
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   font-size: var(--world-year);
   line-height: 0.9;
   letter-spacing: -0.04em;
@@ -145,6 +147,7 @@
 .journey-shot__title {
   margin-top: 6px;
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   font-size: var(--world-title);
   line-height: var(--leading-snug);
 }
@@ -164,6 +167,7 @@
   margin: 0;
   color: var(--color-ink);
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   width: max-content;
   max-width: 88vw;
   font-size: var(--text-title);

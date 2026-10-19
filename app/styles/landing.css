@@ -1,331 +1,636 @@
 /*
- * The landing page: the hero and its photo.
- * Painted from the first frame (the intro covers it, then opens over it), so the
- * headline counts as shown at once.
+ * The front page, in the college site's style: a navy hero over a photo of HKBK people,
+ * big numbers on white cards that rise over its edge, then sections on white and on the
+ * college's pale blue tint, each led by a small gold kicker.
  */
 
 .landing {
-  position: relative;
   min-height: 100svh;
-  overflow: hidden;
-  background: var(--color-paper);
+  background: var(--color-paper-raised);
 }
 
-.landing-ui {
-  position: relative;
-  z-index: var(--z-site);
-}
+/* ---------- Buttons: the college's gold and its outline ---------- */
 
-/* Returning visitors who skip the intro get a short fade instead. */
-@media (prefers-reduced-motion: no-preference) {
-  html[data-intro="skip"] .landing-ui {
-    animation: site-in 400ms var(--ease-out) both;
-  }
-}
-
-@keyframes site-in {
-  from {
-    opacity: 0;
-  }
-}
-
-/* ---------- Hero: copy on the left, the photo a design element behind it ---------- */
-
-.hero {
-  position: relative;
-  display: flex;
+.lp-btn {
+  display: inline-flex;
+  gap: var(--space-2);
   align-items: center;
-  min-height: 100svh;
-  padding: var(--space-10) 0 var(--space-8);
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: var(--text-button);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  transition: background-color var(--duration-instant) ease, color var(--duration-instant) ease, transform var(--duration-instant) ease, box-shadow var(--duration-instant) ease;
 }
 
-.hero-copy {
-  position: relative;
-  z-index: 2;
-  max-width: 640px;
+.lp-btn:active {
+  transform: translateY(1px);
 }
 
-/* Revealed from the centre: the copy and photo slide in from the middle as the hole opens. */
-.landing-ui--revealing .hero-copy {
-  transform: translateX(calc((1 - var(--reveal-p, 1)) * 56px));
-}
-
-.hero-kicker {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin: 0 0 var(--space-5);
-  color: var(--color-ink-soft);
-  font-size: var(--text-label);
-  font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  text-shadow: 0 0 2px var(--color-paper), 0 0 12px var(--color-paper);
-}
-
-.hero-kicker::before {
-  width: var(--space-5);
-  height: 1px;
-  content: "";
+.lp-btn--gold {
   background: var(--color-gold);
+  color: #0a2a57;
+  box-shadow: 0 6px 18px rgba(242, 169, 0, 0.28);
 }
 
-.hero h1 {
-  /* Measured in em so the headline keeps the same line breaks at every size
-     (three lines in Young Serif: "Stay connected / to where it / began."). */
-  max-width: 7.4em;
+.lp-btn--gold:hover {
+  background: #ffbb1f;
+}
+
+.lp-btn--ghost {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+}
+
+.lp-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- Hero ---------- */
+
+.lp-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--color-navy);
+  color: #fff;
+}
+
+.lp-hero__photo {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+/* The college's navy laid over the photo, deepest behind the words. */
+.lp-hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: linear-gradient(100deg, rgba(10, 42, 87, 0.96) 0%, rgba(10, 42, 87, 0.86) 45%, rgba(18, 62, 124, 0.55) 100%);
+}
+
+.lp-hero__inner {
+  padding-block: clamp(64px, 10vw, 128px) clamp(112px, 12vw, 160px);
+}
+
+.lp-tag {
+  display: inline-block;
+  margin: 0 0 var(--space-5);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(242, 169, 0, 0.18);
+  color: var(--color-gold);
+  font-size: var(--text-fine);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lp-hero h1 {
+  max-width: 15ch;
   margin: 0;
-  color: var(--color-red);
-  font-family: var(--font-voice);
-  font-size: var(--text-display);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-display);
-  letter-spacing: var(--tracking-display);
-  text-shadow: var(--halo);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: clamp(2.4rem, 5.4vw, 4rem);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  text-wrap: balance;
 }
 
-.hero-text {
-  max-width: var(--measure-body);
+.lp-hero h1 span {
+  color: var(--color-gold);
+}
+
+.lp-hero__text {
+  max-width: 56ch;
   margin: var(--space-5) 0 0;
-  color: var(--color-ink-muted);
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+  line-height: 1.6;
 }
 
-.hero-actions {
+.lp-hero__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-6);
 }
 
-.hero-note {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+.lp-hero__motto {
   margin: var(--space-6) 0 0;
-  color: var(--color-ink-soft);
+  color: rgba(255, 255, 255, 0.66);
   font-size: var(--text-small);
+  font-style: italic;
 }
 
-.hero-note span {
-  color: var(--color-gold);
-  font-size: var(--text-icon);
-}
+/* ---------- Big numbers ---------- */
 
-/* ---------- Buttons ---------- */
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  min-height: 52px;
-  padding: 0 26px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-pill);
-  font-size: var(--text-button);
-  font-weight: var(--weight-bold);
-  transition:
-    transform var(--duration-instant) ease,
-    background var(--duration-instant) ease,
-    color var(--duration-instant) ease,
-    box-shadow var(--duration-instant) ease;
-}
-
-.button:hover {
-  transform: translateY(-2px);
-}
-
-.button--primary {
-  background: var(--color-blue);
-  color: var(--color-paper-raised);
-  box-shadow: var(--shadow-button);
-}
-
-.button--primary:hover {
-  background: var(--color-blue-deep);
-  box-shadow: var(--shadow-button-hover);
-}
-
-.button--secondary {
-  border-color: var(--color-border);
-  color: var(--color-ink);
-  background: var(--color-paper-glass);
-}
-
-.button--secondary:hover {
-  background: var(--color-paper-raised);
-}
-
-/* ---------- The hero photo: one ink splotch ---------- */
-
-.photo-reveal {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  /* Starts under the headline's last words, so the two overlap. */
-  left: 40%;
-  width: min(62%, 880px, 92svh * 0.8);
-  margin: 0;
-  transform: translateY(-46%);
-}
-
-.landing-ui--revealing .photo-reveal {
-  transform: translate(calc((var(--reveal-p, 1) - 1) * -56px), -46%);
-}
-
-.hero-ink {
+.lp-stats {
   position: relative;
-  width: 100%;
-  aspect-ratio: 880 / 1100;
-}
-
-.hero-ink__canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* Tucked into the photo's lower corner, haloed in paper so it reads over the photo's edge. */
-.hero-ink__caption {
-  position: absolute;
-  right: 0;
-  bottom: 0;
+  z-index: 1;
   display: grid;
-  justify-items: end;
-  margin: 0;
-  color: var(--color-ink);
-  text-align: right;
-  white-space: nowrap;
-  text-shadow: 0 0 2px var(--color-paper), 0 0 12px var(--color-paper), 0 0 24px rgba(248, 244, 234, 0.9);
-  animation: hero-ink-caption var(--duration-base) var(--ease-out) both;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: -64px;
 }
 
-.hero-ink__caption span {
-  color: var(--color-red);
+.lp-stat {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-card);
+}
+
+.lp-stat__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+}
+
+.lp-stat strong {
+  display: block;
+  color: var(--color-navy);
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.lp-stat small {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+  line-height: 1.35;
+}
+
+.lp-stats__note {
+  margin-top: var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+/* ---------- Sections ---------- */
+
+.lp-section {
+  padding-block: var(--space-8);
+}
+
+.lp-section--tint {
+  margin-top: var(--space-6);
+  background: var(--color-wash-blue);
+}
+
+.lp-kicker {
+  margin: 0 0 var(--space-2);
+  color: var(--color-gold-text);
   font-size: var(--text-label);
   font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-label);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.hero-ink__caption strong {
-  margin-top: var(--space-1);
-  font-family: var(--font-voice);
-  font-size: var(--text-caption);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-snug);
+.lp-section h2,
+.lp-cta h2 {
+  margin: 0 0 var(--space-6);
+  color: var(--color-navy);
+  font-family: var(--font-ui);
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  text-wrap: balance;
 }
 
-.hero-ink__explore {
+.lp-card {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-card);
+}
+
+a.lp-card {
+  color: inherit;
+  transition: border-color var(--duration-instant) ease, transform var(--duration-instant) ease, box-shadow var(--duration-instant) ease;
+}
+
+a.lp-card:hover {
+  border-color: var(--color-blue);
+  box-shadow: 0 10px 24px rgba(10, 42, 87, 0.1);
+  transform: translateY(-2px);
+}
+
+.lp-link {
   display: inline-flex;
-  gap: 6px;
+  gap: var(--space-2);
   align-items: center;
-  min-height: var(--tap-target);
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.lp-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- What it's for ---------- */
+
+.lp-for {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-for__item {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  height: 100%;
+  padding: var(--space-5);
+}
+
+.lp-for__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--space-2);
+  border-radius: 10px;
+  background: var(--color-navy);
+  color: var(--color-gold);
+}
+
+.lp-for__item strong {
+  color: var(--color-navy);
+  font-size: 1.05rem;
+}
+
+.lp-for__item span:last-child {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  line-height: 1.5;
+}
+
+/* ---------- Charts ---------- */
+
+.lp-charts {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.lp-chart {
+  margin: 0;
+  padding: var(--space-5);
+}
+
+.lp-chart figcaption {
+  display: grid;
+  gap: 2px;
+  margin-bottom: var(--space-5);
+}
+
+.lp-chart figcaption strong {
+  color: var(--color-navy);
+}
+
+.lp-chart figcaption small {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.lp-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 220px;
+  padding-bottom: 1px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.lp-bars__bar {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(to top, var(--color-blue), #3a6fb5);
+  transition: background var(--duration-instant) ease;
+}
+
+.lp-bars__bar:hover {
+  background: var(--color-gold);
+}
+
+.lp-bars__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-hbars {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-hbars li {
+  display: grid;
+  grid-template-columns: 9.5em minmax(0, 1fr) 3.5em;
+  gap: var(--space-3);
+  align-items: center;
+  font-size: var(--text-fine);
+}
+
+.lp-hbars__label {
+  overflow: hidden;
+  color: var(--color-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lp-hbars__track {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--color-wash-blue);
+}
+
+.lp-hbars__fill {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: var(--color-blue);
+}
+
+.lp-hbars li:first-child .lp-hbars__fill {
+  background: var(--color-gold);
+}
+
+.lp-hbars__n {
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ---------- Alumni meets and events ---------- */
+
+.lp-events {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.lp-meet {
+  display: grid;
+  overflow: hidden;
+}
+
+.lp-meet img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.lp-meet__text {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-5);
+}
+
+.lp-meet__text small {
+  color: var(--color-gold-text);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lp-meet__text strong {
+  color: var(--color-navy);
+  font-size: 1.25rem;
+}
+
+.lp-meet__text span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.lp-upcoming {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.lp-event {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+}
+
+.lp-event > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.lp-event strong {
+  color: var(--color-navy);
+}
+
+.lp-event small {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.lp-event--none {
+  border-style: dashed;
+  box-shadow: none;
+}
+
+/* A calendar leaf: the month on navy, the day large. */
+.lp-date {
+  display: grid;
+  flex: none;
+  overflow: hidden;
+  width: 56px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.lp-date small {
+  padding: 2px 0;
+  background: var(--color-navy);
+  color: #fff;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+}
+
+.lp-date strong {
+  padding: 4px 0;
+  color: var(--color-navy);
+  font-size: 1.35rem;
+}
+
+/* ---------- Leadership ---------- */
+
+.lp-leaders {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Photo beside the name, as the college's leadership page: the leaders are a band here, not the page. */
+.lp-leader {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+}
+
+.lp-leader img {
+  width: 112px;
+  height: 136px;
+  object-fit: cover;
+  object-position: center 18%;
+  background: var(--color-wash-blue);
+}
+
+.lp-leader > span {
+  display: grid;
+  gap: 4px;
+  padding: var(--space-4);
+}
+
+.lp-leader strong {
+  color: var(--color-navy);
+  font-size: 1.05rem;
+}
+
+.lp-leader small {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.lp-leader a {
+  margin-top: var(--space-2);
   color: var(--color-blue);
   font-size: var(--text-small);
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-semibold);
 }
 
-.hero-ink__explore span {
-  transition: transform var(--duration-instant) ease;
-}
+/* ---------- Join ---------- */
 
-.hero-ink__explore:hover span {
-  transform: translateX(3px);
-}
-
-/* The gallery, under the buttons: only on narrow screens (wide ones have it in the photo's caption). */
-.hero-gallery {
-  display: none;
-  gap: 6px;
+.lp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
   align-items: center;
-  min-height: var(--tap-target);
-  margin-top: var(--space-3);
-  color: var(--color-blue);
-  font-size: var(--text-small);
-  font-weight: var(--weight-bold);
-  text-shadow: var(--halo-strong);
+  justify-content: space-between;
+  margin-top: var(--space-8);
+  padding: var(--space-7) clamp(var(--space-5), 5vw, var(--space-8));
+  border-radius: 16px;
+  background: var(--color-navy);
+  color: rgba(255, 255, 255, 0.85);
 }
 
-@keyframes hero-ink-caption {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
+.lp-cta h2 {
+  max-width: 28ch;
+  margin: 0 0 var(--space-2);
+  color: #fff;
 }
 
-/* ---------- Narrow screens ---------- */
+.lp-cta p {
+  margin: 0;
+}
 
-@media (max-width: 900px) {
-  /* The photo stays a background element behind the top of the page; the copy settles
-     at the bottom and the headline lies over the photo's lower half. */
-  .hero {
-    align-items: flex-end;
-    padding: 104px 0 var(--space-7);
+/* ---------- Narrower screens ---------- */
+
+@media (max-width: 1000px) {
+  .lp-stats,
+  .lp-for {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .photo-reveal,
-  .landing-ui--revealing .photo-reveal {
-    top: 72px;
-    right: -12vw;
-    left: auto;
-    width: min(96vw, 600px, 60svh * 0.8);
-    transform: none;
-  }
-
-  /* The kicker and the line under the headline sit over the photo here: the headline's
-     glow, a little fuller, and the kicker in full ink (its brown was lost on the photo). */
-  .hero-kicker {
-    flex-wrap: wrap;
-    color: var(--color-ink);
-    text-shadow: var(--halo-strong), 0 0 28px var(--color-paper);
-  }
-
-  .hero-text {
-    color: var(--color-ink);
-    text-shadow: var(--halo-strong), 0 0 28px var(--color-paper);
-  }
-
-  /* The photo's caption and its gallery link go: the gallery is offered under the buttons
-     (it floated alone at the top of the photo, far from everything else). */
-  .hero-ink__caption {
-    display: none;
-  }
-
-  .hero-gallery {
-    display: inline-flex;
+  .lp-charts,
+  .lp-events {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 700px) {
-  .hero {
-    padding: var(--space-9) 0 var(--space-6);
+@media (max-width: 640px) {
+  .lp-stats {
+    gap: var(--space-3);
+    margin-top: -48px;
   }
 
-  .hero h1 {
-    font-size: var(--text-display-narrow);
+  .lp-stat {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
   }
 
-  .hero-text {
-    margin-top: var(--space-4);
+  .lp-stat__icon {
+    width: 38px;
+    height: 38px;
   }
 
-  .hero-actions,
-  .hero-note {
-    margin-top: var(--space-5);
-  }
-}
-
-@media (max-width: 420px) {
-  .button {
-    width: 100%;
+  .lp-for,
+  .lp-leaders {
+    grid-template-columns: 1fr;
   }
 
-  /* Uppercase and widely spaced, it ran off the right edge of a phone. */
-  .hero-kicker {
-    letter-spacing: 0.08em;
+  .lp-bars {
+    height: 160px;
+    gap: 2px;
+  }
+
+  .lp-hbars li {
+    grid-template-columns: 7.5em minmax(0, 1fr) 3em;
+  }
+
+  .lp-hero__actions .lp-btn {
+    flex: 1 1 auto;
+  }
+
+  /* The four reasons as rows: icon beside the words, a quarter of the scrolling. */
+  .lp-for__item {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 2px var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .lp-for__icon {
+    grid-row: 1 / 3;
+    margin: 0;
   }
 }

@@ -9,28 +9,81 @@
   height: var(--nav-height);
 }
 
-/* On the landing page it lies over the hero. */
-.site-nav--over-hero {
-  position: absolute;
+/* The white band the header sits in, as on hkbkce.in: a hairline under it, kept in view. */
+.site-nav-band {
+  position: sticky;
+  z-index: var(--z-controls);
   top: 0;
-  right: 0;
-  left: 0;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-paper-glass);
+  backdrop-filter: blur(10px);
+}
+
+.site-nav {
+  gap: var(--space-5);
 }
 
 .site-nav__brand {
-  font-size: clamp(1.75rem, 2.4vw, 2.1rem);
+  min-width: 0;
 }
 
-/* The landing nav's lockup appears once the intro's copy has landed on it (or at once,
-   when the intro is skipped). */
-html:not([data-intro="skip"]) .landing:not(.landing--intro-complete) .site-nav__brand .brand {
-  visibility: hidden;
+/* Above it, the college's own navy strip: affiliation and approval, and the college site. */
+.college-strip {
+  background: var(--color-navy);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: var(--text-fine);
+}
+
+.college-strip__inner {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+}
+
+.college-strip a {
+  color: #fff;
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.college-strip a:hover {
+  color: var(--color-gold);
+}
+
+@media (max-width: 600px) {
+  .college-strip {
+    font-size: 11px;
+  }
+
+  .college-strip a {
+    display: none;
+  }
+}
+
+/* For the keyboard: straight past the header to the page. */
+.skip-link {
+  position: absolute;
+  z-index: var(--z-notice);
+  top: 8px;
+  left: 8px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: 6px;
+  background: var(--color-gold);
+  color: var(--color-navy);
+  font-weight: var(--weight-semibold);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
 }
 
 .site-nav nav {
   display: flex;
   gap: clamp(var(--space-5), 3vw, var(--space-7));
-  margin-left: 11%;
+  margin-left: auto;
 }
 
 .site-nav nav a,
@@ -53,7 +106,7 @@ html:not([data-intro="skip"]) .landing:not(.landing--intro-complete) .site-nav__
   color: var(--color-ink);
 }
 
-/* The current section: a gold rule under it (the page's headline is its one red thing). */
+/* The current section: a gold rule under it, as the college site marks it. */
 .site-nav nav a[aria-current]::after {
   position: absolute;
   right: 0;
@@ -196,14 +249,8 @@ html:not([data-intro="skip"]) .landing:not(.landing--intro-complete) .site-nav__
   background: var(--color-paper-raised);
 }
 
+/* Below a laptop's width the sections go in the menu: the college's name needs the room. */
 @media (max-width: 1100px) {
-  .site-nav nav {
-    gap: var(--space-5);
-    margin-left: var(--space-5);
-  }
-}
-
-@media (max-width: 960px) {
   .site-nav nav {
     display: none;
   }
@@ -211,6 +258,10 @@ html:not([data-intro="skip"]) .landing:not(.landing--intro-complete) .site-nav__
   .site-nav__menu {
     display: block;
   }
+}
+
+.site-nav nav a {
+  white-space: nowrap;
 }
 
 .sign-in {

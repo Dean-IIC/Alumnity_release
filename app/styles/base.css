@@ -71,3 +71,12 @@ body:has(> .app-bar) {
 body:has(> .app-bar) > main {
   flex: 1 0 auto;
 }
+
+/* Headings bold, in the college's navy, unless a rule says otherwise. */
+h1,
+h2,
+h3,
+h4 {
+  color: var(--color-red);
+  font-weight: var(--weight-bold);
+}

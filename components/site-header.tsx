@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { BrandLockup } from "./brand-lockup";
 import { soon } from "./coming-soon";
 import { MenuCloser } from "./app/menu-closer";
+import { COLLEGE } from "../lib/college";
 
 type SiteHeaderProps = {
   /** The landing page: the header lies over the hero, and the intro lands its lockup on this one. */
@@ -41,9 +42,25 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
   }, [member]);
 
   return (
-    <header className={`site-nav container ${landing ? "site-nav--over-hero" : ""}`}>
-      <a className="site-nav__brand" href={landing ? "#welcome" : me ? "/home" : "/"} aria-label={me ? "Alumnity, your Home" : "Alumnity by HKBK College of Engineering, home"}>
-        <BrandLockup data-brand-target={landing || undefined} />
+    <>
+      <a className="skip-link" href="#main">
+        Skip to the page
+      </a>
+      {/* The college's own strip, as on hkbkce.in: who it's affiliated to and approved by. */}
+      <div className="college-strip">
+        <div className="container college-strip__inner">
+          <span>
+            {COLLEGE.affiliation} <span aria-hidden="true">·</span> {COLLEGE.approval}
+          </span>
+          <a href={COLLEGE.site} target="_blank" rel="noopener noreferrer">
+            hkbkce.in <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    <header className="site-nav-band">
+    <div className={`site-nav container ${landing ? "site-nav--landing" : ""}`}>
+      <a className="site-nav__brand" href={me ? "/home" : "/"} aria-label={me ? "HKBK Alumni Network, your Home" : "HKBK College of Engineering Alumni Network, home"}>
+        <BrandLockup />
       </a>
       <nav aria-label="Primary navigation">
         {(me ? MEMBER_LINKS : LINKS).map((link) => (
@@ -62,7 +79,7 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
             <Link className="sign-in" href="/login" onClick={soon}>
               Log in
             </Link>
-            <Link className="button button--primary site-nav__join" href="/join" onClick={soon}>
+            <Link className="lp-btn lp-btn--gold site-nav__join" href="/join" onClick={soon}>
               Join
             </Link>
           </>
@@ -88,6 +105,8 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
         </details>
         <MenuCloser />
       </div>
+    </div>
     </header>
+    </>
   );
 }

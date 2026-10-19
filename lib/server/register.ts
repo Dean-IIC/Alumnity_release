@@ -151,3 +151,14 @@ export async function browseRegister(
   );
   return { people: rows.map((r) => ({ name: nameCase(r.name), branch: r.branch, branchName: r.branch_name, programme: r.programme, joined: r.year })), total, page, pages, limited: false };
 }
+
+let byYear: { at: number; value: { year: number; n: number }[] } | undefined;
+
+/** How many joined HKBK each year, from the register (counts only), for the landing's chart. Kept ten minutes. */
+export async function registerByYear(): Promise<{ year: number; n: number }[]> {
+  if (byYear && Date.now() - byYear.at < 10 * 60_000) return byYear.value;
+  const rows = await db().all<{ year: number; n: number }>("select year, count(*) as n from register group by year order by year");
+  const value = rows.map((r) => ({ year: Number(r.year), n: Number(r.n) }));
+  byYear = { at: Date.now(), value };
+  return value;
+}
