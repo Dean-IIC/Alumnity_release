@@ -127,7 +127,7 @@ export async function replyAskAction(_: ActionState, form: FormData): Promise<Ac
 export async function answeredAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await markAnswered(me, idFrom(form), textFrom(form, "thanks", 300)), "Marked answered. Your thanks is on their Record.");
+  return answer(await markAnswered(me, idFrom(form), textFrom(form, "thanks", 300)), "Marked answered. Your thanks are on their Record.");
 }
 
 export async function closeAskAction(_: ActionState, form: FormData): Promise<ActionState> {

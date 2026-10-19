@@ -183,7 +183,7 @@ export async function startJoin(input: JoinStart): Promise<Outcome<{ ticket: str
 
   const found = await findInRegister({ name: input.name, usn: input.usn, branch: input.branch, year: input.year });
   if (!found) return { ok: false, error: "The register isn’t reachable just now. Please try again in a little while." };
-  if (found.status !== "found") return { ok: false, error: "We couldn’t find that line in the register." };
+  if (found.status !== "found") return { ok: false, error: "We couldn’t find that entry in the register." };
 
   if (await db().one("select 1 from users where usn = ?", found.usn)) {
     return { ok: false, error: "That line in the register already has an account. Log in, or reset your password if you’ve forgotten it." };
@@ -210,7 +210,7 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
   const auth = await authProvider();
   const session = await auth.session();
   if (!row?.verified_at || !row.found || row.verified_at + SETUP_LIFE < Date.now() || !session || session.authId !== row.auth_id) {
-    return { ok: false, error: "This sign-up has expired. Please start again." };
+    return { ok: false, error: "This joining link has expired. Please start again." };
   }
   const found = JSON.parse(row.found) as Found;
   const problem = passwordProblem(password, passwordContext({ name: found.name, usn: found.usn, email: row.email }));
@@ -243,7 +243,7 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
   if (!inserted) {
     // The USN or the email was taken while this sign-up was waiting.
     await auth.signOut("local");
-    return { ok: false, error: "That line or that email already has an account. Log in instead." };
+    return { ok: false, error: "That entry or that email already has an account. Log in instead." };
   }
   return { ok: true, user: toUser(inserted) };
 }

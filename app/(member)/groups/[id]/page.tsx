@@ -75,7 +75,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
             <ActionForm action={leaveGroupAction} showDone={false}>
               {hidden}
               <button className="button button--secondary wf-small" type="submit">
-                Take back the request
+                Withdraw request
               </button>
             </ActionForm>
           </>

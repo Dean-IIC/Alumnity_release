@@ -99,7 +99,7 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
           {total > 0 && (
             <span className="post__stamps" title={top.map((k) => `${REACTION_LABEL[k]} ${counts[k]}`).join(" · ")}>
               {top.map((k) => (
-                <Stamp key={k} kind={k} size={20} className="post__stamp" />
+                <Stamp key={k} kind={k} size={24} className="post__stamp" />
               ))}
               <span>{total}</span>
             </span>
@@ -140,7 +140,7 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
               choose(mine ?? "cheer");
             }}
           >
-            {mine ? <Stamp kind={mine} size={22} /> : <Stamp kind="cheer" size={22} className="stamp--blank" />}
+            {mine ? <Stamp kind={mine} size={26} /> : <Stamp kind="cheer" size={26} className="stamp--blank" />}
             <span>{mine ? REACTION_LABEL[mine] : "Cheer"}</span>
           </button>
           <button
@@ -177,7 +177,7 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
             >
               {KINDS.map((k, i) => (
                 <button key={k} type="button" role="menuitemradio" aria-checked={mine === k} className="reaction-picker__item" style={{ animationDelay: `${i * 35}ms` }} onClick={() => choose(k)}>
-                  <Stamp kind={k} size={30} />
+                  <Stamp kind={k} size={40} />
                   <span>{REACTION_LABEL[k]}</span>
                 </button>
               ))}

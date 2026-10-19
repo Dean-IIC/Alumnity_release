@@ -1,11 +1,13 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { ALBUMS } from "../lib/gallery";
 import { BRANCHES } from "../lib/branches";
 import { COLLEGE, LEADERS } from "../lib/college";
 import { upcomingForEveryone } from "../lib/server/events";
 import { memberCount } from "../lib/server/people";
 import { registerByYear, registerFacts } from "../lib/server/register";
-import { AlumnityIntro } from "./alumnity-intro";
+import { LandingIntro } from "./landing-intro";
+import { CountUp, InView } from "./landing/in-view";
 import { Icon, type IconName } from "./social/icons";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
@@ -33,11 +35,11 @@ const branchName = (code: string) => BRANCHES.find(([c]) => c === code)?.[1] ?? 
 export async function CampusLanding() {
   const [facts, years, members, events] = await Promise.all([registerFacts(), registerByYear(), memberCount(), upcomingForEveryone(3)]);
   const batches = facts ? facts.to - facts.from + 1 : 0;
-  const stats: { icon: IconName; n: string; label: string }[] = [
-    { icon: "everyone", n: fmt(facts?.count ?? 0), label: "Students and alumni on the register" },
-    { icon: "batch", n: fmt(batches), label: facts ? `Batches, ${facts.from} to ${facts.to}` : "Batches" },
-    { icon: "group", n: fmt(facts?.branches.length ?? 0), label: "Branches and programmes" },
-    { icon: "people", n: fmt(members), label: "Members on the network" }
+  const stats: { icon: IconName; n: number; label: string }[] = [
+    { icon: "everyone", n: facts?.count ?? 0, label: "Students and alumni on the register" },
+    { icon: "batch", n: batches, label: facts ? `Batches, ${facts.from} to ${facts.to}` : "Batches" },
+    { icon: "group", n: facts?.branches.length ?? 0, label: "Branches and programmes" },
+    { icon: "people", n: members, label: "Members on the network" }
   ];
   const top = Math.max(1, ...years.map((y) => y.n));
   const branches = (facts?.branches ?? []).slice(0, 8);
@@ -45,7 +47,9 @@ export async function CampusLanding() {
 
   return (
     <div className="landing force-light">
-      <AlumnityIntro year={new Date().getFullYear()} />
+      <LandingIntro />
+      {/* The intro opens over this from the centre, and floats its wordmark into the header. */}
+      <div className="landing-ui" data-reveal-root>
       <SiteHeader landing />
 
       <main id="main">
@@ -54,7 +58,7 @@ export async function CampusLanding() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="lp-hero__photo" src={HERO.cover.src} alt="" width={HERO.cover.width} height={HERO.cover.height} fetchPriority="high" />
           <div className="lp-hero__inner container">
-            <p className="lp-tag">Alumnity · HKBK Alumni Network</p>
+            <p className="lp-tag">Alumnity · HKBK alumni network</p>
             <h1 id="lp-title">
               Stay connected to <span>where it began.</span>
             </h1>
@@ -81,7 +85,9 @@ export async function CampusLanding() {
                 <Icon name={s.icon} size={22} />
               </span>
               <span>
-                <strong>{s.n}</strong>
+                <strong>
+                  <CountUp value={s.n} />
+                </strong>
                 <small>{s.label}</small>
               </span>
             </div>
@@ -114,7 +120,7 @@ export async function CampusLanding() {
             <div className="container">
               <p className="lp-kicker">The register</p>
               <h2 id="lp-growth">HKBK&apos;s students, batch by batch</h2>
-              <div className="lp-charts">
+              <InView className="lp-charts">
                 <figure className="lp-card lp-chart">
                   <figcaption>
                     <strong>Students by the year they joined</strong>
@@ -123,8 +129,8 @@ export async function CampusLanding() {
                     </small>
                   </figcaption>
                   <div className="lp-bars" role="img" aria-label={`Students by joining year: ${years.map((y) => `${y.year}, ${y.n}`).join("; ")}`}>
-                    {years.map((y) => (
-                      <span key={y.year} className="lp-bars__bar" style={{ height: `${Math.max(4, (y.n / top) * 100)}%` }} title={`${y.year}: ${fmt(y.n)}`}>
+                    {years.map((y, i) => (
+                      <span key={y.year} className="lp-bars__bar" style={{ height: `${Math.max(4, (y.n / top) * 100)}%`, "--i": i } as CSSProperties} data-tip={`${y.year} · ${fmt(y.n)} students`} tabIndex={0}>
                         <span className="sr-only">
                           {y.year}: {y.n}
                         </span>
@@ -143,8 +149,8 @@ export async function CampusLanding() {
                     <small>Everyone on the register</small>
                   </figcaption>
                   <ul className="lp-hbars">
-                    {branches.map((b) => (
-                      <li key={b.code}>
+                    {branches.map((b, i) => (
+                      <li key={b.code} style={{ "--i": i } as CSSProperties}>
                         <span className="lp-hbars__label">{branchName(b.code)}</span>
                         <span className="lp-hbars__track">
                           <span className="lp-hbars__fill" style={{ width: `${(b.count / widest) * 100}%` }} />
@@ -154,7 +160,7 @@ export async function CampusLanding() {
                     ))}
                   </ul>
                 </figure>
-              </div>
+              </InView>
             </div>
           </section>
         )}
@@ -246,6 +252,7 @@ export async function CampusLanding() {
       </main>
 
       <SiteFooter />
+      </div>
     </div>
   );
 }

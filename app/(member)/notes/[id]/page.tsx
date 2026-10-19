@@ -7,7 +7,7 @@ import { postFor } from "../../../../lib/server/posts";
 import { photoIdsOf } from "../../../../lib/server/profile";
 import { requireUser } from "../../../../lib/server/session";
 
-export const metadata: Metadata = { title: "A note · Alumnity", robots: { index: false } };
+export const metadata: Metadata = { title: "A post · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 /** One note with all its comments (the board shows only the newest few). */

@@ -132,7 +132,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
 
             {role === "faculty" ? (
               <p className="join__note">
-                Teachers aren’t in the students’ register, so the alumni office adds you. That opens with accounts, soon.
+                Teachers and staff aren’t in the college register, so the college desk invites you by email. Check your inbox, or ask the alumni office.
               </p>
             ) : (
               <>
@@ -193,7 +193,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                 </button>
                 <p className="join__fine">We only check that you’re on the register. Nobody else sees what you type here.</p>
                 <p className="join__fine">
-                  A teacher or college staff? <Link href="/join/staff">Join with your invitation</Link>
+                  A teacher or member of staff? <Link href="/join/staff">Join with your invitation</Link>
                 </p>
               </>
             )}

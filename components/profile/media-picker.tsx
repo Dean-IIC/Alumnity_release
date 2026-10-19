@@ -68,7 +68,7 @@ export function MediaPicker({ use, value, onChange }: { use: "photo" | "cover"; 
       <span className="field__hint">
         {use === "photo"
           ? "JPEG, PNG, WebP or GIF, up to 5 MB. Location details hidden in photos are removed."
-          : "You can add a photo (up to 5 MB), a short video (up to 25 MB, it plays without sound) or an HTML file (up to 1 MB). An HTML file runs in a safe, closed box and cannot load anything from the internet, so put any pictures or fonts inside the file."}
+          : "You can add a photo (up to 5 MB), a short video (up to 25 MB; it plays without sound) or an HTML file (up to 1 MB). An HTML file runs in a safe, closed box and cannot load anything from the internet, so put any pictures or fonts inside the file."}
       </span>
       {problem && (
         <p className="join__problem" role="alert">

@@ -38,7 +38,7 @@ export const HERO_PHOTO: HeroPhoto = {
 export const CAMPUS_BLOCKS: CampusBlock[] = [
   {
     id: "a-cse",
-    label: "A block · CSE",
+    label: "A Block · CSE",
     photo: journey("a-cse.jpg"),
     sketch: journey("a-cse-sketch.jpg"),
     orientation: "landscape",
@@ -46,7 +46,7 @@ export const CAMPUS_BLOCKS: CampusBlock[] = [
   },
   {
     id: "c",
-    label: "C block",
+    label: "C Block",
     photo: journey("c.jpg"),
     sketch: journey("c-sketch.jpg"),
     orientation: "portrait",

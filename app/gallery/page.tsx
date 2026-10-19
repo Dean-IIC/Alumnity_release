@@ -4,6 +4,7 @@ import { SiteFooter } from "../../components/site-footer";
 import { VisitorOnly } from "../../components/visitor-only";
 import { SoonNotice } from "../../components/coming-soon";
 import { AlbumCard } from "../../components/gallery/album-card";
+import { BackLink } from "../../components/back-link";
 import { ALBUMS, PHOTO_COUNT } from "../../lib/gallery";
 import "../styles/gallery.css";
 
@@ -19,6 +20,7 @@ export default function GalleryPage() {
         <SiteHeader current="gallery" />
       </VisitorOnly>
       <main className="gallery container">
+        <BackLink fallback="/" label="Home" />
         <header className="page-head">
           <p className="kicker">Gallery</p>
           <h1 className="page-title">

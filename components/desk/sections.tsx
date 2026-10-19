@@ -19,14 +19,14 @@ export async function Overview({ me }: { me: User }) {
   const items: [string, number, string?][] = [
     ["Members", s.members],
     ["Joined this week", s.joinedThisWeek],
-    ["Signed in this week", s.signedInThisWeek],
+    ["Logged in this week", s.signedInThisWeek],
     ["Alumni", s.alumni],
     ["Students", s.students],
     ["Happy to mentor", s.mentors],
     ["Connections", s.connections],
     ["Asks", s.asks],
     ["Asks answered", s.answered],
-    ["Notes", s.posts],
+    ["Posts", s.posts],
     ["Events", s.events],
     ["Groups", s.groups],
     ["Open reports", s.openReports, "/desk?tab=reports"],
@@ -127,7 +127,7 @@ export async function Reports({ me, closed }: { me: User; closed: boolean }) {
           )}
           {r.status === "open" && (
             <div className="wf-actions">
-              <ActionForm action={resolveReportAction} confirm={r.kind === "member" ? "Pause this member? They're signed out and hidden until unpaused." : "Take this down?"}>
+              <ActionForm action={resolveReportAction} confirm={r.kind === "member" ? "Pause this member? They're logged out and hidden until unpaused." : "Take this down?"}>
                 <input type="hidden" name="id" value={r.id} />
                 <input type="hidden" name="action" value="remove" />
                 <button className="button button--primary wf-small" type="submit">
@@ -150,7 +150,7 @@ export async function Reports({ me, closed }: { me: User; closed: boolean }) {
 }
 
 const CONTENT_TABS: [ContentKind, string][] = [
-  ["post", "Notes"],
+  ["post", "Posts"],
   ["comment", "Comments"],
   ["ask", "Asks"]
 ];
@@ -301,7 +301,7 @@ export async function Announcements({ me }: { me: User }) {
         <label className="field">
           <span className="field__label">Show it for</span>
           <select name="days" defaultValue="14">
-            <option value="3">3 days</option>
+            <option value="3">Three days</option>
             <option value="7">A week</option>
             <option value="14">Two weeks</option>
             <option value="30">A month</option>
@@ -360,7 +360,7 @@ export async function Team({ me }: { me: User }) {
         <section className="wf-card" aria-labelledby="invite-staff">
           <h2 id="invite-staff">Invite staff</h2>
           <p className="wf-muted">
-            Teachers and college staff are not in the student register, so they join by invitation. They get an email with a link. They confirm their email
+            Teachers and college staff are not in the college register, so they join by invitation. They get an email with a link. They confirm their email
             with a code, and choose a password.
           </p>
           <ActionForm action={inviteStaffAction} className="wf-stack" resetOnSuccess>

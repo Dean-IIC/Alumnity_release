@@ -192,7 +192,7 @@ export async function sendMessage(from: User, toId: number, body: string): Promi
   const text = body.trim().slice(0, MESSAGE_LIMIT);
   if (!text) return no("Write something first.");
   if (!(await memberById(toId))) return no("That member isn't here any more.");
-  if ((await relation(from.id, toId)) !== "connected") return no("You can message your connections. Connect first, or Ask.");
+  if ((await relation(from.id, toId)) !== "connected") return no("You can message your connections. Connect first, or use Ask a senior.");
   if (!(await withinLimit(`message:${from.id}`, 120, 60 * 60_000))) return no("That’s a lot of messages in an hour. Take a breather and try again.");
   // One notification per conversation until it's read, not one per message.
   const unread = await db().one("select 1 from messages where sender = ? and recipient = ? and read_at is null", from.id, toId);

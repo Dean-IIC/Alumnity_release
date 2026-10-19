@@ -85,8 +85,8 @@
 
 /* The header's crest a size larger: the college's logo, as the college asked. */
 :root .site-nav .brand__logo {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
 }
 
 /* Dark mode: gold keeps navy text on it; the tints go deep. */
@@ -236,27 +236,273 @@
 :root .icon.icon--briefcase { color: var(--color-bright-green); }
 .backdrop--green { --bd-ink: #16a34a; --bd-wash: #dcfce7; }
 
-/* ---------- Gold words in titles: bright yellow, not brown ---------- */
+/* ---------- Gold words in titles: marigold ---------- */
 
-/* "made at HKBK", "to your first answer", "register.": navy words over a bright yellow
-   highlighter band. Bright yellow as the letters themselves can't be read on white;
-   as the marker under them it reads as bright yellow and the words stay sharp. */
+/* "Welcome back", "made at HKBK", "to your first answer", "register.": the word in
+   marigold, bold, not a brown and not a highlighter band. */
 :root .page-title__gold {
-  padding: 0 0.12em;
-  border-radius: 0.12em;
-  background: linear-gradient(transparent 52%, #ffd23f 52%, #ffd23f 92%, transparent 92%);
-  color: inherit;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-
-/* On dark ground (dark mode), the words themselves in bright yellow. */
-:root[data-theme="dark"] .page-title__gold {
+  padding: 0;
   background: none;
-  color: #ffd23f;
+  color: #ee9b00;
 }
 
-/* The landing's hero line, on navy: the brightest yellow. */
+:root[data-theme="dark"] .page-title__gold {
+  color: #ffb627;
+}
+
+/* The landing's hero line, on navy: marigold too, bright. */
 :root .lp-hero h1 span {
-  color: #ffc61a;
+  color: #ffb627;
+}
+
+/* ---------- Notifications: the new ones, on the visit they arrive ---------- */
+
+.notif-new-count {
+  display: inline-block;
+  margin: 0 0 var(--space-4);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--color-bright-red);
+  color: #fff;
+  font-size: var(--text-fine);
+  font-weight: var(--weight-bold);
+}
+
+.notif {
+  padding-inline: var(--space-3);
+  border-radius: 10px;
+}
+
+.notif--new {
+  background: #fff8e1;
+  box-shadow: inset 4px 0 0 var(--color-gold);
+}
+
+.notif--new a {
+  font-weight: var(--weight-bold);
+}
+
+:root[data-theme="dark"] .notif--new {
+  background: rgba(255, 180, 0, 0.08);
+}
+
+/* Follow: a gold outline, apart from Connect's navy (one-way, lighter). */
+.button--follow {
+  border-color: var(--color-gold);
+  background: #fff8e1;
+  color: #0a2a57;
+}
+
+.button--follow:hover {
+  background: var(--color-gold);
+}
+
+.follow-row {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ---------- Where you are, fully marked; menus coloured while open ---------- */
+
+/* The public header: the current section as a filled marigold pill, not a thin line. */
+:root .site-nav nav a {
+  padding: 0 14px;
+  border-radius: 999px;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+:root .site-nav nav a:hover {
+  background: #fff3d6;
+  color: #0a2a57;
+}
+
+:root .site-nav nav a[aria-current] {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+:root .site-nav nav a[aria-current]::after {
+  display: none;
+}
+
+/* The app bar: the current place as a tinted tile, its gold rule kept under it. */
+:root .app-bar__tab {
+  border-radius: 12px;
+  transition: background-color 180ms ease;
+}
+
+:root .app-bar__tab:hover {
+  background: #f1f5fb;
+}
+
+:root .app-bar__tab[aria-current="page"] {
+  background: #fff3d6;
+  color: #0a2a57;
+}
+
+/* More and You, while their menu is open: marigold. */
+:root .app-menu[open] > summary {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+:root .app-menu[open] > summary .icon {
+  color: #0a2a57;
+}
+
+/* Menu entries: a tint as you point at them, gold for the page you're on. */
+:root .app-menu__item {
+  transition: background-color 160ms ease;
+}
+
+:root .app-menu__item:hover {
+  background: #f1f5fb;
+}
+
+:root .app-menu__item[aria-current="page"] {
+  background: #fff3d6;
+  box-shadow: inset 3px 0 0 var(--color-gold);
+}
+
+/* The phone's bottom bar: the current tab on a tinted tile too. */
+:root .tab-bar a[aria-current="page"] {
+  border-radius: 12px;
+  background: #fff3d6;
+  color: #0a2a57;
+}
+
+:root[data-theme="dark"] .app-bar__tab[aria-current="page"],
+:root[data-theme="dark"] .tab-bar a[aria-current="page"],
+:root[data-theme="dark"] .app-menu__item[aria-current="page"] {
+  background: rgba(255, 180, 0, 0.14);
+  color: #fff;
+}
+
+/* ---------- The way back: a proper button on every page ---------- */
+
+:root .back-link {
+  gap: 8px;
+  min-height: 38px;
+  margin-bottom: var(--space-3);
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-paper-raised);
+  color: #0a2a57;
+  font-size: var(--text-small);
+  box-shadow: 0 1px 2px rgba(10, 42, 87, 0.06);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+:root .back-link span {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  color: #0a2a57;
+  font-size: 13px;
+  line-height: 1;
+}
+
+:root .back-link:hover {
+  border-color: var(--color-gold);
+  background: #fff3d6;
+}
+
+:root[data-theme="dark"] .back-link {
+  color: #fff;
+}
+
+/* ---------- Reactions: bright filled icons, a little bigger ---------- */
+
+:root .stamp:not(.stamp--blank) {
+  background: none;
+}
+
+.stamp__art {
+  transition: transform 180ms ease;
+  transform-origin: 12px 12px;
+}
+
+/* In the picker, each pops as you point at it. */
+:root .reaction-picker__item:hover .stamp__art {
+  transform: scale(1.18) translateY(-1px);
+}
+
+:root .reaction-picker__item:hover .stamp {
+  transform: none;
+}
+
+/* The counts' little row of reactions: overlapping, on white rings so they read. */
+:root .post__stamp {
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* ---------- Cards: they fill with a colourful pattern as you point at them ---------- */
+
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+/* The pattern: gold and blue dots over a soft gold-red-blue wash, faded in on hover. */
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory)::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background:
+    radial-gradient(circle, rgba(255, 180, 0, 0.32) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
+    radial-gradient(circle, rgba(18, 62, 124, 0.18) 0 1.6px, transparent 2px) 9px 9px / 18px 18px,
+    linear-gradient(135deg, rgba(255, 180, 0, 0.16), rgba(224, 36, 47, 0.08) 50%, rgba(18, 62, 124, 0.12));
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory):hover::before {
+  opacity: 1;
+}
+
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader):hover {
+  border-color: var(--color-gold);
+  box-shadow: 0 12px 28px rgba(10, 42, 87, 0.14);
+  transform: translateY(-3px);
+}
+
+/* Each kind of card its own colours in the pattern. */
+:root .lp-stat:nth-child(3)::before,
+:root .lp-for li:nth-child(4) .lp-card::before {
+  background:
+    radial-gradient(circle, rgba(22, 163, 74, 0.3) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
+    linear-gradient(135deg, rgba(22, 163, 74, 0.12), rgba(255, 180, 0, 0.1));
+}
+
+:root .lp-stat:nth-child(4)::before,
+:root .event-card::before {
+  background:
+    radial-gradient(circle, rgba(224, 36, 47, 0.26) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
+    linear-gradient(135deg, rgba(224, 36, 47, 0.1), rgba(255, 180, 0, 0.12));
+}
+
+:root .lp-for li:nth-child(2) .lp-card::before {
+  background:
+    radial-gradient(circle, rgba(15, 138, 143, 0.3) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
+    linear-gradient(135deg, rgba(15, 138, 143, 0.12), rgba(18, 62, 124, 0.1));
+}
+
+/* Buttons and links: a simpler lift and fill, no pattern (patterns are for cards). */
+:root :is(.button, .lp-btn):hover {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader):hover {
+    transform: none;
+  }
 }

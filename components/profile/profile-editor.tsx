@@ -90,8 +90,8 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
 
       <Part title="Your journey since HKBK (optional)" field="journey" {...who("journey")}>
         <p className="join__fine">
-          Only if you'd like: the stops between leaving college and now (a first job, a new city, a start-up). Add one and your page
-          shows your road, drawn in the red pen, oldest first.
+          Only if you'd like: the stops between leaving college and now (a first job, a new city, a startup). Add one and your page
+          shows your road, drawn in red pen, oldest first.
         </p>
         <ol className="editor__stops">
           {profile.journey.map((stop, i) => (

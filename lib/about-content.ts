@@ -6,7 +6,7 @@
  */
 
 export const DIRECTOR_MESSAGE = {
-  name: "Mr. C M Faiz",
+  name: "Shri C M Faiz Mohammed",
   role: "Director",
   greeting: "Dear Esteemed Alumni,",
   paragraphs: [

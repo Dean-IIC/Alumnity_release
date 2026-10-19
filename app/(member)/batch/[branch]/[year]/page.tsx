@@ -93,7 +93,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
       )}
       {notes.length > 0 && (
         <>
-          <h2>Notes from this batch</h2>
+          <h2>Posts from this batch</h2>
           {notes.map((p) => (
             <PostCard key={p.id} post={p} />
           ))}

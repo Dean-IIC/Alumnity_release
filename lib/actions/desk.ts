@@ -24,13 +24,13 @@ export async function pauseAction(_: ActionState, form: FormData): Promise<Actio
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const paused = textFrom(form, "paused", 5) === "1";
-  return answer(await suspend(me, idFrom(form), paused), paused ? "Paused, and signed out everywhere." : "Unpaused.");
+  return answer(await suspend(me, idFrom(form), paused), paused ? "Paused, and logged out everywhere." : "Unpaused.");
 }
 
 export async function signOutAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await signOutEverywhere(me, idFrom(form)), "Signed out on every device.");
+  return answer(await signOutEverywhere(me, idFrom(form)), "Logged out on every device.");
 }
 
 export async function roleAction(_: ActionState, form: FormData): Promise<ActionState> {

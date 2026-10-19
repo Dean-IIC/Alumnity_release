@@ -634,3 +634,108 @@ a.lp-card:hover {
     margin: 0;
   }
 }
+
+/* ---------- Under the intro ---------- */
+
+.landing-ui {
+  position: relative;
+  z-index: var(--z-site);
+}
+
+/* Returning visitors who skip the intro get a short fade instead. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-intro="skip"] .landing-ui {
+    animation: site-in 400ms var(--ease-out) both;
+  }
+}
+
+@keyframes site-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Charts that grow in as they're reached (components/landing/in-view.tsx) ---------- */
+
+.lp-bars__bar {
+  position: relative;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition:
+    transform 700ms cubic-bezier(0.23, 1, 0.32, 1) calc(var(--i, 0) * 35ms),
+    background 180ms ease;
+}
+
+.lp-charts.is-in .lp-bars__bar {
+  transform: scaleY(1);
+}
+
+.lp-hbars__fill {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 900ms cubic-bezier(0.23, 1, 0.32, 1) calc(var(--i, 0) * 90ms);
+}
+
+.lp-charts.is-in .lp-hbars__fill {
+  transform: scaleX(1);
+}
+
+/* The year under the pointer: a clear navy bubble with the number, not a tiny tooltip. */
+.lp-bars__bar::after {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  padding: 8px 12px;
+  content: attr(data-tip);
+  border-radius: 10px;
+  background: #0a2a57;
+  color: #fff;
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgba(10, 42, 87, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 6px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.lp-bars__bar::before {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  content: "";
+  background: #0a2a57;
+  opacity: 0;
+  transform: translateX(-50%) rotate(45deg);
+  transition: opacity 160ms ease;
+}
+
+.lp-bars__bar:hover,
+.lp-bars__bar:focus-visible {
+  background: var(--color-gold);
+  outline: none;
+}
+
+.lp-bars__bar:hover::after,
+.lp-bars__bar:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.lp-bars__bar:hover::before,
+.lp-bars__bar:focus-visible::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-bars__bar,
+  .lp-hbars__fill {
+    transform: none;
+    transition: none;
+  }
+}

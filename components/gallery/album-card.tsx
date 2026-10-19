@@ -22,7 +22,7 @@ export function AlbumCard({ album, compact = false }: { album: Album; compact?: 
           </span>
         </span>
         <span className="album-card__open" aria-hidden="true">
-          →
+          View album <span className="album-card__arrow">→</span>
         </span>
       </span>
     </Link>

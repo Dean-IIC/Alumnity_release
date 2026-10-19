@@ -276,7 +276,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                       </svg>
                       <span>
                         <b>{l.key === "refer" && profile.company && on ? `Refers people at ${profile.company}` : l.title}</b>
-                        <span>{on ? l.note : "Not switched on. Edit your page to light it."}</span>
+                        <span>{on ? l.note : "Not switched on. Edit your page to turn it on."}</span>
                       </span>
                     </li>
                   );
@@ -300,7 +300,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                           {on
                             ? w.note
                             : w.key === "mentor"
-                              ? "Not switched on. Edit your page to light it, so seniors can find you."
+                              ? "Not switched on. Edit your page to turn it on, so seniors can find you."
                               : "Not switched on. Light it when you edit your page: seniors can find you, and you hear when a job or internship goes on the HKBK board."}
                         </span>
                       </span>

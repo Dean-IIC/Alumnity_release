@@ -29,7 +29,7 @@ export function PostCard({ post, full = false }: { post: Post; full?: boolean })
           </button>
         </ActionForm>
         {post.mine ? (
-          <ActionForm action={removePostAction} confirm="Remove this note? It can't be brought back.">
+          <ActionForm action={removePostAction} confirm="Remove this post? It can't be brought back.">
             <input type="hidden" name="id" value={post.id} />
             <button className="wf-link-button" type="submit">
               Remove
@@ -71,7 +71,7 @@ export function PostCard({ post, full = false }: { post: Post; full?: boolean })
       {!full && post.commentCount > post.comments.length && (
         <p>
           <Link className="wf-link-button" href={`/notes/${post.id}`}>
-            Show all {post.commentCount} comments
+            View all {post.commentCount} comments
           </Link>
         </p>
       )}

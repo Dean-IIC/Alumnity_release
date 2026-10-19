@@ -53,8 +53,8 @@ export default function TermsPage() {
             <li>Post only what you have the right to post, and nothing illegal.</li>
           </ul>
           <p>
-            Anyone can report something to the college desk. The desk may take down what breaks these rules and pause or remove accounts, and is recorded in an audit log when it
-            does. If you think the desk got it wrong, write to {contact}.
+            Anyone can report something to the college desk. The desk may take down what breaks these rules and pause or remove accounts. Everything the desk does is recorded in an
+            audit log. If you think the desk got it wrong, write to {contact}.
           </p>
         </Section>
 

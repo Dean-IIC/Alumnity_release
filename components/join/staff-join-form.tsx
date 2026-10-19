@@ -41,7 +41,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
             }}
           >
             <label className="field">
-              <span className="field__label">The email you were invited at</span>
+              <span className="field__label">The email your invitation was sent to</span>
               <input name="email" type="email" autoComplete="email" required placeholder="you@hkbk.edu.in" defaultValue={email} />
               <span className="field__hint">The college desk invites teachers, coordinators and administrators by email.</span>
             </label>

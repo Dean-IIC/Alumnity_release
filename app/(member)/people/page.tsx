@@ -87,8 +87,8 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
           so the page looked empty of real people: "is the data missing?" It says it's here. */}
       {college && (
         <p className="people-register-note">
-          <strong>{college.count.toLocaleString("en-IN")} people</strong> from HKBK&apos;s register, {college.from}–{college.to}, are here: those who have joined Alumnity first,
-          then <a href="#register-all">everyone on the register</a>. Type a name or USN above to find someone.
+          <strong>{college.count.toLocaleString("en-IN")} people</strong> from HKBK&apos;s register ({college.from}–{college.to}) are listed here: members who have joined Alumnity first,
+          then <a href="#register-all">everyone else on the register</a>. Type a name or USN above to find someone.
         </p>
       )}
 
@@ -160,7 +160,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             From the college&apos;s own register of students{query.branch || query.year ? ", with the branch and year chosen above" : ""}. Choose a branch or year above to look through one batch. Know someone? Send them the link: they join by finding their name.
           </p>
           {browse.limited ? (
-            <p className="wf-note">That&apos;s {REGISTER_PAGES} pages of the register this hour, the most at a time. It comes back within the hour.</p>
+            <p className="wf-note">You&apos;ve looked through {REGISTER_PAGES} pages of the register this hour, the most allowed. You can look again within the hour.</p>
           ) : (
             <RegisterList people={browse.people} />
           )}
@@ -178,7 +178,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
       )}
       {register.limited && (
         <p className="wf-note">
-          That's {REGISTER_SEARCHES} searches of the college register this hour, the most at a time. Members still show; the register's names come back within the hour.
+          You've searched the college register {REGISTER_SEARCHES} times this hour, the most allowed. Members still show; you can search the register again within the hour.
         </p>
       )}
     </AppPage>

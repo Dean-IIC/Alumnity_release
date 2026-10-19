@@ -53,7 +53,7 @@ export function SettingsPanel({ email }: { email: string }) {
       <Section title="Light or dark">
         <ThemeChoicePicker />
       </Section>
-      <Section title="Alerts">
+      <Section title="Notifications">
         <AlertsPanel />
       </Section>
 
@@ -68,7 +68,7 @@ export function SettingsPanel({ email }: { email: string }) {
               const answer = await post("/api/auth/password", { current: data.get("current"), password: data.get("password") });
               if (!answer.ok) return { ok: false, text: answer.error };
               form.reset();
-              return { ok: true, text: "Your password is changed. Anywhere else you were logged in, you’ve been logged out." };
+              return { ok: true, text: "Your password has been changed. Anywhere else you were logged in, you’ve been logged out." };
             });
           }}
         >

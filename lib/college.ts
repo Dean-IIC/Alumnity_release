@@ -17,8 +17,8 @@ export const COLLEGE = {
 
 /** The college's leadership, with their photos from hkbkce.in/leadership. */
 export const LEADERS = [
-  { name: "Shri. C M Ibrahim", role: "Chairman, HKBK Group of Institutions", photo: "/college/chairman.jpg", href: `${COLLEGE.site}/leadership#chairman` },
-  { name: "Shri. C M Faiz Mohammed", role: "Director, HKBK College of Engineering", photo: "/college/director.jpg", href: `${COLLEGE.site}/leadership#director` },
+  { name: "Shri C M Ibrahim", role: "Chairman, HKBK Group of Institutions", photo: "/college/chairman.jpg", href: `${COLLEGE.site}/leadership#chairman` },
+  { name: "Shri C M Faiz Mohammed", role: "Director, HKBK College of Engineering", photo: "/college/director.jpg", href: `${COLLEGE.site}/leadership#director` },
   { name: "Dr. Mohammed Riyaz Ahmed", role: "Principal, HKBK College of Engineering", photo: "/college/principal.jpg", href: `${COLLEGE.site}/leadership#principal` }
 ] as const;
 

@@ -41,12 +41,12 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
           <br />
           <strong>Joined Alumnity:</strong> {when(m.createdAt)}
           <br />
-          <strong>Signed in on:</strong> {m.sessions.count} device{m.sessions.count === 1 ? "" : "s"}
-          {m.sessions.lastSignIn ? ` · last sign-in ${timeAgo(m.sessions.lastSignIn)}` : ""}
+          <strong>Logged in on:</strong> {m.sessions.count} device{m.sessions.count === 1 ? "" : "s"}
+          {m.sessions.lastSignIn ? ` · last login ${timeAgo(m.sessions.lastSignIn)}` : ""}
         </p>
         <div className="wf-actions">
           <span className="wf-tag">{m.counts.connections} connections</span>
-          <span className="wf-tag">{m.counts.notes} notes</span>
+          <span className="wf-tag">{m.counts.notes} posts</span>
           <span className="wf-tag">{m.counts.asks} Asks</span>
           <span className="wf-tag">{m.counts.answered} answered</span>
           <span className={`wf-tag ${m.counts.reportsAbout ? "wf-tag--red" : ""}`}>{m.counts.reportsAbout} reports about them</span>
@@ -67,17 +67,17 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
         <>
           <h2>Access</h2>
           <div className="wf-actions">
-            <ActionForm action={pauseAction} confirm={m.suspended ? undefined : `Pause ${m.name}? They're signed out everywhere and hidden from everyone until unpaused.`}>
+            <ActionForm action={pauseAction} confirm={m.suspended ? undefined : `Pause ${m.name}? They're logged out everywhere and hidden from everyone until unpaused.`}>
               {hidden}
               <input type="hidden" name="paused" value={m.suspended ? "0" : "1"} />
               <button className={`button wf-small ${m.suspended ? "button--primary" : "button--secondary"}`} type="submit">
                 {m.suspended ? "Unpause" : "Pause"}
               </button>
             </ActionForm>
-            <ActionForm action={signOutAction} confirm={`Sign ${m.name} out on every device?`}>
+            <ActionForm action={signOutAction} confirm={`Log ${m.name} out on every device?`}>
               {hidden}
               <button className="button button--secondary wf-small" type="submit" disabled={m.sessions.count === 0}>
-                Sign out everywhere
+                Log out everywhere
               </button>
             </ActionForm>
           </div>
@@ -115,7 +115,7 @@ export default async function DeskMemberPage({ params }: { params: Promise<{ id:
                 <ActionForm action={deleteMemberAction} className="wf-stack">
                   {hidden}
                   <p className="wf-note wf-note--error">
-                    This can't be undone: their page, notes, comments, messages, Asks and connections all go. Pausing is usually enough.
+                    This can't be undone: their page, posts, comments, messages, Asks and connections all go. Pausing is usually enough.
                   </p>
                   <label className="field">
                     <span className="field__label">Type their name to confirm: {m.name}</span>

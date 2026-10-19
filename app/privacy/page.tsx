@@ -46,13 +46,13 @@ export default function PrivacyPage() {
           <ul>
             <li>
               <strong>Your entry in the college register</strong> (name, USN, branch, course, the year you joined), from the college’s own records. It’s how we know you studied
-              here; it’s never shown to anyone in full. Signed-in members can search it for someone’s name, to invite them: they see a name, branch and year, never a USN, and only a few searches an hour, so it can’t be copied out.
+              here; it’s never shown to anyone in full. Logged-in members can search it for someone’s name, to invite them: they see a name, branch and year, never a USN, and only a few searches an hour, so it can’t be copied out.
             </li>
             <li>
               <strong>Your email address</strong>, to sign you in and send your codes (and, if you leave it on, one daily email when something’s waiting). Other members never see it.
             </li>
             <li>
-              <strong>Your password</strong>, kept only as a one-way scrambled form by our sign-in provider. Nobody, including the college, can read it.
+              <strong>Your password</strong>, kept only as a one-way scrambled form by our login provider. Nobody, including the college, can read it.
             </li>
             <li>
               <strong>What you put on your page</strong>: what you do now, your journey, skills, links, a photo and a cover. You choose who sees each part.
@@ -67,14 +67,14 @@ export default function PrivacyPage() {
               <strong>Donations</strong>: which cause, how much, when, and the payment’s reference from Razorpay. Your card, UPI or bank details go to Razorpay, never to us.
             </li>
             <li>
-              <strong>Running the site safely</strong>: when you were last here (to the hour), the browsers you’re signed in on, and, for a day, the network addresses of recent
-              attempts, so nobody can guess passwords or spam. If you turn on notifications, your browser’s notification address.
+              <strong>Running the site safely</strong>: when you were last here (to the hour), the browsers you’re logged in on, and, for a day, the network addresses of recent
+              attempts, so nobody can guess passwords or spam. If you turn on notifications, we also keep your browser’s notification address.
             </li>
           </ul>
           <p>
             We use all this only to run Alumnity for HKBK’s students and alumni: to verify who joins, show your page and what you share to the people you chose, deliver messages
             and notifications, keep members safe, and handle donations. We don’t sell it, rent it, or use it for advertising, and there are no advertising or tracking cookies:
-            the only cookies keep you signed in.
+            the only cookies keep you logged in.
           </p>
         </Section>
 
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
 
         <Section title="The services that help us run it">
           <p>
-            These handle data for us, only to run Alumnity: Supabase (the database, sign-in and file storage), Vercel (the website’s servers), Razorpay (payments), our email
+            These handle data for us, only to run Alumnity: Supabase (the database, login and file storage), Vercel (the website’s servers), Razorpay (payments), our email
             provider (the daily email), and your browser maker’s notification service (if you turn notifications on). Some of these may keep data outside India; they’re bound
             to protect it.
           </p>
@@ -102,8 +102,8 @@ export default function PrivacyPage() {
 
         <Section title="How long we keep it">
           <p>
-            As long as you have an account. Delete your account in Settings and your page, posts, comments, messages, uploads and everything else of yours goes, for good. A
-            record that a donation was made (without your name) is kept as long as the law requires the college to keep its accounts; the desk’s audit log keeps that an
+            As long as you have an account. Delete your account in Settings and your page, posts, comments, messages, uploads and everything else of yours go, for good. A
+            record that a donation was made (without your name) is kept as long as the law requires the college to keep its accounts; the desk’s audit log keeps a record that an
             action happened.
           </p>
         </Section>
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
         <Section title="Keeping it secure">
           <p>
             Everything travels encrypted. Passwords are never stored readably. Only the site’s own server can reach the database. Uploads are checked, and every file is served
-            only to signed-in members who may see it. Tell {contact} at once if you think something is wrong.
+            only to logged-in members who may see it. Tell {contact} at once if you think something is wrong.
           </p>
         </Section>
 

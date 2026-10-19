@@ -125,7 +125,7 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
   const session = await auth.session();
   const invite = row && (await openInvite(row.email));
   if (!row?.verified_at || !invite || row.verified_at + SETUP_LIFE < Date.now() || !session || session.authId !== row.auth_id) {
-    return { ok: false, error: "This sign-up has expired. Please start again." };
+    return { ok: false, error: "This joining link has expired. Please start again." };
   }
   const problem = passwordProblem(password, passwordContext({ name: invite.name, usn: null, email: row.email }));
   if (problem) return { ok: false, error: problem };
@@ -169,7 +169,7 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
     return {
       ok: false,
       error: byLogin
-        ? "This sign-in is already tied to another member's account. The college desk can sort it out."
+        ? "This login is already tied to another member's account. The college desk can sort it out."
         : "That email already has an account. Log in instead."
     };
   }

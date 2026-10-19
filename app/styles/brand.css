@@ -1,6 +1,6 @@
 /*
- * The lockup: the HKBK crest, the college's name, "Alumni Network" under it. As on
- * hkbkce.in's header: the logo large, the name bold in the college's navy.
+ * The lockup: the HKBK crest, "Alumnity." and the college's name under it. HKBK large,
+ * as the college asked: the crest and its name as big as the bar allows.
  */
 
 .brand {
@@ -13,8 +13,8 @@
 
 .brand__logo {
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
 }
 
 .brand__text {
@@ -27,7 +27,7 @@
   overflow: hidden;
   color: var(--color-red);
   font-family: var(--font-ui);
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: var(--weight-bold);
   letter-spacing: -0.03em;
   line-height: 1;
@@ -42,24 +42,25 @@
 .brand__sub {
   color: var(--color-blue);
   font-family: var(--font-ui);
-  font-size: 0.8125rem;
-  font-weight: var(--weight-semibold);
+  font-size: 1.0625rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.005em;
   white-space: nowrap;
 }
 
 /* A phone: the name shortens to fit beside the bar's icons. */
 @media (max-width: 860px) {
   .brand__logo {
-    width: 38px;
-    height: 38px;
+    width: 46px;
+    height: 46px;
   }
 
   .brand__name {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
   }
 
   .brand__sub {
-    font-size: 0.72rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -70,7 +71,8 @@
   }
 
   .brand__sub {
-    max-width: 13em;
+    max-width: 12em;
+    font-size: 0.85rem;
     white-space: normal;
     line-height: 1.15;
   }

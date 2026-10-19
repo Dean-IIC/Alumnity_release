@@ -7,7 +7,8 @@ import { AppPage } from "../../../../components/app/app-page";
 import { Activity, Featured } from "../../../../components/profile/activity";
 import { ReportButton } from "../../../../components/app/report-button";
 import { ProfileSheet } from "../../../../components/profile/profile-sheet";
-import { acceptAction, blockAction, connectAction, declineAction, removeConnectionAction, unblockAction, withdrawAction } from "../../../../lib/actions/social";
+import { acceptAction, blockAction, connectAction, declineAction, followAction, removeConnectionAction, unblockAction, unfollowAction, withdrawAction } from "../../../../lib/actions/social";
+import { followCounts, isFollowing } from "../../../../lib/server/follows";
 import { recordOf } from "../../../../lib/server/asks";
 import { pageFor } from "../../../../lib/server/people";
 import { feedFor, postFor } from "../../../../lib/server/posts";
@@ -38,6 +39,9 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
   // Their pinned post, if this viewer may see it (postFor applies the post's own audience).
   const featured = relation === "blocked" || !profile.featured ? null : await postFor(me, profile.featured);
   const hidden = <input type="hidden" name="id" value={owner.id} />;
+  // Following is one-way, as on LinkedIn: their posts in your Following feed, no request,
+  // nothing for them to accept. Connecting is two-way (and lets you message).
+  const [following, counts] = await Promise.all([isFollowing(me.id, owner.id), followCounts(owner.id)]);
 
   const actions =
     relation === "blocked" ? (
@@ -104,6 +108,15 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
             </ActionForm>
           </div>
         )}
+        <div className="wf-actions follow-row">
+          <ActionForm action={following ? unfollowAction : followAction} showDone={false}>
+            {hidden}
+            <button className={`button wf-small ${following ? "button--secondary" : "button--follow"}`} type="submit">
+              {following ? "Following ✓" : "+ Follow"}
+            </button>
+          </ActionForm>
+          <span className="wf-muted">{following ? `${first}'s posts are in your Following feed.` : `See ${first}'s posts in your Following feed, without connecting.`}</span>
+        </div>
         <div className="wf-actions">
           <ActionForm action={blockAction} confirm={`Block ${first}? You won't see each other anywhere on Alumnity, and any connection ends. They aren't told.`}>
             {hidden}
@@ -117,7 +130,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
     );
 
   return (
-    <AppPage user={me} current="people" back={{ href: "/people", label: "People" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
+    <AppPage user={me} current="people" back={{ href: "/people", label: "People" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections · ${counts.followers} ${counts.followers === 1 ? "follower" : "followers"}${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
       <StickyName name={owner.name}>
         {relation === "connected" && (
           <Link className="button button--primary wf-small" href={`/messages/${owner.id}`}>

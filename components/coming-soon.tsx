@@ -15,7 +15,7 @@ export function soon(event: MouseEvent<HTMLAnchorElement>) {
   const what = COMING_SOON[event.currentTarget.getAttribute("href") ?? ""];
   if (!what) return;
   event.preventDefault();
-  window.dispatchEvent(new CustomEvent(EVENT, { detail: `${what} opens soon — this is an early preview of Alumnity.` }));
+  window.dispatchEvent(new CustomEvent(EVENT, { detail: `${what} opens soon: this is an early preview of Alumnity.` }));
 }
 
 /** The notice those links raise. One per page. */

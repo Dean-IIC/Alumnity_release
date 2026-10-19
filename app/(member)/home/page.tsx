@@ -40,7 +40,7 @@ const SHORTCUTS = [
   { href: "/groups", label: "Groups", icon: "group" },
   { href: "/batch", label: "Your batch", icon: "batch" },
   { href: "/ask", label: "Ask a senior", icon: "ask" },
-  { href: "/board", label: "Jobs & board", icon: "briefcase" },
+  { href: "/board", label: "Jobs board", icon: "briefcase" },
   { href: "/events", label: "Events", icon: "event" },
   { href: "/causes", label: "Causes", icon: "heart" },
   { href: "/connections", label: "Connections", icon: "connections" },

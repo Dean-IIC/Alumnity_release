@@ -109,7 +109,7 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
                   <Icon name="settings" size={22} />
                   <span>
                     <strong>Settings</strong>
-                    <small>Password, alerts, dark mode</small>
+                    <small>Password, notifications, dark mode</small>
                   </span>
                 </NavLink>
                 <LogOutButton className="app-menu__item app-menu__logout">
@@ -148,7 +148,7 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
               </NavLink>
               <NavLink href="/settings" className="app-menu__item">
                 <Icon name="settings" size={22} />
-                <span>Settings and alerts</span>
+                <span>Settings and notifications</span>
               </NavLink>
               {isModerator(user) && (
                 <NavLink href="/desk" className="app-menu__item">

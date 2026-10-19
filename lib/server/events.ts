@@ -110,7 +110,7 @@ export async function createEvent(
   if (starts < Date.now() - DAY) return no("That date has passed.");
   if (input.endsAt && (!ends || ends <= starts)) return no("It should end after it starts.");
   if (input.onlineLink.trim() && !link) return no("The online link should start with https://");
-  if (capacity !== null && !(capacity > 0 && capacity <= 100_000)) return no("Capacity should be a number of people, or empty.");
+  if (capacity !== null && !(capacity > 0 && capacity <= 100_000)) return no("Capacity should be a number of people, or left empty.");
   if (!(await withinLimit(`event:${me.id}`, 10, DAY))) return no("That's ten events today: the most in a day.");
   const row = await db().one<{ id: number }>(
     "insert into events (organiser, title, body, starts_at, ends_at, place, online_link, capacity, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?) returning id",
