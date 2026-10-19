@@ -217,6 +217,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           ))}
 
+          {/* Writing a post, first, as LinkedIn has it: below the greeting and "Getting started" it
+              was under a laptop's first screen, and a blind test took "Add a story" for it. */}
+          {notesOn ? (
+            <Composer firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
+          ) : (
+            <p className="sheet side-box">{PAUSED}</p>
+          )}
+
           {/* Fetched alongside the rest of Home, not before it. */}
           {!before && (
             <Suspense fallback={<FocusWaiting me={me} />}>
@@ -252,12 +260,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           )}
 
-
-          {notesOn ? (
-            <Composer firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
-          ) : (
-            <p className="sheet side-box">{PAUSED}</p>
-          )}
 
           <nav className="feed-tabs" aria-label="Which posts">
             <Link href="/home" aria-current={scope === "all" ? "page" : undefined}>
