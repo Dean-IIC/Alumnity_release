@@ -5,6 +5,7 @@ import { COLLEGE, LEADERS } from "../lib/college";
 import { upcomingForEveryone } from "../lib/server/events";
 import { memberCount } from "../lib/server/people";
 import { registerByYear, registerFacts } from "../lib/server/register";
+import { AlumnityIntro } from "./alumnity-intro";
 import { Icon, type IconName } from "./social/icons";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
@@ -44,6 +45,7 @@ export async function CampusLanding() {
 
   return (
     <div className="landing force-light">
+      <AlumnityIntro year={new Date().getFullYear()} />
       <SiteHeader landing />
 
       <main id="main">
@@ -52,12 +54,12 @@ export async function CampusLanding() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="lp-hero__photo" src={HERO.cover.src} alt="" width={HERO.cover.width} height={HERO.cover.height} fetchPriority="high" />
           <div className="lp-hero__inner container">
-            <p className="lp-tag">HKBK Alumni Network</p>
+            <p className="lp-tag">Alumnity · HKBK Alumni Network</p>
             <h1 id="lp-title">
               Stay connected to <span>where it began.</span>
             </h1>
             <p className="lp-hero__text">
-              The official alumni network of {COLLEGE.name}. Find your batch, ask a senior, help a junior and come back for the alumni meets.
+              Alumnity is the alumni network of {COLLEGE.name}. Find your batch, ask a senior, help a junior and come back for the alumni meets.
             </p>
             <div className="lp-hero__actions">
               <Link className="lp-btn lp-btn--gold" href="/join">

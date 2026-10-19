@@ -1,0 +1,262 @@
+/*
+ * The colour layer: the college's gold used as a real accent (not only a thin rule), and
+ * each set of cards in its own of the college's tints, so the site reads colourful while
+ * navy stays its base. Kept in one file so its brightness can be tuned in one place.
+ */
+
+/* A gold rule under the bar, on every signed-in page. */
+:root .app-bar {
+  border-bottom: 0;
+  box-shadow: inset 0 -3px 0 var(--color-gold), 0 1px 0 var(--color-line);
+}
+
+/* Counts (people waiting, unread): gold with navy figures. */
+:root .wf-count {
+  background: var(--color-gold);
+  color: #0a2a57;
+  font-weight: var(--weight-bold);
+}
+
+/* The phone's Post button: gold. */
+:root .tab-bar__post {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+/* Every page's title: a short gold bar under it. */
+:root .page-title::after,
+:root .wf-head h1::after {
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin-top: 14px;
+  content: "";
+  border-radius: 2px;
+  background: var(--color-gold);
+}
+
+/* Chosen tabs and filters (the board's tags, Everyone/Following): gold. */
+:root .wf-tabs a[aria-current="page"],
+:root .wf-tabs a[aria-current="true"] {
+  border-color: var(--color-gold);
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+/* Home's greeting card: a gold edge, and the Ask button in gold. */
+:root .focus--student {
+  box-shadow: inset 4px 0 0 var(--color-gold);
+}
+
+:root .focus__ask-start .button--primary {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+:root .focus__ask-start .button--primary:hover {
+  background: #ffbb1f;
+}
+
+/* A gold action where it matters most: anything marked so. */
+.button--gold {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+.button--gold:hover {
+  background: #ffbb1f;
+}
+
+/* The landing's number cards and reasons: each its own colour. */
+.lp-stat:nth-child(1) .lp-stat__icon { background: #e8eff9; color: #123e7c; }
+.lp-stat:nth-child(2) .lp-stat__icon { background: #fcf0da; color: #a46a00; }
+.lp-stat:nth-child(3) .lp-stat__icon { background: #e4f3ea; color: #1f6f43; }
+.lp-stat:nth-child(4) .lp-stat__icon { background: #fae7eb; color: #a8325a; }
+
+.lp-stat:nth-child(1) { border-top: 3px solid #123e7c; }
+.lp-stat:nth-child(2) { border-top: 3px solid var(--color-gold); }
+.lp-stat:nth-child(3) { border-top: 3px solid #1f6f43; }
+.lp-stat:nth-child(4) { border-top: 3px solid #a8325a; }
+
+.lp-for li:nth-child(1) .lp-for__icon { background: #123e7c; color: var(--color-gold); }
+.lp-for li:nth-child(2) .lp-for__icon { background: #0f6e75; color: #fff; }
+.lp-for li:nth-child(3) .lp-for__icon { background: var(--color-gold); color: #0a2a57; }
+.lp-for li:nth-child(4) .lp-for__icon { background: #1f6f43; color: #fff; }
+
+/* The header's crest a size larger: the college's logo, as the college asked. */
+:root .site-nav .brand__logo {
+  width: 56px;
+  height: 56px;
+}
+
+/* Dark mode: gold keeps navy text on it; the tints go deep. */
+:root[data-theme="dark"] .lp-stat__icon {
+  filter: saturate(1.2);
+}
+
+/* ---------- Bright red, and no dull yellow ---------- */
+
+/* Small labels over sections: the crest's red, not a brownish gold. */
+:root .lp-kicker,
+:root .kicker,
+:root .lp-meet__text small,
+:root .h-count {
+  color: var(--color-bright-red);
+}
+
+/* Counts: red, as everyone expects of something unread. */
+:root .wf-count {
+  background: var(--color-bright-red);
+  color: #fff;
+}
+
+/* The hero's tag: solid gold, not a muted tint. */
+:root .lp-tag {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+/* A date's month band: red, like a calendar's. */
+:root .lp-date small,
+:root .event-card__date small {
+  background: var(--color-bright-red);
+}
+
+/* The title bar: gold with a red tip. */
+:root .page-title::after,
+:root .wf-head h1::after {
+  width: 64px;
+  background: linear-gradient(to right, var(--color-gold) 0 70%, var(--color-bright-red) 70% 100%);
+}
+
+/* The fourth number card: red. */
+.lp-stat:nth-child(4) { border-top-color: var(--color-bright-red); }
+.lp-stat:nth-child(4) .lp-stat__icon { background: #fde5e6; color: var(--color-bright-red); }
+
+/* The gold in the background drawings: full strength. */
+:root .backdrop .bd-accent {
+  fill-opacity: 0.85;
+}
+
+:root .backdrop .bd-accent-line {
+  stroke-opacity: 0.9;
+}
+
+/* The landing's year bars light up gold under the pointer; the top branch bar is gold. */
+:root .lp-hbars li:nth-child(2) .lp-hbars__fill {
+  background: var(--color-bright-red);
+}
+
+/* ---------- Icons in colour: each by what it means ---------- */
+
+:root .icon.icon--home { color: #123e7c; }
+:root .icon.icon--people,
+:root .icon.icon--connections,
+:root .icon.icon--everyone { color: #0f6e75; }
+:root .icon.icon--group { color: #6b46c1; }
+:root .icon.icon--batch { color: #c86400; }
+:root .icon.icon--message,
+:root .icon.icon--comment,
+:root .icon.icon--mention { color: #1d63c9; }
+:root .icon.icon--bell { color: #e08a00; }
+:root .icon.icon--grid,
+:root .icon.icon--more { color: #123e7c; }
+:root .icon.icon--ask { color: #0f8a8f; }
+:root .icon.icon--event { color: var(--color-bright-red); }
+:root .icon.icon--heart { color: #e0245e; }
+:root .icon.icon--briefcase { color: #1f7a45; }
+:root .icon.icon--photo,
+:root .icon.icon--story { color: #c2185b; }
+:root .icon.icon--settings,
+:root .icon.icon--shield { color: #475569; }
+:root .icon.icon--logout { color: var(--color-bright-red); }
+:root .icon.icon--search { color: #123e7c; }
+:root .icon.icon--share { color: #1d63c9; }
+:root .icon.icon--you { color: #123e7c; }
+
+/* Inside a button, chip or coloured square, an icon takes that thing's colour. */
+:root .button .icon.icon,
+:root .lp-btn .icon.icon,
+:root .pill-button .icon.icon,
+:root .tab-bar__post .icon.icon,
+:root .lp-for__icon .icon.icon,
+:root .lp-stat__icon .icon.icon,
+:root .wf-tag .icon.icon,
+:root .post__actions .icon.icon {
+  color: inherit;
+}
+
+/* Dark mode: lighter versions, so they read on the dark ground. */
+:root[data-theme="dark"] .icon.icon--home,
+:root[data-theme="dark"] .icon.icon--grid,
+:root[data-theme="dark"] .icon.icon--search,
+:root[data-theme="dark"] .icon.icon--you { color: #8fb8f0; }
+:root[data-theme="dark"] .icon.icon--people,
+:root[data-theme="dark"] .icon.icon--connections,
+:root[data-theme="dark"] .icon.icon--ask { color: #5fd3d3; }
+:root[data-theme="dark"] .icon.icon--group { color: #b69cf5; }
+:root[data-theme="dark"] .icon.icon--message { color: #7fb0ff; }
+:root[data-theme="dark"] .icon.icon--briefcase { color: #6fdc9b; }
+:root[data-theme="dark"] .icon.icon--photo,
+:root[data-theme="dark"] .icon.icon--story { color: #ff7fb0; }
+:root[data-theme="dark"] .icon.icon--settings { color: #aab2bf; }
+
+/* ---------- Bright green: yes, done, connected, verified ---------- */
+
+:root {
+  --color-bright-green: #16a34a;
+}
+
+:root .wf-tag--ok,
+:root .badge--green {
+  border-color: var(--color-bright-green);
+  background: #dcfce7;
+  color: #166534;
+}
+
+:root .profile__tick,
+:root .post__verified,
+:root .name-mark--verified {
+  color: var(--color-bright-green);
+}
+
+/* Seats taken on an event: green, filling up. */
+:root .event-card__bar span {
+  background: var(--color-bright-green);
+}
+
+/* A done step in "Getting started". */
+:root .wf-checklist li.done {
+  color: var(--color-bright-green);
+}
+
+.lp-stat:nth-child(3) { border-top-color: var(--color-bright-green); }
+.lp-stat:nth-child(3) .lp-stat__icon { background: #dcfce7; color: var(--color-bright-green); }
+:root .lp-for li:nth-child(4) .lp-for__icon { background: var(--color-bright-green); color: #fff; }
+:root .icon.icon--briefcase { color: var(--color-bright-green); }
+.backdrop--green { --bd-ink: #16a34a; --bd-wash: #dcfce7; }
+
+/* ---------- Gold words in titles: bright yellow, not brown ---------- */
+
+/* "made at HKBK", "to your first answer", "register.": navy words over a bright yellow
+   highlighter band. Bright yellow as the letters themselves can't be read on white;
+   as the marker under them it reads as bright yellow and the words stay sharp. */
+:root .page-title__gold {
+  padding: 0 0.12em;
+  border-radius: 0.12em;
+  background: linear-gradient(transparent 52%, #ffd23f 52%, #ffd23f 92%, transparent 92%);
+  color: inherit;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* On dark ground (dark mode), the words themselves in bright yellow. */
+:root[data-theme="dark"] .page-title__gold {
+  background: none;
+  color: #ffd23f;
+}
+
+/* The landing's hero line, on navy: the brightest yellow. */
+:root .lp-hero h1 span {
+  color: #ffc61a;
+}

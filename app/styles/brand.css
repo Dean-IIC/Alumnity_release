@@ -27,18 +27,23 @@
   overflow: hidden;
   color: var(--color-red);
   font-family: var(--font-ui);
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   font-weight: var(--weight-bold);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
+  line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.brand__dot {
+  color: var(--color-gold);
+}
+
 .brand__sub {
-  color: var(--color-ink-muted);
+  color: var(--color-blue);
   font-family: var(--font-ui);
   font-size: 0.8125rem;
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
   white-space: nowrap;
 }
 
@@ -50,7 +55,7 @@
   }
 
   .brand__name {
-    font-size: 0.95rem;
+    font-size: 1.25rem;
   }
 
   .brand__sub {
@@ -64,10 +69,9 @@
     gap: 0.5rem;
   }
 
-  .brand__name {
-    max-width: 10.5em;
-    font-size: 0.92rem;
-    line-height: 1.12;
+  .brand__sub {
+    max-width: 13em;
     white-space: normal;
+    line-height: 1.15;
   }
 }

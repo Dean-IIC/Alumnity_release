@@ -1,291 +1,243 @@
 /*
- * The intro. It covers the site, which is painted beneath it from the first frame, and
- * hands over by opening a widening hole in its paper. Its stage — paper, line, photos —
- * unmounts once it ends; only the side patterns stay, as the page's margins.
+ * Alumnity's opening (components/alumnity-intro.tsx): the crest on navy, rings going out
+ * for every batch, the years counting up, the name rising in, and the whole lifting away.
+ * All in CSS, so it starts with the first paint.
  */
 
-.ink-intro {
+@property --alm-year {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 1997;
+}
+
+.alm-intro {
   position: fixed;
-  z-index: var(--z-intro);
+  z-index: 100;
   inset: 0;
+  display: grid;
+  place-items: center;
   overflow: hidden;
-}
-
-/* While the hole opens, the site below takes the pointer; once settled, the intro sits under it. */
-.ink-intro--revealing {
-  pointer-events: none;
-}
-
-.ink-intro--settled {
-  z-index: 1;
-  pointer-events: none;
-}
-
-.ink-intro__stage {
-  position: absolute;
-  inset: 0;
-}
-
-.ink-intro--revealing .ink-intro__stage {
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent calc(var(--hole-r, 0px) - var(--hole-feather, 160px)), #000 var(--hole-r, 0px));
-  mask-image: radial-gradient(circle at 50% 50%, transparent calc(var(--hole-r, 0px) - var(--hole-feather, 160px)), #000 var(--hole-r, 0px));
-}
-
-.ink-intro__paper {
-  position: absolute;
-  inset: 0;
   background:
-    radial-gradient(ellipse at 50% 45%, rgba(255, 253, 247, 0.9), transparent 70%),
-    var(--color-paper);
+    radial-gradient(circle at 50% 42%, rgba(242, 169, 0, 0.16), transparent 42%),
+    radial-gradient(circle at 50% 120%, #123e7c, transparent 60%),
+    #0a2a57;
+  color: #fff;
+  animation: alm-lift 0.75s cubic-bezier(0.77, 0, 0.175, 1) 3s forwards;
 }
 
-/* The eras as a video (tall phones): fills the screen like the live world would. */
-.ink-intro__video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
+/* Opted out, or "Skip intro" pressed before the scripts arrived: never shown. */
+html[data-intro="skip"] .alm-intro:not(.alm-intro--leaving) {
+  display: none;
 }
 
-/* ---------- Background: every year since the founding, huge and faint ---------- */
-
-/* World units, like the photos, but moved more slowly by the camera: depth. */
-.journey-backdrop {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  pointer-events: none;
-  transform-origin: 0 0;
-  will-change: transform, opacity;
+.alm-intro--leaving {
+  animation: alm-lift 0.45s cubic-bezier(0.77, 0, 0.175, 1) forwards;
 }
 
-.journey-backdrop span {
-  position: absolute;
-  color: var(--color-ink-soft);
-  font-family: var(--font-voice);
-  font-weight: var(--weight-bold);
-  font-size: 220px;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-  opacity: 0.06;
-  transform: translate(-50%, -50%);
+@keyframes alm-lift {
+  to {
+    visibility: hidden;
+    transform: translateY(-100%);
+  }
 }
 
-/* ---------- The world: eras along the pen's line ---------- */
-
-.journey-world {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: 0 0;
-  will-change: transform;
-}
-
-.journey-ink-line {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.journey-measure {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-}
-
-.journey-shot {
-  /* Captions live in the world, so they're sized in world units, not page type. */
-  --world-year: 88px;
-  --world-title: 38px;
-  --world-detail: 21px;
-  position: absolute;
-  margin: 0;
-}
-
-.journey-shot__canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.journey-shot figcaption {
-  position: absolute;
-  top: 96%;
-  left: 50%;
+.alm-intro__stage {
+  position: relative;
   display: grid;
   justify-items: center;
-  width: max-content;
-  max-width: 120%;
-  color: var(--color-ink);
-  text-align: center;
+  gap: var(--space-3);
+  margin-top: -4vh;
+}
+
+/* ---------- Rings: one for every batch ---------- */
+
+.alm-intro__rings {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.alm-intro__ring {
+  position: absolute;
+  top: -70px;
+  left: -70px;
+  width: 140px;
+  height: 140px;
+  border: 1.5px solid rgba(143, 184, 240, 0.55);
+  border-radius: 50%;
   opacity: 0;
-  transform: translate(-50%, 10px);
-  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+  transform: scale(0.6);
+  animation: alm-ring 2.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-.journey-shot--captioned figcaption {
-  opacity: 1;
-  transform: translate(-50%, 0);
+.alm-intro__ring--gold {
+  border-color: rgba(242, 169, 0, 0.75);
+  border-width: 2px;
 }
 
-.journey-shot__year {
-  color: var(--color-red);
-  font-family: var(--font-voice);
+@keyframes alm-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(9);
+  }
+}
+
+/* ---------- The crest ---------- */
+
+.alm-intro__crest {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 6px rgba(242, 169, 0, 0.35), 0 18px 50px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: scale(0.82);
+  animation: alm-in 0.7s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+}
+
+.alm-intro__crest img {
+  width: 116px;
+  height: 116px;
+}
+
+@keyframes alm-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- The years ---------- */
+
+.alm-intro__years {
+  display: grid;
+  justify-items: center;
+  margin: var(--space-4) 0 0;
+  opacity: 0;
+  animation: alm-in 0.4s ease 0.45s forwards;
+}
+
+.alm-intro__count {
+  color: var(--color-gold);
+  font-size: 2rem;
   font-weight: var(--weight-bold);
-  font-size: var(--world-year);
-  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  counter-reset: alm-year var(--alm-year);
+  animation: alm-years 1.2s cubic-bezier(0.5, 0, 0.2, 1) 0.5s both;
+}
+
+.alm-intro__count::after {
+  content: counter(alm-year);
+}
+
+.alm-intro__years small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--text-fine);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ---------- The name ---------- */
+
+.alm-intro__word {
+  display: flex;
+  margin: var(--space-2) 0 0;
+  font-size: clamp(3rem, 11vw, 5.5rem);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.04em;
+  line-height: 1;
 }
 
-.journey-shot__title {
-  margin-top: 6px;
-  font-family: var(--font-voice);
-  font-weight: var(--weight-bold);
-  font-size: var(--world-title);
-  line-height: var(--leading-snug);
+.alm-intro__word span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.45em);
+  animation: alm-rise 0.55s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-.journey-shot__detail {
-  margin-top: 8px;
-  color: var(--color-ink-muted);
-  font-size: var(--world-detail);
+.alm-intro__word .alm-intro__dot {
+  color: var(--color-gold);
+}
+
+@keyframes alm-rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.alm-intro__college {
+  margin: var(--space-2) 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(0.85rem, 2.2vw, 1.05rem);
   font-weight: var(--weight-medium);
   letter-spacing: 0.02em;
-}
-
-.journey-total {
-  position: absolute;
-  bottom: 7svh;
-  left: 50%;
-  margin: 0;
-  color: var(--color-ink);
-  font-family: var(--font-voice);
-  font-weight: var(--weight-bold);
-  width: max-content;
-  max-width: 88vw;
-  font-size: var(--text-title);
-  line-height: 1.2;
   text-align: center;
   opacity: 0;
-  transform: translate(-50%, 14px);
+  animation: alm-in 0.6s ease 2.2s forwards;
 }
 
-/* ---------- The lockup that floats into the nav ---------- */
+/* ---------- Skip, and "not next time" ---------- */
 
-.intro-lockup {
-  position: fixed;
-  z-index: var(--z-lockup);
-  top: 50%;
-  left: 50%;
-  width: max-content;
-  font-size: clamp(72px, 13vw, 168px);
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  transform-origin: 0 0;
-}
-
-/* A block, not inline: no line box above it, so the wordmark's corner is the float's origin. */
-.intro-lockup > .brand {
-  display: grid;
-}
-
-.intro-lockup .brand__swoosh-reveal {
-  stroke-dashoffset: 1;
-}
-
-.intro-lockup .brand__name {
-  clip-path: inset(-20% 100% -20% -5%);
-}
-
-.intro-lockup .brand__by,
-.intro-lockup .brand__by-short {
-  opacity: 0;
-}
-
-.intro-lockup--settled {
-  display: none;
-}
-
-/* ---------- Skip, and "don't play it next time" ---------- */
-
-.ink-intro__controls {
-  position: fixed;
-  z-index: var(--z-controls);
-  right: var(--space-5);
-  bottom: var(--space-5);
+.alm-intro__controls {
+  position: absolute;
+  right: var(--gutter);
+  bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  left: var(--gutter);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-3);
   align-items: center;
   justify-content: flex-end;
+  font-size: var(--text-small);
 }
 
-.ink-intro__remember,
-.ink-intro__skip {
-  display: flex;
+.alm-intro__controls label {
+  display: inline-flex;
   gap: var(--space-2);
   align-items: center;
-  min-height: var(--tap-target);
+  min-height: 40px;
   padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--color-paper-glass);
-  color: var(--color-ink);
-  font: var(--weight-medium) var(--text-label) / 1 var(--font-ui);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
 }
 
-.ink-intro__remember input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: var(--color-blue);
-  cursor: pointer;
-}
-
-.ink-intro__skip {
-  border: 1px solid var(--color-border);
+.alm-intro__skip {
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
   font-weight: var(--weight-semibold);
-  transition: background var(--duration-instant) ease;
+  cursor: pointer;
 }
 
-.ink-intro__skip:hover {
-  background: var(--color-paper-raised);
+.alm-intro__skip:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
 }
 
-/* ---------- Visitors who opted out (set before first paint: lib/intro-preference.ts) ---------- */
-
-html[data-intro="skip"] .ink-intro__stage,
-html[data-intro="skip"] .intro-lockup,
-html[data-intro="skip"] .ink-intro__controls {
-  display: none;
-}
-
-html[data-intro="skip"] .ink-intro {
-  z-index: 1;
-  pointer-events: none;
-}
-
-@media (max-width: 700px) {
-  /* The camera shows the world smaller on a phone, so captions are set larger in it. */
-  .journey-shot {
-    --world-year: 150px;
-    --world-title: 64px;
-    --world-detail: 40px;
-  }
-
-  .intro-lockup {
-    font-size: 19vw;
-  }
-
-  .journey-backdrop span {
-    font-size: 270px;
+@media (prefers-reduced-motion: reduce) {
+  .alm-intro {
+    display: none;
   }
 }
