@@ -227,8 +227,9 @@
 
   .profile__actions .button {
     min-height: 40px;
-    padding-inline: var(--space-4);
+    padding-inline: var(--space-3);
     font-size: var(--text-small);
+    white-space: nowrap;
   }
 
   .profile__avatar {
