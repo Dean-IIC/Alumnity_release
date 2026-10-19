@@ -921,13 +921,138 @@
   }
 }
 
+/* ---------- Editing and deleting messages ---------- */
+
+/* A message's ⋯: there when you point at it or tab to it (on a phone, a long press instead). */
+.dm-msg__more {
+  display: grid;
+  flex: none;
+  place-items: center;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-instant);
+}
+
+.dm-msg--mine .dm-msg__more {
+  order: -1;
+}
+
+.dm-msg:hover .dm-msg__more,
+.dm-msg:focus-within .dm-msg__more {
+  opacity: 1;
+}
+
+.dm-msg__more:hover {
+  background: var(--dm-hover, var(--color-paper));
+  color: var(--color-ink);
+}
+
+.dm-msg__more:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Deleted for everyone: an outline where the words were, in muted italics, for both. */
+.dm-msg .dm-bubble--deleted {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  color: var(--color-ink-muted);
+  font-style: italic;
+}
+
+.dm-bubble__edited {
+  margin-left: 8px;
+  font-size: 11px;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.dm-msg .dm-bubble--emoji .dm-bubble__edited {
+  color: var(--color-ink-muted);
+  opacity: 1;
+}
+
+/* The dialog's choices: one per line, a fingertip tall; deleting in red. */
+.msg-sheet {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.msg-actions {
+  display: grid;
+  gap: 2px;
+}
+
+.msg-actions__item {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--tap-target);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--color-ink);
+  font: var(--weight-semibold) var(--text-button) / 1.2 var(--font-ui);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.msg-actions__item:hover {
+  background: var(--color-paper);
+}
+
+.msg-actions__item:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.msg-actions__item--danger {
+  color: var(--color-bright-red);
+}
+
+.msg-actions__hint {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+  font-weight: normal;
+}
+
+/* A phone: a long press on a message opens its choices (Copy text among them), so the
+   phone's own select-and-copy doesn't cover it; the ⋯ stays for screen readers only. */
+@media (hover: none) {
+  .dm-msg__more {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .dm-bubble {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .story-reply__burst {
     animation-duration: 1ms;
   }
 
   .story-reply__reaction,
-  .dm-msg__tools {
+  .dm-msg__tools,
+  .dm-msg__more {
     transition: none;
   }
 }

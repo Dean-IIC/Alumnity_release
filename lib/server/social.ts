@@ -1,3 +1,4 @@
+import { MESSAGE_EDIT_WINDOW } from "../chat-format";
 import { firstName } from "../format";
 import { queuePush } from "./alerts";
 import { db, type Row } from "./db";
@@ -207,7 +208,19 @@ export const MESSAGE_LIMIT = 2000;
  */
 export type StoryRef = { id: number | null; mediaId: string | null; kind: "image" | "video" | null; reaction: string | null };
 
-export type Message = { id: number; mine: boolean; body: string; createdAt: number; readAt: number | null; story: StoryRef | null };
+export type Message = {
+  id: number;
+  mine: boolean;
+  /** Empty once it's deleted for everyone. */
+  body: string;
+  createdAt: number;
+  readAt: number | null;
+  story: StoryRef | null;
+  /** When its sender last edited it, or null. */
+  editedAt: number | null;
+  /** When its sender deleted it for everyone (its words are gone), or null. */
+  deletedAt: number | null;
+};
 
 export async function sendMessage(from: User, toId: number, body: string, story?: { id: number; reaction: string | null }): Promise<Result> {
   if (!(await settings()).features.messages) return no(PAUSED);
@@ -264,14 +277,25 @@ function storyRefOf(r: Row, viewerId: number, now: number): StoryRef | null {
   };
 }
 
-/** One conversation, oldest first (the newest `limit`). Opening it reads it. */
+/**
+ * The messages of a conversation one member still has: not deleted for them alone
+ * (message_hidden), nor from before they deleted the whole chat (chat_cleared). `m` names
+ * the messages row and `other` the other member (a column, or "?"); the member's id goes
+ * in twice, then the other's if it's a "?".
+ */
+const STILL_THERE = (m: string, other: string) =>
+  `not exists (select 1 from message_hidden where message_hidden.user_id = ? and message_hidden.message_id = ${m}.id)
+   and ${m}.id > coalesce((select before_id from chat_cleared where chat_cleared.user_id = ? and chat_cleared.other_id = ${other}), 0)`;
+
+/** One conversation, oldest first (the newest `limit`), as `me` still has it. Opening it reads it. */
 export async function thread(me: User, otherId: number, limit = 200): Promise<Message[]> {
   await markThreadRead(me, otherId);
   const now = Date.now();
   const rows = await db().all(
     `select recent.*, stories.author as story_author, stories.media_id as story_media, stories.expires_at as story_expires,
             stories.removed_at as story_removed, media.kind as story_kind
-     from (select * from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?) order by created_at desc, id desc limit ?) as recent
+     from (select * from messages where ((sender = ? and recipient = ?) or (sender = ? and recipient = ?)) and ${STILL_THERE("messages", "?")}
+           order by created_at desc, id desc limit ?) as recent
      left join stories on stories.id = recent.story_id
      left join media on media.id = stories.media_id
      order by recent.created_at, recent.id`,
@@ -279,16 +303,100 @@ export async function thread(me: User, otherId: number, limit = 200): Promise<Me
     otherId,
     otherId,
     me.id,
+    me.id,
+    me.id,
+    otherId,
     limit
   );
   return rows.map((r) => ({
     id: Number(r.id),
     mine: Number(r.sender) === me.id,
-    body: String(r.body),
+    // Cleared when it was deleted for everyone; never shown even if older data kept words.
+    body: r.deleted_at == null ? String(r.body) : "",
     createdAt: Number(r.created_at),
     readAt: r.read_at == null ? null : Number(r.read_at),
-    story: storyRefOf(r, me.id, now)
+    story: r.deleted_at == null ? storyRefOf(r, me.id, now) : null,
+    editedAt: r.edited_at == null ? null : Number(r.edited_at),
+    deletedAt: r.deleted_at == null ? null : Number(r.deleted_at)
   }));
+}
+
+// ---------- Editing and deleting messages ----------
+
+/** A message `me` sent, or undefined (not theirs, or not there). */
+const sentBy = (me: User, id: number) =>
+  Number.isSafeInteger(id) && id > 0
+    ? db().one<{ created_at: number; deleted_at: number | null; reaction: string | null }>("select created_at, deleted_at, reaction from messages where id = ? and sender = ?", id, me.id)
+    : Promise.resolve(undefined);
+
+/**
+ * The sender rewrites a message, within MESSAGE_EDIT_WINDOW of sending it (as WhatsApp
+ * allows). Both then see "edited"; the other's open conversation redraws through the pulse.
+ */
+export async function editMessage(me: User, id: number, body: string): Promise<Result> {
+  if (!(await settings()).features.messages) return no(PAUSED);
+  const m = await sentBy(me, id);
+  if (!m || m.deleted_at != null) return no("That message isn't here any more.");
+  if (m.reaction != null) return no("A reaction can't be edited.");
+  const since = Date.now() - MESSAGE_EDIT_WINDOW;
+  if (m.created_at <= since) return no("A message can be edited for 15 minutes after it's sent.");
+  const text = body.trim().slice(0, MESSAGE_LIMIT);
+  if (!text) return no("Write something, or delete the message instead.");
+  // Unchanged words leave it as it was (no "edited" for nothing).
+  await db().run("update messages set body = ?, edited_at = ? where id = ? and sender = ? and deleted_at is null and created_at > ? and body <> ?", text, Date.now(), id, me.id, since, text);
+  return { ok: true };
+}
+
+/**
+ * The sender deletes a message for everyone: its words (and any story it answered) are
+ * cleared from the database, not just hidden, and both see "This message was deleted".
+ */
+export async function deleteMessageForEveryone(me: User, id: number): Promise<Result> {
+  if (!(await sentBy(me, id))) return no("Only the one who sent a message can delete it for everyone.");
+  await db().run(
+    "update messages set body = '', reaction = null, story_id = null, edited_at = null, deleted_at = ? where id = ? and sender = ? and deleted_at is null",
+    Date.now(),
+    id,
+    me.id
+  );
+  return { ok: true };
+}
+
+/** Either of the two deletes a message for themselves only: the other still has it. */
+export async function deleteMessageForMe(me: User, id: number): Promise<Result> {
+  const m = Number.isSafeInteger(id) && id > 0 ? await db().one<{ recipient: number }>("select recipient from messages where id = ? and (sender = ? or recipient = ?)", id, me.id, me.id) : undefined;
+  if (!m) return no("That message isn't here any more.");
+  const now = Date.now();
+  await db().run("insert into message_hidden (user_id, message_id, hidden_at) values (?, ?, ?) on conflict do nothing", me.id, id, now);
+  // Gone for them, so never left counting as unread.
+  if (m.recipient === me.id) await db().run("update messages set read_at = ? where id = ? and read_at is null", now, id);
+  return { ok: true };
+}
+
+/**
+ * Deletes a whole conversation for `me` only: everything in it so far is gone for them (the
+ * other still has it all). If either writes again, it comes back with only the new messages.
+ */
+export async function deleteChat(me: User, otherId: number): Promise<Result> {
+  if (!Number.isSafeInteger(otherId) || otherId <= 0 || otherId === me.id) return no("That conversation isn't here.");
+  const last = await db().one<{ id: number | null }>(
+    "select max(id) as id from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?)",
+    me.id,
+    otherId,
+    otherId,
+    me.id
+  );
+  if (!last?.id) return { ok: true };
+  await db().run(
+    `insert into chat_cleared (user_id, other_id, before_id, cleared_at) values (?, ?, ?, ?)
+     on conflict (user_id, other_id) do update set before_id = greatest(chat_cleared.before_id, excluded.before_id), cleared_at = excluded.cleared_at`,
+    me.id,
+    otherId,
+    last.id,
+    Date.now()
+  );
+  await markThreadRead(me, otherId);
+  return { ok: true };
 }
 
 export type Conversation = {
@@ -299,6 +407,8 @@ export type Conversation = {
   unread: number;
   /** The last message answered a story: "reply", or "reaction" (then `last` is the emoji). */
   story: "reply" | "reaction" | null;
+  /** The last message was deleted for everyone (`last` is then empty). */
+  deleted: boolean;
 };
 
 /**
@@ -313,12 +423,14 @@ const UNREAD_FROM_REACHABLE = `messages.recipient = ? and messages.read_at is nu
 
 export async function conversations(me: User): Promise<Conversation[]> {
   const [rows, unreadRows, blocked] = await Promise.all([
-    db().all<{ other: number; body: string; created_at: number; sender: number; story_id: number | null; reaction: string | null }>(
+    db().all<{ other: number; body: string; created_at: number; sender: number; story_id: number | null; reaction: string | null; deleted_at: number | null }>(
       `select * from (
-         select recipient as other, body, created_at, sender, id, story_id, reaction from messages where sender = ?
+         select recipient as other, body, created_at, sender, id, story_id, reaction, deleted_at from messages where sender = ?
          union all
-         select sender as other, body, created_at, sender, id, story_id, reaction from messages where recipient = ?
-       ) as m order by created_at desc, id desc limit 2000`,
+         select sender as other, body, created_at, sender, id, story_id, reaction, deleted_at from messages where recipient = ?
+       ) as m where ${STILL_THERE("m", "m.other")} order by created_at desc, id desc limit 2000`,
+      me.id,
+      me.id,
       me.id,
       me.id
     ),
@@ -334,7 +446,8 @@ export async function conversations(me: User): Promise<Conversation[]> {
     const member = members.get(other);
     if (!member) continue;
     const story = r.reaction != null ? "reaction" : r.story_id != null ? "reply" : null;
-    list.push({ with: member, last: r.body, lastAt: r.created_at, mine: r.sender === me.id, unread: unread.get(other) ?? 0, story });
+    const deleted = r.deleted_at != null;
+    list.push({ with: member, last: deleted ? "" : r.body, lastAt: r.created_at, mine: r.sender === me.id, unread: unread.get(other) ?? 0, story: deleted ? null : story, deleted });
     if (list.length >= 100) break;
   }
   return list;
@@ -345,26 +458,31 @@ export const unreadMessages = (userId: number) => count(`select count(*) as n fr
 /**
  * What an open page watches (components/app/pulse.tsx, through /api/pulse): unread
  * notifications, unread messages and requests waiting, for the bar; and in an open
- * conversation its newest message (`t`) and the newest of yours they've read (`s`), so a
- * new message and "Seen" both show without a reload.
+ * conversation its newest message (`t`), the newest of yours they've read (`s`) and the
+ * last time one was edited or deleted for everyone (`e`), so a new message, "Seen", an edit
+ * and a deletion all show without a reload. Counted over the messages the viewer still has.
  */
-export async function pulseFor(userId: number, threadWith?: number): Promise<{ n: number; m: number; r: number; t: number; s: number }> {
+export async function pulseFor(userId: number, threadWith?: number): Promise<{ n: number; m: number; r: number; t: number; s: number; e: number }> {
   const other = threadWith !== undefined && Number.isSafeInteger(threadWith) && threadWith > 0 ? threadWith : null;
   const [n, m, r, latest] = await Promise.all([
     unreadNotifications(userId),
     unreadMessages(userId),
     waitingRequests(userId),
     other
-      ? db().one<{ t: number | null; s: number | null }>(
-          `select max(id) as t, max(case when sender = ? and read_at is not null then id end) as s
-           from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?)`,
+      ? db().one<{ t: number | null; s: number | null; e: number | null }>(
+          `select max(id) as t, max(case when sender = ? and read_at is not null then id end) as s,
+                  max(greatest(coalesce(edited_at, 0), coalesce(deleted_at, 0))) as e
+           from messages where ((sender = ? and recipient = ?) or (sender = ? and recipient = ?)) and ${STILL_THERE("messages", "?")}`,
           userId,
           userId,
           other,
           other,
-          userId
+          userId,
+          userId,
+          userId,
+          other
         )
       : Promise.resolve(undefined)
   ]);
-  return { n, m, r, t: latest?.t ?? 0, s: latest?.s ?? 0 };
+  return { n, m, r, t: latest?.t ?? 0, s: latest?.s ?? 0, e: latest?.e ?? 0 };
 }

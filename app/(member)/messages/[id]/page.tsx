@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AppPage } from "../../../../components/app/app-page";
 import { Messenger } from "../../../../components/messages/messenger";
 import { ThreadView, type ChatMessage } from "../../../../components/messages/thread-view";
-import { clockTime, dayLabel } from "../../../../lib/chat-format";
+import { clockTime, dayLabel, MESSAGE_EDIT_WINDOW } from "../../../../lib/chat-format";
 import { batchLabel, firstName } from "../../../../lib/format";
 import { inboxFor } from "../../../../lib/server/inbox";
 import { memberById, relation } from "../../../../lib/server/people";
@@ -37,14 +37,20 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
     day: dayLabel(m.createdAt, now),
     time: clockTime(m.createdAt),
     readAt: m.readAt,
-    story: m.story
+    story: m.story,
+    edited: m.editedAt !== null,
+    deleted: m.deletedAt !== null,
+    // Yours, still there, not a quick reaction: editable for a while after sending.
+    editableUntil: m.mine && m.deletedAt === null && !m.story?.reaction ? m.createdAt + MESSAGE_EDIT_WINDOW : null
   }));
   const seen = messages.reduce((n, m) => (m.mine && m.readAt ? Math.max(n, m.id) : n), 0);
+  // The pulse watches this too, so an edit or a deletion shows for both without a reload.
+  const changed = messages.reduce((n, m) => Math.max(n, m.editedAt ?? 0, m.deletedAt ?? 0), 0);
   const paused = !site.features.messages;
   const connected = rel === "connected";
 
   return (
-    <AppPage user={me} current="messages" bare thread={{ with: other.id, latest: messages.at(-1)?.id ?? 0, seen }}>
+    <AppPage user={me} current="messages" bare thread={{ with: other.id, latest: messages.at(-1)?.id ?? 0, seen, changed }}>
       <Messenger conversations={conversations} contacts={contacts} active={other.id}>
         <ThreadView
           key={other.id}

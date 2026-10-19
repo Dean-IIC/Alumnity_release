@@ -884,6 +884,47 @@ html.viewer-open {
   text-decoration: underline;
 }
 
+/* ---------- Editing and deleting: posts, comments, messages ---------- */
+
+/* The button that deletes, in a dialog that asks first: red, so it's never mistaken for Save. */
+.button--primary.sheet__danger {
+  background: #c4202a;
+  color: #ffffff;
+}
+
+.button--primary.sheet__danger:hover {
+  background: #a3161f;
+}
+
+.edit-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.edit-form__text textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 7.5em;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: var(--text-button) / 1.5 var(--font-ui);
+  resize: vertical;
+}
+
+.edit-form__text textarea:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+/* "Edited", beside a post's time and a comment's. */
+.post__edited,
+.comment__edited {
+  color: var(--color-ink-muted);
+}
+
 /* ---------- Less motion, if asked ---------- */
 
 @media (prefers-reduced-motion: reduce) {

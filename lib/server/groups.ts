@@ -131,6 +131,11 @@ const admins = (groupId: number) =>
 
 const canManage = (m: { role: GroupRole; status: string } | undefined) => m?.status === "member" && (m.role === "owner" || m.role === "admin");
 
+/** Whether `me` is the owner or an admin of a group (who may delete any post in it). */
+export async function managesGroup(me: User, groupId: number): Promise<boolean> {
+  return canManage(await membership(groupId, me.id));
+}
+
 /** Join an open group, or ask to join a private one (its admins are told). */
 export async function joinGroup(me: User, id: number): Promise<Result> {
   const g = await groupRow(id);

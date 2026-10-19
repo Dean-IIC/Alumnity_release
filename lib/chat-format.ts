@@ -36,8 +36,15 @@ export function shortAgo(at: number, now = Date.now()): string {
   return new Date(at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: IST });
 }
 
-/** The last message, as the conversation list shows it. Story replies say so, as Instagram's do. */
-export function previewOf(c: { last: string; mine: boolean; story: "reply" | "reaction" | null }): string {
+/** How long after sending a message its sender may still edit it (as WhatsApp allows). */
+export const MESSAGE_EDIT_WINDOW = 15 * 60_000;
+
+/**
+ * The last message, as the conversation list shows it. Story replies say so, as Instagram's
+ * do; one deleted for everyone says only that (its words are gone).
+ */
+export function previewOf(c: { last: string; mine: boolean; story: "reply" | "reaction" | null; deleted?: boolean }): string {
+  if (c.deleted) return c.mine ? "You deleted a message" : "Message deleted";
   const text = c.last.replace(/\s+/g, " ").trim();
   if (c.story === "reaction") return c.mine ? `You reacted ${text} to their story` : `Reacted ${text} to your story`;
   if (c.story === "reply") return c.mine ? `You replied to their story: ${text}` : `Replied to your story: ${text}`;

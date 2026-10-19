@@ -11,22 +11,22 @@ import { useEffect, useRef } from "react";
  */
 
 type Counts = { n: number; m: number; r: number };
-type Thread = { with: number; latest: number; seen?: number };
+type Thread = { with: number; latest: number; seen?: number; changed?: number };
 
 /** Asks every pulse on the page to check at once (see PulseNow). */
 const CHECK_NOW = "alumnity:pulse";
 
 /**
  * Around every page (the counts, every 25 s), and in an open conversation (its newest
- * message and how far they've read, every 4 s). Each redraws only when what it watches
- * has changed.
+ * message, how far they've read, and the last edit or deletion, every 4 s). Each redraws
+ * only when what it watches has changed.
  */
 export function Pulse({ counts, thread }: { counts?: Counts; thread?: Thread }) {
   const router = useRouter();
-  const known = useRef({ ...(counts ?? { n: 0, m: 0, r: 0 }), t: thread?.latest ?? 0, s: thread?.seen ?? 0 });
+  const known = useRef({ ...(counts ?? { n: 0, m: 0, r: 0 }), t: thread?.latest ?? 0, s: thread?.seen ?? 0, e: thread?.changed ?? 0 });
 
   useEffect(() => {
-    known.current = { ...(counts ?? known.current), t: thread?.latest ?? 0, s: thread?.seen ?? 0 };
+    known.current = { ...(counts ?? known.current), t: thread?.latest ?? 0, s: thread?.seen ?? 0, e: thread?.changed ?? 0 };
     if (!counts) return;
     const unread = counts.n + counts.m;
     const apply = () => {
@@ -39,7 +39,7 @@ export function Pulse({ counts, thread }: { counts?: Counts; thread?: Thread }) 
     const watch = new MutationObserver(apply);
     watch.observe(document.head, { subtree: true, childList: true, characterData: true });
     return () => watch.disconnect();
-  }, [counts?.n, counts?.m, counts?.r, thread?.latest, thread?.seen]);
+  }, [counts?.n, counts?.m, counts?.r, thread?.latest, thread?.seen, thread?.changed]);
 
   useEffect(() => {
     const every = thread ? 4_000 : 25_000;
@@ -61,7 +61,7 @@ export function Pulse({ counts, thread }: { counts?: Counts; thread?: Thread }) 
         try {
           const now = await (await fetch(`/api/pulse${thread ? `?thread=${thread.with}` : ""}`, { cache: "no-store" })).json();
           const was = known.current;
-          const changed = thread ? now.t !== was.t || now.s !== was.s : now.n !== was.n || now.m !== was.m || now.r !== was.r;
+          const changed = thread ? now.t !== was.t || now.s !== was.s || now.e !== was.e : now.n !== was.n || now.m !== was.m || now.r !== was.r;
           if (changed) {
             known.current = now;
             router.refresh();
