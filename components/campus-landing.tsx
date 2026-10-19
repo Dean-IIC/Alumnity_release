@@ -7,7 +7,7 @@ import { upcomingForEveryone } from "../lib/server/events";
 import { memberCount } from "../lib/server/people";
 import { registerByYear, registerFacts } from "../lib/server/register";
 import { LandingIntro } from "./landing-intro";
-import { CountUp, InView } from "./landing/in-view";
+import { CountUp, InView, RevealOnScroll } from "./landing/in-view";
 import { Icon, type IconName } from "./social/icons";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
@@ -96,7 +96,7 @@ export async function CampusLanding() {
         <p className="lp-stats__note container">From the college&apos;s own register of students. The figures update as the register and the network grow.</p>
 
         {/* ---------- What it's for ---------- */}
-        <section className="lp-section container" aria-labelledby="lp-for">
+        <section data-reveal className="lp-section container" aria-labelledby="lp-for">
           <p className="lp-kicker">Why join</p>
           <h2 id="lp-for">One place for every HKBK batch</h2>
           <ul className="lp-for">
@@ -116,7 +116,7 @@ export async function CampusLanding() {
 
         {/* ---------- Charts from the register ---------- */}
         {years.length > 0 && (
-          <section className="lp-section lp-section--tint" aria-labelledby="lp-growth">
+          <section data-reveal className="lp-section lp-section--tint" aria-labelledby="lp-growth">
             <div className="container">
               <p className="lp-kicker">The register</p>
               <h2 id="lp-growth">HKBK&apos;s students, batch by batch</h2>
@@ -166,7 +166,7 @@ export async function CampusLanding() {
         )}
 
         {/* ---------- Alumni meets and events ---------- */}
-        <section className="lp-section container" aria-labelledby="lp-events">
+        <section data-reveal className="lp-section container" aria-labelledby="lp-events">
           <p className="lp-kicker">Come back</p>
           <h2 id="lp-events">Alumni meets and events</h2>
           <div className="lp-events">
@@ -217,7 +217,7 @@ export async function CampusLanding() {
         </section>
 
         {/* ---------- Leadership ---------- */}
-        <section className="lp-section lp-section--tint" aria-labelledby="lp-leaders">
+        <section data-reveal className="lp-section lp-section--tint" aria-labelledby="lp-leaders">
           <div className="container">
             <p className="lp-kicker">The college</p>
             <h2 id="lp-leaders">Leadership</h2>
@@ -240,7 +240,7 @@ export async function CampusLanding() {
         </section>
 
         {/* ---------- Join ---------- */}
-        <section className="lp-cta container" aria-labelledby="lp-cta">
+        <section data-reveal className="lp-cta container" aria-labelledby="lp-cta">
           <div>
             <h2 id="lp-cta">Studied at HKBK? Your name is already on the register.</h2>
             <p>Find it, and you&apos;re in. It takes a minute.</p>
@@ -252,6 +252,7 @@ export async function CampusLanding() {
       </main>
 
       <SiteFooter />
+      <RevealOnScroll />
       </div>
     </div>
   );

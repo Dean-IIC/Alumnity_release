@@ -60,3 +60,20 @@ export function CountUp({ value, duration = 1200 }: { value: number; duration?: 
     </span>
   );
 }
+
+/**
+ * Every element marked data-reveal on the page rises gently into place as it's scrolled to,
+ * and settles back out when scrolled away (so it rises again on the way back). One observer
+ * for them all; nothing changes for anyone who prefers less motion.
+ */
+export function RevealOnScroll() {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const items = [...document.querySelectorAll<HTMLElement>("[data-reveal]")];
+    document.documentElement.classList.add("reveal-ready");
+    const watch = new IntersectionObserver((entries) => entries.forEach((e) => e.target.classList.toggle("is-revealed", e.isIntersecting)), { threshold: 0.12 });
+    items.forEach((el) => watch.observe(el));
+    return () => watch.disconnect();
+  }, []);
+  return null;
+}

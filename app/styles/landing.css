@@ -739,3 +739,33 @@ a.lp-card:hover {
     transition: none;
   }
 }
+
+/* ---------- Sections rise into place as they're reached (RevealOnScroll) ---------- */
+
+/* Only once the script is running (no script: everything simply shows). */
+.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 650ms var(--ease-out), transform 650ms var(--ease-out);
+}
+
+.reveal-ready [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* The cards inside a section follow one after another. */
+.reveal-ready [data-reveal] :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *) {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out);
+}
+
+.reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *) {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(2) { transition-delay: 90ms; }
+.reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(3) { transition-delay: 180ms; }
+.reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(4) { transition-delay: 270ms; }
