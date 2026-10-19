@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PeopleToReach, ThingsToDo } from "../../../components/app/people-to-reach";
 import { AppPage } from "../../../components/app/app-page";
+import { PulseNow } from "../../../components/app/pulse";
 import { timeAgo } from "../../../lib/format";
 import { safeNext } from "../../../lib/safe-next";
 import { markNotificationsRead, notificationsFor } from "../../../lib/server/social";
@@ -24,6 +25,8 @@ export default async function NotificationsPage() {
 
   return (
     <AppPage user={me} current="notifications" title="Notifications">
+      {/* The bell's count, in the bar around this page, catches up at once (the bar isn't redrawn by moving between pages). */}
+      {unread > 0 && <PulseNow />}
       {unread > 0 && <p className="notif-new-count">{unread === 1 ? "1 new since you last looked" : `${unread} new since you last looked`}</p>}
       {list.length === 0 ? (
         <>
