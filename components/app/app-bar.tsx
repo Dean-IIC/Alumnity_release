@@ -96,8 +96,8 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
                   </span>
                 </NavLink>
               ))}
-              {/* A phone has no "You" menu up here (the tab bar's You goes straight to your page,
-                  where these sat below the first screen): so they're here too. Hidden on a wide screen. */}
+              {/* Your own links, here as well as under You: a phone has no You menu up here (its tab
+                  bar's You goes straight to your page), and on a laptop a blind test looked here. */}
               <div className="app-menu__you" role="group" aria-label="You">
                 <NavLink href="/me/edit" className="app-menu__item">
                   <Icon name="you" size={22} />

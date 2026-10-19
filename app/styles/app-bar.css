@@ -158,9 +158,14 @@
   width: 320px;
 }
 
-/* Your page's own links, in More: for a phone only (a wide screen has the You menu). */
+/* Your page's own links, in More too: a blind test looked for Settings there, on a phone
+   (which has no You menu) and on a laptop (where the You menu is only a small photo). */
 .app-menu__you {
-  display: none;
+  display: grid;
+  gap: 2px;
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-line);
 }
 
 .app-menu__item {
@@ -274,14 +279,6 @@
     max-height: calc(100svh - 140px);
     overflow-y: auto;
     overscroll-behavior: contain;
-  }
-
-  .app-menu__you {
-    display: grid;
-    gap: 2px;
-    margin-top: var(--space-1);
-    padding-top: var(--space-2);
-    border-top: 1px solid var(--color-line);
   }
 }
 
