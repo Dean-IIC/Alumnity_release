@@ -218,3 +218,13 @@
     background: #1a56b8;
   }
 }
+
+/* A phone: the cards stop short of the edges, rounded, so the blue frames each of them
+   (edge to edge, the page read as white with blue cracks). */
+@media (max-width: 700px) {
+  :root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.sheet, .wf-card, .pcard, .stories, .composer, .post):not(dialog) {
+    width: auto;
+    margin-inline: 10px;
+    border-radius: 16px;
+  }
+}
