@@ -363,6 +363,30 @@
   left: calc(var(--space-5) / -2 - 0.75px);
 }
 
+/* Home's small "About Alumnity" links wrap onto several lines: a gold rule before each, and
+   the one that starts a line is tucked out of sight (the list is shifted left and clipped). */
+:root .side-about ul {
+  gap: 4px 0;
+  margin-left: -8px;
+  overflow: hidden;
+}
+
+:root .side-about li {
+  position: relative;
+  padding: 0 8px;
+}
+
+:root .side-about li::before {
+  position: absolute;
+  top: 22%;
+  left: -1px;
+  width: 1.5px;
+  height: 56%;
+  content: "";
+  border-radius: 1px;
+  background: var(--color-gold);
+}
+
 /* The app bar: the current place as a tinted tile, its gold rule kept under it. */
 :root .app-bar__tab {
   border-radius: 12px;
