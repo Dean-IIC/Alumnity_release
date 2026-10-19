@@ -7,6 +7,7 @@ import { LoginForm } from "../../components/join/login-form";
 import { safeNext } from "../../lib/safe-next";
 import { currentUser } from "../../lib/server/session";
 import "../styles/join.css";
+import "../styles/join-scan.css";
 
 export const metadata: Metadata = {
   title: "Log in · Alumnity",

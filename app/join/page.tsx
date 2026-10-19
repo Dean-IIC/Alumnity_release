@@ -8,6 +8,7 @@ import { SoonNotice } from "../../components/coming-soon";
 import { JoinFlow } from "../../components/join/join-flow";
 import { registerFacts } from "../../lib/server/register";
 import "../styles/join.css";
+import "../styles/join-scan.css";
 
 export const metadata: Metadata = {
   title: "Join · Alumnity",
