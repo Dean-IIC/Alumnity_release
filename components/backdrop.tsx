@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { memo, type ReactNode } from "react";
 import "../app/styles/member-navy.css";
+import { Scene, type SceneName } from "./scene";
 
 /*
  * Each part of the site has its own background: a drawn motif in one of the college's
@@ -50,7 +51,7 @@ const ROUTES: [prefix: string, motif: Motif, tone: Tone][] = [
   ["/admin", "blueprint", "blue"]
 ];
 
-function pick(path: string): [Motif, Tone, navy: boolean] | null {
+function pick(path: string): [Motif, Tone, inside: boolean] | null {
   if (path === "/") return null; // the landing has its own hero
   for (const [prefix, motif, tone] of ROUTES) if (path === prefix || path.startsWith(`${prefix}/`)) return [motif, tone, true];
   return ["blueprint", "blue", false];
@@ -195,14 +196,43 @@ const Drawing = memo(function Drawing({ motif }: { motif: Motif }) {
 });
 
 /** The current page's background: the motif and its colour, chosen by where we are. */
+/** Each part of the signed-in site's picture (components/scene.tsx). */
+const SCENE_FOR: [prefix: string, scene: SceneName][] = [
+  ["/home", "home"],
+  ["/notes", "home"],
+  ["/people", "people"],
+  ["/connections", "connections"],
+  ["/batch", "batch"],
+  ["/groups", "groups"],
+  ["/messages", "messages"],
+  ["/notifications", "notifications"],
+  ["/events", "events"],
+  ["/board", "board"],
+  ["/openings", "board"],
+  ["/ask", "ask"],
+  ["/me", "profile"],
+  ["/gallery", "gallery"],
+  ["/causes", "causes"]
+];
+
+const sceneFor = (path: string): SceneName => SCENE_FOR.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`))?.[1] ?? "steady";
+
+/** The current page's background: the motif and its colour, chosen by where we are. */
 export function Backdrop() {
-  const chosen = pick(usePathname() ?? "/");
+  const path = usePathname() ?? "/";
+  const chosen = pick(path);
   if (!chosen) return null;
-  const [motif, tone, navy] = chosen;
-  // Inside the site, a bright blue all the way down, the page's drawing on it in yellow
-  // (app/styles/member-navy.css), so signing in doesn't feel like another site.
+  const [motif, tone, inside] = chosen;
+  // Inside the site, each page stands on its own flat blue picture of waves, spheres and
+  // pills (components/scene.tsx), so signing in doesn't feel like another site.
+  if (inside)
+    return (
+      <div className="backdrop backdrop--navy" aria-hidden="true">
+        <Scene name={sceneFor(path)} />
+      </div>
+    );
   return (
-    <div className={`backdrop backdrop--${tone} ${navy ? "backdrop--navy" : ""}`} data-motif={motif} aria-hidden="true">
+    <div className={`backdrop backdrop--${tone}`} data-motif={motif} aria-hidden="true">
       <Drawing motif={motif} />
     </div>
   );
