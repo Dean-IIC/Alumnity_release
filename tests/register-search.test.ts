@@ -64,3 +64,30 @@ describe("a member searching the college register", () => {
     expect(after).toEqual({ people: [], limited: true });
   });
 });
+
+describe("a member looking through the college register", () => {
+  it("lists everyone who hasn't joined, newest year first, by name, branch and year, never a USN", async () => {
+    const me = await member(null);
+    const all = await register.browseRegister(me, {});
+    // Asha joined in the test above: she's a member now, not in the register's list.
+    expect(all.people.map((p) => p.name)).toEqual(["Mohammed Imran", "Mohammed Imran K", "Priya Nair", "Simran Sultana"]);
+    expect(all.total).toBe(4);
+    expect(JSON.stringify(all)).not.toMatch(/1HK|usn/i);
+    expect((await register.browseRegister(me, { branch: "CSE", year: 2012 })).people.map((p) => p.name)).toEqual(["Mohammed Imran K", "Priya Nair"]);
+  });
+
+  it("goes a page at a time, and keeps a page number in range", async () => {
+    const me = await member(null);
+    const far = await register.browseRegister(me, { page: 99 });
+    expect(far.page).toBe(far.pages);
+    expect((await register.browseRegister(me, { page: -3 })).page).toBe(1);
+  });
+
+  it("turns only so many pages an hour, not enough to copy the register out", async () => {
+    const me = await member(null);
+    for (let i = 0; i < register.REGISTER_PAGES; i++) expect((await register.browseRegister(me, {})).limited).toBe(false);
+    const next = await register.browseRegister(me, {});
+    expect(next.limited).toBe(true);
+    expect(next.people).toEqual([]);
+  });
+});
