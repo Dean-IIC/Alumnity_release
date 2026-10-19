@@ -26,6 +26,20 @@
   overflow: hidden;
 }
 
+/* The page's quiet pattern, tiled over the blue behind everything else. */
+.scene__pattern {
+  position: absolute;
+  inset: 0;
+  background-image: var(--pattern);
+  background-size: 300px 300px;
+}
+
+@media (max-width: 700px) {
+  .scene__pattern {
+    background-size: 230px 230px;
+  }
+}
+
 /* Each picture is drawn three times, for a computer, a tablet and a phone: only the one
    made for this screen is shown, so nothing is stretched or awkwardly cropped. */
 .scene__version--tablet,
@@ -43,13 +57,19 @@
   }
 }
 
-/* Each layer a little wider than the screen, so it can drift without showing an edge. */
 .scene svg {
   position: absolute;
   top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* A wave a little wider than the screen, so it can drift without showing an edge (the
+   drawings stay true to the screen, where they were placed). */
+.scene .scene__wave {
   left: -6%;
   width: 112%;
-  height: 100%;
 }
 
 /* A soft shadow under each wave's edge, so the layers sit one over another. */
@@ -109,7 +129,7 @@
     display: block;
   }
 
-  .scene svg {
+  .scene .scene__wave {
     left: 0;
     width: 100%;
   }

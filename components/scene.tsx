@@ -66,7 +66,10 @@ type Shape =
   | { kind: "block"; x: number; y: number; w: number; h: number; round: number; fill?: string; outline?: number; stroke?: string; turn?: number; fade?: number }
   | { kind: "peak"; x: number; y: number; w: number; h: number; fill: string; round?: number; fade?: number; turn?: number }
   | { kind: "dome"; x: number; y: number; r: number; fill: string }
-  | { kind: "path"; d: string; fill?: string; stroke?: string; width?: number; fade?: number }
+  | { kind: "path"; d: string; fill?: string; stroke?: string; width?: number; fade?: number; transform?: string }
+  | { kind: "text"; x: number; y: number; size: number; fill: string; text: string }
+  | { kind: "sparkle"; x: number; y: number; r: number; fill: string; fade?: number }
+  | { kind: "gear"; x: number; y: number; r: number; teeth: number; fill: string; hub: string }
   | { kind: "stars"; x: number; y: number; w: number; h: number; count: number; seed: number; size?: number }
   | { kind: "rain"; x: number; y: number; w: number; h: number; count: number; seed: number }
   | { kind: "lights"; x1: number; x2: number; y: number; sag: number; count: number; size?: number };
@@ -130,12 +133,13 @@ function roundedTriangle(x: number, y: number, w: number, h: number, r = 14): st
 
 /* ---------- Signs, drawn from rounded parts ---------- */
 
-/** A person, as on a sign: a round head over a body like an upside-down triangle. */
+/** A person, as on a sign: a round head over rounded shoulders (an upside-down U). */
 function person(x: number, base: number, s: number, fill: string): Shape[] {
+  const w = 54 * s;
+  const h = 46 * s;
   return [
-    // Drawn point-up from its top edge, then turned over about that edge: point at the feet.
-    { kind: "peak", x, y: base - 58 * s, w: 52 * s, h: 58 * s, fill, round: 10 * s, turn: 180 },
-    { kind: "circle", x, y: base - 76 * s, r: 15 * s, fill }
+    { kind: "path", d: `M ${x - w / 2} ${base} V ${base - h + w / 2} A ${w / 2} ${w / 2} 0 0 1 ${x + w / 2} ${base - h + w / 2} V ${base} Z`, fill },
+    { kind: "circle", x, y: base - h - 20 * s, r: 16 * s, fill }
   ];
 }
 
@@ -222,6 +226,130 @@ function toggle(x: number, y: number, s: number, on: boolean): Shape[] {
   return [
     { kind: "block", x, y, w: 120 * s, h: 56 * s, round: 28 * s, fill: on ? GOLD.core : B[1] },
     { kind: "circle", x: x + (on ? 32 : -32) * s, y, r: 22 * s, fill: "#ffffff" }
+  ];
+}
+
+/**
+ * A crowd as an animator draws one: not every person, but a mass of heads and shoulders
+ * melded into one shape, and in front of it a few people drawn properly, some in gold.
+ */
+function crowdMass(x0: number, x1: number, base: number, s: number, fill: string, seed: number, rise = 0): Shape[] {
+  const rand = seeded(seed);
+  const head = 15 * s;
+  const out: Shape[] = [{ kind: "block", x: (x0 + x1) / 2, y: base - 30 * s - rise, w: x1 - x0, h: 70 * s, round: 30 * s, fill }];
+  for (let x = x0 + head; x < x1 - head * 0.5; x += head * (2 + rand() * 0.8)) {
+    const lift = rise + (rand() - 0.5) * 12 * s;
+    out.push({ kind: "circle", x: x + head * 0.9, y: base - 58 * s - lift, r: head * (1.6 + rand() * 0.3), fill });
+    out.push({ kind: "circle", x, y: base - 92 * s - lift, r: head * (0.95 + rand() * 0.2), fill });
+  }
+  return out;
+}
+
+/** A jigsaw piece (100 across before scaling): a knob on its right, or a socket on its left. */
+const PIECE_KNOB = "M 10 0 H 90 Q 100 0 100 10 V 35 A 15 15 0 0 1 100 65 V 90 Q 100 100 90 100 H 10 Q 0 100 0 90 V 10 Q 0 0 10 0 Z";
+const PIECE_SOCKET = "M 10 0 H 90 Q 100 0 100 10 V 90 Q 100 100 90 100 H 10 Q 0 100 0 90 V 65 A 15 15 0 0 0 0 35 V 10 Q 0 0 10 0 Z";
+function puzzle(x: number, y: number, s: number): Shape[] {
+  const at = (dx: number, turn: number) => `translate(${x + dx * s} ${y}) rotate(${turn}) scale(${s}) translate(-50 -50)`;
+  return [
+    { kind: "path", d: PIECE_KNOB, fill: B[0], transform: at(-62, -4) },
+    { kind: "path", d: PIECE_SOCKET, fill: GOLD.core, transform: at(70, 5) },
+    { kind: "sparkle", x: x + 4 * s, y: y - 70 * s, r: 14 * s, fill: GOLD.light },
+    { kind: "sparkle", x: x + 14 * s, y: y + 62 * s, r: 9 * s, fill: "#ffffff", fade: 0.8 }
+  ];
+}
+
+/** A round table seen from above, people seated around it, one in gold. */
+function roundTable(x: number, y: number, s: number, seats = 7): Shape[] {
+  const out: Shape[] = [
+    { kind: "circle", x, y, r: 120 * s, fill: B[1] },
+    { kind: "ring", x, y, r: 120 * s, width: 3 * s, fade: 0.8 },
+    { kind: "ring", x, y, r: 26 * s, width: 2.5 * s, fade: 0.7 },
+    { kind: "circle", x: x - 40 * s, y: y + 30 * s, r: 9 * s, fill: "#eaf2fd", fade: 0.85 },
+    { kind: "circle", x: x + 50 * s, y: y - 20 * s, r: 9 * s, fill: "#eaf2fd", fade: 0.85 }
+  ];
+  for (let i = 0; i < seats; i++) {
+    const a = (i / seats) * Math.PI * 2 - Math.PI / 2;
+    const cx = x + Math.cos(a) * 158 * s;
+    const cy = y + Math.sin(a) * 158 * s;
+    const fill = i === 2 ? GOLD.core : B[0];
+    out.push({ kind: "block", x: x + Math.cos(a) * 176 * s, y: y + Math.sin(a) * 176 * s, w: 62 * s, h: 30 * s, round: 15 * s, fill, turn: (a * 180) / Math.PI + 90 });
+    out.push({ kind: "circle", x: cx, y: cy, r: 17 * s, fill });
+  }
+  return out;
+}
+
+/** Your card: a member's card, a little turned, with you on it and a gold star. */
+function idCard(x: number, y: number, s: number): Shape[] {
+  const turn = -7;
+  const t = (dx: number, dy: number) => {
+    const a = (turn * Math.PI) / 180;
+    return [x + dx * Math.cos(a) - dy * Math.sin(a), y + dx * Math.sin(a) + dy * Math.cos(a)] as const;
+  };
+  const [ax, ay] = t(-95, 10);
+  const [sx, sy] = t(150, -105);
+  return [
+    { kind: "block", x: x + 26 * s, y: y + 22 * s, w: 360 * s, h: 230 * s, round: 22 * s, fill: B[0], fade: 0.55, turn: 4 },
+    { kind: "block", x, y, w: 360 * s, h: 230 * s, round: 22 * s, fill: "#eaf2fd", turn },
+    { kind: "block", ...pt(t(0, -88)), w: 360 * s, h: 54 * s, round: 22 * s, fill: B[1], turn },
+    { kind: "circle", x: ax, y: ay, r: 58 * s, fill: B[5] },
+    ...person(ax, ay + 50 * s, 0.95 * s, GOLD.core),
+    ...[-14, 18, 50].map((dy, i): Shape => ({ kind: "block", ...pt(t(70, dy)), w: (i === 1 ? 120 : 150) * s, h: 14 * s, round: 7 * s, fill: B[5], turn })),
+    { kind: "sparkle", x: sx, y: sy, r: 28 * s, fill: GOLD.core }
+  ];
+}
+const pt = ([x, y]: readonly [number, number]) => ({ x, y });
+
+/** A coin in gold, the rupee on it. */
+function coin(x: number, y: number, s: number): Shape[] {
+  return [
+    { kind: "orb", x, y, r: 54 * s },
+    { kind: "ring", x, y, r: 42 * s, width: 3 * s, stroke: GOLD.edge, fade: 0.9 },
+    { kind: "text", x, y: y + 2 * s, size: 50 * s, fill: "#b9791a", text: "₹" }
+  ];
+}
+
+/** A squiggly line, as a cartoonist draws movement: from (x, y) along `angle`. */
+function squiggle(x: number, y: number, angle: number, length: number, amp: number, stroke: string, width: number): Shape {
+  const a = (angle * Math.PI) / 180;
+  const n = 4;
+  let d = `M ${x} ${y}`;
+  for (let i = 1; i <= n; i++) {
+    const t0 = ((i - 0.5) / n) * length;
+    const t1 = (i / n) * length;
+    const off = (i % 2 ? 1 : -1) * amp;
+    const cx = x + Math.cos(a) * t0 - Math.sin(a) * off;
+    const cy = y + Math.sin(a) * t0 + Math.cos(a) * off;
+    d += ` Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${(x + Math.cos(a) * t1).toFixed(1)} ${(y + Math.sin(a) * t1).toFixed(1)}`;
+  }
+  return { kind: "path", d, stroke, width };
+}
+
+/** A heart with its three lines of movement on its outer side. */
+function beatingHeart(x: number, y: number, s: number, fill: string, side: 1 | -1): Shape[] {
+  return [
+    heart(x, y, s, fill),
+    squiggle(x + side * 112 * s, y - 70 * s, side > 0 ? -30 : 210, 70 * s, 6 * s, RED[1], 5 * s),
+    squiggle(x + side * 124 * s, y - 10 * s, side > 0 ? 0 : 180, 74 * s, 6 * s, RED[0], 5 * s),
+    squiggle(x + side * 108 * s, y + 52 * s, side > 0 ? 30 : 150, 66 * s, 6 * s, "#b3262e", 5 * s)
+  ];
+}
+
+/** A program's window, a gear behind it, and its switches popping out of it. */
+function settingsWindow(x: number, y: number, s: number): Shape[] {
+  return [
+    { kind: "gear", x: x + 150 * s, y: y - 150 * s, r: 92 * s, teeth: 10, fill: "#9aa7b8", hub: "#6f7d91" },
+    { kind: "gear", x: x - 190 * s, y: y + 120 * s, r: 48 * s, teeth: 8, fill: "#b5c0ce", hub: "#8a97a9" },
+    { kind: "block", x: x + 14 * s, y: y + 16 * s, w: 360 * s, h: 260 * s, round: 18 * s, fill: B[0], fade: 0.5 },
+    { kind: "block", x, y, w: 360 * s, h: 260 * s, round: 18 * s, fill: "#eaf2fd" },
+    { kind: "block", x, y: y - 106 * s, w: 360 * s, h: 48 * s, round: 18 * s, fill: B[1] },
+    { kind: "circle", x: x - 150 * s, y: y - 106 * s, r: 8 * s, fill: RED[1] },
+    { kind: "circle", x: x - 124 * s, y: y - 106 * s, r: 8 * s, fill: GOLD.core },
+    { kind: "circle", x: x - 98 * s, y: y - 106 * s, r: 8 * s, fill: GREEN[2] },
+    ...[-40, 20, 80].map((dy): Shape => ({ kind: "block", x: x - 70 * s, y: y + dy * s, w: 150 * s, h: 14 * s, round: 7 * s, fill: B[5] })),
+    // The switches stand out past the window's edge, larger, as if lifting off it.
+    ...toggle(x + 150 * s, y - 40 * s, 1.15 * s, true),
+    ...toggle(x + 190 * s, y + 20 * s, 1.15 * s, false),
+    ...toggle(x + 150 * s, y + 80 * s, 1.15 * s, true)
   ];
 }
 
@@ -326,73 +454,57 @@ const SCENES: Record<SceneName, Scene> = {
     phone: { ...P, layers: [horizon(0.36), art({ kind: "orb", x: 350, y: 300, r: 60 }, { kind: "arc", x: 350, y: 300, r: 84, from: 200, to: 340, width: 2.5, fade: 0.6 })] }
   },
 
-  // Network (mam's choice): bright stars joined by fine lines, and soft green rain.
+  // Network (mam's choice), with the stars as the focus: one bright constellation on the
+  // right third, a few sparkles, and the rain softer behind them.
   people: {
     computer: {
       ...C,
       layers: [
         wave(0.16, 40, 900, 0.1, "top", B[2], 33, 70),
-        art({ kind: "rain", x: 0, y: 120, w: 1600, h: 640, count: 70, seed: 11 }),
-        wave(0.7, 44, 760, 0.3, "bottom", B[4], 24),
-        wave(0.82, 30, 620, 0.7, "bottom", B[2], 29),
-        art({ kind: "stars", x: 1180, y: 170, w: 400, h: 520, count: 14, seed: 7 }, { kind: "stars", x: 20, y: 260, w: 220, h: 420, count: 8, seed: 3 })
+        art({ kind: "rain", x: 0, y: 120, w: 1600, h: 640, count: 34, seed: 11 }),
+        wave(0.74, 44, 760, 0.3, "bottom", B[4], 24),
+        wave(0.86, 30, 620, 0.7, "bottom", B[2], 29),
+        art(
+          { kind: "stars", x: 1150, y: 130, w: 420, h: 480, count: 13, seed: 7, size: 1.9 },
+          { kind: "sparkle", x: 1300, y: 210, r: 26, fill: GOLD.light },
+          { kind: "sparkle", x: 1520, y: 460, r: 18, fill: "#ffffff", fade: 0.9 },
+          { kind: "sparkle", x: 1210, y: 520, r: 12, fill: GOLD.light },
+          { kind: "stars", x: 30, y: 300, w: 200, h: 300, count: 6, seed: 3, size: 1.1 }
+        )
       ]
     },
-    tablet: { ...T, layers: [horizon(0.254), art({ kind: "rain", x: 0, y: 0, w: 1000, h: 380, count: 40, seed: 12 }), art({ kind: "stars", x: 620, y: 80, w: 360, h: 280, count: 11, seed: 5 }), wave(0.95, 22, 480, 0.3, "bottom", B[4], 26)] },
-    phone: { ...P, layers: [horizon(0.36), art({ kind: "rain", x: 0, y: 0, w: 420, h: 320, count: 24, seed: 13 }), art({ kind: "stars", x: 230, y: 60, w: 180, h: 240, count: 7, seed: 9, size: 0.8 })] }
+    tablet: { ...T, layers: [horizon(0.254), art({ kind: "rain", x: 0, y: 0, w: 1000, h: 380, count: 22, seed: 12 }), art({ kind: "stars", x: 600, y: 70, w: 380, h: 290, count: 10, seed: 5, size: 1.5 }, { kind: "sparkle", x: 700, y: 120, r: 18, fill: GOLD.light }), wave(0.95, 22, 480, 0.3, "bottom", B[4], 26)] },
+    phone: { ...P, layers: [horizon(0.36), art({ kind: "rain", x: 0, y: 0, w: 420, h: 320, count: 14, seed: 13 }), art({ kind: "stars", x: 220, y: 50, w: 190, h: 250, count: 7, seed: 9, size: 1.1 }, { kind: "sparkle", x: 260, y: 90, r: 12, fill: GOLD.light })] }
   },
 
-  // Connections: two people, a gold link between them.
+  // Connections: two pieces about to fit together.
   connections: {
-    computer: {
-      ...C,
-      layers: [
-        art(
-          { kind: "path", d: "M 1250 470 Q 1380 340 1510 470", stroke: GOLD.line, width: 5, fade: 0.9 },
-          { kind: "circle", x: 1380, y: 405, r: 12, fill: GOLD.light },
-          person(1250, 600, 2.2, B[0]),
-          person(1510, 600, 2.2, GOLD.core),
-          person(160, 640, 1.4, B[1])
-        ),
-        wave(0.74, 36, 700, 0.1, "bottom", B[4], 22, 80),
-        wave(0.86, 26, 520, 0.5, "bottom", B[2], 28)
-      ]
-    },
-    tablet: { ...T, layers: [horizon(0.254), art({ kind: "path", d: "M 740 220 Q 830 150 920 220", stroke: GOLD.line, width: 4 }, person(740, 330, 1.3, B[0]), person(920, 330, 1.3, GOLD.core))] },
-    phone: { ...P, layers: [horizon(0.36), art({ kind: "path", d: "M 300 230 Q 345 190 390 230", stroke: GOLD.line, width: 3 }, person(300, 316, 0.95, B[0]), person(390, 316, 0.95, GOLD.core))] }
+    computer: { ...C, layers: [art(puzzle(1465, 420, 1.15)), wave(0.76, 36, 700, 0.1, "bottom", B[4], 22, 80), wave(0.88, 26, 520, 0.5, "bottom", B[2], 28)] },
+    tablet: { ...T, layers: [horizon(0.254), art(puzzle(830, 250, 0.95))] },
+    phone: { ...P, layers: [horizon(0.36), art(puzzle(340, 220, 0.6))] }
   },
 
-  // Your batch: a crowd melded together, a few in gold in the middle: you, among your batch.
+  // Your batch: a crowd as an animator draws one, a melded mass, and a few people in front,
+  // two in gold: you, among your batch.
   batch: {
-    computer: { ...C, layers: [art(crowd(1080, 1640, 820, 1.6, 4, 3)), wave(0.86, 26, 600, 0.2, "bottom", B[4], 25), wave(0.94, 18, 480, 0.6, "bottom", B[2], 30)] },
-    tablet: { ...T, layers: [horizon(0.254), art(crowd(560, 1020, 330, 1.05, 5, 3))] },
-    phone: { ...P, layers: [horizon(0.36), art(crowd(220, 430, 320, 0.62, 6, 2))] }
-  },
-
-  // Groups: small huddles of people, each in its own ring.
-  groups: {
     computer: {
       ...C,
       layers: [
-        wave(0.1, 30, 700, 0.6, "top", B[2], 35),
-        art(
-          { kind: "ring", x: 1250, y: 420, r: 120, width: 3, fade: 0.75 },
-          person(1210, 470, 1.1, B[0]),
-          person(1255, 455, 1.15, GOLD.core),
-          person(1300, 470, 1.1, B[0]),
-          { kind: "ring", x: 1480, y: 600, r: 105, width: 3, fade: 0.6 },
-          person(1450, 645, 1, B[1]),
-          person(1505, 645, 1, B[0]),
-          { kind: "ring", x: 150, y: 640, r: 95, width: 3, fade: 0.6 },
-          person(125, 680, 0.95, B[0]),
-          person(175, 680, 0.95, GOLD.core)
-        ),
-        wave(0.8, 34, 640, 0.5, "bottom", B[4], 28),
-        wave(0.9, 26, 520, 0.2, "bottom", B[2], 23)
+        art(crowdMass(1290, 1640, 830, 1.3, B[1], 4, 50), crowdMass(1300, 1640, 860, 1.5, B[0], 8), crowdMass(-20, 290, 860, 1.3, B[1], 12)),
+        art(person(1400, 880, 1.9, GOLD.core), person(1470, 890, 2.1, "#eaf2fd"), person(1545, 880, 1.9, GOLD.core), person(150, 890, 1.7, GOLD.core)),
+        wave(0.9, 18, 600, 0.2, "bottom", B[4], 25),
+        wave(0.96, 14, 480, 0.6, "bottom", B[2], 30)
       ]
     },
-    tablet: { ...T, layers: [horizon(0.254), art({ kind: "ring", x: 820, y: 250, r: 95, width: 3, fade: 0.75 }, person(785, 300, 0.9, B[0]), person(822, 288, 0.95, GOLD.core), person(858, 300, 0.9, B[0]))] },
-    phone: { ...P, layers: [horizon(0.36), art({ kind: "ring", x: 350, y: 255, r: 62, width: 2.5, fade: 0.75 }, person(326, 290, 0.6, B[0]), person(350, 282, 0.64, GOLD.core), person(374, 290, 0.6, B[0]))] }
+    tablet: { ...T, layers: [horizon(0.254), art(crowdMass(560, 1010, 360, 0.95, B[0], 5), person(760, 370, 1.3, GOLD.core), person(830, 374, 1.4, "#eaf2fd"))] },
+    phone: { ...P, layers: [horizon(0.36), art(crowdMass(230, 430, 330, 0.55, B[0], 6), person(320, 336, 0.8, GOLD.core), person(360, 338, 0.85, "#eaf2fd"))] }
+  },
+
+  // Groups: a round table seen from above, people seated all round it, one in gold.
+  groups: {
+    computer: { ...C, layers: [wave(0.1, 30, 700, 0.6, "top", B[2], 35), art(roundTable(1468, 430, 0.72)), wave(0.82, 34, 640, 0.5, "bottom", B[4], 28), wave(0.92, 26, 520, 0.2, "bottom", B[2], 23)] },
+    tablet: { ...T, layers: [horizon(0.254), art(roundTable(830, 230, 0.6))] },
+    phone: { ...P, layers: [horizon(0.36), art(roundTable(345, 220, 0.42, 6))] }
   },
 
   // Messages: speech going back and forth.
@@ -465,18 +577,11 @@ const SCENES: Record<SceneName, Scene> = {
     phone: { ...P, layers: [art(sunCorner(420, 120))] }
   },
 
-  // A profile: one person, in their own ring.
+  // A profile: your card, with you on it.
   profile: {
-    computer: {
-      ...C,
-      layers: [
-        art({ kind: "ring", x: 1400, y: 380, r: 190, width: 3, fade: 0.7 }, { kind: "ring", x: 1400, y: 380, r: 240, width: 1.5, fade: 0.4 }, person(1400, 500, 2.6, GOLD.core)),
-        wave(0.8, 30, 900, 0.6, "bottom", B[4], 26),
-        wave(0.9, 22, 700, 0.2, "bottom", B[2], 32)
-      ]
-    },
-    tablet: { ...T, layers: [horizon(0.254), art({ kind: "ring", x: 850, y: 230, r: 100, width: 3, fade: 0.7 }, person(850, 296, 1.4, GOLD.core))] },
-    phone: { ...P, layers: [horizon(0.36), art({ kind: "ring", x: 355, y: 220, r: 62, width: 2.5, fade: 0.7 }, person(355, 262, 0.85, GOLD.core))] }
+    computer: { ...C, layers: [art(idCard(1462, 400, 0.66)), wave(0.8, 30, 900, 0.6, "bottom", B[4], 26), wave(0.9, 22, 700, 0.2, "bottom", B[2], 32)] },
+    tablet: { ...T, layers: [horizon(0.254), art(idCard(820, 230, 0.6))] },
+    phone: { ...P, layers: [horizon(0.36), art(idCard(335, 215, 0.36))] }
   },
 
   // The gallery: photos laid out.
@@ -493,34 +598,99 @@ const SCENES: Record<SceneName, Scene> = {
     phone: { ...P, layers: [horizon(0.36), art(frame(315, 200, 96, 74, -6), frame(385, 240, 86, 68, 6))] }
   },
 
-  // Causes: a heart, warmth given.
+  // Causes: two hearts turned to each other, a coin between them, and movement around them:
+  // giving, and the warmth that comes back.
   causes: {
     computer: {
       ...C,
       layers: [
-        art({ kind: "ring", x: 1400, y: 420, r: 200, width: 2, fade: 0.5 }, heart(1400, 420, 1.5, RED[1]), { kind: "orb", x: 1520, y: 300, r: 40 }),
-        wave(0.76, 46, 820, 0.2, "bottom", B[4], 25),
-        wave(0.88, 32, 620, 0.5, "bottom", B[2], 30)
+        art(beatingHeart(1395, 380, 0.62, RED[1], -1), beatingHeart(1530, 380, 0.62, RED[0], 1), coin(1462, 440, 0.7)),
+        wave(0.78, 46, 820, 0.2, "bottom", B[4], 25),
+        wave(0.9, 32, 620, 0.5, "bottom", B[2], 30)
       ]
     },
-    tablet: { ...T, layers: [horizon(0.254), art(heart(850, 220, 0.8, RED[1]))] },
-    phone: { ...P, layers: [horizon(0.36), art(heart(355, 220, 0.5, RED[1]))] }
+    tablet: { ...T, layers: [horizon(0.254), art(beatingHeart(760, 220, 0.6, RED[1], -1), beatingHeart(890, 220, 0.6, RED[0], 1), coin(825, 280, 0.62))] },
+    phone: { ...P, layers: [horizon(0.36), art(beatingHeart(300, 205, 0.36, RED[1], -1), beatingHeart(378, 205, 0.36, RED[0], 1), coin(339, 240, 0.38))] }
   },
 
-  // Settings and the desk: switches, some on, some off.
+  // Settings and the desk: a program's window, a gear turning behind it, its switches
+  // lifting off it.
   steady: {
-    computer: {
-      ...C,
-      layers: [
-        art(toggle(1350, 300, 1.3, true), toggle(1450, 420, 1.3, false), toggle(1330, 540, 1.3, true), toggle(160, 560, 1, false)),
-        wave(0.84, 16, 1200, 0.2, "bottom", B[4], 34),
-        wave(0.92, 12, 900, 0.1, "bottom", B[2], 26)
-      ]
-    },
-    tablet: { ...T, layers: [horizon(0.254), art(toggle(820, 200, 0.9, true), toggle(890, 290, 0.9, false))] },
-    phone: { ...P, layers: [horizon(0.36), art(toggle(330, 210, 0.55, true), toggle(375, 268, 0.55, false))] }
+    computer: { ...C, layers: [art(settingsWindow(1450, 430, 0.66)), wave(0.84, 16, 1200, 0.2, "bottom", B[4], 34), wave(0.92, 12, 900, 0.1, "bottom", B[2], 26)] },
+    tablet: { ...T, layers: [horizon(0.254), art(settingsWindow(800, 240, 0.55))] },
+    phone: { ...P, layers: [horizon(0.36), art(settingsWindow(320, 215, 0.34))] }
   }
 };
+
+/* ---------- The pattern behind it all ---------- */
+
+/*
+ * Behind each picture, a quiet pattern of small line drawings, tiled across the page, as
+ * WhatsApp and Telegram do behind a chat: white lines only a little lighter than the blue,
+ * so the page never looks bare and never looks busy. Each page's pattern is made of its own
+ * things (bubbles for Messages, pins and papers for the board, people for Network).
+ */
+const ICON: Record<string, string> = {
+  person: "M12 3.5a3.2 3.2 0 1 1 0 6.4a3.2 3.2 0 0 1 0-6.4Z M5.5 20.5v-3a6.5 6.5 0 0 1 13 0v3Z",
+  bubble: "M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4 3.5V16A2.5 2.5 0 0 1 4 13.5Z",
+  star: "M12 3.5l2.4 5 5.4.7-4 3.7 1 5.4L12 15.8l-4.8 2.5 1-5.4-4-3.7 5.4-.7Z",
+  heart: "M12 20s-7-4.4-7-9.5A4 4 0 0 1 12 8a4 4 0 0 1 7 2.5C19 15.6 12 20 12 20Z",
+  calendar: "M5 7h14v12H5Z M5 10.5h14 M8.5 4.5v4 M15.5 4.5v4",
+  pin: "M12 21s-6-6-6-10.5a6 6 0 0 1 12 0C18 15 12 21 12 21Z M12 8.5a2 2 0 1 0 0 4a2 2 0 0 0 0-4Z",
+  paper: "M7 3.5h7l4 4v13H7Z M14 3.5v4h4 M9.5 12h6 M9.5 15.5h6",
+  photo: "M4 6h16v12H4Z M7 15l3.5-4 3 3 2-2 2.5 3",
+  bell: "M6.5 16.5h11l-1.5-2.2V10a4 4 0 0 0-8 0v4.3Z M10.5 19a1.6 1.6 0 0 0 3 0",
+  cap: "M2.5 9.5L12 5l9.5 4.5L12 14Z M6.5 11.5v4c3 2.2 8 2.2 11 0v-4 M21.5 9.5v5",
+  link: "M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1 M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1",
+  bulb: "M9 17h6 M10 20h4 M12 3.5a5.5 5.5 0 0 0-3.2 10c.7.5 1.2 1.3 1.2 2.1V17h4v-1.4c0-.8.5-1.6 1.2-2.1A5.5 5.5 0 0 0 12 3.5Z",
+  toggle: "M3.5 12A4.5 4.5 0 0 1 8 7.5h8a4.5 4.5 0 0 1 0 9H8A4.5 4.5 0 0 1 3.5 12Z M16 9.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 0 0 0-5Z",
+  ring: "M12 5a7 7 0 1 1 0 14a7 7 0 0 1 0-14Z",
+  sun: "M12 8a4 4 0 1 1 0 8a4 4 0 0 1 0-8Z M12 2.5v2 M12 19.5v2 M2.5 12h2 M19.5 12h2 M5.3 5.3l1.4 1.4 M17.3 17.3l1.4 1.4 M5.3 18.7l1.4-1.4 M17.3 6.7l1.4-1.4",
+  briefcase: "M4 8h16v11H4Z M9 8V5.5h6V8 M4 13h16",
+  book: "M4 5.5c3-1 5.5-.5 8 1c2.5-1.5 5-2 8-1V19c-3-1-5.5-.5-8 1c-2.5-1.5-5-2-8-1Z M12 6.5V20",
+  wave: "M3 12c2-2 4-2 6 0s4 2 6 0s4-2 6 0",
+  dot: "M12 10.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3Z"
+};
+
+const PATTERN: Record<SceneName, string[]> = {
+  home: ["sun", "bubble", "person", "calendar", "heart", "cap", "star", "wave"],
+  people: ["person", "star", "link", "person", "dot", "star"],
+  beach: ["star", "dot", "wave", "star", "person"],
+  connections: ["person", "link", "person", "bubble", "dot"],
+  batch: ["cap", "person", "star", "book", "dot"],
+  groups: ["person", "ring", "person", "bubble", "dot"],
+  messages: ["bubble", "dot", "bubble", "heart", "person"],
+  notifications: ["bell", "dot", "ring", "star"],
+  events: ["calendar", "star", "pin", "sun", "dot"],
+  board: ["pin", "paper", "briefcase", "bulb", "dot"],
+  ask: ["bulb", "bubble", "book", "cap", "star"],
+  profile: ["person", "star", "briefcase", "book", "dot"],
+  gallery: ["photo", "sun", "heart", "star", "dot"],
+  causes: ["heart", "sun", "person", "dot", "heart"],
+  steady: ["toggle", "dot", "ring", "toggle", "wave"]
+};
+
+/** One tile of a page's pattern, as an SVG image the browser repeats across the page. */
+function patternTile(name: SceneName): string {
+  const icons = PATTERN[name];
+  const rand = seeded(name.length * 97 + icons.length * 13);
+  const size = 300;
+  const cells = 4;
+  const step = size / cells;
+  let body = "";
+  let n = 0;
+  for (let row = 0; row < cells; row++)
+    for (let col = 0; col < cells; col++) {
+      const icon = ICON[icons[n++ % icons.length]];
+      const x = col * step + step / 2 + (row % 2 ? step / 2 : 0) + (rand() - 0.5) * 14;
+      const y = row * step + step / 2 + (rand() - 0.5) * 14;
+      const scale = 1.05 + rand() * 0.45;
+      const turn = Math.round((rand() - 0.5) * 50);
+      body += `<path d="${icon}" transform="translate(${(x % size).toFixed(1)} ${y.toFixed(1)}) rotate(${turn}) scale(${scale.toFixed(2)}) translate(-12 -12)"/>`;
+    }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.13">${body}</g></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
 
 /* ---------- Drawing ---------- */
 
@@ -569,7 +739,27 @@ function ShapeArt({ s, glow, width, height }: { s: Shape; glow: string; width: n
     case "dome":
       return <path d={`M ${s.x - s.r} ${s.y} A ${s.r} ${s.r} 0 0 1 ${s.x + s.r} ${s.y} Z`} fill={s.fill} />;
     case "path":
-      return <path d={s.d} fill={s.fill ?? "none"} stroke={s.stroke ?? "none"} strokeWidth={s.width} strokeLinecap="round" opacity={s.fade ?? 1} />;
+      return <path d={s.d} fill={s.fill ?? "none"} stroke={s.stroke ?? "none"} strokeWidth={s.width} strokeLinecap="round" strokeLinejoin="round" opacity={s.fade ?? 1} transform={s.transform} />;
+    case "text":
+      return (
+        <text x={s.x} y={s.y} fontSize={s.size} fontWeight={800} fill={s.fill} textAnchor="middle" dominantBaseline="central" fontFamily="system-ui, sans-serif">
+          {s.text}
+        </text>
+      );
+    case "sparkle":
+      return <path d={`M ${s.x} ${s.y - s.r} Q ${s.x} ${s.y} ${s.x + s.r} ${s.y} Q ${s.x} ${s.y} ${s.x} ${s.y + s.r} Q ${s.x} ${s.y} ${s.x - s.r} ${s.y} Q ${s.x} ${s.y} ${s.x} ${s.y - s.r} Z`} fill={s.fill} opacity={s.fade ?? 1} />;
+    case "gear": {
+      const tooth = (s.r * 2 * Math.PI) / s.teeth / 2;
+      return (
+        <g>
+          {Array.from({ length: s.teeth }, (_, i) => (
+            <rect key={i} x={s.x - tooth / 2} y={s.y - s.r - tooth * 0.75} width={tooth} height={tooth * 1.3} rx={tooth * 0.3} fill={s.fill} transform={`rotate(${(i * 360) / s.teeth} ${s.x} ${s.y})`} />
+          ))}
+          <circle cx={s.x} cy={s.y} r={s.r} fill={s.fill} />
+          <circle cx={s.x} cy={s.y} r={s.r * 0.42} fill={s.hub} />
+        </g>
+      );
+    }
     case "stars": {
       const rand = seeded(s.seed);
       const k = s.size ?? 1;
@@ -680,7 +870,8 @@ function VersionArt({ version, id, size }: { version: Version; id: string; size:
 export const Scene = memo(function Scene({ name }: { name: SceneName }) {
   const scene = SCENES[name];
   return (
-    <div className="scene" data-scene={name}>
+    <div className="scene" data-scene={name} style={{ "--pattern": patternTile(name) } as CSSProperties}>
+      <div className="scene__pattern" />
       {(["computer", "tablet", "phone"] as const).map((size) => (
         <VersionArt key={size} version={scene[size]} id={`glow-${name}-${size}`} size={size} />
       ))}
