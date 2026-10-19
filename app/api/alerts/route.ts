@@ -22,10 +22,10 @@ export async function POST(request: Request) {
   if (body instanceof NextResponse) return body;
   const me = await signedIn();
   if (me instanceof NextResponse) return me;
-  if (!(await withinLimit(`alerts:${me.user.id}`, 30, 60 * 60_000))) return NextResponse.json({ ok: false, error: "Try again in a little while." }, { status: 429 });
+  if (!(await withinLimit(`alerts:${me.user.id}`, 30, 60 * 60_000))) return NextResponse.json({ ok: false, error: "You have made too many changes. Try again later." }, { status: 429 });
   if ("subscribe" in body) {
     const saved = await savePushSubscription(me.user.id, body.subscribe);
-    return NextResponse.json(saved ? { ok: true } : { ok: false, error: "This browser's notifications couldn't be turned on." }, { status: saved ? 200 : 400 });
+    return NextResponse.json(saved ? { ok: true } : { ok: false, error: "We couldn't turn on notifications for this browser." }, { status: saved ? 200 : 400 });
   }
   if (typeof body.unsubscribe === "string") {
     await removePushSubscription(me.user.id, body.unsubscribe.slice(0, 1000));

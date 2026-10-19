@@ -77,7 +77,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
               setProblem(answer.error);
             }}
           >
-            <p className="join__line">Welcome, {firstName(name)}. A code is on its way to {email}.</p>
+            <p className="join__line">Welcome, {firstName(name)}. We have sent a code to {email}.</p>
             <CodeField email={email} />
             <PasswordField />
             <p className="join__fine">
@@ -89,7 +89,7 @@ export function StaffJoinForm({ invitedEmail = "" }: { invitedEmail?: string }) 
               </p>
             )}
             <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
-              {busy ? "Making your account…" : "Join Alumnity"} <span aria-hidden="true">→</span>
+              {busy ? "Creating your account…" : "Join Alumnity"} <span aria-hidden="true">→</span>
             </button>
             <button type="button" className="join__switch" onClick={() => setTicket("")}>
               Send a new code, or change the email

@@ -18,7 +18,7 @@ export function NameMark({ who }: { who: { usn: string | null; role: Role } }) {
     );
   if (!who.usn) return null;
   return (
-    <span className="name-mark name-mark--verified" role="img" aria-label="On the HKBK register" title="On the HKBK register">
+    <span className="name-mark name-mark--verified" role="img" aria-label="Verified: on the HKBK college register" title="Verified: on the HKBK college register">
       <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
         <path d="M8 1l1.8 1.3 2.2-.1.7 2.1 1.8 1.3-.7 2.1.7 2.1-1.8 1.3-.7 2.1-2.2-.1L8 15l-1.8-1.3-2.2.1-.7-2.1L1.5 10.4l.7-2.1-.7-2.1 1.8-1.3.7-2.1 2.2.1Z" />
         <path className="name-mark__tick" d="M5.2 8.2l1.9 1.9 3.7-3.9" />

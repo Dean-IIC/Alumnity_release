@@ -13,7 +13,7 @@ import { requireUser } from "../../../lib/server/session";
 export const metadata: Metadata = { title: "Ask a senior · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-const STATUS: Record<Ask["status"], string> = { open: "Waiting for a senior", taken: "A senior is on it", answered: "Answered", closed: "Closed" };
+const STATUS: Record<Ask["status"], string> = { open: "Waiting for a senior", taken: "A senior is helping", answered: "Answered", closed: "Closed" };
 
 function AskList({ asks, empty }: { asks: Ask[]; empty: string }) {
   if (!asks.length) return <p className="wf-empty">{empty}</p>;
@@ -27,7 +27,7 @@ function AskList({ asks, empty }: { asks: Ask[]; empty: string }) {
             </Link>
             <span className="wf-muted">
               {a.author.name} · {timeAgo(a.createdAt)}
-              {a.reason ? ` · came to you: ${a.reason}` : ""}
+              {a.reason ? ` · sent to you because: ${a.reason}` : ""}
             </span>
           </div>
           <span className={`wf-tag ${a.status === "open" ? "wf-tag--red" : ""}`}>{STATUS[a.status]}</span>
@@ -51,23 +51,23 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
   const form = site.features.asks ? (
     <ActionForm action={askAction} className="wf-stack">
       <label className="field">
-        <span className="field__label">Your question, in a line</span>
+        <span className="field__label">Your question, in one line</span>
         <input name="title" required maxLength={140} placeholder="e.g. How did you prepare for campus placements?" defaultValue={started} autoFocus={Boolean(started)} />
       </label>
       <label className="field">
-        <span className="field__label">A few lines more</span>
-        <textarea name="body" rows={4} required maxLength={2000} placeholder="What you've tried, what you're stuck on, what would help." />
+        <span className="field__label">More details</span>
+        <textarea name="body" rows={4} required maxLength={2000} placeholder="What have you tried? Where are you stuck? What would help?" />
       </label>
       <label className="field">
         <span className="field__label">Topics (optional, separated by commas)</span>
         <input name="topics" maxLength={200} placeholder="e.g. Placements, Java, Higher studies" />
-        <span className="field__hint">Topics help it reach seniors who know them.</span>
+        <span className="field__hint">Topics help your question reach seniors who know about them.</span>
       </label>
       {/* Held in sight on a phone: below the first screen, a blind test never saw it, and
           tapped the tab bar's Post instead (which leaves the page, question and all). */}
       <div className="ask-send">
         <button className="button button--primary" type="submit">
-          Send the question <span aria-hidden="true">→</span>
+          Send question <span aria-hidden="true">→</span>
         </button>
       </div>
     </ActionForm>
@@ -81,8 +81,8 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
       {mentoring ? (
         <div className="wf-card ask-switch ask-switch--on">
           <p>
-            <strong>You're mentoring.</strong> Students' questions that fit your branch and what you know come here. Busy for a while? Pause it, and turn it
-            back on here whenever you like.
+            <strong>You are a mentor.</strong> Students' questions that match your branch and skills come here. Busy for a while? Pause mentoring. You can
+            turn it back on here at any time.
           </p>
           <ActionForm action={mentorAction}>
             <input type="hidden" name="mentor" value="off" />
@@ -94,17 +94,17 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
       ) : (
         <div className="wf-card ask-switch">
           <p>
-            <strong>Questions only reach you once you say you're happy to mentor.</strong> Students' questions that fit your branch and what you know will come here, a
-            few at a time. You can turn it off whenever you like.
+            <strong>You get questions only after you agree to mentor.</strong> Then students' questions that match your branch and skills will come here, a few
+            at a time. You can turn this off at any time.
           </p>
           <ActionForm action={mentorAction}>
             <button className="button button--primary wf-small" type="submit">
-              I'm happy to mentor
+              Start mentoring
             </button>
           </ActionForm>
         </div>
       )}
-      <AskList asks={forMe} empty={mentoring ? "Nothing waiting for you right now. When a question fits you, it comes here and we tell you." : "Nothing yet."} />
+      <AskList asks={forMe} empty={mentoring ? "No questions for you right now. When a question matches you, it will appear here and we will tell you." : "Nothing yet."} />
       {taken.length > 0 && (
         <>
           <h2>You're helping with</h2>
@@ -114,7 +114,7 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
       {open.length > 0 && (
         <>
           <h2>Open to any senior</h2>
-          <p className="wf-muted">These didn't fit anyone in particular. If you can help, take one on.</p>
+          <p className="wf-muted">These questions did not match any one senior. If you can help, take one.</p>
           <AskList asks={open} empty="" />
         </>
       )}
@@ -128,8 +128,8 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
       title="Ask a senior"
       intro={
         senior
-          ? "Students ask questions here. Each question goes to a few seniors from the same branch who know about it. If you take one, you reply to the student privately."
-          : "Your question goes to a few seniors who fit it (by branch and what they know), not to everyone. One takes it on and writes to you privately."
+          ? "Students ask questions here. Each question goes to a few seniors from the same branch who know the topic. If you take one, you reply to the student privately."
+          : "Your question goes to a few seniors, not to everyone. We choose them by branch and skills. One of them takes your question and replies to you privately."
       }
     >
       {/* Seniors mostly answer: their questions first, asking folded away. Students ask first. */}
@@ -137,19 +137,19 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
         <>
           {helping}
           <details className="wf-fold" open={Boolean(started)}>
-            <summary>Ask something yourself</summary>
+            <summary>Ask your own question</summary>
             {form}
           </details>
         </>
       ) : (
         <section aria-labelledby="new-ask">
-          <h2 id="new-ask">Ask something</h2>
+          <h2 id="new-ask">Ask a question</h2>
           {form}
         </section>
       )}
 
       <h2>Your questions</h2>
-      <AskList asks={mine} empty={senior ? "You haven't asked anything." : "You haven't asked anything yet. A first question can be small: how to pick electives, what an internship is really like."} />
+      <AskList asks={mine} empty={senior ? "You haven't asked anything." : "You haven't asked anything yet. Your first question can be a small one, like how to choose electives or what an internship is like."} />
     </AppPage>
   );
 }

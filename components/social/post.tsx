@@ -65,7 +65,7 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
             {plainRepost && <span className="post__reposted">reposted</span>}
           </span>
           {post.archive && (
-            <span className="post__archive" title="Brought over from the old HKBK alumni website, with its date">
+            <span className="post__archive" title="Moved here from the old HKBK alumni website. It keeps its original date.">
               From the old HKBK alumni portal
             </span>
           )}
@@ -87,13 +87,13 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
             </span>
           </span>
           {post.verifiedAt && (
-            <Link className="post__verified" href="/board" title="The college checked this post: it's on the HKBK board">
+            <Link className="post__verified" href="/board" title="The college checked this post. It is on the HKBK board.">
               <span aria-hidden="true">✓</span> Verified by HKBK
             </Link>
           )}
         </div>
         <details className="post__menu">
-          <summary aria-label="More">
+          <summary aria-label="More options">
             <Icon name="more" size={22} />
           </summary>
           <div className="post__menu-list">
@@ -113,7 +113,7 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
               <ActionForm action={verifyPostAction} showDone={false}>
                 <input type="hidden" name="id" value={post.id} />
                 <input type="hidden" name="on" value={post.verifiedAt ? "0" : "1"} />
-                <button type="submit">{post.verifiedAt ? "Take off the HKBK board" : "Verify for the HKBK board"}</button>
+                <button type="submit">{post.verifiedAt ? "Remove from the HKBK board" : "Verify and add to the HKBK board"}</button>
               </ActionForm>
             )}
             <a href={href}>Open post</a>
@@ -148,9 +148,9 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
           <ActionForm action={referralAction} className="wf-stack" resetOnSuccess>
             <input type="hidden" name="id" value={post.id} />
             <label className="field">
-              <span className="field__label">Why you fit</span>
-              <textarea name="note" rows={3} required minLength={20} maxLength={1500} placeholder="Your branch and year, what you've built or studied that fits. Keep it short." />
-              <span className="field__hint">Not connected yet? It goes as a connection request with this note. Connected? It goes to them in Messages.</span>
+              <span className="field__label">Why you are a good fit</span>
+              <textarea name="note" rows={3} required minLength={20} maxLength={1500} placeholder="Your branch and year, and what you have built or studied that fits. Keep it short." />
+              <span className="field__hint">If you are not connected yet, we send this note with a connection request. If you are connected, we send it as a message.</span>
             </label>
             <div>
               <button className="button button--primary wf-small" type="submit">
@@ -217,7 +217,7 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
             <ActionForm action={commentAction} resetOnSuccess className="comment comment--new" showDone={false}>
               <input type="hidden" name="id" value={post.id} />
               <Avatar name={me.name} photoId={photos.get(me.id)} size={32} />
-              <MentionInput id="comment-box" name="body" label="Write a comment" rows={1} maxLength={500} required placeholder="Write a comment… (@ to mention)" className="comment__input" />
+              <MentionInput id="comment-box" name="body" label="Write a comment" rows={1} maxLength={500} required placeholder="Write a comment (type @ to mention someone)" className="comment__input" />
               <button className="button button--primary comment__send" type="submit">
                 Send
               </button>

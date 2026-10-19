@@ -59,6 +59,6 @@ export async function joinStep<T extends object>(label: string, work: () => Prom
     return respond(await work());
   } catch (error) {
     console.error(`${label} failed:`, error);
-    return NextResponse.json({ ok: false, error: "Something went wrong finishing that step. Please try again: it will pick up where it stopped." }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Something went wrong. Please try again. You will continue from the same step." }, { status: 500 });
   }
 }

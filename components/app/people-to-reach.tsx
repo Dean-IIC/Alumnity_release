@@ -21,7 +21,7 @@ export async function PeopleToReach({ me, mode }: { me: User; mode: "write" | "c
   const writing = connections.length > 0;
   return (
     <section className="wf-card" aria-labelledby="to-reach">
-      <h2 id="to-reach">{writing ? "Write to someone" : "People you may know"}</h2>
+      <h2 id="to-reach">{writing ? "Message someone" : "People you may know"}</h2>
       <ul className="side-box__list">
         {people.map((u) => (
           <li key={u.id} className="side-person">
@@ -32,7 +32,7 @@ export async function PeopleToReach({ me, mode }: { me: User; mode: "write" | "c
             </span>
             {writing ? (
               <Link className="pill-button" href={`/messages/${u.id}`}>
-                Write
+                Message
               </Link>
             ) : (
               <ActionForm action={connectAction} showDone={false}>
@@ -45,7 +45,7 @@ export async function PeopleToReach({ me, mode }: { me: User; mode: "write" | "c
           </li>
         ))}
       </ul>
-      {!writing && <p className="wf-muted">Once they accept, you can write to each other.</p>}
+      {!writing && <p className="wf-muted">Once they accept, you can message each other.</p>}
     </section>
   );
 }
@@ -55,14 +55,14 @@ export function ThingsToDo({ me }: { me: User }) {
   const items =
     me.role === "student"
       ? [
-          ["/ask", "Ask a senior something", "Your question goes to the few who fit it."],
+          ["/ask", "Ask a senior a question", "Your question goes to a few seniors who can best answer it."],
           ["/batch", "Find your batch", "Connect with the people you study with."],
           ["/groups", "Join a group", "Clubs, cities, interests."]
         ]
       : [
-          ["/ask", "Answer a student's question", "Say you're happy to mentor, and the ones that fit you come here."],
+          ["/ask", "Answer a student's question", "Say you're happy to mentor. Questions that match what you know will come to you."],
           ["/batch", "Find your batch", "See who's here from your year."],
-          ["/events", "See what's coming up", "Reunions, talks, college days."]
+          ["/events", "See upcoming events", "Reunions, talks, college days."]
         ];
   return (
     <ul className="welcome-card__steps">

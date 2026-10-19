@@ -34,7 +34,7 @@ export function ProfileStrength({
           <span className="strength__tick" aria-hidden="true">
             ✓
           </span>
-          Your profile is complete
+          Your page is complete
           <span className="strength__percent">100%</span>
         </p>
         <StrengthBar percent={100} label={level} complete />
@@ -54,7 +54,7 @@ export function ProfileStrength({
       </div>
       <StrengthBar percent={percent} label={level} complete={false} />
       {next.length > 0 && (
-        <ul className="strength__next" aria-label="What's left">
+        <ul className="strength__next" aria-label="What to add next">
           {next.map((m) => (
             <li key={m.key}>
               <a href={m.href}>

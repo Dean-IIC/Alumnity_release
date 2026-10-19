@@ -94,7 +94,7 @@ export function PostMedia({ media, author, full = false, compact = false }: Prop
               className={`post-media__tile ${m.kind === "video" ? "post-media__tile--video" : ""}`}
               href={mediaUrl(m.id)}
               onClick={(e) => open(e, i)}
-              aria-label={more ? `${describe(i)}, and ${hidden} more: open the viewer` : `${describe(i)}: open larger`}
+              aria-label={more ? `${describe(i)}, and ${hidden} more. Open to see all` : `${describe(i)}. Open full size`}
             >
               {m.kind === "video" ? (
                 <video src={`${mediaUrl(m.id)}#t=0.1`} muted playsInline preload="metadata" tabIndex={-1} aria-hidden="true" />
@@ -155,10 +155,10 @@ export function PostMedia({ media, author, full = false, compact = false }: Prop
         </button>
         {count > 1 && (
           <>
-            <button type="button" className="viewer__button viewer__prev" onClick={() => step(-1)} aria-label="Previous">
+            <button type="button" className="viewer__button viewer__prev" onClick={() => step(-1)} aria-label="Previous photo">
               <span aria-hidden="true">‹</span>
             </button>
-            <button type="button" className="viewer__button viewer__next" onClick={() => step(1)} aria-label="Next">
+            <button type="button" className="viewer__button viewer__next" onClick={() => step(1)} aria-label="Next photo">
               <span aria-hidden="true">›</span>
             </button>
           </>

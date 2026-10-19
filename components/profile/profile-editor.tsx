@@ -17,9 +17,9 @@ import { SectionsEditor } from "./sections-editor";
 
 const WHO: { value: Visibility; label: string }[] = [
   { value: "everyone", label: "Everyone" },
-  { value: "connections", label: "My connections" },
-  { value: "batch", label: "My batch" },
-  { value: "me", label: "Only me" }
+  { value: "connections", label: "Your connections" },
+  { value: "batch", label: "Your batch and connections" },
+  { value: "me", label: "Only you" }
 ];
 
 /** `id`: where a link lands (profile strength's "Write a few lines about you" goes to /me/edit#edit-about). */
@@ -95,14 +95,14 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
         <label className="field" id="edit-city">
           <span className="field__label">City</span>
           <input value={profile.city} maxLength={60} onChange={(e) => set("city", e.target.value)} placeholder="Bengaluru" autoComplete="address-level2" />
-          <span className="field__hint">Just the city: never your address.</span>
+          <span className="field__hint">Only your city, not your full address.</span>
         </label>
       </Part>
 
       <Part title="Your journey since HKBK (optional)" field="journey" {...who("journey")}>
         <p className="join__fine">
-          Only if you'd like: the stops between leaving college and now (a first job, a new city, a startup). Add one and your page
-          shows your road, drawn in red pen, oldest first.
+          Add the main steps between leaving college and now, such as a first job, a move to a new city or a startup. Your page
+          shows them as a timeline, oldest first.
         </p>
         <ol className="editor__stops">
           {profile.journey.map((stop, i) => (
@@ -129,7 +129,7 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
                   onChange={(e) => set("journey", profile.journey.map((s, j) => (j === i ? { ...s, text: e.target.value } : s)))}
                 />
               </label>
-              <button type="button" className="join__switch" onClick={() => set("journey", profile.journey.filter((_, j) => j !== i))} aria-label={`Remove the stop in ${stop.year}`}>
+              <button type="button" className="join__switch" onClick={() => set("journey", profile.journey.filter((_, j) => j !== i))} aria-label={`Remove the step for ${stop.year}`}>
                 Remove
               </button>
             </li>
@@ -141,7 +141,7 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
             className="button button--secondary editor__add"
             onClick={() => set("journey", [...profile.journey, { year: new Date().getFullYear(), text: "" }])}
           >
-            + Add a stop
+            + Add a step
           </button>
         )}
       </Part>
@@ -156,9 +156,9 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
 
       <Part id="edit-skills" title="Good at" field="skills" {...who("skills")}>
         <label className="field">
-          <span className="field__label">Things you know well, with commas between them</span>
+          <span className="field__label">Things you know well. Put a comma between each one.</span>
           <input value={skillsText} onChange={(e) => setSkillsText(e.target.value)} placeholder="Java, system design, GATE prep, placements" />
-          <span className="field__hint">Up to 12. These are what juniors search for.</span>
+          <span className="field__hint">Add up to 12. Juniors search for these.</span>
         </label>
       </Part>
 
@@ -166,9 +166,9 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
         <Part id="edit-happy-to" title="Looking for" field="happyTo" {...who("happyTo")}>
           {(
             [
-              ["mentor", "A mentor", "A senior to talk a decision through: a course, a project, a first job."],
-              ["internship", "An internship", "Alumni who hire, or know where to look, can find you."],
-              ["referral", "A referral", "For when you apply where an alumnus works."]
+              ["mentor", "A mentor", "A senior who can help you decide about a course, a project or a first job."],
+              ["internship", "An internship", "Alumni who hire, or who know about openings, can find you."],
+              ["referral", "A referral", "For when you apply to a company where an alumnus works."]
             ] as const
           ).map(([key, label, note]) => (
             <label key={key} className="editor__check">
@@ -184,8 +184,8 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
       <Part id="edit-happy-to" title="Happy to" field="happyTo" {...who("happyTo")}>
         {(
           [
-            ["mentor", "Mentor juniors", "Answer questions, and see a student through a decision."],
-            ["refer", "Refer people at my company", "When a junior’s a good fit, put them forward."],
+            ["mentor", "Mentor juniors", "Answer questions and help students make decisions."],
+            ["refer", "Refer people at my company", "When a junior is a good fit for a job, recommend them."],
             ["talk", "Give a talk at the college", "A guest lecture or a session for a department."]
           ] as const
         ).map(([key, label, note]) => (
@@ -202,7 +202,7 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
 
       <SectionsEditor profile={profile} onChange={(next) => setProfile((p) => ({ ...p, ...next }))} />
 
-      <Part id="edit-links" title="Find me" field="links" {...who("links")}>
+      <Part id="edit-links" title="Your links" field="links" {...who("links")}>
         <label className="field">
           <span className="field__label">LinkedIn</span>
           <input value={profile.links.linkedin} onChange={(e) => set("links", { ...profile.links, linkedin: e.target.value })} placeholder="linkedin.com/in/your-name" inputMode="url" />
@@ -220,7 +220,7 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
       )}
       <div className="editor__actions">
         <button className="button button--primary" type="submit" disabled={busy}>
-          {busy ? "Saving…" : "Save my page"} <span aria-hidden="true">→</span>
+          {busy ? "Saving…" : "Save changes"} <span aria-hidden="true">→</span>
         </button>
         <Link className="button button--secondary" href="/me">
           Cancel

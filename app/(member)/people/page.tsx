@@ -75,7 +75,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
         <section className="people-section people-requests" aria-labelledby="requests">
           <div className="people-section__head">
             <h2 id="requests">
-              Requests <span className="people-badge">{waiting.total}</span>
+              Connection requests <span className="people-badge">{waiting.total}</span>
             </h2>
             {waiting.total > waiting.requests.length && <Link href="/connections#waiting">See all {waiting.total}</Link>}
           </div>
@@ -96,27 +96,27 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             </h2>
             {registerShown > 0 && (
               <span className="people-section__note">
-                {registerShown === results.count ? "None of them is on Alumnity yet: invite them" : `${registerShown} not on Alumnity yet`}
+                {registerShown === results.count ? "None of them have joined Alumnity yet. You can invite them." : `${registerShown} not on Alumnity yet`}
               </span>
             )}
           </div>
           {/* Many say their batch by the year they finished: point them to the year they joined. */}
           {query.year && query.year - 4 >= 1997 && (
             <p className="people-section__note">
-              Years here are when people joined HKBK. Finished in {query.year}?{" "}
-              <Link href={peopleHref({ ...query, year: query.year - 4 })}>See those who joined in {query.year - 4}</Link>
+              Years here are the year people joined HKBK. Looking for people who finished in {query.year}?{" "}
+              <Link href={peopleHref({ ...query, year: query.year - 4 })}>See people who joined in {query.year - 4}</Link>
             </p>
           )}
           {results.count === 0 ? (
             <p className="people-empty">
-              Nobody matches that yet. Try fewer words or another spelling, or <Link href={peopleHref({})}>clear the search</Link>.
+              Nobody matches your search. Try fewer words or a different spelling, or <Link href={peopleHref({})}>clear the search</Link>.
             </p>
           ) : (
             <Cards cards={results.cards} photos={photos} />
           )}
           {results.registerLimited && (
             <p className="wf-note">
-              You&apos;ve searched the college register {REGISTER_SEARCHES} times this hour, the most allowed. Members still show; you can search the register again within the hour.
+              You can search the college register {REGISTER_SEARCHES} times an hour, and you have reached that limit. Members still show here. Try the register again later.
             </p>
           )}
         </section>
@@ -128,8 +128,8 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               <p className="wf-muted">
                 Alumnity has only just opened, so there aren&apos;t many people to find yet.
                 {onRegister > 0 &&
-                  ` ${onRegister} people joined HKBK in your batch; ${mates.length === 0 ? "none of them are" : `${mates.length} ${mates.length === 1 ? "is" : "are"}`} here yet besides you.`}{" "}
-                Each person who joins makes it more useful for everyone: bring your batch in.
+                  ` ${onRegister} people joined HKBK in your batch. ${mates.length === 0 ? "None of them have joined Alumnity yet." : `${mates.length} of them ${mates.length === 1 ? "has" : "have"} joined so far.`}`}{" "}
+                Alumnity gets more useful with each person who joins. Invite your batch.
               </p>
               <Invite text="I'm on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />
             </section>
@@ -160,7 +160,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
           {companies.length > 0 && (
             <section className="where-work" aria-labelledby="where-work">
               <h2 id="where-work">Where HKBK alumni work</h2>
-              <p className="wf-muted">Ask someone about their company, or for a referral: tap one to see who&apos;s there.</p>
+              <p className="wf-muted">Tap a company to see who works there. You can ask them about the company or for a referral.</p>
               <ul className="where-work__list">
                 {companies.map((c) => (
                   <li key={c.company}>
@@ -181,7 +181,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               <Cards cards={newest} photos={photos} />
             </section>
           ) : (
-            suggestions.length === 0 && <p className="people-empty">Nobody else has joined yet. You&apos;ll see everyone here as they do.</p>
+            suggestions.length === 0 && <p className="people-empty">Nobody else has joined yet. New members will show here when they join.</p>
           )}
 
           {/* Only members are listed until a name is typed, so it said where the rest of HKBK is. */}
@@ -202,11 +202,11 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             </h2>
           </div>
           <p className="wf-muted">
-            From the college&apos;s own register of students{query.branch || query.year ? ", with the branch and year chosen above" : ""}. Use Filters to look through one batch. Know
-            someone? Send them the link: they join by finding their name.
+            These names come from the college&apos;s register of students{query.branch || query.year ? ", for the branch and year you chose above" : ""}. Use Filters to see one batch.
+            Know someone here? Send them the link. They join by finding their name.
           </p>
           {browse.limited ? (
-            <p className="wf-note">You&apos;ve looked through {REGISTER_PAGES} pages of the register this hour, the most allowed. You can look again within the hour.</p>
+            <p className="wf-note">You can look through {REGISTER_PAGES} pages of the register an hour, and you have reached that limit. Try again later.</p>
           ) : (
             <ul className="people-grid">
               {browse.people.map((p, i) => (

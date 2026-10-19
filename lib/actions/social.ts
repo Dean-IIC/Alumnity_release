@@ -30,7 +30,7 @@ export async function myConnectionsAction(): Promise<PickPerson[]> {
 export async function connectAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await requestConnection(me, idFrom(form), textFrom(form, "note", NOTE_LIMIT)), "Request sent.");
+  return answer(await requestConnection(me, idFrom(form), textFrom(form, "note", NOTE_LIMIT)), "Connection request sent.");
 }
 
 /** "Ask for a referral" on a #job post: a connection request with the note, or a message if you're connected. */
@@ -38,7 +38,7 @@ export async function referralAction(_: ActionState, form: FormData): Promise<Ac
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const asked = await askForReferral(me, idFrom(form), textFrom(form, "note", 1500));
-  return answer(asked, asked.ok && asked.as === "message" ? "Sent to them in Messages." : "Sent with a connection request. When they accept, you can message each other.");
+  return answer(asked, asked.ok && asked.as === "message" ? "Sent. You can find it in Messages." : "Sent with a connection request. When they accept, you can message each other.");
 }
 
 export async function acceptAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -50,13 +50,13 @@ export async function acceptAction(_: ActionState, form: FormData): Promise<Acti
 export async function declineAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await declineConnection(me, idFrom(form)), "Declined. They aren't told.");
+  return answer(await declineConnection(me, idFrom(form)), "Declined. We won't tell them.");
 }
 
 export async function withdrawAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await withdrawRequest(me, idFrom(form)), "Request withdrawn.");
+  return answer(await withdrawRequest(me, idFrom(form)), "Connection request withdrawn.");
 }
 
 export async function removeConnectionAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -105,7 +105,7 @@ export async function readAllAction(_: ActionState): Promise<ActionState> {
 export async function reportAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await report(me, textFrom(form, "kind", 20), idFrom(form), textFrom(form, "reason", 500)), "Thank you. The college desk will look at it; they won't say who reported it.");
+  return answer(await report(me, textFrom(form, "kind", 20), idFrom(form), textFrom(form, "reason", 500)), "Thank you. The college desk will review it. They won't tell anyone who reported it.");
 }
 
 /**
@@ -121,6 +121,6 @@ export async function mentorAction(_: ActionState, form?: FormData): Promise<Act
   await saveProfile(me.id, { ...profile, happyTo: { ...profile.happyTo, mentor: on } });
   return answer(
     { ok: true },
-    on ? "Done. Questions that fit what you know will reach you here." : "Paused. New questions won't come to you until you turn this back on."
+    on ? "Done. Questions that match what you know will come to you here." : "Paused. New questions won't come to you until you turn this back on."
   );
 }

@@ -179,6 +179,6 @@ describe("accounts", () => {
   it("slows down repeated tries", async () => {
     fake.use("guesser");
     for (let i = 0; i < 10; i++) await auth.logIn("priya@example.com", "wrong guess here", "13");
-    expect(await auth.logIn("priya@example.com", "anything at all", "13")).toMatchObject({ ok: false, error: expect.stringMatching(/a lot of tries/) });
+    expect(await auth.logIn("priya@example.com", "anything at all", "13")).toMatchObject({ ok: false, error: expect.stringMatching(/tried too many times/) });
   });
 });

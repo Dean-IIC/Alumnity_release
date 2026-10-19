@@ -33,9 +33,9 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
       user={me}
       current="board"
       title="HKBK board"
-      intro="Jobs, internships, notices and more that the college has checked. Anyone can post with a #tag; the college desk verifies the ones that belong here."
+      intro="Jobs, internships, notices and more, checked by the college. Anyone can post with a #tag. The college desk checks these posts and adds the right ones here."
     >
-      <nav className="wf-tabs board__tags" aria-label="Show posts tagged">
+      <nav className="wf-tabs board__tags" aria-label="Filter posts by tag">
         <Link href="/board" aria-current={!tag ? "page" : undefined}>
           Everything
         </Link>
@@ -63,8 +63,8 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
             <p className="wf-empty">
               {tag ? `Nothing tagged #${tag} is on the board yet.` : "Nothing on the board yet."}{" "}
               {desk
-                ? "Open a post's ••• menu and choose “Verify for the HKBK board”."
-                : "Posting a job or a notice? Tag it, and the college desk can put it here."}
+                ? "Open a post's ••• menu and choose “Verify and add to the HKBK board”."
+                : "Posting a job or a notice? Add a #tag, and the college desk can add it here."}
             </p>
           ) : (
             verified.map((p) => <Post key={p.id} post={p} photos={photos} me={me} />)
@@ -73,7 +73,7 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
           {tag && others.length > 0 && (
             <>
               <h2 className="board__heading board__heading--others">Everyone's #{tag} posts</h2>
-              <p className="wf-muted">Not checked by the college yet. Use your judgement.</p>
+              <p className="wf-muted">The college has not checked these posts yet. Read them with care.</p>
               {others.map((p) => (
                 <Post key={p.id} post={p} photos={photos} me={me} />
               ))}

@@ -48,7 +48,7 @@ export const SECTIONS: Record<SectionKind, KindInfo> = {
   },
   education: {
     label: "Education",
-    hint: "Courses besides HKBK: school, PU, a master's",
+    hint: "Other courses: school, PU, a master's degree",
     title: { label: "Course or degree", placeholder: "M.Tech, Computer Science" },
     org: { label: "School or college", placeholder: "IISc Bengaluru" },
     years: "range",
@@ -59,7 +59,7 @@ export const SECTIONS: Record<SectionKind, KindInfo> = {
     label: "Projects",
     hint: "Things you've built or made",
     title: { label: "Project", placeholder: "Smart traffic signal" },
-    org: { label: "With or for (optional)", placeholder: "Final-year project, a hackathon" },
+    org: { label: "Who it was with or for (optional)", placeholder: "Final-year project, a hackathon" },
     years: "year",
     link: true,
     detail: true

@@ -44,7 +44,7 @@ const links: Check = {
 };
 const happyTo: Check = {
   key: "happyTo",
-  label: "Say what you're happy to help with",
+  label: "Choose what you're happy to help with",
   href: `${EDIT}#edit-happy-to`,
   weight: 10,
   done: (p) => Object.values(p.happyTo).some(Boolean)
@@ -54,7 +54,7 @@ const hasAny = (p: Profile, kinds: (keyof Profile["sections"])[]) => kinds.some(
 const CHECKS: Record<Kind, Check[]> = {
   alumnus: [
     photo,
-    { key: "title", label: "Say what you do now", href: `${EDIT}#edit-title`, weight: 15, done: (p) => filled(p.title) },
+    { key: "title", label: "Add what you do now", href: `${EDIT}#edit-title`, weight: 15, done: (p) => filled(p.title) },
     { key: "company", label: "Add where you work", href: `${EDIT}#edit-company`, weight: 10, done: (p) => filled(p.company) },
     city,
     about,
@@ -65,14 +65,14 @@ const CHECKS: Record<Kind, Check[]> = {
   ],
   student: [
     photo,
-    { key: "title", label: "Say what you're up to", href: `${EDIT}#edit-title`, weight: 15, done: (p) => filled(p.title) },
+    { key: "title", label: "Add what you're doing now", href: `${EDIT}#edit-title`, weight: 15, done: (p) => filled(p.title) },
     { key: "company", label: "Add where you study or intern", href: `${EDIT}#edit-company`, weight: 10, done: (p) => filled(p.company) },
     city,
     about,
     skills,
     {
       key: "seeking",
-      label: "Say what you're looking for",
+      label: "Choose what you're looking for",
       href: `${EDIT}#edit-happy-to`,
       weight: 10,
       done: (p) => Object.values(p.seeking).some(Boolean)
@@ -89,7 +89,7 @@ const CHECKS: Record<Kind, Check[]> = {
   // Teachers and the college desk: no "where" (it's HKBK), so what they do there counts for more.
   staff: [
     photo,
-    { key: "title", label: "Say what you teach or do at HKBK", href: `${EDIT}#edit-title`, weight: 20, done: (p) => filled(p.title) },
+    { key: "title", label: "Add what you teach or do at HKBK", href: `${EDIT}#edit-title`, weight: 20, done: (p) => filled(p.title) },
     city,
     about,
     skills,

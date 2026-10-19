@@ -73,7 +73,7 @@ export async function runDigest(origin: string, now = Date.now()): Promise<{ sen
     const summary = [
       count(["message"]) && plural(count(["message"]), "conversation with new messages", "conversations with new messages"),
       count(["connect-request"]) && plural(count(["connect-request"]), "connection request", "connection requests"),
-      count(["ask"]) && plural(count(["ask"]), "question that fits you", "questions that fit you"),
+      count(["ask"]) && plural(count(["ask"]), "question you can help with", "questions you can help with"),
       count(["mention", "comment"]) && plural(count(["mention", "comment"]), "mention or comment", "mentions and comments"),
       count(["board-work"]) && plural(count(["board-work"]), "new job or internship on the HKBK board", "new jobs and internships on the HKBK board")
     ].filter(Boolean) as string[];
@@ -82,14 +82,14 @@ export async function runDigest(origin: string, now = Date.now()): Promise<{ sen
     const body = letter({
       greeting: `Hello ${firstName(m.name)},`,
       lines: [
-        summary.length ? `Waiting for you on Alumnity: ${summary.join(", ")}.` : `You have ${plural(rows.length, "new notification", "new notifications")} on Alumnity.`,
+        summary.length ? `New on Alumnity for you: ${summary.join(", ")}.` : `You have ${plural(rows.length, "new notification", "new notifications")} on Alumnity.`,
         ...rows.slice(0, 5).map((r) => `• ${r.text}`)
       ],
       button: { text: "Open Alumnity", href: `${origin}/notifications` },
-      footer: `One email a day at most, only when something's waiting. ${stop ? `Stop these: ${stop}` : "Turn these off in Settings."}`
+      footer: `We send at most one email a day, and only when you have something new. ${stop ? `To stop these emails: ${stop}` : "You can turn these emails off in Settings."}`
     });
     try {
-      await sendMail({ to: m.email, subject: summary[0] ? `Alumnity: ${summary[0]}` : "Something's waiting for you on Alumnity", ...body, unsubscribe: stop });
+      await sendMail({ to: m.email, subject: summary[0] ? `Alumnity: ${summary[0]}` : "You have new notifications on Alumnity", ...body, unsubscribe: stop });
       sent += 1;
     } catch {
       continue; // try them again tomorrow

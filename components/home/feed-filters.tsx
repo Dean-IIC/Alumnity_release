@@ -158,7 +158,7 @@ export function FeedFilterBar({
             }}
           />
           {text && (
-            <button type="button" className="post-filters__clear-q" aria-label="Clear the search" onClick={() => (setText(""), search("", "push"))}>
+            <button type="button" className="post-filters__clear-q" aria-label="Clear search" onClick={() => (setText(""), search("", "push"))}>
               <Icon name="close" size={14} />
             </button>
           )}
@@ -175,7 +175,7 @@ export function FeedFilterBar({
             className="post-filters__toggle post-filters__toggle--chosen"
             aria-expanded={false}
             aria-controls={panelId}
-            aria-label={`Filters on: ${chosen.slice(0, FOLDED_CHIPS).join(", ")}${more > 0 ? ` and ${more} more` : ""}. Show all filters`}
+            aria-label={`Filters in use: ${chosen.slice(0, FOLDED_CHIPS).join(", ")}${more > 0 ? ` and ${more} more` : ""}. Show all filters`}
             onClick={() => setOpen(true)}
           >
             {chosen.slice(0, FOLDED_CHIPS).map((c) => (
@@ -202,7 +202,7 @@ export function FeedFilterBar({
             {shownOpen && count > 0 ? "Hide filters" : "Filters"}
             {!shownOpen && count > 0 && (
               <span className="post-filters__count">
-                <span className="sr-only">, on: </span>
+                <span className="sr-only">, in use: </span>
                 {count}
               </span>
             )}
@@ -232,7 +232,7 @@ export function FeedFilterBar({
             {chips.map((t) => {
               const on = filters.tags.includes(t);
               return (
-                <Link key={t} className={`post-chip${on ? " is-on" : ""}`} href={toggleTag(t)} scroll={false} aria-current={on || undefined} aria-label={on ? `#${t}, on. Take it off` : `Only #${t}`}>
+                <Link key={t} className={`post-chip${on ? " is-on" : ""}`} href={toggleTag(t)} scroll={false} aria-current={on || undefined} aria-label={on ? `Remove the #${t} filter` : `Show posts with #${t}`}>
                   #{t}
                   {on && <span aria-hidden="true">×</span>}
                 </Link>
@@ -357,7 +357,7 @@ function PeoplePicker({ id, chosen, onPick }: { id: string; chosen: number[]; on
         maxLength={40}
         autoComplete="off"
         placeholder="From specific people"
-        aria-label="Only posts from specific people: type a name"
+        aria-label="Show posts from specific people: type a name"
         role="combobox"
         aria-expanded={open}
         aria-autocomplete="list"

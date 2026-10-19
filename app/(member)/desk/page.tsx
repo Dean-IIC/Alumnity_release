@@ -35,7 +35,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
   return (
     <AppPage user={me} current="desk" title="College desk" intro={`Logged in as ${ROLE_LABEL[me.role].toLowerCase()}. Everything done here is written to the audit log.`}>
-      <nav className="wf-tabs" aria-label="Desk sections">
+      <nav className="wf-tabs" aria-label="College desk sections">
         {tabs.map(([t, label]) => (
           <Link key={t} href={`/desk?tab=${t}`} aria-current={t === tab ? "page" : undefined}>
             {label}

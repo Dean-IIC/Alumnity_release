@@ -27,10 +27,10 @@ export default async function NotificationsPage() {
     <AppPage user={me} current="notifications" title="Notifications">
       {/* The bell's count, in the bar around this page, catches up at once (the bar isn't redrawn by moving between pages). */}
       {unread > 0 && <PulseNow />}
-      {unread > 0 && <p className="notif-new-count">{unread === 1 ? "1 new since you last looked" : `${unread} new since you last looked`}</p>}
+      {unread > 0 && <p className="notif-new-count">{unread === 1 ? "1 new since your last visit" : `${unread} new since your last visit`}</p>}
       {list.length === 0 ? (
         <>
-          <p className="wf-empty">Nothing here yet. Connection requests, replies and answers will show up here. A good way to start: ask a senior a question, or connect with someone.</p>
+          <p className="wf-empty">No notifications yet. Connection requests, replies and answers will show here. To get started, ask a senior a question or connect with someone.</p>
           <ThingsToDo me={me} />
           <PeopleToReach me={me} mode="connect" />
         </>

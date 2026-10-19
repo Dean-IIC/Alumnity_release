@@ -14,7 +14,7 @@ import { feedFor } from "../../../../../lib/server/posts";
 import { batchCount } from "../../../../../lib/server/register";
 import { requireUser } from "../../../../../lib/server/session";
 
-export const metadata: Metadata = { title: "A batch · Alumnity", robots: { index: false } };
+export const metadata: Metadata = { title: "Batch · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 const RELATION_LABEL: Record<string, string> = { connected: "Connected", sent: "Request sent", received: "Wants to connect", self: "You" };
@@ -42,14 +42,14 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
     <AppPage
       user={me}
       current="batch"
-      back={{ href: "/batch", label: "Batches" }}
+      back={{ href: "/batch", label: "Your batch" }}
       title={`${name}, ${year}`}
       intro={`${onRegister ? `${onRegister} joined HKBK in this batch` : "This batch"} · ${members.length} ${members.length === 1 ? "is" : "are"} on Alumnity`}
     >
       {mine && (onRegister > members.length || members.length <= 1) && (
         <div className="wf-card">
           <p>
-            {onRegister > members.length ? `${onRegister - members.length} from your batch aren't here yet.` : "Nobody else from your batch is here yet."} Tell them they can{" "}
+            {onRegister > members.length ? onRegister - members.length === 1 ? "1 person from your batch hasn't joined Alumnity yet." : `${onRegister - members.length} people from your batch haven't joined Alumnity yet.` : "Nobody else from your batch has joined Alumnity yet."} Tell them they can{" "}
             <Link className="wf-inline-link" href="/join">
               join with their name and USN
             </Link>

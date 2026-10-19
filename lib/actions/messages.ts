@@ -18,11 +18,11 @@ const validId = (id: unknown) => typeof id === "number" && Number.isSafeInteger(
 export async function sendMessageNow(toId: number, body: string): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!validId(toId)) return { ok: false, error: "That member isn't here any more." };
+  if (!validId(toId)) return { ok: false, error: "We couldn't find that member." };
   return answer(await sendMessage(me, toId, String(body ?? "").slice(0, MESSAGE_LIMIT)));
 }
 
-const GONE: ActionState = { ok: false, error: "That message isn't here any more." };
+const GONE: ActionState = { ok: false, error: "We couldn't find that message." };
 
 /** Your own message, rewritten (within 15 minutes of sending it). */
 export async function editMessageNow(id: number, body: string): Promise<ActionState> {
@@ -44,7 +44,7 @@ export async function deleteMessageNow(id: number, everyone: boolean): Promise<A
 export async function deleteChatNow(otherId: number): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!validId(otherId)) return { ok: false, error: "That conversation isn't here." };
+  if (!validId(otherId)) return { ok: false, error: "We couldn't find that conversation." };
   return answer(await deleteChat(me, otherId));
 }
 
@@ -55,7 +55,7 @@ export async function deleteChatNow(otherId: number): Promise<ActionState> {
 export async function storyReplyNow(storyId: number, reply: { text?: string; reaction?: string }): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  if (!validId(storyId)) return { ok: false, error: "That story isn't here any more." };
+  if (!validId(storyId)) return { ok: false, error: "This story is no longer available." };
   const result = await replyToStory(me, storyId, {
     ...(typeof reply?.reaction === "string" ? { reaction: reply.reaction.slice(0, 16) } : {}),
     ...(typeof reply?.text === "string" ? { text: reply.text.slice(0, STORY_REPLY_LIMIT) } : {})

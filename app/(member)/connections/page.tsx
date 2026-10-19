@@ -40,7 +40,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
   return (
     <AppPage user={me} current="connections" title="Connections" intro="Connections can message each other and see what's shared with connections. Followers only see your posts in their Following feed.">
       <section aria-labelledby="waiting">
-        <h2 id="waiting">Waiting for you{received.length ? ` · ${received.length}` : ""}</h2>
+        <h2 id="waiting">Requests waiting for you{received.length ? ` · ${received.length}` : ""}</h2>
         {received.length === 0 ? (
           <p className="wf-empty">No requests waiting.</p>
         ) : (
@@ -176,7 +176,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
                 <ActionForm action={withdrawAction}>
                   <input type="hidden" name="id" value={r.member.id} />
                   <button className="wf-link-button" type="submit">
-                    Withdraw
+                    Withdraw request
                   </button>
                 </ActionForm>
               </MemberLine>
@@ -188,7 +188,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
       {blocked.length > 0 && (
         <section aria-labelledby="blocked">
           <h2 id="blocked">Blocked</h2>
-          <p className="wf-muted">You don't see each other anywhere on Alumnity. They aren't told.</p>
+          <p className="wf-muted">You can&apos;t see each other anywhere on Alumnity. We won&apos;t tell them that you blocked them.</p>
           <ul className="wf-list">
             {blocked.map((u) => (
               <li key={u.id} className="wf-member">

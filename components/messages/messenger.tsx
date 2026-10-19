@@ -187,7 +187,7 @@ function NewMessage({ contacts, onClose }: { contacts: Contact[]; onClose: () =>
         </div>
         {contacts.length === 0 ? (
           <p className="dm-picker__note">
-            You can message your connections, and you haven&rsquo;t any yet. <Link href="/people">Find people to connect with</Link>, or{" "}
+            You can only message your connections, and you don&rsquo;t have any yet. <Link href="/people">Find people to connect with</Link>, or{" "}
             <Link href="/ask">ask a senior</Link>.
           </p>
         ) : (
@@ -207,7 +207,7 @@ function NewMessage({ contacts, onClose }: { contacts: Contact[]; onClose: () =>
                 </Link>
               </li>
             ))}
-            {shown.length === 0 && <li className="dm-list__none">No connection called “{query.trim()}”.</li>}
+            {shown.length === 0 && <li className="dm-list__none">No connection matches “{query.trim()}”.</li>}
           </ul>
         )}
         <p className="dm-picker__note dm-picker__note--quiet">Only connections can message each other on Alumnity.</p>

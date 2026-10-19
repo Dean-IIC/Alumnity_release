@@ -66,14 +66,14 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   return (
     <AppPage user={me} current="events" title="Events" intro="Reunions, talks and college days.">
       <h2>Coming up</h2>
-      {upcoming.length === 0 ? <p className="wf-empty">Nothing planned yet.</p> : <ul className="event-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>}
+      {upcoming.length === 0 ? <p className="wf-empty">No events planned yet.</p> : <ul className="event-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>}
 
       {canOrganise(me) && (await settings()).features.events && (
         <details className="wf-fold" id="new-event" open={opening}>
-          <summary>Put up an event</summary>
+          <summary>Add an event</summary>
           <ActionForm action={eventAction} className="wf-stack">
             <label className="field">
-              <span className="field__label">Name</span>
+              <span className="field__label">Event name</span>
               <input name="title" required maxLength={120} placeholder="e.g. CSE 2012 reunion" />
             </label>
             <div className="field-row">
@@ -95,16 +95,16 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
               <input name="onlineLink" type="url" maxLength={300} placeholder="https://" />
             </label>
             <label className="field">
-              <span className="field__label">How many can come (optional)</span>
+              <span className="field__label">Number of seats (optional)</span>
               <input name="capacity" inputMode="numeric" pattern="[0-9]*" maxLength={6} />
             </label>
             <label className="field">
-              <span className="field__label">What it's about</span>
+              <span className="field__label">Details</span>
               <textarea name="body" rows={4} maxLength={3000} />
             </label>
             <div>
               <button className="button button--primary" type="submit">
-                Put it up
+                Add event
               </button>
             </div>
           </ActionForm>

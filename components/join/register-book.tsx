@@ -65,7 +65,7 @@ const FAKES: FakeRow[] = (() => {
 /** What the panel's status chip says, for joining and for logging in. */
 const STATUS = {
   join: { idle: "Ready to search", searching: "Searching the register…", found: "1 record found", "not-found": "No match" },
-  login: { idle: "Your page is in here", searching: "Checking…", found: "Signed in", "not-found": "Not signed in" }
+  login: { idle: "Ready to log in", searching: "Checking…", found: "Logged in", "not-found": "Not logged in" }
 } as const;
 
 export function RegisterBook({

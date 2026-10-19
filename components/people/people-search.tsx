@@ -179,10 +179,10 @@ export function PeopleSearch({
               <div className="people-filters__pills">
                 {(
                   [
-                    ["", "Anything"],
+                    ["", "Any"],
                     ["mentor", "Mentor"],
                     ["refer", "Refer"],
-                    ["talk", "Have a chat"]
+                    ["talk", "Chat"]
                   ] as const
                 ).map(([value, label]) => (
                   <label key={value || "any"} className="people-pill">
@@ -244,8 +244,8 @@ export function PeopleSearch({
           </Link>
         )}
         {query.help === "talk" && (
-          <Link className="people-chip people-chip--set" href={peopleHref({ ...query, help: undefined })} scroll={false} aria-label="Remove the filter: up for a chat">
-            Up for a chat <span aria-hidden="true">×</span>
+          <Link className="people-chip people-chip--set" href={peopleHref({ ...query, help: undefined })} scroll={false} aria-label="Remove the filter: happy to chat">
+            Happy to chat <span aria-hidden="true">×</span>
           </Link>
         )}
       </div>

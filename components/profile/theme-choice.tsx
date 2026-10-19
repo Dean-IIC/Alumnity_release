@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { chooseTheme, THEME_KEY, type ThemeChoice } from "../../lib/theme";
 
 const OPTIONS: { value: ThemeChoice; label: string; note: string }[] = [
-  { value: "light", label: "Light", note: "Cream paper, dark ink" },
-  { value: "dark", label: "Dark", note: "Dark paper, light ink: easier on the eyes at night" },
-  { value: "system", label: "Automatic", note: "Light or dark, as your phone or computer is set" }
+  { value: "light", label: "Light", note: "Light background, dark text" },
+  { value: "dark", label: "Dark", note: "Dark background, light text. Easier on your eyes at night." },
+  { value: "system", label: "Automatic", note: "Follows the setting on your phone or computer" }
 ];
 
 /** Light, dark, or as the device is set: kept on this device. */

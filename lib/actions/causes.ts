@@ -26,13 +26,13 @@ export async function reviewCauseAction(_: ActionState, form: FormData): Promise
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const approve = textFrom(form, "answer", 10) === "approve";
-  return answer(await reviewCause(me, idFrom(form), approve, textFrom(form, "note", 500)), approve ? "It's live." : "Turned down; its author has your note.");
+  return answer(await reviewCause(me, idFrom(form), approve, textFrom(form, "note", 500)), approve ? "Approved. The cause is now live." : "Rejected. The person who started it can see your note.");
 }
 
 export async function closeCauseAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await closeCause(me, idFrom(form), textFrom(form, "note", 500)), "Closed. What was given stays on record.");
+  return answer(await closeCause(me, idFrom(form), textFrom(form, "note", 500)), "Cause closed. Past donations stay on record.");
 }
 
 export async function payoutAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -45,7 +45,7 @@ export async function payoutAction(_: ActionState, form: FormData): Promise<Acti
 export async function startDonationNow(causeId: number, amount: string, anonymous: boolean, message: string): Promise<Checkout> {
   const me = await actor();
   if (!me) return { ok: false, error: "Please log in again." };
-  if (!Number.isSafeInteger(causeId) || causeId <= 0) return { ok: false, error: "This cause isn't taking donations." };
+  if (!Number.isSafeInteger(causeId) || causeId <= 0) return { ok: false, error: "This cause is not taking donations now." };
   return startDonation(me, causeId, { amount: String(amount).slice(0, 20), anonymous: Boolean(anonymous), message: String(message).slice(0, CAUSE_LIMITS.message) });
 }
 
@@ -55,5 +55,5 @@ export async function confirmDonationNow(orderId: string, paymentId: string, sig
   if (!me) return SIGNED_OUT;
   const done = await confirmDonation(me, String(orderId).slice(0, 60), String(paymentId).slice(0, 60), String(signature).slice(0, 200));
   if (done.ok) revalidatePath("/causes", "layout");
-  return done.ok ? { ok: true, message: "Thank you. Your gift is in." } : done;
+  return done.ok ? { ok: true, message: "Thank you. We have received your donation." } : done;
 }

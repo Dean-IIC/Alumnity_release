@@ -299,14 +299,14 @@ function StoryViewer({ reels, start, onClose, onAdd }: { reels: ReelData[]; star
             // eslint-disable-next-line @next/next/no-img-element
             <img key={story.id} src={mediaUrl(story.mediaId, 640)} alt={story.caption || `${reel.author.name}'s story`} />
           )}
-          <button type="button" className="story-viewer__tap story-viewer__tap--back" onClick={back} aria-label="Previous" />
-          <button type="button" className="story-viewer__tap story-viewer__tap--next" onClick={next} aria-label="Next" />
+          <button type="button" className="story-viewer__tap story-viewer__tap--back" onClick={back} aria-label="Previous story" />
+          <button type="button" className="story-viewer__tap story-viewer__tap--next" onClick={next} aria-label="Next story" />
         </div>
         {story.caption && <p className="story-viewer__caption">{story.caption}</p>}
         {reel.mine && (
           <div className="story-viewer__own">
             <button type="button" className="button button--secondary wf-small" onClick={onAdd}>
-              Add another
+              Add another story
             </button>
             <OwnStoryDelete id={story.id} onDone={onClose} />
           </div>
@@ -364,7 +364,7 @@ function StoryReply({ storyId, author, canReply, onTyping }: { storyId: number; 
         }
       } else setNote({ ok: false, text: answer?.error ?? "That didn't send. Try again." });
     } catch {
-      setNote({ ok: false, text: "That didn't send: check your connection and try again." });
+      setNote({ ok: false, text: "That didn't send. Check your internet connection and try again." });
     } finally {
       setBusy(false);
     }
@@ -388,7 +388,7 @@ function StoryReply({ storyId, author, canReply, onTyping }: { storyId: number; 
               setBurst({ emoji, n: Date.now() });
               void send({ reaction: emoji });
             }}
-            aria-label={`React ${emoji}`}
+            aria-label={`React with ${emoji}`}
           >
             {emoji}
           </button>
@@ -514,9 +514,9 @@ function AddStory({ onClose }: { onClose: () => void }) {
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" hidden onChange={(e) => choose(e.target.files?.[0])} />
         {file?.id && <input type="hidden" name="media" value={file.id} />}
         <label className="sr-only" htmlFor="story-caption">
-          A line to go with it
+          Caption (optional)
         </label>
-        <input id="story-caption" name="caption" className="story-add__caption" maxLength={200} placeholder="A line to go with it (optional)" />
+        <input id="story-caption" name="caption" className="story-add__caption" maxLength={200} placeholder="Add a caption (optional)" />
         {(file?.error || state?.error) && (
           <p className="story-add__error" role="alert">
             {file?.error ?? state?.error}

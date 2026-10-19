@@ -44,7 +44,7 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
   return (
     <>
       <a className="skip-link" href="#main">
-        Skip to the page
+        Skip to main content
       </a>
       {/* The college's own strip, as on hkbkce.in: who it's affiliated to and approved by. */}
       <div className="college-strip">
@@ -59,7 +59,7 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
       </div>
     <header className="site-nav-band">
     <div className={`site-nav container ${landing ? "site-nav--landing" : ""}`}>
-      <a className="site-nav__brand" href={me ? "/home" : "/"} aria-label={me ? "Alumnity, your Home" : "Alumnity, HKBK College of Engineering's alumni network: home"}>
+      <a className="site-nav__brand" href={me ? "/home" : "/"} aria-label={me ? "Alumnity, go to Home" : "Alumnity, HKBK College of Engineering alumni network, home page"}>
         <BrandLockup data-brand-target={landing || undefined} />
       </a>
       <nav aria-label="Primary navigation">

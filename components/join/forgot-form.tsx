@@ -41,7 +41,7 @@ export function ForgotForm() {
             <label className="field">
               <span className="field__label">Your email</span>
               <input name="email" type="email" autoComplete="email" required placeholder="you@example.com" defaultValue={email} />
-              <span className="field__hint">The one you joined with.</span>
+              <span className="field__hint">Use the email you joined with.</span>
             </label>
             {problem && (
               <p className="join__problem" role="alert">
@@ -52,7 +52,7 @@ export function ForgotForm() {
               {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
             </button>
             <p className="join__fine">
-              Remembered it? <Link href="/login">Log in</Link>
+              Remember your password? <Link href="/login">Log in</Link>
             </p>
           </form>
         ) : (
@@ -69,7 +69,7 @@ export function ForgotForm() {
               setProblem(answer.error);
             }}
           >
-            <p className="join__line">If {email} has an account, a code is on its way to it.</p>
+            <p className="join__line">If {email} has an account, we have sent a code to it.</p>
             <CodeField email={email} />
             <PasswordField label="Choose a new password" />
             {problem && (

@@ -160,7 +160,7 @@ export function CropTool({ open, subject, initial, name, onSave, onClose }: Prop
     tabIndex: 0,
     role: "group",
     "aria-roledescription": "framing",
-    "aria-label": `Drag to move ${whatIsIt}. Arrow keys move it too; plus and minus zoom.`,
+    "aria-label": `Drag to move ${whatIsIt}. You can also move it with the arrow keys, and zoom with the plus and minus keys.`,
     onPointerDown: down,
     onPointerMove: drag,
     onPointerUp: up,
@@ -183,13 +183,13 @@ export function CropTool({ open, subject, initial, name, onSave, onClose }: Prop
 
   if (!open) return null;
   return createPortal(
-    <Sheet open={open} onClose={onClose} title={subject.kind === "photo" ? "Frame your photo" : campus ? "Place the campus drawing" : "Frame your cover"} className="crop-sheet" focusField={false}>
+    <Sheet open={open} onClose={onClose} title={subject.kind === "photo" ? "Adjust your photo" : campus ? "Adjust the campus drawing" : "Adjust your cover"} className="crop-sheet" focusField={false}>
       <p className="sheet__note">
         {subject.kind === "photo"
-          ? "Drag the photo to move it inside the circle, and zoom to come closer. Your alumni card shows the square, corners and all."
+          ? "Drag the photo to move it inside the circle. Zoom in to make it bigger. Your alumni card shows the full square, including the corners."
           : campus
-            ? "Until you add a cover of your own, your page shows the campus from your year. Drag it to move it along the cover, and zoom to make it bigger."
-            : "Drag to choose the part of your cover that shows, and zoom to come closer. The cover is wider on a computer than on a phone: check both."}
+            ? "Until you add your own cover, your page shows a picture of the campus from your year. Drag it to move it, and zoom in to make it bigger."
+            : "Drag to choose which part of your cover shows. Zoom in to make it bigger. The cover is wider on a computer than on a phone, so check how it looks on both."}
       </p>
 
       <div className={`crop crop--${subject.kind === "photo" ? "photo" : "cover"}`}>

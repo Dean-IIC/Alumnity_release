@@ -35,7 +35,7 @@ export type GroupMember = { member: User; role: GroupRole; since: number };
 
 const DAY = 24 * 60 * 60_000;
 const no = (error: string): Result => ({ ok: false, error });
-const NOT_HERE = "That group isn't here.";
+const NOT_HERE = "We couldn't find that group.";
 
 type GroupRow = { id: number; name: string; about: string; kind: GroupKind; created_at: number; removed_at: number | null };
 
@@ -117,7 +117,7 @@ export async function createGroup(me: User, input: { name: string; about: string
   const about = input.about.trim().slice(0, GROUP_LIMITS.about);
   if (name.length < 3) return no("Give the group a name (at least three letters).");
   if (input.kind !== "open" && input.kind !== "private") return no("Choose whether it's open or private.");
-  if (!(await withinLimit(`group:${me.id}`, 3, DAY))) return no("That's three new groups today: the most in a day.");
+  if (!(await withinLimit(`group:${me.id}`, 3, DAY))) return no("You can create up to three groups a day. Please try again tomorrow.");
   const id = await db().tx(async (t) => {
     const row = await t.one<{ id: number }>("insert into groups (name, about, kind, created_by, created_at) values (?, ?, ?, ?, ?) returning id", name, about, input.kind, me.id, Date.now());
     await t.run("insert into group_members (group_id, user_id, role, status, created_at) values (?, ?, 'owner', 'member', ?)", row!.id, me.id, Date.now());
@@ -141,7 +141,7 @@ export async function joinGroup(me: User, id: number): Promise<Result> {
   const g = await groupRow(id);
   if (!g) return no(NOT_HERE);
   if (await membership(id, me.id)) return { ok: true };
-  if (!(await withinLimit(`group-join:${me.id}`, 50, DAY))) return no("That's a lot of groups today. Try again tomorrow.");
+  if (!(await withinLimit(`group-join:${me.id}`, 50, DAY))) return no("You have joined many groups today. Please try again tomorrow.");
   const status = g.kind === "open" ? "member" : "pending";
   await db().run("insert into group_members (group_id, user_id, role, status, created_at) values (?, ?, 'member', ?, ?) on conflict do nothing", id, me.id, status, Date.now());
   if (status === "pending") {
@@ -156,7 +156,7 @@ export async function leaveGroup(me: User, id: number): Promise<Result> {
   if (!m) return { ok: true };
   if (m.role === "owner") {
     const others = await db().one<{ n: number }>("select count(*) as n from group_members where group_id = ? and user_id != ? and status = 'member'", id, me.id);
-    if (others!.n > 0) return no("You started this group: make someone else its owner first (in Members), then leave.");
+    if (others!.n > 0) return no("You own this group. Before you leave, make someone else the owner (in Members).");
     // The last one out: the group goes with them.
     await db().run("update groups set removed_at = ? where id = ?", Date.now(), id);
   }
@@ -192,8 +192,8 @@ export async function answerRequest(me: User, id: number, userId: number, accept
   const changes = accept
     ? await db().run("update group_members set status = 'member', created_at = ? where group_id = ? and user_id = ? and status = 'pending'", Date.now(), id, userId)
     : await db().run("delete from group_members where group_id = ? and user_id = ? and status = 'pending'", id, userId);
-  if (!changes) return no("That request isn't waiting any more.");
-  if (accept) await notify(userId, { actor: me.id, kind: "group-joined", text: `You're in ${g.name}.`, link: `/groups/${id}` });
+  if (!changes) return no("This request has already been handled.");
+  if (accept) await notify(userId, { actor: me.id, kind: "group-joined", text: `You are now a member of ${g.name}.`, link: `/groups/${id}` });
   return { ok: true };
 }
 
@@ -205,7 +205,7 @@ export async function setGroupRole(me: User, id: number, userId: number, action:
   const g = await groupRow(id);
   const mine = await membership(id, me.id);
   if (!g || !canManage(mine)) return no("Only the group's admins can do that.");
-  if (userId === me.id) return no("Use Leave for yourself.");
+  if (userId === me.id) return no("To remove yourself, use Leave the group.");
   const theirs = await membership(id, userId);
   if (!theirs || theirs.status !== "member") return no("They aren't in this group.");
   const owner = mine!.role === "owner";

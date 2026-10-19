@@ -27,7 +27,7 @@ export type Invite = { email: string; name: string; role: StaffRole; branchName:
 
 const LABEL: Record<StaffRole, string> = { faculty: "a teacher (faculty)", coordinator: "an alumni coordinator", admin: "an administrator" };
 
-const SENIOR_INVITE = "Someone more senior has invited them to a role above yours: only they can change or withdraw it.";
+const SENIOR_INVITE = "Someone with a higher role than yours invited this person. Only they can change or cancel this invitation.";
 
 /** Whether an invitation still waiting for `email` is to a role `me` couldn't give (so isn't theirs to change or withdraw). */
 async function outranked(me: User, email: string) {
@@ -41,12 +41,12 @@ export async function inviteStaff(me: User, input: { email: string; name: string
   const name = input.name.replace(/\s+/g, " ").trim().slice(0, 100);
   const role = input.role as StaffRole;
   if (!looksLikeEmail(email)) return no("That doesn’t look like an email address.");
-  if (name.length < 3) return no("Their name, as members will see it.");
+  if (name.length < 3) return no("Enter their full name, as members will see it.");
   if (!STAFF_ROLES.includes(role) || !assignable(me).includes(role as Role)) return no("You can invite people only to roles below your own.");
   const branch = BRANCHES.find(([code]) => code === input.branch);
-  if (await db().one("select 1 from users where email = ?", email)) return no("That email already has an account: change their role in Members instead.");
+  if (await db().one("select 1 from users where email = ?", email)) return no("That email already has an account. Change their role in Members instead.");
   if (await outranked(me, email)) return no(SENIOR_INVITE);
-  if (!(await withinLimit(`invite:${me.id}`, 50, DAY))) return no("That's a lot of invitations today. Try again tomorrow.");
+  if (!(await withinLimit(`invite:${me.id}`, 50, DAY))) return no("You have sent too many invitations today. Try again tomorrow.");
   const now = Date.now();
   await db().run(
     `insert into staff_invites (email, name, role, branch, branch_name, invited_by, created_at, expires_at) values (?, ?, ?, ?, ?, ?, ?, ?)
@@ -70,11 +70,11 @@ export async function inviteStaff(me: User, input: { email: string; name: string
       greeting: `Dear ${name},`,
       lines: [
         `${me.name} has invited you to join Alumnity as ${LABEL[role]}.`,
-        "Alumnity is where HKBK's students and alumni help each other: questions answered by seniors, events, groups and staying in touch.",
-        "Join with this email address; we'll send you a code to confirm it. The invitation works for two weeks."
+        "Alumnity is where HKBK's students and alumni help each other. Seniors answer questions, and members join events and groups and stay in touch.",
+        "Join with this email address. We'll send you a code to confirm it. The invitation works for two weeks."
       ],
       button: { text: "Join Alumnity", href: `${origin}/join/staff?email=${encodeURIComponent(email)}` },
-      footer: "If you weren't expecting this, you can ignore it: nothing happens unless you join."
+      footer: "If you weren't expecting this email, you can ignore it. Nothing happens unless you join."
     })
   }).catch(() => false);
   return { ok: true };
@@ -105,7 +105,7 @@ export async function startStaffJoin(emailInput: string, ip: string): Promise<Ou
   if (!looksLikeEmail(email)) return { ok: false, error: "That doesn’t look like an email address." };
   if (!(await withinLimit(`staff-join:ip:${ip}`, 6, 60 * 60_000)) || !(await withinLimit(`staff-join:email:${email}`, 3, 60 * 60_000))) return { ok: false, error: SLOW_DOWN };
   const invite = await openInvite(email);
-  if (!invite) return { ok: false, error: "There's no open invitation for that email. Check it's the one the college wrote to, or ask the alumni office to invite you again." };
+  if (!invite) return { ok: false, error: "We can't find a valid invitation for that email. Check that it's the email the college wrote to, or ask the alumni office to invite you again." };
   if (await db().one("select 1 from users where email = ?", email)) return { ok: false, error: "That email already has an account. Log in instead." };
   const ticket = await newIntent("staff", email, { role: invite.role });
   const sent = await (await authProvider()).sendCode(email, true);
@@ -125,7 +125,7 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
   const session = await auth.session();
   const invite = row && (await openInvite(row.email));
   if (!row?.verified_at || !invite || row.verified_at + SETUP_LIFE < Date.now() || !session || session.authId !== row.auth_id) {
-    return { ok: false, error: "This joining link has expired. Please start again." };
+    return { ok: false, error: "Your joining session has expired. Please start again." };
   }
   const problem = passwordProblem(password, passwordContext({ name: invite.name, usn: null, email: row.email }));
   if (problem) return { ok: false, error: problem };
@@ -169,7 +169,7 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
     return {
       ok: false,
       error: byLogin
-        ? "This login is already tied to another member's account. The college desk can sort it out."
+        ? "This login is already linked to another member's account. Please ask the college desk for help."
         : "That email already has an account. Log in instead."
     };
   }

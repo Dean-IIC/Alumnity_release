@@ -20,7 +20,7 @@ export default async function NotFound() {
           <h1 className="page-title">
             This page <span className="page-title__gold">isn’t here.</span>
           </h1>
-          <p className="page-head__text">The link may be old, or a letter may be out of place. Nothing’s wrong with your account.</p>
+          <p className="page-head__text">The link may be old, or the address may have a typing mistake. Your account is fine.</p>
         </header>
         <div className="info-join__actions not-found__actions">
           {me ? (
@@ -35,7 +35,7 @@ export default async function NotFound() {
           ) : (
             <>
               <Link className="button button--primary" href="/">
-                Go to the start <span aria-hidden="true">→</span>
+                Go to the home page <span aria-hidden="true">→</span>
               </Link>
               <Link className="button button--secondary" href="/gallery">
                 See the gallery

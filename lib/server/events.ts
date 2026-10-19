@@ -95,7 +95,7 @@ export async function createEvent(
   me: User,
   input: { title: string; body: string; startsAt: string; endsAt: string; place: string; onlineLink: string; capacity: string }
 ): Promise<Result & { id?: number }> {
-  if (!canOrganise(me)) return no("Events are put up by faculty and the alumni coordinators.");
+  if (!canOrganise(me)) return no("Only faculty and alumni coordinators can add events.");
   if (!(await settings()).features.events) return no(PAUSED);
   const title = input.title.trim().slice(0, EVENT_LIMITS.title);
   const body = input.body.trim().slice(0, EVENT_LIMITS.body);
@@ -104,14 +104,14 @@ export async function createEvent(
   const ends = input.endsAt ? parseLocalTime(input.endsAt) : null;
   const link = input.onlineLink.trim() ? safeLink(input.onlineLink.trim().slice(0, EVENT_LIMITS.link)) : null;
   const capacity = input.capacity.trim() ? Math.floor(Number(input.capacity)) : null;
-  if (!title) return no("Give it a name.");
-  if (!place) return no("Say where it is (or “Online”).");
-  if (!starts) return no("Choose when it starts.");
+  if (!title) return no("Add a name for the event.");
+  if (!place) return no("Add the place (or write “Online”).");
+  if (!starts) return no("Choose the start date and time.");
   if (starts < Date.now() - DAY) return no("That date has passed.");
-  if (input.endsAt && (!ends || ends <= starts)) return no("It should end after it starts.");
+  if (input.endsAt && (!ends || ends <= starts)) return no("The end time must be after the start time.");
   if (input.onlineLink.trim() && !link) return no("The online link should start with https://");
-  if (capacity !== null && !(capacity > 0 && capacity <= 100_000)) return no("Capacity should be a number of people, or left empty.");
-  if (!(await withinLimit(`event:${me.id}`, 10, DAY))) return no("That's ten events today: the most in a day.");
+  if (capacity !== null && !(capacity > 0 && capacity <= 100_000)) return no("Enter the number of seats, or leave it empty.");
+  if (!(await withinLimit(`event:${me.id}`, 10, DAY))) return no("You can add up to ten events a day. Please try again tomorrow.");
   const row = await db().one<{ id: number }>(
     "insert into events (organiser, title, body, starts_at, ends_at, place, online_link, capacity, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?) returning id",
     me.id,
@@ -154,7 +154,7 @@ export async function attendees(viewer: User, id: number): Promise<User[]> {
 
 export async function toggleRsvp(me: User, id: number): Promise<Result> {
   const event = await eventById(me, id);
-  if (!event) return no("That event isn't here.");
+  if (!event) return no("We couldn't find that event.");
   if (event.imGoing) {
     await db().run("delete from rsvps where event_id = ? and user_id = ?", id, me.id);
     return { ok: true };
@@ -171,14 +171,14 @@ export async function toggleRsvp(me: User, id: number): Promise<Result> {
     id,
     id
   );
-  if (!added && event.capacity !== null) return no("It's full, sorry.");
+  if (!added && event.capacity !== null) return no("Sorry, this event is full.");
   return { ok: true };
 }
 
 export async function cancelEvent(me: User, id: number): Promise<Result> {
   const event = await eventById(me, id);
-  if (!event) return no("That event isn't here.");
-  if (!event.mine && !isModerator(me)) return no("Only its organiser can cancel it.");
+  if (!event) return no("We couldn't find that event.");
+  if (!event.mine && !isModerator(me)) return no("Only the organiser can cancel this event.");
   const changes = await db().run("update events set cancelled_at = ? where id = ? and cancelled_at is null", Date.now(), id);
   if (!changes) return { ok: true }; // already cancelled: everyone was told then
   for (const u of await attendees(me, id)) await notify(u.id, { actor: me.id, kind: "event-cancelled", text: `“${event.title}” was cancelled.`, link: `/events/${id}` });

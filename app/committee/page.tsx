@@ -30,7 +30,7 @@ const Roster = ({ list }: { list: { role: string; name: string }[] }) => (
 export default function CommitteePage() {
   const waiting = [...OFFICE_BEARERS, ...COMMITTEE].every((p) => p.name === TBA);
   return (
-    <PublicPage current="committee" kicker="Committee" title="The people who keep" gold="us together" intro="HKBK's alumni association: its office bearers, and a representative from every department.">
+    <PublicPage current="committee" kicker="Committee" title="The alumni association" gold="committee" intro="The office bearers of HKBK's alumni association, and a representative from each department.">
       {waiting && (
         <p className="info-note">
           The association is choosing its first committee. The names will appear here as soon as the college confirms them.

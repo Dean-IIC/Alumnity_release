@@ -49,7 +49,7 @@ export function SendSheet({ open, onClose, postId }: Props) {
         </p>
       )}
       <label className="sr-only" htmlFor={noteId}>
-        A note with it (optional)
+        Add a note (optional)
       </label>
       <textarea id={noteId} className="sheet__note-box" rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Add a note (optional)" />
       {answer && (
@@ -59,7 +59,7 @@ export function SendSheet({ open, onClose, postId }: Props) {
       )}
       <div className="sheet__foot">
         <button type="button" className="button button--primary" disabled={pending || chosen.length === 0 || answer?.ok === true} onClick={send}>
-          {pending ? "Sending…" : chosen.length > 1 ? `Send to ${chosen.length}` : "Send"}
+          {pending ? "Sending…" : chosen.length > 1 ? `Send to ${chosen.length} people` : "Send"}
         </button>
       </div>
     </Sheet>

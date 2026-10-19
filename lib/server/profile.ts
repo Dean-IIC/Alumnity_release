@@ -118,7 +118,7 @@ function parseSections(input: unknown): { sections: Profile["sections"] } | { er
       let to = info.years === "range" && !current ? year(raw?.to) : null;
       if (from && to && to < from) to = from;
       const link = info.link ? cleanLink(raw?.link) : "";
-      if (link === null) return { error: `A link in ${info.label} doesn’t look right.` };
+      if (link === null) return { error: `A link in ${info.label} is not a valid web address. Check it and try again.` };
       const detail = info.detail ? (typeof raw?.detail === "string" ? raw.detail.trim().slice(0, SECTION_LIMITS.detail) : "") : "";
       entries.push({ title, org, from, to, current, link, detail });
     }
@@ -174,9 +174,9 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
   const seek = (input.seeking ?? {}) as Record<string, unknown>;
   const links = (input.links ?? {}) as Record<string, unknown>;
   const linkedin = cleanLink(links.linkedin, true);
-  if (linkedin === null) return { error: "That LinkedIn link doesn’t look like a LinkedIn profile." };
+  if (linkedin === null) return { error: "Enter a LinkedIn profile link, such as linkedin.com/in/your-name." };
   const website = cleanLink(links.website);
-  if (website === null) return { error: "That website link doesn’t look right." };
+  if (website === null) return { error: "Your website link is not a valid web address. Check it and try again." };
   const parsed = parseSections(input.sections);
   if ("error" in parsed) return parsed;
   const sentWho = (input.sectionsVisibility ?? {}) as Record<string, unknown>;
@@ -184,7 +184,7 @@ export async function parseProfile(input: Record<string, unknown>, ownerId?: num
   for (const kind of SECTION_KINDS) if (isVisibility(sentWho[kind])) sectionsVisibility[kind] = sentWho[kind] as Visibility;
   const [photo, cover] = await Promise.all([ownMedia(input.photo, ownerId, true), ownMedia(input.cover, ownerId, false)]);
   const featured = await ownPost(input.featured, ownerId);
-  if (photo === false || cover === false) return { error: "That upload isn’t yours, or has gone. Upload it again." };
+  if (photo === false || cover === false) return { error: "We couldn't find that file. It may have been deleted. Please upload it again." };
   const about = typeof input.about === "string" ? input.about.trim().slice(0, LIMITS.about) : "";
   const thisYear = new Date().getFullYear();
   const journey = (Array.isArray(input.journey) ? input.journey : [])

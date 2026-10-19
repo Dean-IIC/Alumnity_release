@@ -109,15 +109,15 @@ export function MediaPicker({ use, value, onChange, name, campus }: { use: "phot
       </div>
       {framed && (
         <p className="picker__framed" role="status">
-          Framed. It’s on your page when you save it below.
+          Done. Save your changes below to show it on your page.
         </p>
       )}
       <span className="field__hint">
         {use === "photo"
-          ? "JPEG, PNG, WebP or GIF, up to 5 MB. Location details hidden in photos are removed. After choosing it, drag and zoom to frame it."
+          ? "JPEG, PNG, WebP or GIF, up to 5 MB. We remove any location details saved inside the photo. After you choose it, drag and zoom to adjust it."
           : value?.kind === "html"
-            ? "An HTML cover arranges itself to fit the space, so there’s nothing to frame. It runs in a safe, closed box and cannot load anything from the internet, so put any pictures or fonts inside the file."
-            : "You can add a photo (up to 5 MB), a short video (up to 25 MB; it plays without sound) or an HTML file (up to 1 MB). Photos and videos can be moved and zoomed to frame them. An HTML file runs in a safe, closed box and cannot load anything from the internet, so put any pictures or fonts inside the file."}
+            ? "An HTML cover fits itself to the space, so you do not need to adjust it. It runs in a safe, closed box and cannot load anything from the internet. Put any pictures or fonts inside the file."
+            : "You can add a photo (up to 5 MB), a short video (up to 25 MB, played without sound) or an HTML file (up to 1 MB). You can move and zoom photos and videos to adjust them. An HTML file runs in a safe, closed box and cannot load anything from the internet. Put any pictures or fonts inside the file."}
       </span>
       {problem && (
         <p className="join__problem" role="alert">
