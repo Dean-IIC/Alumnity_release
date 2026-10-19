@@ -81,11 +81,18 @@
   }
 }
 
-/* A phone: the picture fainter behind the cards, which cover most of it. */
+/* A phone: the picture wider, and still. The cards cover most of it, and a phone's
+   graphics are better spent on scrolling smoothly than on drifting waves behind them. */
 @media (max-width: 700px) {
   .scene svg {
     left: -30%;
     width: 160%;
+  }
+
+  .scene__wave,
+  .scene__shapes--front {
+    animation: none;
+    will-change: auto;
   }
 }
 
