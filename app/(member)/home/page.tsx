@@ -7,6 +7,7 @@ import { AppPage } from "../../../components/app/app-page";
 import { initialsOf } from "../../../components/profile/ink-seal";
 import { Avatar } from "../../../components/social/avatar";
 import { Composer } from "../../../components/social/composer";
+import { KnowEveryone } from "../../../components/home/know-everyone";
 import { FocusWaiting, RoleFocus } from "../../../components/home/role-focus";
 import { Icon } from "../../../components/social/icons";
 import { InfiniteFeed } from "../../../components/social/infinite-feed";
@@ -354,7 +355,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </Link>
             </section>
           )}
-          {suggestions.length > 0 && (
+          {suggestions.length === 0 ? (
+            <KnowEveryone />
+          ) : (
             <section className="sheet side-box">
               <h2>{batch.length ? "From your batch" : "People you may know"}</h2>
               <ul className="side-box__list">

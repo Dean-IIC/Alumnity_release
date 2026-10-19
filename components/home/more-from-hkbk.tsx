@@ -9,6 +9,7 @@ import { connectAction } from "../../lib/actions/social";
 import { ActionForm } from "../app/action-form";
 import { Avatar } from "../social/avatar";
 import { Icon } from "../social/icons";
+import { KnowEveryone } from "./know-everyone";
 
 /*
  * What Home carries on with once the posts run out, so it never just stops (as LinkedIn's
@@ -50,7 +51,7 @@ export function MemoryCard({ album, photos }: { album: Album; photos: GalleryPho
 
 /** People to meet: on a phone only (the right-hand column has them on a wide screen). */
 export function PeopleCard({ people, photos }: { people: User[]; photos: Map<number, string> }) {
-  if (!people.length) return null;
+  if (!people.length) return <KnowEveryone />;
   return (
     <section className="sheet more-card more-card--narrow" aria-label="People you may know">
       <h2 className="more-card__title">People you may know</h2>

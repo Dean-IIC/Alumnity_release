@@ -506,3 +506,81 @@
     transform: none;
   }
 }
+
+/* ---------- "You know everyone here!": a small celebration ---------- */
+
+.know-everyone {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  text-align: center;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 180, 0, 0.28), transparent 45%),
+    radial-gradient(circle at 85% 25%, rgba(224, 36, 47, 0.18), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(22, 163, 74, 0.18), transparent 50%),
+    linear-gradient(160deg, #fff8e1, #eef4ff);
+  border: 1px solid #ffd77a;
+}
+
+.know-everyone h2 {
+  margin: 0 0 var(--space-2);
+  color: #0a2a57;
+}
+
+.know-everyone p {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink-soft);
+  font-size: var(--text-small);
+}
+
+.know-everyone__emoji {
+  margin: 0 0 var(--space-2) !important;
+  font-size: 2.4rem;
+  line-height: 1;
+  animation: know-pop 1.6s ease-in-out infinite;
+}
+
+@keyframes know-pop {
+  0%, 100% { transform: rotate(-8deg) scale(1); }
+  50% { transform: rotate(8deg) scale(1.12); }
+}
+
+/* Confetti falling through the card. */
+.know-everyone__confetti {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.know-everyone__confetti i {
+  position: absolute;
+  top: -12px;
+  left: calc(var(--i) * 7%);
+  width: 7px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--color-gold);
+  animation: know-fall calc(2.6s + var(--i) * 0.13s) linear calc(var(--i) * -0.37s) infinite;
+}
+
+.know-everyone__confetti i:nth-child(3n) { background: var(--color-bright-red); }
+.know-everyone__confetti i:nth-child(3n + 1) { background: #1d63c9; }
+.know-everyone__confetti i:nth-child(4n) { background: var(--color-bright-green); }
+
+@keyframes know-fall {
+  to {
+    transform: translateY(260px) rotate(540deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .know-everyone__emoji,
+  .know-everyone__confetti i {
+    animation: none;
+  }
+
+  .know-everyone__confetti {
+    display: none;
+  }
+}
