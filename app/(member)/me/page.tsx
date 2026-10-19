@@ -13,6 +13,10 @@ import { Activity, Featured } from "../../../components/profile/activity";
 import { feedFor, postFor } from "../../../lib/server/posts";
 import { firstName } from "../../../lib/format";
 import { StickyName } from "../../../components/profile/sticky-name";
+import { headers } from "next/headers";
+import { AlumniCardSection } from "../../../components/profile/alumni-card";
+import { cardFor, originFrom } from "../../../lib/server/alumni-card";
+import "../../styles/alumni-card.css";
 
 export const metadata: Metadata = { title: "Your page · Alumnity", robots: { index: false } };
 
@@ -22,7 +26,12 @@ export const dynamic = "force-dynamic";
 export default async function MePage() {
   const user = await requireUser("/me");
   const profile = await profileOf(user.id);
-  const [posts, featured] = await Promise.all([feedFor(user, { authorId: user.id, limit: 10 }), profile.featured ? postFor(user, profile.featured) : Promise.resolve(null)]);
+  const [posts, featured, card] = await Promise.all([
+    feedFor(user, { authorId: user.id, limit: 10 }),
+    profile.featured ? postFor(user, profile.featured) : Promise.resolve(null),
+    // Their alumni card: their own, built from their own record (never with the USN).
+    cardFor(user, originFrom(await headers()))
+  ]);
   return (
     <AppPage user={user} current="me" bare>
       <StickyName name={user.name}>
@@ -41,9 +50,13 @@ export default async function MePage() {
               <Link className="button button--secondary" href="/settings">
                 Settings
               </Link>
+              <a className="button button--secondary" href="#alumni-card">
+                Alumni card
+              </a>
             </>
           }
         />
+        <AlumniCardSection card={card} />
         {featured && <Featured post={featured} isOwner />}
         <Activity posts={posts} featuredId={featured?.id ?? null} isOwner first={firstName(user.name)} />
         <LogOutButton />

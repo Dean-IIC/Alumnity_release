@@ -18,6 +18,8 @@ import "../../../styles/join.css";
 import "../../../styles/profile.css";
 import { badgesOf } from "../../../../lib/server/badges";
 import { StickyName } from "../../../../components/profile/sticky-name";
+import { AlumniCardBadge } from "../../../../components/profile/alumni-card";
+import "../../../styles/alumni-card.css";
 
 export const metadata: Metadata = { title: "A member · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -140,6 +142,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
       </StickyName>
       <div className="profile-page" style={{ padding: 0 }}>
         <ProfileSheet person={owner} profile={profile} isOwner={false} actions={actions} badges={await badgesOf(owner, profile)} />
+        {relation !== "blocked" && <AlumniCardBadge person={owner} />}
       </div>
       {record.thanks.length > 0 && (
         <section aria-labelledby="record">
