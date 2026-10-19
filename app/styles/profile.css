@@ -776,6 +776,12 @@
   max-width: 760px;
 }
 
+/* A part or field reached by a link (profile strength's "Add a photo", /me/edit#edit-photo):
+   it lands clear of the app bar, not under it. */
+.editor [id] {
+  scroll-margin-top: calc(64px + var(--space-4));
+}
+
 .editor__part {
   margin: 0 0 var(--space-6);
   padding: var(--space-5) var(--space-5) var(--space-6);

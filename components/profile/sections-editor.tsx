@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { Profile, Visibility } from "../../lib/server/profile";
 import { emptyEntry, SECTION_KINDS, SECTION_LIMITS, SECTIONS, type SectionEntry, type SectionKind } from "../../lib/profile-sections";
 
@@ -92,6 +93,11 @@ function EntryFields({ kind, entry, index, onChange, onRemove }: { kind: Section
 export function SectionsEditor({ profile, onChange }: { profile: Profile; onChange: (next: Pick<Profile, "sections" | "sectionsVisibility">) => void }) {
   const added = SECTION_KINDS.filter((k) => profile.sections[k]);
   const left = SECTION_KINDS.filter((k) => !profile.sections[k]);
+  // Arriving from profile strength's "Add your experience" (/me/edit#edit-sections): the menu is open.
+  const menu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (window.location.hash === "#edit-sections" && menu.current) menu.current.open = true;
+  }, []);
   const setList = (kind: SectionKind, list: SectionEntry[] | undefined) => {
     const sections = { ...profile.sections };
     if (list) sections[kind] = list;
@@ -148,7 +154,7 @@ export function SectionsEditor({ profile, onChange }: { profile: Profile; onChan
       })}
 
       {left.length > 0 && (
-        <details className="add-section">
+        <details className="add-section" id="edit-sections" ref={menu}>
           <summary className="button button--secondary">+ Add a section</summary>
           <ul className="add-section__menu">
             {left.map((kind) => (

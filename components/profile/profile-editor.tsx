@@ -21,9 +21,10 @@ const WHO: { value: Visibility; label: string }[] = [
   { value: "me", label: "Only me" }
 ];
 
-function Part({ title, field, visibility, onVisibility, children }: { title: string; field: Field; visibility: Visibility; onVisibility: (v: Visibility) => void; children: ReactNode }) {
+/** `id`: where a link lands (profile strength's "Write a few lines about you" goes to /me/edit#edit-about). */
+function Part({ id, title, field, visibility, onVisibility, children }: { id?: string; title: string; field: Field; visibility: Visibility; onVisibility: (v: Visibility) => void; children: ReactNode }) {
   return (
-    <fieldset className="editor__part">
+    <fieldset className="editor__part" id={id}>
       <legend>{title}</legend>
       <div className="editor__who" role="radiogroup" aria-label={`Who can see “${title}”`}>
         <span>Who can see this:</span>
@@ -61,7 +62,7 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
         setProblem(answer.error);
       }}
     >
-      <fieldset className="editor__part editor__part--media">
+      <fieldset className="editor__part editor__part--media" id="edit-photo">
         <legend>Photo and cover</legend>
         <p className="join__fine">Everyone on Alumnity sees these.</p>
         <div className="editor__media">
@@ -70,18 +71,18 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
         </div>
       </fieldset>
 
-      <Part title="Now" field="now" {...who("now")}>
+      <Part id="edit-now" title="Now" field="now" {...who("now")}>
         <div className="field-row">
-          <label className="field">
+          <label className="field" id="edit-title">
             <span className="field__label">What you do</span>
             <input value={profile.title} maxLength={80} onChange={(e) => set("title", e.target.value)} placeholder="Backend engineer" />
           </label>
-          <label className="field">
+          <label className="field" id="edit-company">
             <span className="field__label">Where</span>
             <input value={profile.company} maxLength={80} onChange={(e) => set("company", e.target.value)} placeholder="Company, college or startup" />
           </label>
         </div>
-        <label className="field">
+        <label className="field" id="edit-city">
           <span className="field__label">City</span>
           <input value={profile.city} maxLength={60} onChange={(e) => set("city", e.target.value)} placeholder="Bengaluru" autoComplete="address-level2" />
           <span className="field__hint">Just the city: never your address.</span>
@@ -135,7 +136,7 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
         )}
       </Part>
 
-      <Part title="About" field="about" {...who("about")}>
+      <Part id="edit-about" title="About" field="about" {...who("about")}>
         <label className="field">
           <span className="field__label">A few lines about you</span>
           <textarea value={profile.about} maxLength={600} rows={4} onChange={(e) => set("about", e.target.value)} placeholder="What you work on, what you loved at HKBK, what juniors could ask you." />
@@ -143,7 +144,7 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
         </label>
       </Part>
 
-      <Part title="Good at" field="skills" {...who("skills")}>
+      <Part id="edit-skills" title="Good at" field="skills" {...who("skills")}>
         <label className="field">
           <span className="field__label">Things you know well, with commas between them</span>
           <input value={skillsText} onChange={(e) => setSkillsText(e.target.value)} placeholder="Java, system design, GATE prep, placements" />
@@ -152,7 +153,7 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
       </Part>
 
       {role === "student" ? (
-        <Part title="Looking for" field="happyTo" {...who("happyTo")}>
+        <Part id="edit-happy-to" title="Looking for" field="happyTo" {...who("happyTo")}>
           {(
             [
               ["mentor", "A mentor", "A senior to talk a decision through: a course, a project, a first job."],
@@ -170,7 +171,7 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
           ))}
         </Part>
       ) : (
-      <Part title="Happy to" field="happyTo" {...who("happyTo")}>
+      <Part id="edit-happy-to" title="Happy to" field="happyTo" {...who("happyTo")}>
         {(
           [
             ["mentor", "Mentor juniors", "Answer questions, and see a student through a decision."],
@@ -191,7 +192,7 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
 
       <SectionsEditor profile={profile} onChange={(next) => setProfile((p) => ({ ...p, ...next }))} />
 
-      <Part title="Find me" field="links" {...who("links")}>
+      <Part id="edit-links" title="Find me" field="links" {...who("links")}>
         <label className="field">
           <span className="field__label">LinkedIn</span>
           <input value={profile.links.linkedin} onChange={(e) => set("links", { ...profile.links, linkedin: e.target.value })} placeholder="linkedin.com/in/your-name" inputMode="url" />
