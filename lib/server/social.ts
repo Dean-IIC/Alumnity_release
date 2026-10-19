@@ -148,7 +148,9 @@ export async function requestsFor(me: User): Promise<{ received: Pending[]; sent
   };
   const [received, sent] = await Promise.all([
     load("select requester as other, note, created_at from connections where addressee = ? and status = 'pending' order by created_at desc"),
-    load("select addressee as other, note, created_at from connections where requester = ? and status = 'pending' order by created_at desc")
+    // A declined request stays in the sender's list, as relation() keeps showing it "sent":
+    // dropping it here told them they'd been declined, which they mustn't be.
+    load("select addressee as other, note, created_at from connections where requester = ? and status in ('pending', 'declined') order by created_at desc")
   ]);
   return { received, sent };
 }
@@ -175,7 +177,20 @@ export const waitingRequests = (userId: number) =>
     userId
   );
 
-export const connectionCount = (userId: number) => count("select count(*) as n from connections where (requester = ? or addressee = ?) and status = 'accepted'", userId, userId);
+/**
+ * How many connections `userId` has: the same people connectionsOf lists. It used to count
+ * paused members too, so Home and a member's page said "5 connections" over a list of 4.
+ */
+export const connectionCount = (userId: number) =>
+  count(
+    `select count(*) as n from (
+       select addressee as other from connections where requester = ? and status = 'accepted'
+       union
+       select requester from connections where addressee = ? and status = 'accepted'
+     ) as c join users on users.id = c.other and users.suspended_at is null`,
+    userId,
+    userId
+  );
 
 export async function blockedBy(userId: number): Promise<User[]> {
   return (await db().all("select users.* from blocks join users on users.id = blocks.blocked where blocks.blocker = ? and users.suspended_at is null", userId)).map(toUser);

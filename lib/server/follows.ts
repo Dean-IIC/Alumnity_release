@@ -1,5 +1,5 @@
 import { db } from "./db";
-import type { User } from "./auth";
+import { toUser, type User } from "./auth";
 import { blockedEitherWay, memberById } from "./people";
 import { notify, type Result } from "./social";
 import { withinLimit } from "./throttle";
@@ -38,12 +38,42 @@ export async function followingIds(userId: number): Promise<Set<number>> {
   return new Set((await db().all<{ id: number }>("select followee as id from follows where follower = ?", userId)).map((r) => r.id));
 }
 
+/**
+ * How many follow `userId`, and how many they follow: the same people followersOf and
+ * followingOf list. "Following" used to count paused members too, so the numbers and the
+ * lists disagreed.
+ */
 export async function followCounts(userId: number): Promise<{ followers: number; following: number }> {
   const [followers, following] = await Promise.all([
     db().one<{ n: number }>("select count(*) as n from follows join users on users.id = follows.follower where followee = ? and users.suspended_at is null", userId),
-    db().one<{ n: number }>("select count(*) as n from follows where follower = ?", userId)
+    db().one<{ n: number }>("select count(*) as n from follows join users on users.id = follows.followee where follower = ? and users.suspended_at is null", userId)
   ]);
-  return { followers: followers!.n, following: following!.n };
+  return { followers: Number(followers!.n), following: Number(following!.n) };
+}
+
+/**
+ * Who follows `userId` (newest first), active members only. Home's "followers" count used
+ * to open your own page, which lists nobody: this is the list it now opens (on Connections).
+ */
+export async function followersOf(userId: number, limit = 500): Promise<User[]> {
+  return (
+    await db().all(
+      "select users.* from follows join users on users.id = follows.follower where follows.followee = ? and users.suspended_at is null order by follows.created_at desc limit ?",
+      userId,
+      limit
+    )
+  ).map(toUser);
+}
+
+/** Who `userId` follows (newest first), active members only. */
+export async function followingOf(userId: number, limit = 500): Promise<User[]> {
+  return (
+    await db().all(
+      "select users.* from follows join users on users.id = follows.followee where follows.follower = ? and users.suspended_at is null order by follows.created_at desc limit ?",
+      userId,
+      limit
+    )
+  ).map(toUser);
 }
 
 /** Called when a block is made: neither follows the other any more. */
