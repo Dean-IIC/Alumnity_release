@@ -1,0 +1,125 @@
+/*
+ * Each part of the site's background (components/backdrop.tsx): a wash of the page's
+ * colour from the top right, and its drawing over it, fading out before the content.
+ * The tones are the college site's tints (hkbkce.in), each with a deeper ink for its lines.
+ */
+
+.backdrop {
+  --bd-wash: #e8eff9;
+  --bd-ink: #123e7c;
+  --bd-accent: #f2a900;
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  height: 560px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 70% at 92% 0%, var(--bd-wash), transparent 70%),
+    radial-gradient(ellipse 40% 50% at 55% 0%, color-mix(in srgb, var(--bd-wash) 60%, transparent), transparent 70%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+
+.backdrop__art {
+  width: 100%;
+  height: 100%;
+  opacity: 0.55;
+  /* Strongest at the right, where the pages leave room; gone under the left of the text. */
+  -webkit-mask-image: linear-gradient(to right, transparent 25%, #000 75%);
+  mask-image: linear-gradient(to right, transparent 25%, #000 75%);
+}
+
+.backdrop--blue { --bd-wash: #e8eff9; --bd-ink: #123e7c; --bd-accent: #f2a900; }
+.backdrop--teal { --bd-wash: #e0f2f4; --bd-ink: #0f6e75; --bd-accent: #f2a900; }
+.backdrop--gold { --bd-wash: #fcf0da; --bd-ink: #a46a00; --bd-accent: #123e7c; }
+.backdrop--violet { --bd-wash: #eeeaf8; --bd-ink: #5b3fa8; --bd-accent: #f2a900; }
+.backdrop--amber { --bd-wash: #fcf0da; --bd-ink: #b77400; --bd-accent: #123e7c; }
+.backdrop--rose { --bd-wash: #fae7eb; --bd-ink: #a8325a; --bd-accent: #f2a900; }
+.backdrop--green { --bd-wash: #e4f3ea; --bd-ink: #1f6f43; --bd-accent: #f2a900; }
+
+.backdrop .bd-ink {
+  fill: var(--bd-ink);
+}
+
+.backdrop .bd-accent {
+  fill: var(--bd-accent);
+  fill-opacity: 0.55;
+}
+
+.backdrop .bd-line {
+  fill: none;
+  stroke: var(--bd-ink);
+  stroke-opacity: 0.38;
+}
+
+.backdrop .bd-accent-line {
+  fill: none;
+  stroke: var(--bd-accent);
+  stroke-opacity: 0.6;
+}
+
+.backdrop .bd-fill {
+  fill: var(--bd-ink);
+  fill-opacity: 0.07;
+  stroke: var(--bd-ink);
+  stroke-opacity: 0.3;
+}
+
+.backdrop .bd-fill-strong {
+  fill: var(--bd-ink);
+  fill-opacity: 0.16;
+  stroke: none;
+}
+
+.backdrop .bd-grid {
+  stroke: var(--bd-ink);
+  stroke-opacity: 0.12;
+  stroke-width: 1;
+}
+
+/* A phone: the drawing across the whole width, a little fainter (the text is over it). */
+@media (max-width: 700px) {
+  .backdrop {
+    height: 380px;
+  }
+
+  .backdrop__art {
+    opacity: 0.4;
+    -webkit-mask-image: linear-gradient(to right, transparent 5%, #000 60%);
+    mask-image: linear-gradient(to right, transparent 5%, #000 60%);
+  }
+}
+
+/* Dark: the same drawings, in light lines over a deep wash of the colour. */
+:root[data-theme="dark"] .backdrop {
+  --bd-wash: color-mix(in srgb, var(--bd-ink) 30%, #0b1220);
+}
+
+:root[data-theme="dark"] .backdrop__art {
+  opacity: 0.45;
+}
+
+:root[data-theme="dark"] .backdrop .bd-line,
+:root[data-theme="dark"] .backdrop .bd-grid {
+  stroke: #c7dbf7;
+}
+
+:root[data-theme="dark"] .backdrop .bd-ink,
+:root[data-theme="dark"] .backdrop .bd-fill-strong {
+  fill: #c7dbf7;
+}
+
+@media (prefers-contrast: more) {
+  .backdrop {
+    display: none;
+  }
+}
+
+@media print {
+  .backdrop {
+    display: none;
+  }
+}

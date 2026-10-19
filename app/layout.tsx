@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 import { INTRO_PREFERENCE_SCRIPT } from "../lib/intro-preference";
 import { THEME_SCRIPT } from "../lib/theme";
+import { Backdrop } from "../components/backdrop";
 import "./globals.css";
 
 // Self-hosted by Next at build time: no render-blocking request to Google on load.
@@ -38,7 +39,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: INTRO_PREFERENCE_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <Backdrop />
+        {children}
+      </body>
     </html>
   );
 }
