@@ -42,8 +42,11 @@ describe("phone notifications", () => {
   it("keeps only real https push subscriptions", async () => {
     expect(await alerts.savePushSubscription(1, sub("http://push.example.com/a"))).toBe(false);
     expect(await alerts.savePushSubscription(1, { endpoint: "https://x" })).toBe(false);
-    expect(await alerts.savePushSubscription(1, sub("https://push.example.com/a"))).toBe(true);
-    expect(await alerts.savePushSubscription(1, sub("https://push.example.com/gone"))).toBe(true);
+    // Only the browsers' push services: the server posts to this address.
+    expect(await alerts.savePushSubscription(1, sub("https://attacker.example/collect"))).toBe(false);
+    expect(await alerts.savePushSubscription(1, sub("https://fcm.googleapis.com.evil.example/a"))).toBe(false);
+    expect(await alerts.savePushSubscription(1, sub("https://fcm.googleapis.com/fcm/send/a"))).toBe(true);
+    expect(await alerts.savePushSubscription(1, sub("https://fcm.googleapis.com/fcm/send/gone"))).toBe(true);
     expect(await alerts.pushCount(1)).toBe(2);
   });
 

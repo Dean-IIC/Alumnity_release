@@ -74,7 +74,8 @@ export async function runDigest(origin: string, now = Date.now()): Promise<{ sen
       count(["message"]) && plural(count(["message"]), "conversation with new messages", "conversations with new messages"),
       count(["connect-request"]) && plural(count(["connect-request"]), "connection request", "connection requests"),
       count(["ask"]) && plural(count(["ask"]), "question that fits you", "questions that fit you"),
-      count(["mention", "comment"]) && plural(count(["mention", "comment"]), "mention or comment", "mentions and comments")
+      count(["mention", "comment"]) && plural(count(["mention", "comment"]), "mention or comment", "mentions and comments"),
+      count(["board-work"]) && plural(count(["board-work"]), "new job or internship on the HKBK board", "new jobs and internships on the HKBK board")
     ].filter(Boolean) as string[];
     const token = unsubscribeToken(m.id);
     const stop = token ? `${origin}/api/alerts/unsubscribe?u=${m.id}&t=${token}` : undefined;

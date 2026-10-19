@@ -66,7 +66,9 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
       {manage && (
         <section aria-labelledby="coming">
-          <h2 id="coming">Who's coming · {people.length}</h2>
+          <h2 id="coming">
+            Who's coming <span className="h-count">· {people.length}</span>
+          </h2>
           {people.length === 0 ? (
             <p className="wf-empty">Nobody yet.</p>
           ) : (

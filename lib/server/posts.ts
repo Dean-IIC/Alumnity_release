@@ -390,7 +390,33 @@ export async function verifyPost(me: User, id: number, on: boolean): Promise<Res
   const { audit } = await import("./desk");
   await audit(me, on ? "verified" : "unverified", `post ${id}`, plainStart(post.row.body));
   if (on && post.author.id !== me.id) await notify(post.author.id, { actor: me.id, kind: "post-verified", text: "The college verified your post. It's on the HKBK board now.", link: `/notes/${id}` });
+  if (on) await tellStudentsLooking(id, post.author);
   return { ok: true };
+}
+
+/**
+ * A #job, #internship or #referral post just put on the board: the students who said
+ * they're looking for that (an internship, a referral; on their page) are told, once.
+ * That's their own switch, so it's news they asked for, and the daily email carries it.
+ */
+async function tellStudentsLooking(postId: number, author: User) {
+  const tags = (await db().all<{ tag: string }>("select tag from post_tags where post_id = ?", postId)).map((t) => t.tag);
+  const wants = [...(tags.includes("internship") ? ["internship"] : []), ...(tags.includes("job") || tags.includes("referral") ? ["referral"] : [])];
+  if (!wants.length) return;
+  const link = `/notes/${postId}`;
+  const students = await db().all<{ id: number }>(
+    `select users.id from users join profiles on profiles.user_id = users.id
+     where users.role = 'student' and users.suspended_at is null and users.sample = 0 and users.college_account = 0 and users.id != ?
+       and (${wants.map(() => "(profiles.data::jsonb -> 'seeking' ->> ?) = 'true'").join(" or ")})
+       and not exists (select 1 from notifications where notifications.user_id = users.id and notifications.link = ? and notifications.kind = 'board-work')
+     limit 500`,
+    author.id,
+    ...wants,
+    link
+  );
+  const what = tags.includes("internship") ? "an internship" : "a job";
+  // notify() leaves out anyone blocked either way with the writer.
+  for (const s of students) await notify(s.id, { actor: author.id, kind: "board-work", text: `On the HKBK board: ${what} from ${author.name}. You said you're looking.`, link });
 }
 
 const plainStart = (body: string) => body.replace(MENTION, (_, name: string) => `@${name}`).slice(0, 80);

@@ -83,12 +83,13 @@ const ICONS = {
       <path d="m15.5 15.5 4 4" />
     </>
   ),
+  // People round a table: a group, not to be taken for People (two figures side by side).
   group: (
     <>
-      <circle cx="12" cy="8" r="2.8" />
-      <circle cx="5.5" cy="10.5" r="2.2" />
-      <circle cx="18.5" cy="10.5" r="2.2" />
-      <path d="M7.5 19c.5-3 2.3-4.6 4.5-4.6s4 1.6 4.5 4.6M2.5 18c.3-2 1.4-3.3 3-3.6M21.5 18c-.3-2-1.4-3.3-3-3.6" />
+      <circle cx="12" cy="13.5" r="4.2" />
+      <circle cx="12" cy="4.6" r="1.9" />
+      <circle cx="4.4" cy="17.6" r="1.9" />
+      <circle cx="19.6" cy="17.6" r="1.9" />
     </>
   ),
   heart: <path d="M12 19.5s-7-4.3-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.1c0 5.1-7 9.4-7 9.4z" />,

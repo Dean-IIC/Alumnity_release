@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { readIntroPreference, writeIntroPreference } from "../lib/intro-preference";
 import { COLLEGE_NAME } from "./brand-lockup";
+import { ABOUT_LINKS } from "../lib/footer-links";
 
 /** The page's foot: who it is for, and the intro setting (the intro's own checkbox writes the same). */
 /** `app`: inside the signed-in pages, where the intro's setting doesn't belong. */
@@ -18,14 +19,11 @@ export function SiteFooter({ app = false }: { app?: boolean }) {
       <div className="site-footer__main">
         <p className="site-footer__for">Alumnity · for students and alumni of {COLLEGE_NAME}</p>
         <nav className="site-footer__links" aria-label="About Alumnity">
-          <Link href="/about">About</Link>
-          <Link href="/community">Alumni community</Link>
-          <Link href="/committee">Committee</Link>
-          <Link href="/developers">Developers</Link>
-          <Link href="/how-it-works">How it works</Link>
-          <Link href="/gallery">Gallery</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
+          {ABOUT_LINKS.map(([href, label]) => (
+            <Link key={href} href={href}>
+              {label}
+            </Link>
+          ))}
         </nav>
       </div>
       {!app && <div className="site-footer__intro">

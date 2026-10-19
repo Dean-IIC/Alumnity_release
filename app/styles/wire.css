@@ -335,9 +335,11 @@
 
 .wf-stat strong {
   display: block;
-  font-family: var(--font-voice);
+  /* Numbers in the interface face: the serif's 1 reads as a capital I ("I Happy to mentor"). */
+  font-family: var(--font-ui);
   font-size: 30px;
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
 }
 
 /* The desk's numbers take the college's four inks in turn, each with a rule of its colour. */
@@ -415,6 +417,16 @@
   align-items: end;
 }
 
+/* One search box and its button (Groups): side by side, not spread over five columns. */
+.wf-filters--one {
+  grid-template-columns: minmax(0, 1fr) auto;
+  max-width: 640px;
+}
+
+.wf-filters {
+  margin-bottom: var(--space-5);
+}
+
 @media (max-width: 700px) {
   .wf-filters {
     grid-template-columns: 1fr 1fr;
@@ -427,6 +439,32 @@
 
   .wf-card {
     padding: var(--space-4);
+  }
+
+  /* People on a phone: the box and its button on one line, the three choices side by side
+     under it. Stacked, the form filled the whole first screen and nobody was in sight. */
+  .wf-filters--people {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .wf-filters--people > :first-child {
+    grid-row: 1;
+    grid-column: 1 / 4;
+  }
+
+  .wf-filters--people > button {
+    grid-row: 1;
+    grid-column: 4;
+  }
+
+  .wf-filters--people > :nth-child(4) {
+    grid-column: 3 / 5;
+  }
+
+  .wf-filters--people select,
+  .wf-filters--people input {
+    min-width: 0;
   }
 }
 
@@ -822,4 +860,13 @@
   .wf-table td:nth-child(2) {
     font-weight: var(--weight-semibold);
   }
+}
+
+/* A count in a heading ("Your connections · 1"): in the interface face, whose 1 reads as a
+   one (the serif's looks like a capital I). */
+.h-count {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-semibold);
+  font-size: 0.8em;
+  color: var(--color-ink-muted);
 }

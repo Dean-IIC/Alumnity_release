@@ -618,6 +618,17 @@
     display: none;
   }
 
+  /* Before anyone looks themselves up, just the book's title: its whole ruled page put the
+     form below the first screen. The page opens when the search starts. */
+  .register-book--idle .register-book__columns,
+  .register-book--idle .register-book__rows {
+    display: none;
+  }
+
+  .register-book--idle .register-book__page {
+    padding-block: var(--space-3);
+  }
+
   .register-book__written {
     font-size: var(--text-small);
   }

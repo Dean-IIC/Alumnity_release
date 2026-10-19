@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ABOUT_LINKS } from "../../../lib/footer-links";
 import { Suspense } from "react";
 import { ActionForm } from "../../../components/app/action-form";
 import { AppPage } from "../../../components/app/app-page";
@@ -39,6 +40,7 @@ const SHORTCUTS = [
   { href: "/groups", label: "Groups", icon: "group" },
   { href: "/batch", label: "Your batch", icon: "batch" },
   { href: "/ask", label: "Ask a senior", icon: "ask" },
+  { href: "/board", label: "Jobs & board", icon: "briefcase" },
   { href: "/events", label: "Events", icon: "event" },
   { href: "/causes", label: "Causes", icon: "heart" },
   { href: "/connections", label: "Connections", icon: "connections" },
@@ -139,7 +141,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <AppPage user={me} current="home" bare>
-      <div className="feed-layout">
+      <div className="feed-layout feed-layout--home">
         {/* ----- You ----- */}
         <aside className="feed-layout__side feed-layout__side--left" aria-label="You">
           <section className="sheet me-card">
@@ -154,10 +156,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {now && <span className="me-card__line">{batchLabel(me)}</span>}
             <div className="me-card__counts">
               <Link href="/connections">
-                <strong>{connections}</strong> connections
+                <strong>{connections}</strong> {connections === 1 ? "connection" : "connections"}
               </Link>
               <Link href="/me">
-                <strong>{follows.followers}</strong> followers
+                <strong>{follows.followers}</strong> {follows.followers === 1 ? "follower" : "followers"}
               </Link>
             </div>
           </section>
@@ -215,6 +217,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           ))}
 
+          {/* Writing a post, first, as LinkedIn has it: below the greeting and "Getting started" it
+              was under a laptop's first screen, and a blind test took "Add a story" for it. */}
+          {notesOn ? (
+            <Composer firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
+          ) : (
+            <p className="sheet side-box">{PAUSED}</p>
+          )}
+
           {/* Fetched alongside the rest of Home, not before it. */}
           {!before && (
             <Suspense fallback={<FocusWaiting me={me} />}>
@@ -225,7 +235,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {stepsLeft > 0 && !before && (
             <section className="sheet side-box" aria-labelledby="steps">
               <h2 id="steps">
-                Getting started · {steps.length - stepsLeft} of {steps.length}
+                Getting started{" "}
+                <span className="h-count">
+                  · {steps.length - stepsLeft} of {steps.length}
+                </span>
               </h2>
               <ul className="wf-checklist">
                 {steps.map((s) => (
@@ -247,12 +260,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           )}
 
-
-          {notesOn ? (
-            <Composer firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
-          ) : (
-            <p className="sheet side-box">{PAUSED}</p>
-          )}
 
           <nav className="feed-tabs" aria-label="Which posts">
             <Link href="/home" aria-current={scope === "all" ? "page" : undefined}>
@@ -296,9 +303,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <a href={scope === "following" ? "/home?view=following" : "/home"}>← Newest</a>
             </p>
           )}
-          {posts.length > 0 && (
-            <InfiniteFeed scope={scope} next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null} />
-          )}
+          {/* It never just stops: older posts, then "More from HKBK", as the reader scrolls. */}
+          <InfiniteFeed scope={scope} next={posts.length === PAGE ? posts[posts.length - 1].createdAt : null} />
         </div>
 
         {/* ----- Around you ----- */}
@@ -392,6 +398,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </ul>
             </section>
           )}
+          {/* Home has no footer (its feed keeps going), so the pages about Alumnity are here, as on LinkedIn. */}
+          <nav className="sheet side-box side-about" aria-label="About Alumnity">
+            <ul>
+              {ABOUT_LINKS.map(([href, label]) => (
+                <li key={href}>
+                  <Link href={href}>{label}</Link>
+                </li>
+              ))}
+            </ul>
+            <p>Alumnity · for students and alumni of HKBK College of Engineering</p>
+          </nav>
         </aside>
       </div>
     </AppPage>

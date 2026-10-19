@@ -93,4 +93,35 @@ describe("staff invitations", () => {
     expect(row).toMatchObject({ role: "faculty", n: 1 });
     expect((await db().one<{ used_at: number | null }>("select used_at from staff_invites where email = 'retry.teacher@example.com'"))?.used_at).not.toBeNull();
   });
+
+  it("joins even when the id counter lags behind the ids already used (rows added with their own ids)", async () => {
+    const admin = await member("lag.admin@example.com", "admin");
+    expect((await staff.inviteStaff(admin, { email: "lag.teacher@example.com", name: "Dr. Lag", role: "faculty", branch: "CSE" }, "https://x")).ok).toBe(true);
+    // A row put in with an id ahead of the counter (as an import or a restore does): the
+    // counter's next few ids are taken. Seen live: the join was refused, with no clash anywhere.
+    const top = (await db().one<{ id: number }>("select max(id) as id from users"))!.id;
+    for (let i = 1; i <= 3; i++) await db().run("insert into users (id, email, name, role, created_at) overriding system value values (?, ?, 'Imported', 'alumnus', ?)", top + i, `imported${i}@example.com`, Date.now());
+    await db().run("select setval(pg_get_serial_sequence('users', 'id'), ?)", top);
+    const joined = await joinAsStaff("lag.teacher@example.com", "lag", "lag-ip");
+    expect(joined.ok).toBe(true);
+    expect(await db().one("select 1 from users where email = 'lag.teacher@example.com' and role = 'faculty'")).toBeTruthy();
+  });
+
+  it("someone who made the login for an invited email first is signed out when its owner joins", async () => {
+    const admin = await member("squat.admin@example.com", "admin");
+    expect((await staff.inviteStaff(admin, { email: "squat.teacher@example.com", name: "Dr. Squat", role: "faculty", branch: "CSE" }, "https://x")).ok).toBe(true);
+    // Before the teacher joins, someone else makes the Supabase login for that email and signs in.
+    const authId = crypto.randomUUID();
+    fake.accounts.set("squat.teacher@example.com", { authId, password: "the squatter's password 9", code: null });
+    fake.use("squatter");
+    await fake.signInWithPassword("squat.teacher@example.com", "the squatter's password 9");
+    expect((await fake.session())?.authId).toBe(authId);
+    // The teacher joins (a code to their inbox, then their own password)...
+    expect((await joinAsStaff("squat.teacher@example.com", "squat-real", "squat-ip")).ok).toBe(true);
+    // ...and the squatter's session is gone.
+    fake.use("squatter");
+    expect(await fake.session()).toBeNull();
+    fake.use("squat-real");
+    expect((await fake.session())?.authId).toBe(authId);
+  });
 });

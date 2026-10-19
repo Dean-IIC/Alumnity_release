@@ -1,7 +1,7 @@
 import { BRANCHES } from "../branches";
 import { authProvider, SAME_PASSWORD } from "./auth-provider";
 import { intent, looksLikeEmail, newIntent, normaliseEmail, passwordContext, SLOW_DOWN, toUser, verify, type Outcome, type Role, type User } from "./auth";
-import { db } from "./db";
+import { catchUpIds, db } from "./db";
 import { letter, sendMail } from "./mail";
 import { assignable } from "./roles";
 import { passwordProblem } from "./secrets";
@@ -132,7 +132,11 @@ export async function completeStaffJoin(ticket: string, password: string): Promi
   // On a retry the password may already be this one: that's the job half done, not a refusal.
   const refused = await auth.setPassword(password);
   if (refused && refused !== SAME_PASSWORD) return { ok: false, error: refused };
+  // Anyone else holding a session on this sign-in goes: someone could have made the Supabase
+  // account for this email before its owner joined, and kept a session on it.
+  await auth.signOut("others");
   // The member and the used invitation, together: neither without the other.
+  await catchUpIds("users");
   const member = await db().tx(async (t) => {
     const inserted = await t.one(
       "insert into users (auth_id, email, name, branch, branch_name, role, created_at) values (?::uuid, ?, ?, ?, ?, ?, ?) on conflict do nothing returning *",

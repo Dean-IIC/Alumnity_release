@@ -1373,7 +1373,8 @@ html.story-open {
 
 .me-card__counts strong {
   color: var(--color-ink);
-  font: 1.25rem / 1.2 var(--font-voice);
+  /* The interface face: the serif's 1 read as an I ("I connections"). */
+  font: var(--weight-semibold) 1.25rem / 1.2 var(--font-ui);
 }
 
 .me-card__counts a:hover strong {
@@ -1631,13 +1632,12 @@ html.story-open {
   }
 
   .tab-bar__post {
-    align-self: center;
     justify-self: center;
     display: grid;
     place-items: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    width: 44px;
+    height: 26px;
+    border-radius: 9px;
     background: var(--color-blue);
     color: var(--color-paper-raised);
   }
@@ -1900,10 +1900,12 @@ html.story-open {
   text-transform: uppercase;
 }
 
+/* A greeting, not the page's headline: at title size it took the eye that belongs to the
+   box below it (gazemap, an eye-tracking model, put almost nothing on the Ask box). */
 .focus__head h2 {
   margin: 0;
   color: var(--color-ink);
-  font: var(--text-title) / 1.15 var(--font-voice);
+  font: clamp(1.375rem, 2.2vw, 1.875rem) / 1.15 var(--font-voice);
 }
 
 .focus__head p {
@@ -1918,10 +1920,18 @@ html.story-open {
   gap: var(--space-2);
   align-items: center;
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  border: 1.5px solid var(--color-blue);
+  border: 2px solid var(--color-blue);
   border-radius: var(--radius-pill);
-  background: var(--color-paper);
+  background: var(--color-paper-raised);
+  box-shadow: 0 4px 14px rgba(20, 63, 104, 0.14);
   color: var(--color-blue);
+}
+
+/* The example question in ink, not the browser's pale grey: it's what tells a student
+   what this box is for. */
+.focus__ask-start input::placeholder {
+  color: var(--color-ink-muted);
+  opacity: 1;
 }
 
 .focus__ask-start input {
@@ -1948,6 +1958,44 @@ html.story-open {
 
 .focus__people {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+/* A phone: the people in a row to swipe, not a card each down the screen. Four of them
+   stacked pushed the first post two screens down. */
+@media (max-width: 600px) {
+  .focus__people {
+    grid-auto-columns: 152px;
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    padding-bottom: var(--space-1);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .focus__people > li {
+    scroll-snap-align: start;
+  }
+
+  .focus__people .focus__person {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+    height: 100%;
+    padding: var(--space-3);
+  }
+
+  .focus__people .focus__person small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .focus__people .focus__note {
+    align-self: center;
+  }
 }
 
 .focus__person,
@@ -2027,14 +2075,15 @@ html.story-open {
   border: 1px solid var(--color-line);
   border-radius: 12px;
   background: var(--color-paper);
-  color: var(--color-ink-muted);
+  /* Full ink: the muted grey on the red wash was 4.48 : 1, just under 4.5. */
+  color: var(--color-ink);
   font-size: var(--text-small);
 }
 
 .focus__numbers strong {
   margin-right: 4px;
   color: var(--color-ink);
-  font: var(--text-card) / 1 var(--font-voice);
+  font: var(--weight-semibold) var(--text-card) / 1 var(--font-ui);
 }
 
 /* Home's numbers in the college's four inks, each on a wash of its own colour. */
@@ -2491,4 +2540,234 @@ html.story-open {
   background: var(--color-green);
   color: var(--color-paper, #fff);
   font-size: 16px;
+}
+
+/* On a phone the long hint was squeezed to a word a line beside Post: the photo button says it. */
+@media (max-width: 480px) {
+  .composer__hint--long {
+    display: none;
+  }
+
+  .composer__hint--long + .composer__cancel {
+    margin-left: auto;
+  }
+}
+
+/* On a phone, posts run edge to edge (as on Home), but the board's own words keep the page's margins. */
+@media (max-width: 700px) {
+  .board .feed-layout__main > :not(.post) {
+    margin-inline: var(--gutter);
+  }
+}
+
+/* People: where HKBK alumni work, as chips (a company, and how many work there). */
+.where-work {
+  margin-block: var(--space-5);
+}
+
+.where-work__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.where-work__list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-paper-raised, var(--color-paper));
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+
+.where-work__list a:hover {
+  border-color: var(--color-green);
+}
+
+.where-work__n {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-green) 14%, transparent);
+  color: var(--color-green);
+  font-size: var(--text-fine);
+  text-align: center;
+}
+
+/* ---------- Home never ends (components/home/more-from-hkbk.tsx) ---------- */
+
+/* No footer under Home: its feed keeps going. The same links are in the right-hand column and the More menu. */
+body:has(.feed-layout--home) > .site-footer {
+  display: none;
+}
+
+.side-about ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-fine);
+}
+
+.side-about a {
+  color: var(--color-ink-muted);
+}
+
+.side-about a:hover {
+  color: var(--color-blue);
+  text-decoration: underline;
+}
+
+.side-about p {
+  margin: var(--space-3) 0 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+/* "More from HKBK": a quiet rule between the posts and what follows them. */
+.more-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+}
+
+.more-heading::before,
+.more-heading::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-line);
+}
+
+.more-card {
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+}
+
+.more-card__head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+}
+
+.more-card__head small {
+  display: block;
+  color: var(--color-ink-muted);
+}
+
+.more-card__head a {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.more-card__photos {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 4px;
+  overflow: hidden;
+  border-radius: 14px;
+  aspect-ratio: 16 / 10;
+}
+
+.more-card__photos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.more-card__photos img:first-child {
+  grid-row: 1 / 3;
+}
+
+.more-card__title {
+  margin: 0 0 var(--space-3);
+  font: var(--text-card) / 1.2 var(--font-voice);
+}
+
+.more-card__people {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.more-card__people li {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.more-card__person {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--color-ink);
+}
+
+.more-card__person small {
+  color: var(--color-ink-muted);
+}
+
+.more-card__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.more-card__list a {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.more-card__list small {
+  display: block;
+  color: var(--color-ink-muted);
+}
+
+/* People and groups only where the right-hand column isn't (it has them on a wide screen). */
+@media (min-width: 861px) {
+  .more-card--narrow {
+    display: none;
+  }
+}
+
+/* The pages about Alumnity, at the foot of the More menu. */
+.app-menu__about {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-3) 0;
+  border-top: 1px solid var(--color-line);
+  font-size: var(--text-fine);
+}
+
+.app-menu__about a {
+  color: var(--color-ink-muted);
 }

@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { post } from "../../lib/client/post";
+import { useHydrated } from "../../lib/client/hydrated";
 import { PasswordField } from "./fields";
 import { RegisterBook } from "./register-book";
 import { safeNext } from "../../lib/safe-next";
@@ -12,6 +13,8 @@ import { safeNext } from "../../lib/safe-next";
 export function LoginForm() {
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Disabled until the script has taken over: tapped early, the browser would send the form itself.
+  const ready = useHydrated();
   return (
     <div className="join join--form-first">
       <div className="join__form">
@@ -44,7 +47,7 @@ export function LoginForm() {
               {problem}
             </p>
           )}
-          <button className="button button--primary join__submit" type="submit" disabled={busy}>
+          <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
             {busy ? "Opening your page…" : "Log in"} <span aria-hidden="true">→</span>
           </button>
           <p className="join__fine">

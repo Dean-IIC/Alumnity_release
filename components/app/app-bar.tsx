@@ -1,6 +1,8 @@
+import Link from "next/link";
 import type { User } from "../../lib/server/auth";
 import { isModerator } from "../../lib/server/roles";
 import { BrandLockup } from "../brand-lockup";
+import { ABOUT_LINKS } from "../../lib/footer-links";
 import { LogOutButton } from "../join/log-out-button";
 import { Avatar } from "../social/avatar";
 import { Icon, type IconName } from "../social/icons";
@@ -31,7 +33,8 @@ export const MORE: { href: string; label: string; icon: IconName; note: string }
   { href: "/events", label: "Events", icon: "event", note: "Reunions, talks, college days" },
   { href: "/causes", label: "Causes", icon: "heart", note: "Give to what HKBK people care about" },
   { href: "/batch", label: "Your batch", icon: "batch", note: "Everyone from your year" },
-  { href: "/connections", label: "Connections", icon: "connections", note: "Requests, and the people you know" }
+  { href: "/connections", label: "Connections", icon: "connections", note: "Requests, and the people you know" },
+  { href: "/gallery", label: "Gallery", icon: "photo", note: "HKBK through the years, in photos" }
 ];
 
 export function Badge({ n }: { n: number }) {
@@ -54,12 +57,15 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
           <BrandLockup />
         </NavLink>
 
-        <form className="app-bar__search" role="search" action="/people">
+        <form className="app-bar__search" role="search" aria-label="Search Alumnity" action="/people">
           <label className="sr-only" htmlFor="app-search">
             Search people
           </label>
           <Icon name="search" size={18} />
           <input id="app-search" name="q" type="search" placeholder="Search people, companies, skills" maxLength={100} autoComplete="off" />
+          <span className="app-bar__search-short" aria-hidden="true">
+            Search
+          </span>
         </form>
 
         <nav className="app-bar__nav" aria-label="Main">
@@ -90,6 +96,34 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
                   </span>
                 </NavLink>
               ))}
+              {/* Your own links, here as well as under You: a phone has no You menu up here (its tab
+                  bar's You goes straight to your page), and on a laptop a blind test looked here. */}
+              <div className="app-menu__you" role="group" aria-label="You">
+                <NavLink href="/me/edit" className="app-menu__item">
+                  <Icon name="you" size={22} />
+                  <span>
+                    <strong>Edit your page</strong>
+                  </span>
+                </NavLink>
+                <NavLink href="/settings" className="app-menu__item">
+                  <Icon name="settings" size={22} />
+                  <span>
+                    <strong>Settings</strong>
+                    <small>Password, alerts, dark mode</small>
+                  </span>
+                </NavLink>
+                <LogOutButton className="app-menu__item app-menu__logout">
+                  <Icon name="logout" size={22} />
+                </LogOutButton>
+              </div>
+              {/* The pages about Alumnity: Home has no footer, so they're here too (and in its right column). */}
+              <nav className="app-menu__about" aria-label="About Alumnity">
+                {ABOUT_LINKS.filter(([href]) => href !== "/gallery").map(([href, label]) => (
+                  <Link key={href} href={href}>
+                    {label}
+                  </Link>
+                ))}
+              </nav>
             </div>
           </details>
 
@@ -137,7 +171,7 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
 /** On a phone: the five places people go most, always in reach of a thumb. */
 export function TabBar({ counts }: { counts: Counts }) {
   return (
-    <nav className="tab-bar" aria-label="Main">
+    <nav className="tab-bar" aria-label="Bottom bar">
       <NavLink href="/home" match={["/home", "/notes"]}>
         <Icon name="home" size={24} />
         Home
@@ -147,10 +181,12 @@ export function TabBar({ counts }: { counts: Counts }) {
         People
         <Badge n={counts.connections} />
       </NavLink>
-      <a href="/home#compose" aria-label="New post">
+      {/* Named, like the rest: a bare + was never tried by the blind test, looking to post. */}
+      <a href="/home#compose">
         <span className="tab-bar__post">
-          <Icon name="plus" size={24} />
+          <Icon name="plus" size={22} />
         </span>
+        Post
       </a>
       <NavLink href="/messages">
         <Icon name="message" size={24} />

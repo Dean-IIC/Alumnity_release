@@ -159,7 +159,7 @@
 
 .journey-total {
   position: absolute;
-  bottom: 7vh;
+  bottom: 7svh;
   left: 50%;
   margin: 0;
   color: var(--color-ink);

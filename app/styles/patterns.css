@@ -18,7 +18,7 @@
 
 .side-pattern {
   /* Width of a pattern column, and how far it must step aside to clear the page's text. */
-  --w: min(30vw, 34vh);
+  --w: min(30vw, 34svh);
   --clear: max(0px, min(var(--w) * 0.52, var(--w) - (100vw - var(--container)) / 2 + var(--space-5)));
   position: absolute;
   top: 0;
@@ -188,9 +188,20 @@
   opacity: 0.7;
 }
 
+/* Margins, as the top of this file says: the drawings fade under the page's own column,
+   so a ruler doesn't run through a name in a list or a compass through a form field. */
+@media (min-width: 701px) {
+  .margin-art__field {
+    --edge: calc(50% - min(var(--container), 100%) / 2);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(var(--edge) - 24px), rgba(0, 0, 0, 0.25) calc(var(--edge) + 140px), rgba(0, 0, 0, 0.25) calc(100% - var(--edge) - 140px), #000 calc(100% - var(--edge) + 24px));
+    mask-image: linear-gradient(to right, #000 calc(var(--edge) - 24px), rgba(0, 0, 0, 0.25) calc(var(--edge) + 140px), rgba(0, 0, 0, 0.25) calc(100% - var(--edge) - 140px), #000 calc(100% - var(--edge) + 24px));
+  }
+}
+
+/* A phone has no margins: everything sits on the text, so fainter still. */
 @media (max-width: 700px) {
   .margin-art__field {
-    opacity: 0.17;
+    opacity: 0.11;
   }
 }
 

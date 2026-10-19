@@ -653,7 +653,7 @@
 /* ---------- An address that leads nowhere (app/not-found.tsx) ---------- */
 
 .not-found {
-  min-height: 60vh;
+  min-height: 60svh;
 }
 
 .not-found__actions {

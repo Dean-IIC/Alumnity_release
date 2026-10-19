@@ -31,6 +31,12 @@ export async function savePrefs(userId: number, prefs: Prefs) {
 
 type Subscription = { endpoint: string; keys: { p256dh: string; auth: string } };
 
+/**
+ * The push services browsers use (Chrome and Android, Firefox, Edge, Safari): the server
+ * posts to a subscription's address, so only theirs are kept, not any https address.
+ */
+const PUSH_HOSTS = ["fcm.googleapis.com", "push.services.mozilla.com", "notify.windows.com", "push.apple.com"];
+
 /** A browser's push subscription: only https endpoints of the push services browsers use. */
 export async function savePushSubscription(userId: number, sub: unknown): Promise<boolean> {
   const s = sub as Subscription;
@@ -41,10 +47,10 @@ export async function savePushSubscription(userId: number, sub: unknown): Promis
   } catch {
     return false;
   }
-  if (url.protocol !== "https:" || s.endpoint.length > 1000 || s.keys.p256dh.length > 200 || s.keys.auth.length > 100) return false;
+  if (url.protocol !== "https:" || !PUSH_HOSTS.some((h) => url.hostname === h || url.hostname.endsWith(`.${h}`)) || s.endpoint.length > 1000 || s.keys.p256dh.length > 200 || s.keys.auth.length > 100) return false;
   // At most ten browsers each; the oldest goes.
   await db().run(
-    "insert into push_subscriptions (endpoint, user_id, p256dh, auth, created_at) values (?, ?, ?, ?, ?) on conflict (endpoint) do update set user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth",
+    "insert into push_subscriptions (endpoint, user_id, p256dh, auth, created_at) values (?, ?, ?, ?, ?) on conflict (endpoint) do update set p256dh = excluded.p256dh, auth = excluded.auth where push_subscriptions.user_id = excluded.user_id",
     s.endpoint,
     userId,
     s.keys.p256dh,

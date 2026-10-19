@@ -5,7 +5,7 @@ import { AppPage } from "../../../components/app/app-page";
 import { MemberLine } from "../../../components/app/member-line";
 import { BRANCHES, isBranch } from "../../../lib/branches";
 import { Invite } from "../../../components/app/invite";
-import { batchmates, memberCount, searchMembers, type SearchQuery } from "../../../lib/server/people";
+import { batchmates, memberCount, searchMembers, whereAlumniWork, type SearchQuery } from "../../../lib/server/people";
 import { batchCount, REGISTER_SEARCHES, searchRegister } from "../../../lib/server/register";
 import { Avatar } from "../../../components/social/avatar";
 import { batchLabel } from "../../../lib/format";
@@ -31,9 +31,10 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   };
   const searched = Boolean(query.q || query.branch || query.year || query.help);
   // Members, and (for a name or USN typed) people on the college register who haven't joined yet.
-  const [found, register] = await Promise.all([
+  const [found, register, companies] = await Promise.all([
     searchMembers(me, query),
-    query.q ? searchRegister(me, { q: query.q, branch: query.branch, year: query.year }) : Promise.resolve({ people: [], limited: false })
+    query.q ? searchRegister(me, { q: query.q, branch: query.branch, year: query.year }) : Promise.resolve({ people: [], limited: false }),
+    searched ? Promise.resolve([]) : whereAlumniWork(me)
   ]);
   const photos = await photoIdsOf(found.slice(0, 60).map((f) => f.member.id));
   // A young network: who's here so far, and how many from your batch aren't yet.
@@ -44,7 +45,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
 
   return (
     <AppPage user={me} current="people" title="People" intro="Everyone on Alumnity from HKBK. You only see what each person chose to show.">
-      <form className="wf-filters" role="search" action="/people">
+      <form className="wf-filters wf-filters--people" role="search" aria-label="Find people" action="/people">
         <label className="field">
           <span className="field__label">Name, USN, company, city or skill</span>
           <input name="q" defaultValue={query.q} maxLength={100} placeholder="e.g. Asha, 1HK12CS042, Infosys, Python" />
@@ -88,6 +89,22 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             Each person who joins makes it more useful for everyone: bring your batch in.
           </p>
           <Invite text="I'm on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />
+        </section>
+      )}
+
+      {companies.length > 0 && (
+        <section className="where-work" aria-labelledby="where-work">
+          <h2 id="where-work">Where HKBK alumni work</h2>
+          <p className="wf-muted">Ask someone about their company, or for a referral: tap one to see who's there.</p>
+          <ul className="where-work__list">
+            {companies.map((c) => (
+              <li key={c.company}>
+                <Link href={`/people?q=${encodeURIComponent(c.company)}`}>
+                  {c.company} <span className="where-work__n">{c.n}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

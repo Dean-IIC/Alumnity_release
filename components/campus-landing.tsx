@@ -32,6 +32,10 @@ export function CampusLanding() {
               <Link className="button button--secondary" href="/login" onClick={soon}>{WELCOME_COPY.secondaryAction} <span aria-hidden="true">→</span></Link>
             </div>
             <p className="hero-note"><span aria-hidden="true">◌</span> A place to ask. A place to give back.</p>
+            {/* On a phone the photo's caption is hidden: the gallery is offered here, with the rest. */}
+            <Link className="hero-gallery" href="/gallery">
+              Explore the HKBK gallery <span aria-hidden="true">→</span>
+            </Link>
           </div>
           <HeroInk active={introComplete} />
         </section>

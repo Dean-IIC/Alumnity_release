@@ -40,6 +40,16 @@
   color: var(--color-ink-muted);
 }
 
+/* A flex child; without this the magnifier shrank to a dot in the phone's narrow pill. */
+.app-bar__search svg {
+  flex-shrink: 0;
+}
+
+/* The pill's word on a narrow phone, where the full placeholder can't fit (below). */
+.app-bar__search-short {
+  display: none;
+}
+
 .app-bar__search:focus-within {
   border-color: var(--color-blue);
 }
@@ -138,7 +148,9 @@
   display: grid;
   gap: 2px;
   width: 260px;
+  max-height: calc(100svh - 90px);
   padding: var(--space-2);
+  overflow-y: auto;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
   background: var(--color-paper);
@@ -146,6 +158,16 @@
 
 .app-menu__panel--wide {
   width: 320px;
+}
+
+/* Your page's own links, in More too: a blind test looked for Settings there, on a phone
+   (which has no You menu) and on a laptop (where the You menu is only a small photo). */
+.app-menu__you {
+  display: grid;
+  gap: 2px;
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-line);
 }
 
 .app-menu__item {
@@ -234,17 +256,53 @@
     display: none;
   }
 
+  /* The three left up here are named under their icons, as in the tab bar: on a first
+     visit, nobody could tell the group icon from People's below. */
+  .app-bar__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    font-size: 10.5px;
+    line-height: 1.1;
+  }
+
+  .app-bar__tab {
+    min-width: 52px;
+  }
+
   .app-menu__panel {
     position: fixed;
     top: 60px;
     right: var(--gutter);
     left: var(--gutter);
     width: auto;
+    max-height: calc(100svh - 140px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 
+/* The pill is a thumb's width here: the long placeholder showed as "Search peo", and
+   with none the pill read as an empty, broken box. So just "Search", until typing. */
 @media (max-width: 420px) {
+  .app-bar__search {
+    position: relative;
+    gap: 4px;
+    padding: 0 var(--space-2);
+  }
+
   .app-bar__search input::placeholder {
     color: transparent;
+  }
+
+  .app-bar__search input:placeholder-shown:not(:focus) + .app-bar__search-short {
+    position: absolute;
+    left: calc(var(--space-2) + 22px);
+    display: block;
+    color: var(--color-ink-muted);
+    font-size: 13px;
+    pointer-events: none;
   }
 }

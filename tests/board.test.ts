@@ -100,4 +100,47 @@ describe("the HKBK board", () => {
     expect(await posts.askForReferral(student, id!, why)).toMatchObject({ ok: true, as: "message" });
     expect(await db.db().one("select 1 from messages where sender = ? and recipient = ? and body like ?", student.id, alum.id, "%CAN bus%")).toBeTruthy();
   });
+
+  it("a job or internship put on the board tells the students who are looking, once, and nobody else", async () => {
+    const alum = await member("Hiring Alum");
+    const admin = await member("Board Admin 2", { email: "board-admin@example.com" }).catch(async () => (await people.memberById((await db.db().one<{ id: number }>("select id from users where email = 'board-admin@example.com'"))!.id))!);
+    const looking = await member("Looking Student", { role: "student" });
+    const idle = await member("Idle Student", { role: "student" });
+    const seek = (u: U, seeking: object) => db.db().run("insert into profiles (user_id, data, updated_at) values (?, ?, ?) on conflict (user_id) do update set data = excluded.data", u.id, JSON.stringify({ seeking }), Date.now());
+    await seek(looking, { internship: true });
+    await seek(idle, { mentor: true });
+    const { id } = await posts.createPost(alum, "Summer internship in my team #internship", "everyone");
+    expect((await posts.verifyPost(admin, id!, true)).ok).toBe(true);
+    const told = async (u: U) => (await db.db().all("select 1 from notifications where user_id = ? and kind = 'board-work'", u.id)).length;
+    expect(await told(looking)).toBe(1);
+    expect(await told(idle)).toBe(0);
+    // Off and on again: not told twice.
+    await posts.verifyPost(admin, id!, false);
+    await posts.verifyPost(admin, id!, true);
+    expect(await told(looking)).toBe(1);
+  });
+
+});
+
+describe("where HKBK alumni work", () => {
+  it("counts companies alumni show to everyone, grouped however they're typed, and nobody else's", async () => {
+    const viewer = await member("Curious Student", { role: "student" });
+    const show = async (name: string, company: string, extra: { role?: string; now?: string } = {}) => {
+      const u = await member(name, { role: extra.role });
+      await db.db().run("insert into profiles (user_id, data, updated_at) values (?, ?, ?)", u.id, JSON.stringify({ company, visibility: { now: extra.now ?? "everyone" } }), Date.now());
+      return u;
+    };
+    await show("Work One", "Zylo Systems");
+    await show("Work Two", "zylo  systems");
+    await show("Work Three", "Quorra Labs");
+    await show("Work Private", "Hidden Corp", { now: "connections" });
+    await show("Work Student", "Intern Co", { role: "student" });
+    const blocker = await show("Work Blocker", "Blocked Inc");
+    await social.block(blocker, viewer.id);
+    const list = await people.whereAlumniWork(viewer);
+    const zylo = list.find((c) => c.company.toLowerCase() === "zylo systems");
+    expect(zylo?.n).toBe(2);
+    expect(list.map((c) => c.company)).toContain("Quorra Labs");
+    for (const hidden of ["Hidden Corp", "Intern Co", "Blocked Inc"]) expect(list.map((c) => c.company)).not.toContain(hidden);
+  });
 });

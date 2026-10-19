@@ -1,6 +1,6 @@
 import type { Found } from "../register";
 import { authProvider, SAME_PASSWORD } from "./auth-provider";
-import { db } from "./db";
+import { catchUpIds, db } from "./db";
 import { findInRegister } from "./register";
 import { passwordProblem, randomToken } from "./secrets";
 import { settings } from "./settings";
@@ -218,7 +218,11 @@ export async function completeJoin(ticket: string, password: string): Promise<Ou
   // On a retry the password may already be this one: that's the job half done, not a refusal.
   const refused = await auth.setPassword(password);
   if (refused && refused !== SAME_PASSWORD) return { ok: false, error: refused };
+  // Anyone else holding a session on this sign-in goes: someone could have made the Supabase
+  // account for this email before its owner joined, and kept a session on it.
+  await auth.signOut("others");
 
+  await catchUpIds("users");
   const fresh = await db().one(
     `insert into users (auth_id, email, name, usn, branch, branch_name, programme, joined, role, created_at)
      values (?::uuid, ?, ?, ?, ?, ?, ?, ?, ?, ?) on conflict do nothing returning *`,

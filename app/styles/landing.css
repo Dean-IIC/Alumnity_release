@@ -237,6 +237,19 @@
   transform: translateX(3px);
 }
 
+/* The gallery, under the buttons: only on narrow screens (wide ones have it in the photo's caption). */
+.hero-gallery {
+  display: none;
+  gap: 6px;
+  align-items: center;
+  min-height: var(--tap-target);
+  margin-top: var(--space-3);
+  color: var(--color-blue);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  text-shadow: var(--halo-strong);
+}
+
 @keyframes hero-ink-caption {
   from {
     opacity: 0;
@@ -263,29 +276,27 @@
     transform: none;
   }
 
-  /* The kicker is small and sits over the photo here: a fuller halo. */
+  /* The kicker and the line under the headline sit over the photo here: the headline's
+     glow, a little fuller, and the kicker in full ink (its brown was lost on the photo). */
   .hero-kicker {
-    text-shadow: var(--halo-strong);
+    flex-wrap: wrap;
+    color: var(--color-ink);
+    text-shadow: var(--halo-strong), 0 0 28px var(--color-paper);
   }
 
-  /* Only the gallery link stays, in the photo's paper corner, clear of the headline. */
+  .hero-text {
+    color: var(--color-ink);
+    text-shadow: var(--halo-strong), 0 0 28px var(--color-paper);
+  }
+
+  /* The photo's caption and its gallery link go: the gallery is offered under the buttons
+     (it floated alone at the top of the photo, far from everything else). */
   .hero-ink__caption {
-    top: 4%;
-    right: auto;
-    bottom: auto;
-    left: 6%;
-    justify-items: start;
-  }
-
-  .hero-ink__caption span,
-  .hero-ink__caption strong {
     display: none;
   }
 
-  .hero-ink__explore {
-    padding: 0 14px;
-    border-radius: var(--radius-pill);
-    background: var(--color-paper-glass);
+  .hero-gallery {
+    display: inline-flex;
   }
 }
 
@@ -311,5 +322,10 @@
 @media (max-width: 420px) {
   .button {
     width: 100%;
+  }
+
+  /* Uppercase and widely spaced, it ran off the right edge of a phone. */
+  .hero-kicker {
+    letter-spacing: 0.08em;
   }
 }

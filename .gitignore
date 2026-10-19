@@ -48,3 +48,6 @@ docs/dev-test-accounts.md
 
 # Local design-review exports (screenshots include test data)
 design-review/
+
+# Local PGlite databases (and any set aside after a crash)
+data/pglite*

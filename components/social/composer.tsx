@@ -180,7 +180,7 @@ export function Composer({
           <Icon name="photo" size={22} className="icon--gold" />
         </button>
         <input ref={files} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple hidden onChange={(e) => add(e.target.files)} />
-        <span className="composer__hint">{uploads.length ? `${uploads.length} of 4` : "Up to 4 photos or videos"}</span>
+        <span className={`composer__hint ${uploads.length ? "" : "composer__hint--long"}`}>{uploads.length ? `${uploads.length} of 4` : "Up to 4 photos or videos"}</span>
         <button type="button" className="composer__cancel" onClick={() => setOpen(false)}>
           Cancel
         </button>

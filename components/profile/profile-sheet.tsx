@@ -114,6 +114,16 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
   // didn't join as students, get the campus as it is now.
   const staff = STAFF.has(person.role) && !person.joined;
   const era = staff ? ERAS[ERAS.length - 1] : ([...ERAS].reverse().find((e) => person.joined && e.year <= person.joined) ?? ERAS[0]);
+  // Today's campus stands in for 1998 and 2016: say so, and keep a batch's own line ("The
+  // biggest batch") for that batch. A 2023 student was shown 2016's.
+  const today = era.photo.source === "Today's campus";
+  const coverFallback = {
+    src: era.photo.photo,
+    sketch: era.photo.sketch,
+    year: era.year,
+    title: today && person.joined !== era.year ? "The campus you know" : era.title,
+    kicker: today ? "HKBK today" : undefined
+  };
 
   // The journey is optional: it appears once they've added a stop of their own.
   const stops: Stop[] = profile.journey.length
@@ -135,7 +145,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
     <article className="profile">
       {/* The top: their cover, their photo (or their seal) over its edge, then who they are. */}
       <header className="profile__top">
-        <Cover cover={profile.cover} fallback={{ src: era.photo.photo, sketch: era.photo.sketch, year: era.year, title: era.title }} name={person.name} seed={person.id} />
+        <Cover cover={profile.cover} fallback={coverFallback} name={person.name} seed={person.id} />
         <div className="profile__intro">
           <div className="profile__avatar">
             {profile.photo ? (
@@ -286,7 +296,13 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
                       </svg>
                       <span>
                         <b>{w.title}</b>
-                        <span>{on ? w.note : "Not switched on. Edit your page to light it, so seniors can find you."}</span>
+                        <span>
+                          {on
+                            ? w.note
+                            : w.key === "mentor"
+                              ? "Not switched on. Edit your page to light it, so seniors can find you."
+                              : "Not switched on. Light it when you edit your page: seniors can find you, and you hear when a job or internship goes on the HKBK board."}
+                        </span>
                       </span>
                     </li>
                   );
