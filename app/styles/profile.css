@@ -201,9 +201,34 @@
 }
 
 @media (max-width: 900px) {
+  /* The photo with the buttons beside it, then who they are under both. Stacked last, "Edit
+     your page" and "Settings" were below a phone's first screen, and a blind test never found them. */
   .profile__intro {
-    grid-template-columns: 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
     padding: 0 var(--space-5) var(--space-5);
+  }
+
+  .profile__who {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .profile__actions {
+    grid-column: 2;
+    grid-row: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: stretch;
+    align-self: end;
+    justify-self: end;
+    max-width: 190px;
+    padding-bottom: var(--space-2);
+  }
+
+  .profile__actions .button {
+    min-height: 40px;
+    padding-inline: var(--space-4);
+    font-size: var(--text-small);
   }
 
   .profile__avatar {

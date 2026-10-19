@@ -1632,13 +1632,12 @@ html.story-open {
   }
 
   .tab-bar__post {
-    align-self: center;
     justify-self: center;
     display: grid;
     place-items: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    width: 44px;
+    height: 26px;
+    border-radius: 9px;
     background: var(--color-blue);
     color: var(--color-paper-raised);
   }

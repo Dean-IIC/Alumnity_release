@@ -26,9 +26,18 @@
   transition: border-color var(--duration-instant) ease;
 }
 
+/* The line to write on, over a light box: a bare line read as a rule under text, not a place
+   to type (a blind test typed its one-line question into the boxed field below it instead). */
+.field input:not([type="checkbox"], [type="radio"], [type="file"]),
+.field select {
+  padding-inline: var(--space-3);
+  border-radius: 8px 8px 0 0;
+  background: var(--color-paper-raised);
+}
+
 .field input::placeholder {
   color: var(--color-ink-muted);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .field input:focus,

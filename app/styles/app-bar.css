@@ -158,6 +158,11 @@
   width: 320px;
 }
 
+/* Your page's own links, in More: for a phone only (a wide screen has the You menu). */
+.app-menu__you {
+  display: none;
+}
+
 .app-menu__item {
   display: flex;
   gap: var(--space-3);
@@ -266,6 +271,17 @@
     right: var(--gutter);
     left: var(--gutter);
     width: auto;
+    max-height: calc(100svh - 140px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .app-menu__you {
+    display: grid;
+    gap: 2px;
+    margin-top: var(--space-1);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-line);
   }
 }
 

@@ -33,7 +33,8 @@ export const MORE: { href: string; label: string; icon: IconName; note: string }
   { href: "/events", label: "Events", icon: "event", note: "Reunions, talks, college days" },
   { href: "/causes", label: "Causes", icon: "heart", note: "Give to what HKBK people care about" },
   { href: "/batch", label: "Your batch", icon: "batch", note: "Everyone from your year" },
-  { href: "/connections", label: "Connections", icon: "connections", note: "Requests, and the people you know" }
+  { href: "/connections", label: "Connections", icon: "connections", note: "Requests, and the people you know" },
+  { href: "/gallery", label: "Gallery", icon: "photo", note: "HKBK through the years, in photos" }
 ];
 
 export function Badge({ n }: { n: number }) {
@@ -95,9 +96,29 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
                   </span>
                 </NavLink>
               ))}
+              {/* A phone has no "You" menu up here (the tab bar's You goes straight to your page,
+                  where these sat below the first screen): so they're here too. Hidden on a wide screen. */}
+              <div className="app-menu__you" role="group" aria-label="You">
+                <NavLink href="/me/edit" className="app-menu__item">
+                  <Icon name="you" size={22} />
+                  <span>
+                    <strong>Edit your page</strong>
+                  </span>
+                </NavLink>
+                <NavLink href="/settings" className="app-menu__item">
+                  <Icon name="settings" size={22} />
+                  <span>
+                    <strong>Settings</strong>
+                    <small>Password, alerts, dark mode</small>
+                  </span>
+                </NavLink>
+                <LogOutButton className="app-menu__item app-menu__logout">
+                  <Icon name="logout" size={22} />
+                </LogOutButton>
+              </div>
               {/* The pages about Alumnity: Home has no footer, so they're here too (and in its right column). */}
               <nav className="app-menu__about" aria-label="About Alumnity">
-                {ABOUT_LINKS.map(([href, label]) => (
+                {ABOUT_LINKS.filter(([href]) => href !== "/gallery").map(([href, label]) => (
                   <Link key={href} href={href}>
                     {label}
                   </Link>
@@ -160,10 +181,12 @@ export function TabBar({ counts }: { counts: Counts }) {
         People
         <Badge n={counts.connections} />
       </NavLink>
-      <a href="/home#compose" aria-label="New post">
+      {/* Named, like the rest: a bare + was never tried by the blind test, looking to post. */}
+      <a href="/home#compose">
         <span className="tab-bar__post">
-          <Icon name="plus" size={24} />
+          <Icon name="plus" size={22} />
         </span>
+        Post
       </a>
       <NavLink href="/messages">
         <Icon name="message" size={24} />

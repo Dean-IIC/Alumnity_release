@@ -334,7 +334,9 @@ function AddStory({ onClose }: { onClose: () => void }) {
         )}
         <p className="story-add__note">Your connections and followers can see it for 24 hours.</p>
         <button className="button button--primary" type="submit" disabled={!file?.id || pending}>
-          {file && !file.id && !file.error ? "Uploading…" : pending ? "Sharing…" : "Share to your story"}
+          {/* Greyed out with no reason given, it was pressed again and again (a blind test of
+              the site): it says what it's waiting for. */}
+          {!file ? "Choose a photo or video first" : file && !file.id && !file.error ? "Uploading…" : pending ? "Sharing…" : "Share to your story"}
         </button>
       </form>
     </div>
