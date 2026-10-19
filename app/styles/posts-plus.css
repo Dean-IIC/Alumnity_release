@@ -267,7 +267,7 @@
 
 /* ---------- Sheets: share, send, tag people, repost with your thoughts ---------- */
 
-.sheet {
+dialog.sheet {
   width: min(480px, calc(100vw - 32px));
   max-width: none;
   max-height: min(680px, calc(100dvh - 48px));
@@ -279,7 +279,7 @@
   box-shadow: var(--shadow-pop);
 }
 
-.sheet::backdrop {
+dialog.sheet::backdrop {
   background: rgba(10, 20, 40, 0.5);
 }
 
@@ -369,14 +369,14 @@
 
 /* On a phone the sheet rises from the bottom, as a phone's own share sheet does. */
 @media (max-width: 600px) {
-  .sheet {
+  dialog.sheet {
     width: 100vw;
     max-height: 88dvh;
     margin: auto 0 0;
     border-radius: 18px 18px 0 0;
   }
 
-  .sheet[open] {
+  dialog.sheet[open] {
     animation: sheet-rise 240ms var(--ease-out);
   }
 }
@@ -888,7 +888,7 @@ html.viewer-open {
 
 @media (prefers-reduced-motion: reduce) {
   .repost-menu,
-  .sheet[open],
+  dialog.sheet[open],
   .post-media__tile img {
     animation: none;
     transition: none;

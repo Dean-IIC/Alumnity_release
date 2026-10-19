@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 /** The cards that rise into place as they're reached (see app/styles/colour.css). */
-const CARDS = ".sheet, .wf-card, .event-card, .person-card, .request-card, .album-card, .lp-card, .lp-stat, .focus__person";
+const CARDS = ".sheet:not(dialog), .wf-card, .event-card, .person-card, .request-card, .album-card, .lp-card, .lp-stat, .focus__person";
 /** The cards whose pattern spreads from where the pointer enters. */
 const PATTERNED = "a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card";
 
