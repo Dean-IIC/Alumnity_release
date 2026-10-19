@@ -516,7 +516,7 @@ const SCENES: Record<SceneName, Scene> = {
         art(
           person(150, 1010, 2.3, B[0]),
           person(420, 1000, 2.1, GOLD.core),
-          person(1180, 1005, 2.2, "#eaf2fd"),
+          person(1180, 1005, 2.2, B[0]),
           person(1330, 1000, 2.4, GOLD.core),
           person(1480, 1010, 2.2, B[0])
         )
@@ -590,13 +590,13 @@ const SCENES: Record<SceneName, Scene> = {
     computer: {
       ...C,
       layers: [
-        art(notice(1250, 330, 190, 240, -6, RED[0]), notice(1470, 300, 170, 210, 5, GOLD.core), notice(1360, 590, 200, 230, 3, GREEN[1]), notice(150, 560, 150, 190, -4, GOLD.core)),
+        art(notice(1400, 300, 170, 215, -6, RED[0]), notice(1540, 420, 150, 190, 5, GOLD.core), notice(1420, 620, 170, 200, 3, GREEN[1]), notice(140, 600, 140, 180, -4, GOLD.core)),
         wave(0.84, 30, 700, 0.1, "bottom", B[4], 25),
         wave(0.92, 22, 520, 0.6, "bottom", B[2], 21, 80)
       ]
     },
     tablet: { ...T, layers: [horizon(0.254), art(notice(760, 200, 130, 160, -6, RED[0]), notice(900, 230, 120, 150, 5, GOLD.core))] },
-    phone: { ...P, layers: [horizon(0.36), art(notice(318, 210, 80, 104, -6, RED[0]), notice(385, 230, 72, 96, 6, GOLD.core))] }
+    phone: { ...P, layers: [horizon(0.36), art(notice(352, 118, 62, 80, -6, RED[0]), notice(408, 140, 58, 74, 6, GOLD.core))] }
   },
 
   // Ask a senior (mam's choice): a sun in the corner, its light in arcs, and steps rising to it.
