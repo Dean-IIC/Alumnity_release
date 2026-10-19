@@ -189,8 +189,8 @@ export function PostEditDelete({
             limit={limit}
             note={
               verified
-                ? "You can change the text only. Who can see the post and its photos stay the same. The post leaves the HKBK board until the college checks it again."
-                : "You can change the text only. Who can see the post and its photos stay the same. The post will show as edited."
+                ? "You can change the words, but not the photos or who can see it. It leaves the HKBK board until the college checks it again."
+                : "You can change the words, but not the photos or who can see it. The post will show as edited."
             }
             run={(text) => editPostNow(id, text)}
           />

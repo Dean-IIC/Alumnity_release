@@ -30,7 +30,8 @@ export default async function NotificationsPage() {
       {unread > 0 && <p className="notif-new-count">{unread === 1 ? "1 new since your last visit" : `${unread} new since your last visit`}</p>}
       {list.length === 0 ? (
         <>
-          <p className="wf-empty">No notifications yet. Connection requests, replies and answers will show here. To get started, ask a senior a question or connect with someone.</p>
+          <p className="wf-empty">No notifications yet. Connection requests, replies and answers will show here.</p>
+          <p className="wf-muted">To start, ask a senior a question or connect with someone.</p>
           <ThingsToDo me={me} />
           <PeopleToReach me={me} mode="connect" />
         </>

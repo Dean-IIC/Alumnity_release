@@ -97,7 +97,7 @@ export function CardFrontImage({ card, photo, crest, theme }: { card: AlumniCard
             </div>
             <div style={{ display: "flex", flexDirection: "column", marginLeft: 26 }}>
               <div style={{ display: "flex", fontSize: 36, color: "#fff" }}>{COLLEGE.name}</div>
-              <div style={{ display: "flex", fontSize: 21, letterSpacing: 6, color: GOLD, textTransform: "uppercase", marginTop: 4 }}>Alumni Network</div>
+              <div style={{ display: "flex", fontSize: 21, letterSpacing: 6, color: GOLD, textTransform: "uppercase", marginTop: 4 }}>Alumnity card</div>
             </div>
           </div>
           <Wordmark />
@@ -158,9 +158,9 @@ export function CardBackImage({ card, crest, theme }: { card: AlumniCard; crest:
             <img src={qrImage(card.link)} width={250} height={250} alt="" />
           </div>
           <div style={{ display: "flex", flexDirection: "column", marginLeft: 50, maxWidth: 760 }}>
-            <Label>Scan to verify</Label>
+            <Label>Scan to check</Label>
             <div style={{ display: "flex", fontSize: 29, lineHeight: 1.35, marginTop: 12, color: "#fff" }}>
-              {`${card.name} is a member of ${COLLEGE.name}'s alumni network on Alumnity.`}
+              {`${card.name} is a member of ${COLLEGE.name} on Alumnity.`}
             </div>
             <div style={{ display: "flex", fontSize: 26, color: GOLD, marginTop: 18 }}>{card.shortLink}</div>
             <div style={{ display: "flex", fontSize: 22, color: SOFT, marginTop: 8, letterSpacing: 2 }}>{card.memberNo}</div>

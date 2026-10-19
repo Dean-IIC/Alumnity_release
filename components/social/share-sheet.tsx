@@ -141,7 +141,10 @@ export function ShareSheet({ open, onClose, path, author, forEveryone }: Props) 
           )}
         </ul>
       ) : (
-        <p className="sheet__note">Only some people can see this post, so you can&apos;t share it to other apps. The link works only for people who can already see the post. To share it with a connection, use Send.</p>
+        <>
+          <p className="sheet__note">Only some people can see this post. You can&apos;t share it to other apps.</p>
+          <p className="sheet__note">The link works only for them. To send it to a connection, use Send.</p>
+        </>
       )}
       <div className="share-link">
         <label className="sr-only" htmlFor={fieldId}>

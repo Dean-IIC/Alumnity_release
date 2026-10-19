@@ -71,11 +71,11 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
           </ActionForm>
         ) : group.my.status === "pending" ? (
           <>
-            <span className="wf-tag">You asked to join. A group admin will review your request.</span>
+            <span className="wf-tag">You asked to join. A group admin will look at it.</span>
             <ActionForm action={leaveGroupAction} showDone={false}>
               {hidden}
               <button className="button button--secondary wf-small" type="submit">
-                Withdraw request
+                Cancel request
               </button>
             </ActionForm>
           </>
@@ -105,7 +105,10 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
       </nav>
 
       {!readable ? (
-        <p className="wf-empty">This group is private. Only members can see its posts and its member list. Ask to join, and a group admin will review your request.</p>
+        <>
+          <p className="wf-empty">This group is private. Only members can see its posts and members.</p>
+          <p className="wf-muted">Ask to join, and a group admin will look at it.</p>
+        </>
       ) : tab === "posts" ? (
         <>
           {member &&
@@ -227,7 +230,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
             </ActionForm>
           )}
           {(group.my?.role === "owner" || isModerator(me)) && (
-            <ActionForm action={removeGroupAction} confirm={`Close ${group.name} for good? Its posts will be removed too.`}>
+            <ActionForm action={removeGroupAction} confirm={`Close ${group.name} forever? This removes its posts too.`}>
               {hidden}
               <button className="button button--secondary wf-small" type="submit">
                 {group.my?.role === "owner" ? "Close the group" : "Remove group (college desk)"}

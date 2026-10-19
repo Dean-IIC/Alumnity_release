@@ -55,7 +55,7 @@ export default async function MePage() {
                 Settings
               </Link>
               <a className="button button--secondary" href="#alumni-card">
-                Alumni card
+                Alumnity card
               </a>
             </>
           }

@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const user = await signedInUser();
-  if (!user) return new NextResponse("Log in to see your alumni card.", { status: 401, headers: { "cache-control": "no-store" } });
+  if (!user) return new NextResponse("Log in to see your Alumnity card.", { status: 401, headers: { "cache-control": "no-store" } });
 
   const url = new URL(request.url);
   const back = url.searchParams.get("side") === "back";

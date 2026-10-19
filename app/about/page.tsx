@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { PublicPage } from "../../components/public-page";
 import { Letter } from "../../components/site/letter";
-import { ABOUT } from "../../lib/about-content";
+import { ABOUT, DIRECTOR_SUMMARY } from "../../lib/about-content";
+import { PAGE_DEFAULTS } from "../../lib/site-pages";
 import { sitePages } from "../../lib/server/site-pages";
 
 // The letter and the opening words are the college's to change from its desk (site.pages).
@@ -18,6 +19,8 @@ export default async function AboutPage() {
   const { "about-intro": intro, "director-letter": letter } = await sitePages("about-intro", "director-letter");
   return (
     <PublicPage current="about" kicker="About" title="About" gold="Alumnity" intro={intro.body}>
+      {/* A short summary, only while the letter is the one it sums up (the desk can change the letter). */}
+      {letter.body === PAGE_DEFAULTS["director-letter"].body && <p className="info-lead">{DIRECTOR_SUMMARY}</p>}
       <Letter body={letter.body} signerName={letter.signerName} signerRole={letter.signerRole} />
 
       <section aria-labelledby="privacy">

@@ -33,7 +33,7 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
       user={me}
       current="board"
       title="HKBK board"
-      intro="Jobs, internships, notices and more, checked by the college. Anyone can post with a #tag. The college desk checks these posts and adds the right ones here."
+      intro="Jobs, internships, notices and more, checked by the college. Add a #tag to your post, and the college desk may add it here."
     >
       <nav className="wf-tabs board__tags" aria-label="Filter posts by tag">
         <Link href="/board" aria-current={!tag ? "page" : undefined}>
@@ -63,7 +63,7 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
             <p className="wf-empty">
               {tag ? `Nothing tagged #${tag} is on the board yet.` : "Nothing on the board yet."}{" "}
               {desk
-                ? "Open a post's ••• menu and choose “Verify and add to the HKBK board”."
+                ? "Open a post's ••• menu and choose “Add to the HKBK board”."
                 : "Posting a job or a notice? Add a #tag, and the college desk can add it here."}
             </p>
           ) : (

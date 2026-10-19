@@ -18,7 +18,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
   const id = Number(p.id);
   const back = safeNext(p.back, "/home");
   return (
-    <AppPage user={me} current="home" back={{ href: p.back && p.back.startsWith("/") && !p.back.startsWith("//") ? p.back : "/home", label: "Back" }} title={`Report ${WHAT[kind]}`} intro="The college's alumni coordinators will look at it. They won't tell anyone who reported it.">
+    <AppPage user={me} current="home" back={{ href: p.back && p.back.startsWith("/") && !p.back.startsWith("//") ? p.back : "/home", label: "Back" }} title={`Report ${WHAT[kind]}`} intro="The college's alumni team will look at it. They won't tell anyone it was you.">
       {Number.isSafeInteger(id) && id > 0 ? (
         <ActionForm action={reportAction} className="wf-stack">
           <input type="hidden" name="kind" value={kind} />

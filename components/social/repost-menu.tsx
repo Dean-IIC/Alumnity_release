@@ -69,7 +69,7 @@ export function RepostMenu({ postId, preview, audience, hasBatch, onDone }: Prop
     button.current?.focus();
     startTransition(async () => {
       const answer = await repostNow(postId);
-      onDone(answer?.ok ? "Reposted. Everyone who can see the original post will see it in their feed." : (answer?.error ?? "That didn't work. Try again."), Boolean(answer?.ok));
+      onDone(answer?.ok ? "Reposted. Everyone who can see the post will see it in their feed." : (answer?.error ?? "That didn't work. Try again."), Boolean(answer?.ok));
     });
   };
 

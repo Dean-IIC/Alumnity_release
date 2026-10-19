@@ -134,17 +134,17 @@ export async function proposeCause(me: User, input: { title: string; story: stri
   const story = input.story.trim().slice(0, CAUSE_LIMITS.story);
   const goalRupees = Math.floor(rupeesIn(input.goal));
   if (title.length < 5) return no("Give the cause a clear name (at least 5 characters).");
-  if (story.length < 50) return no("Tell the story in a few lines: who it helps, what the money is for, and how you are connected to it.");
+  if (story.length < 50) return no("Tell the story in a few lines. Say who it helps and what the money is for. Say how you're linked to it.");
   if (!(goalRupees >= CAUSE_LIMITS.minGoal && goalRupees <= CAUSE_LIMITS.maxGoal)) return no(`Set a goal between ${rupees(CAUSE_LIMITS.minGoal * 100)} and ${rupees(CAUSE_LIMITS.maxGoal * 100)}.`);
   let cover: string | null = null;
   if (input.cover) {
     const media = await mediaById(input.cover);
-    if (!media || media.userId !== me.id || media.kind !== "image") return no("We could not use that photo. Please add it again.");
+    if (!media || media.userId !== me.id || media.kind !== "image") return no("We couldn't use that photo. Please add it again.");
     cover = media.id;
   }
   const days = Math.floor(Number(input.days));
   const endsAt = days >= 7 && days <= 365 ? Date.now() + days * DAY : null;
-  if (!(await withinLimit(`cause:${me.id}`, 2, DAY))) return no("You can propose up to two causes a day. Please try again tomorrow.");
+  if (!(await withinLimit(`cause:${me.id}`, 2, DAY))) return no("You can suggest up to two causes a day. Please try again tomorrow.");
   const row = await db().one<{ id: number }>(
     "insert into causes (author, title, story, goal, cover, ends_at, created_at) values (?, ?, ?, ?, ?, ?, ?) returning id",
     me.id,
@@ -162,7 +162,7 @@ export async function proposeCause(me: User, input: { title: string; story: stri
 export async function reviewCause(me: User, id: number, approve: boolean, note: string): Promise<Result> {
   if (!isModerator(me)) return no("Only the college desk can do that.");
   const row = await causeRow(id);
-  if (!row || row.status !== "pending") return no("This cause is not waiting for review.");
+  if (!row || row.status !== "pending") return no("This cause isn't waiting to be checked.");
   const why = note.trim().slice(0, 500);
   if (!approve && !why) return no("Say why, so the person who started it knows what to change.");
   await db().run("update causes set status = ?, review_note = ?, reviewed_by = ?, reviewed_at = ? where id = ?", approve ? "live" : "rejected", why || null, me.id, Date.now(), id);
@@ -277,7 +277,7 @@ export async function markPaid(orderId: string, paymentId: string, amount?: numb
 /** The donor's browser reports the payment; only a genuine signature counts. */
 export async function confirmDonation(me: User, orderId: string, paymentId: string, signature: string): Promise<Result> {
   const mine = await db().one("select 1 from donations where order_id = ? and donor = ?", orderId, me.id);
-  if (!mine || !paymentIsGenuine(orderId, paymentId, signature)) return no("We couldn't confirm that payment. If money was taken from your account, it will show here in a few minutes. If it does not, write to the alumni office.");
+  if (!mine || !paymentIsGenuine(orderId, paymentId, signature)) return no("We couldn't check that payment. If money left your account, it will show here in a few minutes. If not, write to the alumni office.");
   await markPaid(orderId, paymentId);
   return { ok: true };
 }

@@ -356,8 +356,8 @@ function PeoplePicker({ id, chosen, onPick }: { id: string; chosen: number[]; on
         value={text}
         maxLength={40}
         autoComplete="off"
-        placeholder="From specific people"
-        aria-label="Show posts from specific people: type a name"
+        placeholder="Type a name"
+        aria-label="Type a name to see that person's posts"
         role="combobox"
         aria-expanded={open}
         aria-autocomplete="list"

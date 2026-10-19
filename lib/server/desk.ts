@@ -105,9 +105,9 @@ export async function report(me: User, kind: string, id: number, reason: string)
   if (!(await canReport(me, kind as SubjectKind, id))) return no("This is no longer available.");
   const subject = await subjectOf(kind as SubjectKind, id);
   if (!subject) return no("This is no longer available.");
-  if (subject.owner === me.id) return no("You can't report your own content.");
+  if (subject.owner === me.id) return no("You can't report yourself or anything you made.");
   const why = reason.trim().slice(0, 500);
-  if (!why) return no("Say briefly what is wrong, so the alumni coordinators know what to check.");
+  if (!why) return no("Say in a few words what's wrong. It helps the alumni coordinators check.");
   if (!(await withinLimit(`report:${me.id}`, 20, DAY))) return no("You have sent many reports today. The alumni coordinators will look at them soon.");
   await db().run("insert into reports (reporter, subject_kind, subject_id, reason, created_at) values (?, ?, ?, ?, ?)", me.id, kind, id, why, Date.now());
   return { ok: true };
@@ -225,14 +225,14 @@ export async function takeDown(me: User, kind: ContentKind, id: number, reason =
         : await db().one<{ author: number }>("update asks set status = 'closed' where id = ? and status != 'closed' returning author", id);
   if (!author) return no("This has already been taken down.");
   await audit(me, "removed", `${kind} ${id}`, reason || undefined);
-  await notify(author.author, { kind: "removed", text: `Your ${KIND_LABEL[kind]} was taken down by the college desk because it broke the community rules.`, link: "/how-it-works" });
+  await notify(author.author, { kind: "removed", text: `The college desk took down your ${KIND_LABEL[kind]}. It broke the community rules.`, link: "/how-it-works" });
   return { ok: true };
 }
 
 /** Bring back a note or comment taken down by mistake (administrators). */
 export async function restore(me: User, kind: ContentKind, id: number): Promise<Result> {
-  if (!isAdmin(me)) return no("Only an administrator can restore content.");
-  if (kind === "ask") return no("A closed question can't be reopened.");
+  if (!isAdmin(me)) return no("Only an administrator can bring this back.");
+  if (kind === "ask") return no("A closed question can't be opened again.");
   const table = kind === "post" ? "posts" : "post_comments";
   const changes = await db().run(`update ${table} set removed_at = null where id = ? and removed_at is not null`, id);
   if (!changes) return no("This has not been taken down.");
@@ -277,7 +277,7 @@ export async function setRole(me: User, userId: number, role: string): Promise<R
   const target = await anyMember(userId);
   if (!target) return no("We couldn't find that member.");
   if (configRole(target.email)) return no("This role is set by the site's technical team. You can't change it here.");
-  if (!outranks(me, target)) return no("You can only change the roles of people below you on the college desk.");
+  if (!outranks(me, target)) return no("You can only change roles for people below you on the college desk.");
   if (!assignable(me).includes(role as Role)) return no(isSuperAdmin(me) ? "That role does not exist." : "Only a super administrator can make administrators.");
   if (target.role === role) return { ok: true };
   await db().run("update users set role = ? where id = ?", role, userId);
@@ -298,7 +298,7 @@ export async function deleteMember(me: User, userId: number, typedName: string):
   const target = await anyMember(userId);
   if (!target || userId === me.id) return no("That member can't be deleted here.");
   if (!outranks(me, target)) return no("That member can't be deleted here.");
-  if (typedName.trim() !== target.name) return no(`Type their name exactly (“${target.name}”) to confirm.`);
+  if (typedName.trim() !== target.name) return no(`Type their name exactly as shown: “${target.name}”.`);
   await removeAccount(userId);
   await audit(me, "deleted member", `member ${userId}`, target.name);
   return { ok: true };

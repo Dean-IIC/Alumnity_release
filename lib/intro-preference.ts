@@ -4,6 +4,8 @@
  * `?intro=1` always plays it.
  */
 const KEY = "alumnity:intro";
+/** The same choice as a cookie, so the server knows to send a signed-in member straight Home. */
+export const INTRO_COOKIE = "alumnity_intro";
 
 export type IntroPreference = "play" | "skip";
 
@@ -19,6 +21,11 @@ export function writeIntroPreference(preference: IntroPreference) {
   try {
     if (preference === "skip") window.localStorage.setItem(KEY, "skip");
     else window.localStorage.removeItem(KEY);
+  } catch {
+    // Private mode or storage disabled: the intro just plays, which is the default.
+  }
+  try {
+    document.cookie = preference === "skip" ? `${INTRO_COOKIE}=skip; path=/; max-age=31536000; samesite=lax` : `${INTRO_COOKIE}=; path=/; max-age=0; samesite=lax`;
   } catch {
     // Private mode or storage disabled: the intro just plays, which is the default.
   }

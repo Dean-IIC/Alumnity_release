@@ -31,7 +31,7 @@ export const MORE: { href: string; label: string; icon: IconName; note: string }
   { href: "/ask", label: "Ask a senior", icon: "ask", note: "Get answers from alumni who can help" },
   { href: "/board", label: "HKBK board", icon: "briefcase", note: "Jobs, internships and notices checked by the college" },
   { href: "/events", label: "Events", icon: "event", note: "Reunions, talks, college days" },
-  { href: "/causes", label: "Causes", icon: "heart", note: "Donate to scholarships and people in need" },
+  { href: "/causes", label: "Causes", icon: "heart", note: "Give to scholarships and people in need" },
   { href: "/batch", label: "Your batch", icon: "batch", note: "Everyone from your year" },
   { href: "/connections", label: "Connections", icon: "connections", note: "Your connections and connection requests" },
   { href: "/gallery", label: "Gallery", icon: "photo", note: "Photos of HKBK over the years" }

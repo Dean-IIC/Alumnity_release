@@ -49,7 +49,7 @@ export function ForgotForm() {
               </p>
             )}
             <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
-              {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
+              {busy ? "Sending…" : "Send code"} <span aria-hidden="true">→</span>
             </button>
             <p className="join__fine">
               Remember your password? <Link href="/login">Log in</Link>
@@ -78,7 +78,7 @@ export function ForgotForm() {
               </p>
             )}
             <button className="button button--primary join__submit" type="submit" disabled={busy || !ready}>
-              {busy ? "Saving…" : "Save my new password"} <span aria-hidden="true">→</span>
+              {busy ? "Saving…" : "Save password"} <span aria-hidden="true">→</span>
             </button>
             <button type="button" className="join__switch" onClick={() => setTicket("")}>
               Send a new code, or change the email

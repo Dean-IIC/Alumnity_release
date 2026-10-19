@@ -80,7 +80,7 @@ export function Activity({ posts, featuredId, isOwner, first }: { posts: Post[];
           ))}
         </ul>
       ) : (
-        <p className="profile__prompt">Your posts will show here. Share something from Home, then pin your best one to the top.</p>
+        <p className="profile__prompt">Your posts will show here. Post from Home, then pin your best one to the top.</p>
       )}
     </section>
   );

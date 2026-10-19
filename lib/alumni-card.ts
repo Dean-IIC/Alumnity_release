@@ -135,12 +135,12 @@ export function guillocheSvg(stroke = "#ffb400"): string {
  * Every one is dark enough for the card's white words and gold to read on it.
  */
 export const CARD_THEMES = [
-  { key: "navy", label: "Navy", dark: "#0a2a57", light: "#123e7c" },
-  { key: "crimson", label: "Crimson", dark: "#5c0f12", light: "#b91c1c" },
-  { key: "emerald", label: "Emerald", dark: "#053d2c", light: "#15803d" },
-  { key: "royal", label: "Royal", dark: "#2e0b5c", light: "#6d28d9" },
-  { key: "midnight", label: "Midnight", dark: "#05070d", light: "#1f2937" },
-  { key: "sunset", label: "Sunset", dark: "#7c2d12", light: "#d97706" }
+  { key: "navy", label: "Navy blue", dark: "#0a2a57", light: "#123e7c" },
+  { key: "crimson", label: "Red", dark: "#5c0f12", light: "#b91c1c" },
+  { key: "emerald", label: "Green", dark: "#053d2c", light: "#15803d" },
+  { key: "royal", label: "Purple", dark: "#2e0b5c", light: "#6d28d9" },
+  { key: "midnight", label: "Black", dark: "#05070d", light: "#1f2937" },
+  { key: "sunset", label: "Orange", dark: "#7c2d12", light: "#d97706" }
 ] as const;
 
 export type CardThemeKey = (typeof CARD_THEMES)[number]["key"];

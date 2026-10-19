@@ -10,6 +10,11 @@ export default function DevelopersPage() {
   return (
     <PublicPage current="developers" kicker="Developers" title="Made at" gold="HKBK" intro={DEVELOPERS_INTRO.intro}>
       <p className="info-lead">{DEVELOPERS_INTRO.body}</p>
+      <ul className="ticks">
+        {DEVELOPERS_INTRO.points.map((t) => (
+          <li key={t}>{t}</li>
+        ))}
+      </ul>
       <section>
         <h2 className="info__h2">The team</h2>
         <ul className="people-cards">

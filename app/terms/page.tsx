@@ -9,7 +9,7 @@ import "../styles/wire.css";
 
 export const metadata: Metadata = {
   title: "Terms · Alumnity",
-  description: "The rules of Alumnity: who can join, how to treat each other, causes and donations."
+  description: "Alumnity’s rules: who can join, how to treat each other, causes and donations."
 };
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
@@ -34,64 +34,72 @@ export default function TermsPage() {
             How we look after <span className="page-title__gold">each other.</span>
           </h1>
           <p className="page-head__text">
-            Last updated {LEGAL.updated}. By joining Alumnity you agree to these terms and to the <Link href="/privacy">privacy policy</Link>.
+            Last updated {LEGAL.updated}. When you join Alumnity, you agree to these terms and the <Link href="/privacy">privacy policy</Link>.
           </p>
         </header>
-        {!legalReady() && <p className="wf-card">Draft: the college is reviewing these terms before Alumnity opens to everyone.</p>}
+        {!legalReady() && <p className="wf-card">Draft: the college will check these terms before Alumnity opens to everyone.</p>}
 
         <Section title="Who it's for">
-          <p>
-            Alumnity is {LEGAL.fiduciary}’s network for its students, alumni and faculty, aged 18 or over. You join with your own entry in the college register. Each person may
-            have only one account. Don’t join as anyone else, don’t share your account, and don’t let anyone else use it.
-          </p>
+          <ul>
+            <li>Alumnity is {LEGAL.fiduciary}’s network for its students, alumni and faculty.</li>
+            <li>You must be 18 or over.</li>
+            <li>You join with your own entry in the college register.</li>
+            <li>Each person may have only one account.</li>
+            <li>Don’t join as anyone else.</li>
+            <li>Don’t share your account, and don’t let anyone else use it.</li>
+          </ul>
         </Section>
 
         <Section title="How we treat each other">
           <ul>
             <li>Be respectful. No harassment, bullying, threats, hate, or sexual content.</li>
             <li>Be honest about who you are and what you do.</li>
-            <li>Respect privacy: don’t share other people’s personal details, messages or photos without their agreement.</li>
-            <li>No spam, scams, chain messages, or selling to people who didn’t ask for it. Real job posts and referrals are welcome.</li>
-            <li>Post only what you have the right to post, and nothing illegal.</li>
+            <li>Respect privacy. Don’t share other people’s personal details, messages or photos unless they agree.</li>
+            <li>No spam, scams or chain messages. Don’t try to sell to people who didn’t ask for it.</li>
+            <li>Real job posts and referrals are welcome.</li>
+            <li>Post only what you have the right to post. Never post anything illegal (against the law).</li>
           </ul>
-          <p>
-            Anyone can report something to the college desk. The desk may remove anything that breaks these rules, and may pause or remove accounts. Everything the desk does is
-            recorded in an audit log. If you think the desk made a mistake, write to {contact}.
-          </p>
+          <p>Anyone can report something to the college desk.</p>
+          <p>The desk may remove anything that breaks these rules. It may also pause or remove accounts.</p>
+          <p>Everything the desk does is saved in an audit log (a list of its actions). If you think the desk made a mistake, write to {contact}.</p>
         </Section>
 
         <Section title="What you post">
-          <p>
-            What you post stays yours. You allow the college to show it on Alumnity to the people you shared it with, for as long as you keep it there. If you delete it, or
-            delete your account, it is removed.
-          </p>
+          <p>What you post stays yours (you still own it).</p>
+          <p>You allow the college to show it on Alumnity. It is shown to the people you shared it with.</p>
+          <p>This lasts as long as you keep it there. If you delete it, or delete your account, it is removed.</p>
         </Section>
 
         <Section title="Causes and donations">
           <ul>
-            <li>Anyone may propose a cause. It is published only after the college desk approves it. The desk may ask questions, decline a cause, or close it.</li>
-            <li>Tell the truth about a cause: who it helps and what the money is for. A misleading cause will be closed.</li>
-            <li>
-              Every donation is paid to {LEGAL.fiduciary}, through Razorpay. The college pays it out for the cause and records each payout on the cause’s page. If a cause
-              closes before all its money is used, the college uses the rest for a similar purpose.
-            </li>
-            <li>Donations are voluntary. Once made, a donation can’t be withdrawn. The only exception is a payment made in error: in that case, write to {contact}.</li>
-            <li>A donation receipt for tax purposes is available only if the college issues one. Alumnity itself doesn’t issue receipts.</li>
+            <li>Anyone may suggest a cause (something to raise money for). It goes on Alumnity only after the college desk approves it.</li>
+            <li>The desk may ask questions, say no to a cause, or close it.</li>
+            <li>Tell the truth about a cause. Say who it helps and what the money is for.</li>
+            <li>A cause that misleads people will be closed.</li>
+            <li>Every donation is paid to {LEGAL.fiduciary}, through Razorpay. So the money goes to the college first.</li>
+            <li>The college pays it out for the cause (it uses the money for that cause). It lists each payout on the cause’s page.</li>
+            <li>A cause may close before all its money is used. Then the college uses the rest for a similar purpose.</li>
+            <li>Donations are voluntary (you choose to give; nobody has to). Once you donate, you can’t take it back.</li>
+            <li>The only exception is a payment made by mistake. If that happens, write to {contact}.</li>
+            <li>You can get a tax receipt for a donation only if the college gives one. Alumnity itself doesn’t give receipts.</li>
           </ul>
         </Section>
 
         <Section title="The site itself">
-          <p>
-            We work to keep Alumnity running and safe, but it’s offered as it is. It may sometimes be unavailable. The college isn’t responsible for what members post, or for
-            arrangements members make between themselves (such as a job, a referral or a meeting). Use your own judgement, and report anything that seems wrong.
-          </p>
+          <ul>
+            <li>We work to keep Alumnity running and safe.</li>
+            <li>But it’s offered “as it is” (we can’t promise it will always work perfectly).</li>
+            <li>Sometimes you may not be able to use it.</li>
+            <li>The college isn’t responsible for what members post.</li>
+            <li>It also isn’t responsible for what members arrange between themselves. For example, a job, a referral or a meeting.</li>
+            <li>Use your own good sense. Report anything that seems wrong.</li>
+          </ul>
         </Section>
 
         <Section title="Changes, and the law">
-          <p>
-            If these terms change in a way that matters, we’ll tell members before it applies. These terms are governed by the laws of India, and the courts at Bengaluru have
-            jurisdiction.
-          </p>
+          <p>If we make an important change to these terms, we’ll tell members. We’ll do it before the change starts.</p>
+          <p>These terms are governed by the laws of India (Indian law applies to them).</p>
+          <p>The courts at Bengaluru have jurisdiction (they can hear any legal case about these terms).</p>
         </Section>
       </main>
       <SiteFooter />

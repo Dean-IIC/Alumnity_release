@@ -63,7 +63,7 @@ export function AlertsPanel() {
     setNote(null);
     try {
       if ((await Notification.requestPermission()) !== "granted") {
-        setNote({ ok: false, text: "Notifications are blocked for Alumnity in this browser. Allow them in the browser's site settings, then try again." });
+        setNote({ ok: false, text: "This browser is blocking notifications from Alumnity. Allow them in the browser's settings, then try again." });
         return;
       }
       const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
@@ -102,7 +102,7 @@ export function AlertsPanel() {
         ) : !supported() ? (
           <p className="join__fine">
             {isIos() && !installed()
-              ? "On an iPhone, first add Alumnity to your home screen (Share → Add to Home Screen). Then open Alumnity from your home screen and turn on notifications in Settings."
+              ? "On an iPhone, first tap Share → Add to Home Screen. Then open Alumnity from your home screen and turn this on."
               : "This browser can't show notifications."}
           </p>
         ) : here ? (
@@ -127,7 +127,7 @@ export function AlertsPanel() {
         )}
       </div>
       <label className="wf-check">
-        <input type="checkbox" checked={state.emailDigest} onChange={(e) => save({ emailDigest: e.target.checked })} /> Send me an email when something is waiting for me (no more than one a day)
+        <input type="checkbox" checked={state.emailDigest} onChange={(e) => save({ emailDigest: e.target.checked })} /> Email me when something new is waiting (at most one email a day)
       </label>
       {note && (
         <p className={note.ok ? "join__note" : "join__problem"} role={note.ok ? "status" : "alert"}>

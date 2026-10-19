@@ -62,6 +62,20 @@ export function MentionInput({ name, placeholder, rows = 3, maxLength, required,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetKey]);
 
+  // The form emptied after sending (ActionForm's resetOnSuccess): the box keeps its words in
+  // React, which a form reset doesn't reach, so it empties itself too.
+  useEffect(() => {
+    const form = box.current?.form;
+    if (!form) return;
+    const clear = () => {
+      setText("");
+      setChosen([]);
+      setQuery(null);
+    };
+    form.addEventListener("reset", clear);
+    return () => form.removeEventListener("reset", clear);
+  }, []);
+
   // Ask for names a moment after typing stops.
   useEffect(() => {
     if (query === null || query.length < 1) {

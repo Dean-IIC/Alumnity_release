@@ -56,19 +56,19 @@ export async function declineAction(_: ActionState, form: FormData): Promise<Act
 export async function withdrawAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await withdrawRequest(me, idFrom(form)), "Connection request withdrawn.");
+  return answer(await withdrawRequest(me, idFrom(form)), "Connection request cancelled.");
 }
 
 export async function removeConnectionAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await removeConnection(me, idFrom(form)), "Connection removed.");
+  return answer(await removeConnection(me, idFrom(form)), "Connection removed. We won't tell them.");
 }
 
 export async function blockAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await block(me, idFrom(form)), "Blocked. You won't see each other anywhere on Alumnity.");
+  return answer(await block(me, idFrom(form)), "Blocked. You won't see each other anywhere on Alumnity. We won't tell them.");
 }
 
 export async function unblockAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -105,7 +105,7 @@ export async function readAllAction(_: ActionState): Promise<ActionState> {
 export async function reportAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await report(me, textFrom(form, "kind", 20), idFrom(form), textFrom(form, "reason", 500)), "Thank you. The college desk will review it. They won't tell anyone who reported it.");
+  return answer(await report(me, textFrom(form, "kind", 20), idFrom(form), textFrom(form, "reason", 500)), "Thank you. The college desk will look at it. They won't tell anyone it was you.");
 }
 
 /**

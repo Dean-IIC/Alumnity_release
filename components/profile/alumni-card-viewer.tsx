@@ -16,7 +16,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 const CARD_URL = "/me/card";
 const THEME_KEY = "alumnity:card-theme";
-const SHARE_TEXT = "My HKBK College of Engineering alumni card, on Alumnity.";
+const SHARE_TEXT = "My Alumnity card from HKBK College of Engineering.";
 
 export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front: ReactNode; back: ReactNode; memberNo: string; profileUrl: string }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -69,10 +69,10 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
     try {
       const png = await image.current;
       if (png && navigator.canShare?.({ files: [png] })) {
-        await navigator.share({ files: [png], title: "My alumni card", text: SHARE_TEXT });
+        await navigator.share({ files: [png], title: "My Alumnity card", text: SHARE_TEXT });
         return;
       }
-      await navigator.share({ title: "My alumni card", text: SHARE_TEXT, url: profileUrl });
+      await navigator.share({ title: "My Alumnity card", text: SHARE_TEXT, url: profileUrl });
     } catch (error) {
       // Closing the share sheet isn't a failure.
       if ((error as Error)?.name === "AbortError") return;
@@ -89,11 +89,9 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
         <span className="acard-size">{front}</span>
       </button>
       <div className="acard-promo__text">
-        <h2 id="alumni-card-title">Your alumni card</h2>
-        <p>
-          Your digital HKBK alumni card. It shows your member number and a QR code that anyone can scan to find you on Alumnity. Show it at college
-          events, or keep it on your phone.
-        </p>
+        <h2 id="alumni-card-title">Your Alumnity card</h2>
+        <p>It shows your member number and a QR code. Anyone can scan the code to find you on Alumnity.</p>
+        <p>Show it at college events, or keep it on your phone.</p>
         <button type="button" className="button button--primary" onClick={open}>
           Open your card <span aria-hidden="true">→</span>
         </button>
@@ -109,7 +107,7 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
       >
         <div className="acard-dialog__body">
           <div className="acard-dialog__head">
-            <h2 id="alumni-card-dialog-title">Your alumni card</h2>
+            <h2 id="alumni-card-dialog-title">Your Alumnity card</h2>
             <button type="button" className="acard-dialog__close" onClick={() => dialog.current?.close()} aria-label="Close">
               <svg viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M3.5 3.5l9 9m0-9-9 9" />

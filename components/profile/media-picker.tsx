@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { uploadFile } from "../../lib/client/upload";
 import { mediaUrl } from "../../lib/media-url";
 import { cropStyle, sharper, type Crop } from "../../lib/photo-crop";
@@ -27,7 +27,7 @@ function Preview({ value, use, name, campus }: { value: MediaRef | null; use: "p
   if (use === "cover" && (value || campus)) {
     return <Cover cover={value} fallback={campus?.fallback ?? { src: "", sketch: "", year: 0, title: "" }} name={name} seed={campus?.seed ?? 0} campusCrop={campus?.crop} />;
   }
-  if (!value) return <span className="picker__empty">{use === "photo" ? "Your initials show here until you add a photo" : "A campus photo from your year shows here until you add a cover"}</span>;
+  if (!value) return <span className="picker__empty">{use === "photo" ? "Your initials show here until you add a photo" : "A campus photo from your year shows here for now"}</span>;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={mediaUrl(value.id, 140 * sharper(value.crop))} alt="" style={cropStyle(value.crop)} />;
 }
@@ -88,10 +88,10 @@ export function MediaPicker({ use, value, onChange, name, campus }: { use: "phot
           <button
             type="button"
             className="button button--secondary"
-            aria-label={subject.kind === "photo" ? "Adjust your photo" : subject.kind === "campus" ? "Adjust the campus drawing" : "Adjust your cover"}
+            aria-label={subject.kind === "photo" ? "Move and zoom your photo" : subject.kind === "campus" ? "Move and zoom the campus" : "Move and zoom your cover"}
             onClick={() => setFraming(true)}
           >
-            Adjust{subject.kind === "campus" ? " the campus" : ""}
+            Move and zoom
           </button>
         )}
         {value && (
@@ -113,11 +113,24 @@ export function MediaPicker({ use, value, onChange, name, campus }: { use: "phot
         </p>
       )}
       <span className="field__hint">
-        {use === "photo"
-          ? "JPEG, PNG, WebP or GIF, up to 5 MB. We remove any location details saved inside the photo. After you choose it, drag and zoom to adjust it."
+        {(use === "photo"
+          ? ["JPEG, PNG, WebP or GIF, up to 5 MB.", "We remove any hidden details of where the photo was taken.", "Then drag and zoom to fit it."]
           : value?.kind === "html"
-            ? "An HTML cover fits itself to the space, so you do not need to adjust it. It runs in a safe, closed box and cannot load anything from the internet. Put any pictures or fonts inside the file."
-            : "You can add a photo (up to 5 MB), a short video (up to 25 MB, played without sound) or an HTML file (up to 1 MB). You can move and zoom photos and videos to adjust them. An HTML file runs in a safe, closed box and cannot load anything from the internet. Put any pictures or fonts inside the file."}
+            ? ["An HTML cover fits itself. You don't need to move or zoom it.", "It runs in a safe, closed box. It can't load anything from the internet.", "So put any pictures or fonts inside the file."]
+            : [
+                "Photo: up to 5 MB.",
+                "Short video: up to 25 MB. It plays with no sound.",
+                "HTML file: up to 1 MB.",
+                "You can move and zoom a photo or a video.",
+                "An HTML file runs in a safe, closed box. It can't load anything from the internet.",
+                "So put any pictures or fonts inside the file."
+              ]
+        ).map((line, i) => (
+          <Fragment key={line}>
+            {i > 0 && <br />}
+            {line}
+          </Fragment>
+        ))}
       </span>
       {problem && (
         <p className="join__problem" role="alert">

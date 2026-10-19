@@ -13,7 +13,8 @@ export default function PageError({ error, reset }: { error: Error & { digest?: 
   return (
     <main className="container page-error" id="main">
       <h1>This page didn’t load.</h1>
-      <p>Something went wrong on our side. It usually lasts only a moment. Please try again. If it keeps happening, write to the alumni office.</p>
+      <p>Something went wrong on our side. Please try again in a moment.</p>
+      <p>Still not working? Write to the alumni office.</p>
       <div className="page-error__actions">
         <button type="button" className="button button--primary" onClick={() => reset()}>
           Try again
@@ -22,7 +23,7 @@ export default function PageError({ error, reset }: { error: Error & { digest?: 
           Go to Home
         </a>
       </div>
-      {error.digest && <p className="page-error__ref">Reference: {error.digest}</p>}
+      {error.digest && <p className="page-error__ref">Error code: {error.digest}</p>}
     </main>
   );
 }

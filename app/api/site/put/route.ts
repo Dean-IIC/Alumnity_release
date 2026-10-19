@@ -17,7 +17,7 @@ export async function PUT(request: Request) {
   if (me instanceof NextResponse) return me;
   const path = new URL(request.url).searchParams.get("path") ?? "";
   // Only to the place the server gave out to this member of the desk.
-  if (!isSitePendingPath(me.user, path)) return NextResponse.json({ ok: false, error: "That upload has expired." }, { status: 404 });
+  if (!isSitePendingPath(me.user, path)) return NextResponse.json({ ok: false, error: "That upload ran out of time. Choose the photo again." }, { status: 404 });
   const bytes = new Uint8Array(await request.arrayBuffer());
   if (bytes.length > SITE_PHOTO_BYTES) return NextResponse.json({ ok: false, error: "This photo is too big." }, { status: 413 });
   await storage().write(path, bytes, "application/octet-stream");

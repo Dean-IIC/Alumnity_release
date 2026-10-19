@@ -11,7 +11,7 @@ import "../styles/gallery.css";
 
 export const metadata: Metadata = {
   title: "HKBK memories · Gallery · Alumnity",
-  description: "Photos from HKBK College of Engineering events over the years: alumni meets, job drives, sports and festivals."
+  description: "Photos from HKBK College of Engineering events: alumni meets, job drives, sports and festivals."
 };
 
 // The albums are the college desk's to change (lib/server/showcase.ts): read on each visit.

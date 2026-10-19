@@ -24,7 +24,7 @@ type Answer = Found | { status: "not-found" | "ambiguous" | "slow-down" | "unava
 
 const ROLES: { value: Role; label: string; note: string }[] = [
   { value: "student", label: "I study here", note: "Get help from seniors and alumni." },
-  { value: "alumnus", label: "I studied here", note: "Find your batch, and help the students who came after you." },
+  { value: "alumnus", label: "I studied here", note: "Find your batch. Help the students who came after you." },
   { value: "faculty", label: "I teach here", note: "Stay in touch with your department's students and alumni." }
 ];
 
@@ -105,10 +105,10 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
         "not-found": byUsn
           ? "We couldn't find you in the register. Check your USN. Type your name as it is on your marks card."
           : "We couldn't find you in the register. Check the spelling, the branch and the year you joined.",
-        ambiguous: "More than one person in the register matches these details. Add your USN so we can find you.",
+        ambiguous: "More than one person in the register has these details. Add your USN so we can find you.",
         "slow-down": "You have tried too many times. Wait a few minutes and try again.",
         unavailable: "We can't reach the register right now. Please try again later.",
-        incomplete: "Enter your name and your USN. If you don't know your USN, enter your branch and the year you joined."
+        incomplete: "Enter your name and your USN. No USN? Enter your branch and the year you joined."
       }[answer.status]
     );
   };
@@ -134,9 +134,10 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
             </fieldset>
 
             {role === "faculty" ? (
-              <p className="join__note">
-                Teachers and staff are not in the college register. The college desk invites you by email instead. Check your inbox, or ask the alumni office.
-              </p>
+              <>
+                <p className="join__note">Teachers and staff are not on the college register. The college desk invites you by email.</p>
+                <p className="join__note">Look in your inbox, or ask the alumni office.</p>
+              </>
             ) : (
               <>
                 <label className="field">
@@ -191,7 +192,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                 )}
 
                 <button className="button button--primary join__submit" type="submit" disabled={book === "searching"}>
-                  {book === "searching" ? "Searching the register…" : "Find me in the register"}
+                  {book === "searching" ? "Searching the register…" : "Find my name"}
                   <span aria-hidden="true">→</span>
                 </button>
                 <p className="join__fine">We only check that you’re on the register. Nobody else sees what you type here.</p>
@@ -224,7 +225,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                 <label className="field">
                   <span className="field__label">Your email</span>
                   <input name="email" type="email" autoComplete="email" required placeholder="you@example.com" defaultValue={email} />
-                  <span className="field__hint">Use a personal email. Your college email stops working after you graduate. We’ll send a code to check that it’s yours.</span>
+                  <span className="field__hint">Use a personal email. College emails stop working after you graduate.</span>
                 </label>
                 {problem && (
                   <p className="join__problem" role="alert">
@@ -232,7 +233,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                   </p>
                 )}
                 <button className="button button--primary" type="submit" disabled={busy || !ready}>
-                  {busy ? "Sending…" : "Send me a code"} <span aria-hidden="true">→</span>
+                  {busy ? "Sending…" : "Send code"} <span aria-hidden="true">→</span>
                 </button>
               </form>
             )}
@@ -259,7 +260,7 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                   </p>
                 )}
                 <button className="button button--primary" type="submit" disabled={busy || !ready}>
-                  {busy ? "Checking…" : "Confirm code"} <span aria-hidden="true">→</span>
+                  {busy ? "Checking…" : "Check code"} <span aria-hidden="true">→</span>
                 </button>
                 <button type="button" className="join__switch" disabled={resendIn > 0 || busy} onClick={() => sendCode(email)}>
                   {resendIn > 0 ? `Send a new code in ${resendIn}s` : "Send a new code"}
@@ -285,10 +286,10 @@ export function JoinFlow({ branches, from, to }: { branches: Branch[]; from: num
                   });
                 }}
               >
-                <p className="join__line">Your email is confirmed. Last step: choose a password. You will use it to log in.</p>
+                <p className="join__line">Your code is right. Now choose a password to log in with.</p>
                 <PasswordField />
                 <p className="join__fine">
-                  By joining, you agree to the <Link href="/terms">terms</Link> and the <Link href="/privacy">privacy policy</Link>, and confirm you’re 18 or over.
+                  By joining, you agree to the <Link href="/terms">terms</Link> and the <Link href="/privacy">privacy policy</Link>. You also say you’re 18 or over.
                 </p>
                 {problem && (
                   <p className="join__problem" role="alert">

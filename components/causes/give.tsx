@@ -77,12 +77,12 @@ export function Give({ causeId, name, email }: { causeId: number; name: string; 
       });
       checkout.on("payment.failed", () => {
         setBusy(false);
-        setNote({ ok: false, text: "The payment did not go through. No money was taken. You can try again." });
+        setNote({ ok: false, text: "The payment didn't go through. No money was taken. You can try again." });
       });
       checkout.open();
     } catch {
       setBusy(false);
-      setNote({ ok: false, text: "Razorpay's checkout didn't load. Check your internet connection and try again." });
+      setNote({ ok: false, text: "The Razorpay payment window didn't load. Check your internet connection and try again." });
     }
   };
 
@@ -120,7 +120,7 @@ export function Give({ causeId, name, email }: { causeId: number; name: string; 
           {busy ? "Opening…" : `Give ₹${Number(amount || 0).toLocaleString("en-IN")}`}
         </button>
       </div>
-      <p className="wf-muted">Paid securely through Razorpay to HKBK College of Engineering. Only you and the college see how much you gave.</p>
+      <p className="wf-muted">You pay safely through Razorpay to HKBK College of Engineering. Only you and the college see how much you gave.</p>
       {note && (
         <p className={`wf-note ${note.ok ? "wf-note--ok" : "wf-note--error"}`} role={note.ok ? "status" : "alert"}>
           {note.text}

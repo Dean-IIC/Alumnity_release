@@ -99,11 +99,9 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
         </label>
       </Part>
 
-      <Part title="Your journey since HKBK (optional)" field="journey" {...who("journey")}>
-        <p className="join__fine">
-          Add the main steps between leaving college and now, such as a first job, a move to a new city or a startup. Your page
-          shows them as a timeline, oldest first.
-        </p>
+      <Part title="Your journey since HKBK" field="journey" {...who("journey")}>
+        <p className="join__fine">Add the big steps since you left college. For example, a first job, a new city or a startup.</p>
+        <p className="join__fine">Your page shows them in order, oldest first.</p>
         <ol className="editor__stops">
           {profile.journey.map((stop, i) => (
             <li key={i} className="editor__stop">
@@ -166,9 +164,9 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
         <Part id="edit-happy-to" title="Looking for" field="happyTo" {...who("happyTo")}>
           {(
             [
-              ["mentor", "A mentor", "A senior who can help you decide about a course, a project or a first job."],
-              ["internship", "An internship", "Alumni who hire, or who know about openings, can find you."],
-              ["referral", "A referral", "For when you apply to a company where an alumnus works."]
+              ["mentor", "A mentor", "A senior who helps you choose a course, a project or a first job."],
+              ["internship", "An internship", "Alumni who hire, or who know of jobs, can find you."],
+              ["referral", "A referral", "An alumnus suggests you for a job at their company."]
             ] as const
           ).map(([key, label, note]) => (
             <label key={key} className="editor__check">
@@ -184,9 +182,9 @@ export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }:
       <Part id="edit-happy-to" title="Happy to" field="happyTo" {...who("happyTo")}>
         {(
           [
-            ["mentor", "Mentor juniors", "Answer questions and help students make decisions."],
-            ["refer", "Refer people at my company", "When a junior is a good fit for a job, recommend them."],
-            ["talk", "Give a talk at the college", "A guest lecture or a session for a department."]
+            ["mentor", "Mentor juniors", "Answer questions and help students choose well."],
+            ["refer", "Refer people at my company", "Suggest a junior for a job that fits them."],
+            ["talk", "Give a talk at the college", "A guest talk or a session for a department."]
           ] as const
         ).map(([key, label, note]) => (
           <label key={key} className="editor__check">

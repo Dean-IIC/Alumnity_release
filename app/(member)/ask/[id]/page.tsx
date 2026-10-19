@@ -42,11 +42,11 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
       {ask.status === "open" && (
         <section className="wf-card">
           {asker ? (
-            <p>We sent your question to a few seniors who match it. We will tell you when one of them takes it.</p>
+            <p>We sent your question to a few seniors who match it. We'll tell you when one of them takes it.</p>
           ) : isSenior(me) ? (
             <ActionForm action={takeAskAction}>
               {hidden}
-              <p>Can you help? If you take this question, you will reply to {firstName(ask.author.name)} privately, on this page.</p>
+              <p>Can you help? Take it, and you reply to {firstName(ask.author.name)} here, just between you two.</p>
               <button className="button button--primary" type="submit">
                 Take this question
               </button>
@@ -92,7 +92,7 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
           <ActionForm action={answeredAction} className="wf-stack">
             {hidden}
             <label className="field">
-              <span className="field__label">A short thank-you note (optional; it is shown on {firstName(ask.taker?.name ?? "")}'s Record)</span>
+              <span className="field__label">A short thank-you (optional). It shows on {firstName(ask.taker?.name ?? "")}'s Record.</span>
               <textarea name="thanks" rows={2} maxLength={300} />
             </label>
             <div>
@@ -112,7 +112,7 @@ export default async function AskDetail({ params }: { params: Promise<{ id: stri
 
       <div className="wf-actions" style={{ marginTop: "var(--space-6)" }}>
         {asker && (ask.status === "open" || ask.status === "taken") && (
-          <ActionForm action={closeAskAction} confirm="Close this question? No one can reply after you close it.">
+          <ActionForm action={closeAskAction} confirm="Close this question? No one can reply after that.">
             {hidden}
             <button className="wf-link-button" type="submit">
               Close question

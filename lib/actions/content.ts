@@ -94,7 +94,7 @@ export async function verifyPostAction(_: ActionState, form: FormData): Promise<
   const me = await actor();
   if (!me) return SIGNED_OUT;
   const on = textFrom(form, "on", 2) === "1";
-  return answer(await verifyPost(me, idFrom(form), on), on ? "Verified. It is now on the HKBK board." : "Removed from the HKBK board.");
+  return answer(await verifyPost(me, idFrom(form), on), on ? "Done. It's on the HKBK board now." : "Removed from the HKBK board.");
 }
 
 /** Pins one of your own posts to the top of your page ("Featured"), or unpins it. */

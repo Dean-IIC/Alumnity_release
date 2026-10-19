@@ -53,7 +53,7 @@ const OLD_SITE = "hkbkeducation.org, via the Wayback Machine (2014)";
 export const ERAS: Era[] = [
   {
     year: 1998,
-    title: "The earliest batch on record",
+    title: "The earliest batch in the register",
     detail: "125 students · CSE, ECE, ISE, Mechanical",
     photo: campus("a-cse")
   },
@@ -65,8 +65,8 @@ export const ERAS: Era[] = [
   },
   {
     year: 2010,
-    title: "The Army comes recruiting",
-    detail: "Indian Army campus recruitment drive",
+    title: "The Army comes to hire",
+    detail: "The Indian Army hires on campus",
     photo: archive("era-2010-army-drive", `${OLD_SITE}: HRD-Placement/photogallery/2010IndianArmy`)
   },
   {

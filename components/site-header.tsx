@@ -62,7 +62,7 @@ export function SiteHeader({ landing = false, current, member }: SiteHeaderProps
       <a className="site-nav__brand" href={me ? "/home" : "/"} aria-label={me ? "Alumnity, go to Home" : "Alumnity, HKBK College of Engineering alumni network, home page"}>
         <BrandLockup data-brand-target={landing || undefined} />
       </a>
-      <nav aria-label="Primary navigation">
+      <nav aria-label="Main links">
         {(me ? MEMBER_LINKS : LINKS).map((link) => (
           <a key={link.href} href={link.href} onClick={soon} aria-current={link.section === current ? "page" : undefined}>
             {link.label}

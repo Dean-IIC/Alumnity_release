@@ -26,7 +26,7 @@ export function PageEditor({
   const [role, setRole] = useState(signerRole ?? "");
   const help =
     kind === "list"
-      ? 'One person a line: the role, a colon, then the name. For example "President: Asha Rao". Leave out the name to show "To be announced".'
+      ? 'One person on each line. Write the role, a colon, then the name, like "President: Asha Rao". Leave out the name to show "To be announced".'
       : kind === "letter"
         ? "Leave an empty line between paragraphs. The first paragraph is the greeting."
         : "Leave an empty line between paragraphs.";
