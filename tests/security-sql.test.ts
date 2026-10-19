@@ -67,7 +67,7 @@ const connect = async (a: U, b: U) => {
 
 /** Every table still there, with its rows. */
 async function tablesIntact() {
-  for (const table of ["users", "posts", "post_comments", "messages", "groups", "profiles", "register", "notifications"]) {
+  for (const table of ["users", "posts", "post_comments", "messages", "groups", "profiles", "records.register", "site.announcements", "notifications"]) {
     expect(await db.db().one(`select count(*) as n from ${table}`)).toBeDefined();
   }
   expect((await db.db().one<{ n: number }>("select count(*) as n from users"))!.n).toBeGreaterThan(0);
@@ -84,7 +84,7 @@ beforeAll(async () => {
   register = await import("../lib/server/register");
   auth = await import("../lib/server/auth");
   // A made-up line on the register, so its lookups run for real.
-  await db.db().run("insert into register (name, usn, branch, branch_name, programme, year) values ('Asha Testcase Rao', '1XX12XX999', 'CSE', 'CSE', 'B.Tech', 2012)");
+  await db.db().run("insert into records.register (name, usn, branch, branch_name, programme, year) values ('Asha Testcase Rao', '1XX12XX999', 'CSE', 'CSE', 'B.Tech', 2012)");
 });
 
 describe("SQL injection", () => {
