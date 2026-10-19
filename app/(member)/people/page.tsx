@@ -6,7 +6,7 @@ import { MemberLine } from "../../../components/app/member-line";
 import { BRANCHES, isBranch } from "../../../lib/branches";
 import { Invite } from "../../../components/app/invite";
 import { batchmates, memberCount, searchMembers, whereAlumniWork, type SearchQuery } from "../../../lib/server/people";
-import { batchCount, REGISTER_SEARCHES, searchRegister } from "../../../lib/server/register";
+import { batchCount, REGISTER_SEARCHES, registerFacts, searchRegister } from "../../../lib/server/register";
 import { Avatar } from "../../../components/social/avatar";
 import { batchLabel } from "../../../lib/format";
 import { requireUser } from "../../../lib/server/session";
@@ -31,10 +31,11 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   };
   const searched = Boolean(query.q || query.branch || query.year || query.help);
   // Members, and (for a name or USN typed) people on the college register who haven't joined yet.
-  const [found, register, companies] = await Promise.all([
+  const [found, register, companies, college] = await Promise.all([
     searchMembers(me, query),
     query.q ? searchRegister(me, { q: query.q, branch: query.branch, year: query.year }) : Promise.resolve({ people: [], limited: false }),
-    searched ? Promise.resolve([]) : whereAlumniWork(me)
+    searched ? Promise.resolve([]) : whereAlumniWork(me),
+    query.q ? Promise.resolve(null) : registerFacts()
   ]);
   const photos = await photoIdsOf(found.slice(0, 60).map((f) => f.member.id));
   // A young network: who's here so far, and how many from your batch aren't yet.
@@ -63,7 +64,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
         </label>
         <label className="field">
           <span className="field__label">Joined in</span>
-          <input name="year" inputMode="numeric" pattern="[0-9]{4}" defaultValue={query.year ?? ""} placeholder="Any year" />
+          <input name="year" inputMode="numeric" pattern="[0-9]{4}" defaultValue={query.year ?? ""} placeholder="Any" />
         </label>
         <label className="field">
           <span className="field__label">Happy to</span>
@@ -78,6 +79,15 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
           Search
         </button>
       </form>
+
+      {/* Only members are listed until a name is typed (the register isn't a list to browse),
+          so the page looked empty of real people: "is the data missing?" It says it's here. */}
+      {college && (
+        <p className="people-register-note">
+          <strong>{college.count.toLocaleString("en-IN")} people</strong> from HKBK&apos;s register, {college.from}–{college.to}, can be found here: type a name or USN above.
+          Below are those who have joined Alumnity so far.
+        </p>
+      )}
 
       {quiet && (
         <section className="wf-card" aria-labelledby="young">
