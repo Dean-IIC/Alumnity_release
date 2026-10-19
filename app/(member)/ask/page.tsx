@@ -63,7 +63,9 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
         <input name="topics" maxLength={200} placeholder="e.g. Placements, Java, Higher studies" />
         <span className="field__hint">Topics help it reach seniors who know them.</span>
       </label>
-      <div>
+      {/* Held in sight on a phone: below the first screen, a blind test never saw it, and
+          tapped the tab bar's Post instead (which leaves the page, question and all). */}
+      <div className="ask-send">
         <button className="button button--primary" type="submit">
           Send the question <span aria-hidden="true">→</span>
         </button>

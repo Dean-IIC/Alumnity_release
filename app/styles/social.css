@@ -1960,6 +1960,22 @@ html.story-open {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
+/* Ask a senior on a phone: "Send the question" stays in sight above the tab bar while the
+   form is on screen, so it's the button to press, not the bar's Post. */
+@media (max-width: 860px) {
+  .ask-send {
+    position: sticky;
+    z-index: 5;
+    bottom: 76px;
+    padding: var(--space-2) 0;
+    background: linear-gradient(to top, var(--color-paper) 70%, transparent);
+  }
+
+  .ask-send .button {
+    width: 100%;
+  }
+}
+
 /* A phone: the people in a row to swipe, not a card each down the screen. Four of them
    stacked pushed the first post two screens down. */
 @media (max-width: 600px) {
