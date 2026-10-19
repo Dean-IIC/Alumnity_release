@@ -7,6 +7,8 @@ import { AppPage } from "../../../components/app/app-page";
 import { initialsOf } from "../../../components/profile/ink-seal";
 import { Avatar } from "../../../components/social/avatar";
 import { Composer } from "../../../components/social/composer";
+import { ProfileStrength } from "../../../components/profile/profile-strength";
+import { profileStrength } from "../../../lib/profile-strength";
 import { KnowEveryone } from "../../../components/home/know-everyone";
 import { FocusWaiting, RoleFocus } from "../../../components/home/role-focus";
 import { Icon } from "../../../components/social/icons";
@@ -106,8 +108,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const now = [profile.title, profile.company && `at ${profile.company}`].filter(Boolean).join(" ");
 
   // Getting started, for who they are: a student wants help; an alumnus can give it; staff run things.
+  // Filling in their page is one step of it, shown as their profile strength (from the page
+  // already loaded) rather than as list items of its own, so nothing is asked twice.
   const staff = me.role !== "student" && me.role !== "alumnus";
-  const pageDone = Boolean(profile.title || profile.about || profile.skills.length || profile.photo);
+  const strength = profileStrength(me, profile);
+  const pageFull = strength.percent >= 100;
   const [asked, organised] = await Promise.all([me.role === "student" ? askCount(me.id) : Promise.resolve(0), staff ? organisedCount(me.id) : Promise.resolve(0)]);
   const mentorStep = { done: profile.happyTo.mentor, text: "Say you're happy to mentor: questions that fit you start reaching you", href: "/ask", mentor: true };
   const groupStep = { done: groups.mine.length > 0, text: "Join a group, or start one", href: "/groups" };
@@ -115,32 +120,29 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const { invited, announced } = desk ? await deskBeginnings() : { invited: 0, announced: 0 };
   const steps: { done: boolean; text: string; href: string; mentor?: boolean }[] = desk
     ? [
-        { done: pageDone, text: "Add a photo and what you do at HKBK", href: "/me/edit" },
         { done: invited > 0, text: "Invite the teachers and staff who'll use Alumnity", href: "/desk?tab=team" },
         { done: announced > 0, text: "Put up a first announcement: it shows at the top of everyone's Home", href: "/desk?tab=announcements" },
         mentorStep
       ]
     : me.role === "student"
       ? [
-          { done: pageDone, text: "Add a photo and what you're up to", href: "/me/edit" },
-          { done: Object.values(profile.seeking).some(Boolean), text: "Say what you're looking for: a mentor, an internship, a referral", href: "/me/edit" },
           { done: connections > 0, text: "Connect with someone from your batch", href: "/batch" },
           { done: asked > 0, text: "Ask a senior something", href: "/ask" }
         ]
       : staff
         ? [
-            { done: pageDone, text: "Add a photo and what you teach", href: "/me/edit" },
             { done: organised > 0, text: "Put up an event: a talk, a reunion, a department day", href: "/events" },
             mentorStep,
             groupStep
           ]
         : [
-            { done: pageDone, text: "Add a photo and what you do now", href: "/me/edit" },
             { done: connections > 0, text: "Connect with someone from your batch", href: "/batch" },
             mentorStep,
             groupStep
           ];
   const stepsLeft = steps.filter((s) => !s.done).length;
+  // "Say you're happy to mentor" is in the list (one tap); the strength doesn't suggest it as well.
+  const saidInSteps = steps.some((s) => s.mentor && !s.done) ? ["happyTo"] : [];
 
   return (
     <AppPage user={me} current="home" bare>
@@ -236,14 +238,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </Suspense>
           )}
 
-          {stepsLeft > 0 && !before && (
+          {(stepsLeft > 0 || !pageFull) && !before && (
             <section className="sheet side-box" aria-labelledby="steps">
+              {/* A full page counts as one of the steps; until then its strength shows here, above the rest. */}
               <h2 id="steps">
                 Getting started{" "}
                 <span className="h-count">
-                  · {steps.length - stepsLeft} of {steps.length}
+                  · {steps.length - stepsLeft + (pageFull ? 1 : 0)} of {steps.length + 1}
                 </span>
               </h2>
+              {!pageFull && <ProfileStrength strength={strength} show={2} skip={saidInSteps} heading="h3" className="strength--inline" />}
               <ul className="wf-checklist">
                 {steps.map((s) => (
                   <li key={s.text} className={s.done ? "done" : ""}>

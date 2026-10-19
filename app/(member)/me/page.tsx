@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { AppPage } from "../../../components/app/app-page";
 import { LogOutButton } from "../../../components/join/log-out-button";
 import { ProfileSheet } from "../../../components/profile/profile-sheet";
+import { ProfileStrength } from "../../../components/profile/profile-strength";
+import { profileStrength } from "../../../lib/profile-strength";
 import { profileOf } from "../../../lib/server/profile";
 import { requireUser } from "../../../lib/server/session";
 import { batchSizeOf } from "../../../lib/server/register";
@@ -42,6 +44,8 @@ export default async function MePage() {
       <div className="profile-page">
         <ProfileSheet person={user} profile={profile} isOwner badges={await badgesOf(user, profile)}
           batchSize={user.usn ? await batchSizeOf(user.usn) : undefined}
+          // Only on your own page, from the page already loaded: how full it is, and what's left.
+          underTop={<ProfileStrength strength={profileStrength(user, profile)} className="strength--card" />}
           actions={
             <>
               <Link className="button button--primary" href="/me/edit">

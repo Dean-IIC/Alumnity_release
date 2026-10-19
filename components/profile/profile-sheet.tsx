@@ -102,7 +102,8 @@ const STAFF = new Set(["faculty", "coordinator", "admin", "superadmin"]);
 
 const linkLabel = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 
-export function ProfileSheet({ person, profile, isOwner, batchSize, actions, badges = [] }: { person: SheetPerson; profile: Profile; isOwner: boolean; batchSize?: number; actions?: ReactNode; badges?: Badge[] }) {
+/** `underTop`: something only the owner sees, just under the top of the page (their profile strength, on /me). */
+export function ProfileSheet({ person, profile, isOwner, batchSize, actions, badges = [], underTop }: { person: SheetPerson; profile: Profile; isOwner: boolean; batchSize?: number; actions?: ReactNode; badges?: Badge[]; underTop?: ReactNode }) {
   const years = person.programme === "B.Tech" ? 4 : 2;
   const graduated = person.joined && person.role !== "student" ? person.joined + years : null;
   const branch = person.branch ?? "HKBK";
@@ -203,6 +204,7 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
           {actions && <div className="profile__actions">{actions}</div>}
         </div>
       </header>
+      {isOwner && underTop}
 
       <div className="profile__body">
         <div className="profile__main">
