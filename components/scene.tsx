@@ -13,6 +13,9 @@ import { memo, type CSSProperties, type ReactNode } from "react";
  *   a line that rises        growth and progress (jobs, the board)
  *   ripples                  something reaching you (notifications)
  *   level lines              steadiness (settings, the desk)
+ *   stars, joined            a network: people joined to people
+ *   a pavilion, lights       an occasion: somewhere to be, something on
+ *   steps                    the way up, shown by those who went first
  *
  * Each layer is its own element, so the waves drift on the graphics card without
  * repainting the page; nothing moves for anyone who prefers less motion.
@@ -63,7 +66,48 @@ type Shape = { behind?: number } & (
   | { kind: "arc"; x: number; y: number; r: number; from: number; to: number; width: number; fade?: number }
   | { kind: "ripple"; x: number; y: number; r: number; rings: number; gap: number }
   | { kind: "line"; wave: Omit<Wave, "side" | "tone" | "drift" | "reach">; width: number; fade?: number }
+  /** A rounded rectangle: a step, a pillar, a stage. Filled in a blue, or outlined in gold. */
+  | { kind: "block"; x: number; y: number; w: number; h: number; round: number; tone?: number; outline?: number; turn?: number; fade?: number }
+  /** A triangle with rounded corners: a roof, a beam of light. */
+  | { kind: "peak"; x: number; y: number; w: number; h: number; tone?: number; gold?: boolean; fade?: number }
+  /** Stars joined by fine lines, scattered over a box: people joined to people. */
+  | { kind: "stars"; x: number; y: number; w: number; h: number; count: number; seed: number }
+  /** Fine slanting streaks of green, like light rain over the sea. */
+  | { kind: "rain"; x: number; y: number; w: number; h: number; count: number; seed: number }
+  /** Lights strung on a line that dips between two points: something on tonight. */
+  | { kind: "lights"; x1: number; x2: number; y: number; sag: number; count: number }
 );
+
+const GREEN = "#7ef0b4";
+
+/** A small seeded random: the same picture on every visit. */
+function seeded(seed: number) {
+  let n = seed >>> 0;
+  return () => {
+    n = (n * 1664525 + 1013904223) >>> 0;
+    return n / 2 ** 32;
+  };
+}
+
+/** A triangle (point up) with its three corners rounded off. */
+function roundedTriangle(x: number, y: number, w: number, h: number, r = 18): string {
+  const pts = [
+    [x, y - h],
+    [x + w / 2, y],
+    [x - w / 2, y]
+  ];
+  const towards = (a: number[], b: number[], d: number) => {
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    return [a[0] + ((b[0] - a[0]) * d) / len, a[1] + ((b[1] - a[1]) * d) / len];
+  };
+  let d = "";
+  pts.forEach((p, i) => {
+    const a = towards(p, pts[(i + 2) % 3], r);
+    const b = towards(p, pts[(i + 1) % 3], r);
+    d += `${i === 0 ? "M" : "L"} ${a[0]} ${a[1]} Q ${p[0]} ${p[1]} ${b[0]} ${b[1]} `;
+  });
+  return `${d}Z`;
+}
 
 type Scene = { waves: Wave[]; shapes: Shape[] };
 
@@ -96,15 +140,14 @@ const SCENES: Record<SceneName, Scene> = {
       line(0.9, 26, 640, 0.35, 2, 0.5)
     ]
   },
-  // Network: rings that overlap, people joined to people.
+  // Network: bright stars joined by fine lines (people joined to people), soft green rain
+  // falling into the sea.
   people: {
     waves: [w(0.7, 44, 760, 0.3, "bottom", 3, 24), w(0.82, 30, 620, 0.7, "bottom", 1, 29), w(0.16, 40, 900, 0.1, "top", 1, 33, 70)],
     shapes: [
-      { kind: "ring", x: 1330, y: 360, r: 130, width: 3, fade: 0.85 },
-      { kind: "ring", x: 1450, y: 430, r: 110, width: 3, fade: 0.7 },
-      { kind: "ring", x: 1350, y: 500, r: 90, width: 3, fade: 0.55 },
-      { kind: "orb", x: 1395, y: 430, r: 34 },
-      { kind: "orb", x: 170, y: 700, r: 120, behind: 0 }
+      { kind: "rain", x: 0, y: 120, w: 1600, h: 640, count: 70, seed: 11, behind: 0 },
+      { kind: "stars", x: 1180, y: 170, w: 400, h: 520, count: 14, seed: 7 },
+      { kind: "stars", x: 20, y: 260, w: 220, h: 420, count: 8, seed: 3 }
     ]
   },
   // Connections: two rings meeting, the space they share in gold.
@@ -155,13 +198,22 @@ const SCENES: Record<SceneName, Scene> = {
       { kind: "orb", x: 1420, y: 280, r: 56 }
     ]
   },
-  // Events: a tall arch to walk through, a sun beyond it: a day to look forward to.
+  // Events: a pavilion (a roof, pillars, a stage) with lights strung across it and a beam
+  // of light from above: something is on, and you are invited.
   events: {
-    waves: [w(0.72, 44, 780, 0.2, "bottom", 3, 24), w(0.84, 30, 600, 0.5, "bottom", 1, 29)],
+    waves: [w(0.8, 34, 780, 0.2, "bottom", 3, 24), w(0.9, 24, 600, 0.5, "bottom", 1, 29)],
     shapes: [
-      { kind: "orb", x: 1440, y: 600, r: 100, behind: 0 },
-      { kind: "arc", x: 1380, y: 760, r: 250, from: 180, to: 360, width: 5, fade: 0.9, behind: 0 },
-      { kind: "arc", x: 1380, y: 760, r: 300, from: 195, to: 345, width: 2, fade: 0.45, behind: 0 }
+      { kind: "peak", x: 1360, y: 780, w: 300, h: 360, gold: true, fade: 0.14, behind: 0 },
+      { kind: "peak", x: 1360, y: 400, w: 520, h: 150, tone: 0, behind: 0 },
+      { kind: "block", x: 1170, y: 590, w: 38, h: 330, round: 14, tone: 0, behind: 0 },
+      { kind: "block", x: 1295, y: 590, w: 38, h: 330, round: 14, tone: 0, behind: 0 },
+      { kind: "block", x: 1425, y: 590, w: 38, h: 330, round: 14, tone: 0, behind: 0 },
+      { kind: "block", x: 1550, y: 590, w: 38, h: 330, round: 14, tone: 0, behind: 0 },
+      { kind: "block", x: 1360, y: 412, w: 500, h: 26, round: 10, tone: 1, behind: 0 },
+      { kind: "block", x: 1360, y: 412, w: 500, h: 26, round: 10, outline: 2.5, fade: 0.8, behind: 0 },
+      { kind: "block", x: 1360, y: 770, w: 560, h: 44, round: 14, tone: 0, behind: 0 },
+      { kind: "lights", x1: 1090, x2: 1630, y: 440, sag: 50, count: 9, behind: 0 },
+      { kind: "lights", x1: -20, x2: 420, y: 150, sag: 70, count: 7 }
     ]
   },
   // The board: a line climbing gently to the right, ending in a sun: progress.
@@ -173,14 +225,20 @@ const SCENES: Record<SceneName, Scene> = {
       { kind: "orb", x: 1580, y: 420, r: 64 }
     ]
   },
-  // Ask a senior: a sun in the corner, its light reaching out in arcs: an answer arriving.
+  // Ask a senior: a sun in the corner, its light reaching out in arcs, and steps rising
+  // towards it: an answer from someone who went this way first.
   ask: {
     waves: [w(0.74, 42, 820, 0.4, "bottom", 3, 27), w(0.86, 30, 640, 0.1, "bottom", 1, 23)],
     shapes: [
       { kind: "orb", x: 1600, y: 0, r: 240 },
       { kind: "arc", x: 1600, y: 0, r: 320, from: 90, to: 180, width: 3, fade: 0.75 },
       { kind: "arc", x: 1600, y: 0, r: 400, from: 95, to: 175, width: 2, fade: 0.5 },
-      { kind: "arc", x: 1600, y: 0, r: 480, from: 100, to: 170, width: 1.5, fade: 0.3 }
+      { kind: "arc", x: 1600, y: 0, r: 480, from: 100, to: 170, width: 1.5, fade: 0.3 },
+      // Steps up towards the light: those who went before, and the way they found.
+      { kind: "block", x: 1150, y: 760, w: 170, h: 46, round: 14, outline: 3, fade: 0.85 },
+      { kind: "block", x: 1290, y: 680, w: 170, h: 46, round: 14, outline: 3, fade: 0.7 },
+      { kind: "block", x: 1430, y: 600, w: 170, h: 46, round: 14, outline: 3, fade: 0.55 },
+      { kind: "stars", x: 60, y: 300, w: 240, h: 300, count: 6, seed: 21 }
     ]
   },
   // A profile: one long line like a life's path, and a single orb: one person.
@@ -242,6 +300,80 @@ function ShapeArt({ s, glow }: { s: Shape; glow: string }) {
       );
     case "line":
       return <path d={swell(s.wave)} fill="none" stroke={GOLD.line} strokeWidth={s.width} strokeLinecap="round" opacity={s.fade ?? 0.7} />;
+    case "block":
+      return (
+        <rect
+          x={s.x - s.w / 2}
+          y={s.y - s.h / 2}
+          width={s.w}
+          height={s.h}
+          rx={s.round}
+          fill={s.outline ? "none" : BLUE[s.tone ?? 0]}
+          stroke={s.outline ? GOLD.line : "none"}
+          strokeWidth={s.outline}
+          opacity={s.fade ?? 1}
+          transform={s.turn ? `rotate(${s.turn} ${s.x} ${s.y})` : undefined}
+        />
+      );
+    case "peak":
+      return <path d={roundedTriangle(s.x, s.y, s.w, s.h)} fill={s.gold ? GOLD.core : BLUE[s.tone ?? 0]} opacity={s.fade ?? 1} />;
+    case "stars": {
+      const rand = seeded(s.seed);
+      const pts = Array.from({ length: s.count }, () => [s.x + rand() * s.w, s.y + rand() * s.h, 3 + rand() * 4] as const);
+      // Each star joined to its nearest one or two: a loose web, not a tangle.
+      const links: [number, number][] = [];
+      pts.forEach((p, i) => {
+        const near = pts
+          .map((q, j) => [j, Math.hypot(q[0] - p[0], q[1] - p[1])] as const)
+          .filter(([j]) => j !== i)
+          .sort((a, b) => a[1] - b[1])
+          .slice(0, i % 3 === 0 ? 2 : 1);
+        for (const [j] of near) if (!links.some(([a, b]) => (a === j && b === i) || (a === i && b === j))) links.push([i, j]);
+      });
+      return (
+        <g>
+          {links.map(([a, b], k) => (
+            <line key={k} x1={pts[a][0]} y1={pts[a][1]} x2={pts[b][0]} y2={pts[b][1]} stroke={GOLD.core} strokeWidth={2} opacity={0.75} strokeLinecap="round" />
+          ))}
+          {pts.map(([x, y, r], k) => (
+            <g key={k}>
+              <circle cx={x} cy={y} r={r * 2.6} fill={GOLD.core} opacity={0.18} />
+              <circle cx={x} cy={y} r={r} fill="#ffe680" />
+            </g>
+          ))}
+        </g>
+      );
+    }
+    case "rain": {
+      const rand = seeded(s.seed);
+      return (
+        <g stroke={GREEN} strokeLinecap="round">
+          {Array.from({ length: s.count }, (_, k) => {
+            const x = s.x + rand() * s.w;
+            const y = s.y + rand() * s.h;
+            const len = 40 + rand() * 90;
+            return <line key={k} x1={x} y1={y} x2={x - len * 0.18} y2={y + len} strokeWidth={1.5 + rand() * 1.5} opacity={0.25 + rand() * 0.4} />;
+          })}
+        </g>
+      );
+    }
+    case "lights": {
+      const point = (t: number) => [s.x1 + (s.x2 - s.x1) * t, s.y + s.sag * 4 * t * (1 - t)] as const;
+      return (
+        <g>
+          <path d={`M ${s.x1} ${s.y} Q ${(s.x1 + s.x2) / 2} ${s.y + s.sag * 2} ${s.x2} ${s.y}`} fill="none" stroke={GOLD.line} strokeWidth={1.5} opacity={0.6} />
+          {Array.from({ length: s.count }, (_, k) => {
+            const [x, y] = point((k + 1) / (s.count + 1));
+            return (
+              <g key={k}>
+                <circle cx={x} cy={y + 8} r={14} fill={GOLD.core} opacity={0.22} />
+                <circle cx={x} cy={y + 8} r={6} fill="#ffe680" />
+              </g>
+            );
+          })}
+        </g>
+      );
+    }
   }
 }
 
