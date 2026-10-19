@@ -158,7 +158,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <Link href="/connections">
                 <strong>{connections}</strong> {connections === 1 ? "connection" : "connections"}
               </Link>
-              <Link href="/me">
+              {/* To the list of who follows you (it used to open your own page, which lists nobody). */}
+              <Link href="/connections#followers">
                 <strong>{follows.followers}</strong> {follows.followers === 1 ? "follower" : "followers"}
               </Link>
             </div>

@@ -1,0 +1,865 @@
+/*
+ * People, made to feel like finding people (Instagram, LinkedIn) rather than a catalogue:
+ * one big search bar, filters as chips, requests first, and everyone as a card with a big
+ * round face. Imported by app/(member)/people/page.tsx only. Tokens from tokens.css; dark
+ * mode follows from them.
+ */
+
+/* ---------- The search bar ---------- */
+
+.people-search {
+  position: relative;
+  z-index: 5; /* the Filters panel lies over the cards below */
+  display: grid;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-6);
+}
+
+.people-search__bar {
+  position: relative;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 56px;
+  padding: 0 6px 0 var(--space-4);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color var(--duration-instant) ease,
+    box-shadow var(--duration-instant) ease;
+}
+
+.people-search__bar:focus-within {
+  border-color: var(--color-blue);
+  box-shadow:
+    0 0 0 4px var(--color-wash-blue),
+    var(--shadow-card);
+}
+
+.people-search__icon {
+  flex: none;
+  color: var(--color-ink-muted);
+}
+
+.people-search__bar:focus-within .people-search__icon {
+  color: var(--color-blue);
+}
+
+.people-search__input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--color-ink);
+  font: var(--weight-regular) 1.0625rem / 1.2 var(--font-ui);
+}
+
+.people-search__input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+/* The browser's own × in a search box: ours is the round one beside it. */
+.people-search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.people-search__clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.people-search__clear:hover {
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+}
+
+.people-search__go {
+  flex: none;
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-blue);
+  color: #fff;
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.people-search__go:hover {
+  background: var(--color-blue-deep);
+}
+
+/* Searching: a thin gold line runs along the bottom of the bar until the results arrive. */
+.people-search[data-pending] .people-search__bar::after {
+  content: "";
+  position: absolute;
+  right: 28px;
+  bottom: -1px;
+  left: 28px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: people-searching 0.9s linear infinite;
+}
+
+@keyframes people-searching {
+  from {
+    background-position: -40% 0;
+  }
+  to {
+    background-position: 140% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .people-search[data-pending] .people-search__bar::after {
+    animation: none;
+    background: var(--color-gold);
+    opacity: 0.6;
+  }
+}
+
+/* ---------- Chips, and the Filters panel ---------- */
+
+.people-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.people-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background var(--duration-instant) ease,
+    border-color var(--duration-instant) ease;
+}
+
+.people-chip:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+.people-chip.is-on {
+  border-color: var(--color-blue);
+  background: var(--color-blue);
+  color: #fff;
+}
+
+/* A filter that's on, with its × to take it off. */
+.people-chip--set {
+  border-color: transparent;
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+}
+
+.people-chip--set span {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.people-filters {
+  position: relative;
+}
+
+.people-filters > summary {
+  list-style: none;
+}
+
+.people-filters > summary::-webkit-details-marker {
+  display: none;
+}
+
+.people-filters[open] > summary {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+.people-filters[open] > summary.is-on {
+  color: #fff;
+}
+
+.people-filters__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  display: grid;
+  gap: var(--space-4);
+  width: min(560px, calc(100vw - 2 * var(--gutter)));
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-pop);
+}
+
+.people-filters__group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.people-filters__group legend {
+  margin-bottom: var(--space-2);
+  padding: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.people-filters__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* A choice as a pill: the radio itself is hidden, the pill shows whether it's chosen. */
+.people-pill {
+  position: relative;
+  cursor: pointer;
+}
+
+.people-pill input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.people-pill span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+
+.people-pill:hover span {
+  border-color: var(--color-blue);
+}
+
+.people-pill input:checked + span {
+  border-color: var(--color-blue);
+  background: var(--color-blue);
+  color: #fff;
+}
+
+.people-pill input:focus-visible + span {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.people-filters__year {
+  width: 100%;
+  max-width: 220px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-small);
+}
+
+.people-filters__end {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.people-filters__reset {
+  color: var(--color-blue);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---------- Sections ---------- */
+
+.people-section {
+  margin-block: var(--space-6);
+}
+
+.people-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.wf .people-section__head h2 {
+  margin: 0;
+}
+
+.people-section__head > a,
+.people-section__note {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.people-section__head > a {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.people-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bright-red);
+  color: #fff;
+  font: var(--weight-bold) 13px / 1 var(--font-ui);
+  vertical-align: middle;
+}
+
+.people-empty {
+  padding: var(--space-6) var(--space-5);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.people-empty a {
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---------- Buttons on cards ---------- */
+
+.people-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--duration-instant) ease,
+    border-color var(--duration-instant) ease,
+    color var(--duration-instant) ease;
+}
+
+.people-btn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.people-btn--primary {
+  background: var(--color-blue);
+  color: #fff;
+}
+
+.people-btn--primary:hover {
+  background: var(--color-blue-deep);
+  color: #fff;
+}
+
+.people-btn--follow {
+  border-color: var(--color-gold);
+  background: var(--color-wash-gold);
+  color: var(--color-ink);
+}
+
+.people-btn--follow:hover {
+  background: var(--color-gold);
+  color: var(--color-navy);
+}
+
+.people-btn--quiet {
+  border-color: var(--color-border);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+}
+
+.people-btn--quiet:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+/* "Requested": waiting on them; tapping takes it back, so it looks pressable but grey. */
+.people-btn--pending {
+  border-color: var(--color-border);
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+}
+
+.people-btn--pending:hover {
+  border-color: var(--color-bright-red);
+  color: var(--color-bright-red);
+}
+
+.people-btn--invite {
+  background: var(--color-green);
+  color: #fff;
+}
+
+.people-btn--invite:hover {
+  filter: brightness(1.1);
+  color: #fff;
+}
+
+/* In the dark, blue and green are light inks: white on them wouldn't read, so the paper does. */
+:root[data-theme="dark"] .people-btn--invite,
+:root[data-theme="dark"] .people-btn--primary,
+:root[data-theme="dark"] .people-btn--primary:hover,
+:root[data-theme="dark"] .people-search__go,
+:root[data-theme="dark"] .people-chip.is-on,
+:root[data-theme="dark"] .people-filters[open] > summary.is-on,
+:root[data-theme="dark"] .people-pill input:checked + span {
+  color: var(--color-paper);
+}
+
+/* ---------- The cards ---------- */
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(214px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+  min-width: 0;
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  transition:
+    transform var(--duration-instant) ease,
+    box-shadow var(--duration-instant) ease;
+}
+
+.person-card:hover {
+  box-shadow:
+    0 1px 2px rgba(10, 42, 87, 0.08),
+    0 10px 24px rgba(10, 42, 87, 0.1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .person-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Someone who asked you: a gold edge, like the requests strip. */
+.person-card--asks {
+  border-color: var(--color-notice-edge);
+}
+
+.person-card__face {
+  display: block;
+  line-height: 0;
+  border-radius: 50%;
+}
+
+.person-card__face .avatar {
+  width: 88px;
+  height: 88px;
+  box-shadow:
+    0 0 0 3px var(--color-paper-raised),
+    0 0 0 5px var(--color-wash-blue);
+}
+
+.person-card__who {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  align-content: start;
+  justify-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.person-card__name-line {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  max-width: 100%;
+}
+
+.person-card__name {
+  overflow: hidden;
+  color: var(--color-ink);
+  font: var(--weight-bold) 1.0625rem / 1.25 var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.person-card__name:hover {
+  color: var(--color-blue);
+}
+
+.person-card__batch {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.person-card__headline {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-ink-soft);
+  font-size: var(--text-small);
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.person-card__headline--quiet {
+  color: var(--color-ink-muted);
+  font-style: italic;
+}
+
+.person-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.person-card__tags:empty {
+  display: none;
+}
+
+.person-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink-soft);
+  font-size: 11.5px;
+  font-weight: var(--weight-semibold);
+}
+
+.person-tag--why {
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+}
+
+.person-tag--connected {
+  background: var(--color-wash-green);
+  color: var(--color-green);
+}
+
+.person-tag--received,
+.person-tag--mentor {
+  background: var(--color-wash-gold);
+  color: var(--color-gold-small);
+}
+
+.person-tag--waiting {
+  border: 1px solid var(--color-notice-edge);
+  background: var(--color-wash-gold);
+  color: var(--color-gold-small);
+}
+
+.person-card__actions,
+.invite-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+}
+
+.person-card__actions {
+  width: 100%;
+}
+
+/* An answer from a card's button (an error) shouldn't widen the card. */
+.person-card__actions .wf-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--text-fine);
+}
+
+/* Not on Alumnity yet: a dashed edge and a paler seal, so they read as "not here yet". */
+.person-card--register {
+  border-style: dashed;
+  border-color: var(--color-border);
+  background: var(--color-paper-glass);
+  box-shadow: none;
+}
+
+.person-card--register .person-card__face .avatar {
+  opacity: 0.75;
+  box-shadow: 0 0 0 3px var(--color-paper-raised);
+}
+
+.person-card__name--plain {
+  color: var(--color-ink);
+}
+
+/* ---------- Requests, first ---------- */
+
+.people-requests {
+  margin-top: 0;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border: 1px solid var(--color-notice-edge);
+  border-radius: 16px;
+  background: var(--color-notice);
+}
+
+.people-requests .people-section__head {
+  margin-bottom: var(--space-3);
+}
+
+.wf .people-requests h2 {
+  font-size: 20px;
+}
+
+.request-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.request-card {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--color-paper-raised);
+}
+
+.request-card__face {
+  line-height: 0;
+}
+
+.request-card__face .avatar {
+  width: 56px;
+  height: 56px;
+}
+
+.request-card__who {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.request-card__name {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-weight: var(--weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-card__name:hover {
+  color: var(--color-blue);
+}
+
+.request-card__batch {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.request-card__note {
+  overflow: hidden;
+  color: var(--color-ink-soft);
+  font-size: var(--text-fine);
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-card__actions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: var(--space-2);
+}
+
+.request-card__actions .wf-form {
+  flex: 1;
+}
+
+.request-card__actions .people-btn {
+  width: 100%;
+}
+
+/* ---------- The register's own section ---------- */
+
+.register-all {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-line);
+}
+
+.register-all > .wf-muted {
+  margin: 0 0 var(--space-4);
+}
+
+/* ---------- Phones: compact rows instead of a grid of cards ---------- */
+
+@media (max-width: 640px) {
+  .people-search__go {
+    display: none; /* the keyboard's own Search key does it; without scripts, Enter still submits */
+  }
+
+  .people-search__bar {
+    min-height: 50px;
+    padding-right: var(--space-2);
+  }
+
+  .people-search__input {
+    height: 48px;
+  }
+
+  .people-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .people-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .people-chip {
+    flex: none;
+  }
+
+  /* The panel can't hang from a chip in a scrolling row: it opens under the bar instead. */
+  .people-filters {
+    position: static;
+  }
+
+  .people-filters__panel {
+    right: 0;
+    left: 0;
+    width: auto;
+  }
+
+  .people-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .person-card {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 4px var(--space-3);
+    align-items: start;
+    padding: var(--space-3) 0;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    text-align: left;
+  }
+
+  .person-card:hover {
+    box-shadow: none;
+    transform: none;
+  }
+
+  .person-card--register {
+    background: none;
+  }
+
+  .person-card__face .avatar {
+    width: 56px;
+    height: 56px;
+    box-shadow: none;
+  }
+
+  .person-card__who {
+    justify-items: start;
+  }
+
+  .person-card__tags {
+    justify-content: flex-start;
+  }
+
+  .person-card__actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .people-requests {
+    margin-inline: calc(-1 * var(--space-2));
+    padding: var(--space-3);
+  }
+
+  /* Requests side by side, swiped through, as on Instagram. */
+  .request-strip {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-2);
+    padding-bottom: 4px;
+  }
+
+  .request-card {
+    flex: 0 0 min(86%, 320px);
+    scroll-snap-align: start;
+  }
+
+  .request-strip > .request-card:only-child {
+    flex-basis: 100%;
+  }
+}
