@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { BackLink } from "./back-link";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
-import { MarginArt } from "./app/margin-art";
 import { VisitorOnly } from "./visitor-only";
 import "../app/styles/wire.css";
 import "../app/styles/info.css";
@@ -31,9 +30,6 @@ export function PublicPage({ current, kicker, title, gold, intro, children }: Pr
   return (
     <>
       <SiteHeader current={current} />
-      <div className="info-art">
-        <MarginArt />
-      </div>
       <main className="container info" id="main">
         <BackLink fallback="/" label="Back" />
         <header className="page-head info__head">

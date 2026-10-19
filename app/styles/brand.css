@@ -1,80 +1,73 @@
 /*
- * The Alumnity lockup: wordmark, red swoosh, crest and college name. Sized entirely in
- * em, so the intro's big copy and the nav's small one are the same shape at two sizes.
+ * The lockup: the HKBK crest, the college's name, "Alumni Network" under it. As on
+ * hkbkce.in's header: the logo large, the name bold in the college's navy.
  */
 
 .brand {
-  display: inline-grid;
-  justify-items: start;
-  line-height: 1;
+  display: inline-flex;
+  gap: 0.65rem;
+  align-items: center;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.brand__logo {
+  flex: none;
+  width: 48px;
+  height: 48px;
+}
+
+.brand__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 .brand__name {
-  color: var(--color-blue);
-  font-family: var(--font-wordmark);
-  font-size: 1em;
-  font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-wordmark);
-}
-
-.brand__dot {
-  color: var(--color-gold);
-}
-
-.brand__swoosh {
-  display: block;
-  width: 104%;
-  height: 0.2em;
-  margin: -0.05em 0 0 -2%;
-  overflow: visible;
-}
-
-.brand__swoosh-reveal {
-  fill: none;
-  stroke: #fff; /* a mask: white shows the ink */
-  stroke-linecap: round;
-  stroke-width: 42;
-  stroke-dasharray: 1 1;
-  stroke-dashoffset: 0;
-}
-
-.brand__swoosh-ink {
-  fill: var(--color-red);
-}
-
-/* Under the wordmark, from the same left edge (so it lines up with everything below it). */
-.brand__by {
-  display: grid;
-  justify-self: start;
-  justify-items: start;
-  margin-top: 0.12em;
-  color: var(--color-ink);
+  overflow: hidden;
+  color: var(--color-red);
   font-family: var(--font-ui);
+  font-size: 1.125rem;
   font-weight: var(--weight-bold);
-  line-height: 1;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Both bylines share one cell, so the intro can crossfade between them. */
-.brand__by > span {
-  display: flex;
-  gap: 0.4em;
-  align-items: center;
-  grid-area: 1 / 1;
+.brand__sub {
+  color: var(--color-ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
 }
 
-.brand__by-full {
-  font-size: 0.185em;
-  letter-spacing: -0.01em;
+/* A phone: the name shortens to fit beside the bar's icons. */
+@media (max-width: 860px) {
+  .brand__logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand__name {
+    font-size: 0.95rem;
+  }
+
+  .brand__sub {
+    font-size: 0.72rem;
+  }
 }
 
-.brand__by-short {
-  font-size: 0.36em;
-  letter-spacing: -0.01em;
-}
+/* A phone: the college's name whole, over two lines, rather than cut short. */
+@media (max-width: 480px) {
+  .brand {
+    gap: 0.5rem;
+  }
 
-.brand__crest {
-  width: 1.7em;
-  height: 1.7em;
-  flex: none;
+  .brand__name {
+    max-width: 10.5em;
+    font-size: 0.92rem;
+    line-height: 1.12;
+    white-space: normal;
+  }
 }

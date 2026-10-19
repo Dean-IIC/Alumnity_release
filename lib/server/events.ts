@@ -231,3 +231,13 @@ export function eventIcs(event: Event, origin: string): string {
 export async function organisedCount(userId: number): Promise<number> {
   return (await db().one<{ n: number }>("select count(*) as n from events where organiser = ?", userId))?.n ?? 0;
 }
+
+/** What's coming up, for the public landing: a title, a date and a place (nothing about who's going). */
+export async function upcomingForEveryone(limit = 3): Promise<{ id: number; title: string; startsAt: number; place: string }[]> {
+  const rows = await db().all<{ id: number; title: string; starts_at: number; place: string }>(
+    "select id, title, starts_at, place from events where cancelled_at is null and coalesce(ends_at, starts_at) >= ? order by starts_at limit ?",
+    Date.now(),
+    limit
+  );
+  return rows.map((r) => ({ id: r.id, title: r.title, startsAt: Number(r.starts_at), place: r.place }));
+}

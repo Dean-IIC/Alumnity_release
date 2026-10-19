@@ -60,7 +60,7 @@
   color: var(--color-red);
   font-family: var(--font-voice);
   font-size: clamp(30px, 6vw, 44px);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-bold);
   line-height: 1.1;
 }
 
@@ -72,7 +72,7 @@
   margin: var(--space-7) 0 var(--space-3);
   font-family: var(--font-voice);
   font-size: 24px;
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-bold);
 }
 
 .wf-muted {
@@ -622,6 +622,7 @@
 .director h2 {
   margin-top: 0;
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
 }
 
 .director__sign {
@@ -633,6 +634,7 @@
 
 .director__sign strong {
   font-family: var(--font-voice);
+  font-weight: var(--weight-bold);
   font-size: var(--text-card);
 }
 

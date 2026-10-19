@@ -8,7 +8,7 @@
   margin: var(--space-2) 0;
   font-family: var(--font-voice);
   font-size: var(--text-title);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-bold);
 }
 
 .lab__intro p,

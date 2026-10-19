@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { DM_Sans, Figtree, Young_Serif } from "next/font/google";
+import { IBM_Plex_Sans } from "next/font/google";
 import { INTRO_PREFERENCE_SCRIPT } from "../lib/intro-preference";
 import { THEME_SCRIPT } from "../lib/theme";
+import { Backdrop } from "../components/backdrop";
 import "./globals.css";
 
 // Self-hosted by Next at build time: no render-blocking request to Google on load.
-// Figtree for the interface, Young Serif for the human voice (chosen in the /lab comparison).
-// Figtree as its one variable font (every weight in one file) rather than four static ones:
-// a phone decodes one font on first paint instead of four.
-const sans = Figtree({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-const serif = Young_Serif({ subsets: ["latin"], weight: "400", variable: "--font-serif", display: "swap" });
-// The wordmark keeps its own face: the logo shouldn't change when the body font does.
-const wordmark = DM_Sans({ subsets: ["latin"], weight: "700", variable: "--font-wordmark-face", display: "swap" });
+// IBM Plex Sans, the college site's own face (hkbkce.in): this is its alumni network.
+const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans", display: "swap" });
+// Headings: the same face in bold only, so every heading set in the "voice" renders bold
+// without each rule having to ask for it.
+const serif = IBM_Plex_Sans({ subsets: ["latin"], weight: "700", variable: "--font-serif", display: "swap" });
 
 const SITE = process.env.SITE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3004");
 
@@ -35,12 +34,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable} ${wordmark.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${serif.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: INTRO_PREFERENCE_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <Backdrop />
+        {children}
+      </body>
     </html>
   );
 }

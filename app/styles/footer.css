@@ -1,70 +1,124 @@
-/* The page's foot: who it's for, and the intro setting. */
+/*
+ * The foot of every page, as hkbkce.in's: navy, the crest and address, two columns of
+ * links, and the legal line on a deeper band below.
+ */
 
 .site-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-6);
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-5) 0 var(--space-6);
-  border-top: 1px solid var(--color-line);
-  color: var(--color-ink-muted);
+  margin-top: var(--space-9);
+  background: var(--color-navy);
+  color: rgba(255, 255, 255, 0.82);
   font-size: var(--text-small);
 }
 
-.site-footer__for {
-  margin: 0;
-}
-
-.site-footer__intro {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-5);
-  align-items: center;
-}
-
-.site-footer__intro label,
-.site-footer__intro a {
-  display: inline-flex;
-  gap: var(--space-2);
-  align-items: center;
-  min-height: var(--tap-target);
-}
-
-.site-footer__intro label {
-  cursor: pointer;
-}
-
-.site-footer__intro input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: var(--color-blue);
-}
-
-.site-footer__intro a {
-  color: var(--color-blue);
-  font-weight: var(--weight-semibold);
-}
-
-.site-footer__main {
+.site-footer__grid {
   display: grid;
-  gap: var(--space-1);
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+  gap: var(--space-7);
+  padding-block: var(--space-8) var(--space-7);
 }
 
-.site-footer__links {
+.site-footer a {
+  color: rgba(255, 255, 255, 0.82);
+  transition: color var(--duration-instant) ease;
+}
+
+.site-footer a:hover {
+  color: var(--color-gold);
+}
+
+.site-footer__crest {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.site-footer__crest img {
+  width: 56px;
+  height: 56px;
+  padding: 4px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.site-footer__crest span {
+  display: grid;
+  gap: 2px;
+}
+
+.site-footer__crest strong {
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.site-footer__crest em {
+  color: var(--color-gold);
+  font-size: var(--text-fine);
+}
+
+.site-footer address {
+  display: grid;
+  gap: 2px;
+  margin-bottom: var(--space-3);
+  font-style: normal;
+}
+
+.site-footer h2 {
+  margin: 0 0 var(--space-4);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site-footer ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-footer__legal {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.16);
+  font-size: var(--text-fine);
+}
+
+.site-footer__legal-inner {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 var(--space-4);
-}
-
-.site-footer__links a {
-  display: inline-flex;
+  gap: var(--space-2) var(--space-5);
   align-items: center;
-  min-height: 36px;
-  color: var(--color-ink-muted);
+  justify-content: space-between;
+  padding-block: var(--space-4);
 }
 
-.site-footer__links a:hover {
-  color: var(--color-ink);
+.site-footer__legal-links {
+  display: flex;
+  gap: var(--space-4);
+}
+
+@media (max-width: 860px) {
+  .site-footer__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+  }
+
+  .site-footer__college {
+    grid-column: 1 / -1;
+  }
+
+  /* Room for the phone's tab bar on members' pages. */
+  .site-footer--app {
+    padding-bottom: 72px;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-footer__grid {
+    grid-template-columns: 1fr;
+  }
 }

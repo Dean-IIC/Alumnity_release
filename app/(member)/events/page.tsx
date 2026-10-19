@@ -13,20 +13,36 @@ export const dynamic = "force-dynamic";
 
 function EventLine({ event, past = false }: { event: Event; past?: boolean }) {
   const full = event.capacity !== null && event.going >= event.capacity;
+  const d = new Date(event.startsAt);
+  const part = (o: Intl.DateTimeFormatOptions) => d.toLocaleString("en-IN", { ...o, timeZone: "Asia/Kolkata" });
   return (
-    <li className="wf-member">
-      <div className="wf-member__who">
-        <Link className="wf-member__name" href={`/events/${event.id}`}>
+    <li className={`event-card ${past ? "event-card--past" : ""} ${event.cancelled ? "event-card--cancelled" : ""}`}>
+      {/* A calendar leaf: the month on navy, the day large. */}
+      <span className="event-card__date" aria-hidden="true">
+        <small>{part({ month: "short" })}</small>
+        <strong>{part({ day: "numeric" })}</strong>
+        <span>{part({ weekday: "short" })}</span>
+      </span>
+      <div className="event-card__body">
+        <Link className="event-card__title" href={`/events/${event.id}`}>
           {event.title}
         </Link>
-        <span className="wf-muted">
-          {when(event.startsAt)} · {event.place}
+        <span className="event-card__when">
+          {when(event.startsAt)}
+          {event.place ? <> · {event.place}</> : null}
         </span>
-        <span className="wf-member__detail">
-          {event.going} going{event.capacity ? ` of ${event.capacity}` : ""}
-        </span>
+        {event.capacity ? (
+          <span className="event-card__seats">
+            <span className="event-card__bar" aria-hidden="true">
+              <span style={{ width: `${Math.min(100, (event.going / event.capacity) * 100)}%` }} />
+            </span>
+            {event.going} of {event.capacity} going
+          </span>
+        ) : (
+          <span className="event-card__seats">{event.going} going</span>
+        )}
       </div>
-      <div className="wf-actions">
+      <div className="event-card__action">
         {event.cancelled ? (
           <span className="wf-tag wf-tag--red">Cancelled</span>
         ) : past ? null : (
@@ -50,7 +66,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   return (
     <AppPage user={me} current="events" title="Events" intro="Reunions, talks and college days.">
       <h2>Coming up</h2>
-      {upcoming.length === 0 ? <p className="wf-empty">Nothing planned yet.</p> : <ul className="wf-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>}
+      {upcoming.length === 0 ? <p className="wf-empty">Nothing planned yet.</p> : <ul className="event-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>}
 
       {canOrganise(me) && (await settings()).features.events && (
         <details className="wf-fold" id="new-event" open={opening}>
@@ -98,7 +114,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       {past.length > 0 && (
         <>
           <h2>Past events</h2>
-          <ul className="wf-list">
+          <ul className="event-list">
             {past.map((e) => (
               <EventLine key={e.id} event={e} past />
             ))}

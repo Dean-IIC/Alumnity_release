@@ -29,7 +29,7 @@
   color: var(--color-red);
   font-family: var(--font-voice);
   font-size: var(--text-page-title);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-bold);
   line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);
 }
@@ -95,7 +95,7 @@
 .page-error h1 {
   margin: 0 0 var(--space-3);
   color: var(--color-red);
-  font: var(--text-title) / 1.1 var(--font-voice);
+  font: var(--weight-bold) var(--text-title) / 1.1 var(--font-voice);
 }
 
 .page-error p {

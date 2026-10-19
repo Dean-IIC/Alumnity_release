@@ -57,3 +57,7 @@ scripts/        the register importer, and the intro video recorder
 tests/          database, unit and browser tests
 docs/           the runbook, the design system, the architecture
 ```
+
+## Images that belong to the college
+
+`public/college/` holds HKBK College of Engineering's own logo and the photos of its chairman, director and principal, copied from hkbkce.in with the team's OK (19 Oct 2026) for this alumni network, which is the college's. They are the college's, not this project's; replace them from hkbkce.in if the college updates them.
