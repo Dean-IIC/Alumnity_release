@@ -3,6 +3,7 @@ import { IBM_Plex_Sans } from "next/font/google";
 import { INTRO_PREFERENCE_SCRIPT } from "../lib/intro-preference";
 import { THEME_SCRIPT } from "../lib/theme";
 import { Backdrop } from "../components/backdrop";
+import { CardMotion } from "../components/card-motion";
 import "./globals.css";
 
 // Self-hosted by Next at build time: no render-blocking request to Google on load.
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <Backdrop />
+        <CardMotion />
         {children}
       </body>
     </html>

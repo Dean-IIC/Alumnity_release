@@ -75,8 +75,9 @@ export async function registerFacts(): Promise<RegisterFacts | null> {
 export type NotYetJoined = { name: string; branch: string; branchName: string; programme: string; joined: number };
 
 const HOUR = 60 * 60_000;
-/** Searches of the register a member may make in an hour: plenty to find people, too few to copy it out. */
-export const REGISTER_SEARCHES = 40;
+/** Searches of the register a member may make in an hour: People searches as you type, so
+ *  generous; still far too few to copy the register out. */
+export const REGISTER_SEARCHES = 120;
 
 export { nameCase } from "../format";
 

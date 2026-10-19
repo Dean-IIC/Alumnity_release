@@ -128,3 +128,22 @@ export function guillocheSvg(stroke = "#ffb400"): string {
     `<g fill="none" stroke="${stroke}" stroke-width="0.9"><path d="${waves}" opacity="0.28"/><path d="${rosette}" opacity="0.26"/></g></svg>`
   );
 }
+
+/**
+ * The card's designs, chosen by its owner (kept in their browser): the same two colours drive
+ * the card on the page (CSS) and the PNG they download (lib/server/alumni-card-image.tsx).
+ * Every one is dark enough for the card's white words and gold to read on it.
+ */
+export const CARD_THEMES = [
+  { key: "navy", label: "Navy", dark: "#0a2a57", light: "#123e7c" },
+  { key: "crimson", label: "Crimson", dark: "#5c0f12", light: "#b91c1c" },
+  { key: "emerald", label: "Emerald", dark: "#053d2c", light: "#15803d" },
+  { key: "royal", label: "Royal", dark: "#2e0b5c", light: "#6d28d9" },
+  { key: "midnight", label: "Midnight", dark: "#05070d", light: "#1f2937" },
+  { key: "sunset", label: "Sunset", dark: "#7c2d12", light: "#d97706" }
+] as const;
+
+export type CardThemeKey = (typeof CARD_THEMES)[number]["key"];
+
+/** A design by its key; anything unknown is the college's navy. */
+export const cardTheme = (key: string | null | undefined) => CARD_THEMES.find((t) => t.key === key) ?? CARD_THEMES[0];

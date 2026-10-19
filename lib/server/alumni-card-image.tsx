@@ -73,10 +73,16 @@ function Label({ children }: { children: string }) {
   return <div style={{ display: "flex", fontSize: 17, letterSpacing: 4, color: GOLD, textTransform: "uppercase" }}>{children}</div>;
 }
 
-export function CardFrontImage({ card, photo, crest }: { card: AlumniCard; photo: string | null; crest: string | null }): ReactElement {
+/** The card's frame in a chosen design (the default is the college's navy). */
+const themed = (theme?: { dark: string; light: string }) =>
+  theme
+    ? { ...frame, backgroundColor: theme.dark, backgroundImage: `radial-gradient(circle at 85% 18%, rgba(255, 180, 0, 0.16), transparent 42%), linear-gradient(135deg, ${theme.dark} 0%, ${theme.light} 55%, ${theme.dark} 100%)` }
+    : frame;
+
+export function CardFrontImage({ card, photo, crest, theme }: { card: AlumniCard; photo: string | null; crest: string | null; theme?: { dark: string; light: string } }): ReactElement {
   const nameSize = card.name.length > 26 ? 42 : card.name.length > 20 ? 50 : 58;
   return (
-    <div style={frame}>
+    <div style={themed(theme)}>
       <Pattern />
       <Edge />
       <div style={{ display: "flex", flexDirection: "column", width: "100%", padding: "52px 64px 60px" }}>
@@ -138,9 +144,9 @@ export function CardFrontImage({ card, photo, crest }: { card: AlumniCard; photo
   );
 }
 
-export function CardBackImage({ card, crest }: { card: AlumniCard; crest: string | null }): ReactElement {
+export function CardBackImage({ card, crest, theme }: { card: AlumniCard; crest: string | null; theme?: { dark: string; light: string } }): ReactElement {
   return (
-    <div style={frame}>
+    <div style={themed(theme)}>
       <Pattern />
       <Edge />
       {/* A band across the top, where a plastic card has its stripe. */}

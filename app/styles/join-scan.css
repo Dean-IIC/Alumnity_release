@@ -626,3 +626,14 @@
     transform: scaleX(0);
   }
 }
+
+/* A phone: the status chip under the college's name, not squeezed beside it. */
+@media (max-width: 480px) {
+  .register-scan__head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .register-scan__status {
+    justify-self: start;
+  }
+}

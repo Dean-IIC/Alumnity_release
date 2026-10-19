@@ -1,3 +1,4 @@
+import { cardTheme } from "../../../../lib/alumni-card";
 import { ImageResponse } from "next/og";
 import { NextResponse } from "next/server";
 import { signedInUser } from "../../../../lib/server/auth";
@@ -22,11 +23,13 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const back = url.searchParams.get("side") === "back";
+  // The design they chose on the page (only a known one; anything else is navy).
+  const theme = cardTheme(url.searchParams.get("theme"));
   const card = await cardFor(user, url.origin);
   const [photo, crest] = await Promise.all([back ? null : cardPhoto(card.photoId, user.id), crestImage(url.origin)]);
 
   const file = `alumnity-card-${card.memberNo.toLowerCase()}${back ? "-back" : ""}.png`;
-  return new ImageResponse(back ? <CardBackImage card={card} crest={crest} /> : <CardFrontImage card={card} photo={photo} crest={crest} />, {
+  return new ImageResponse(back ? <CardBackImage card={card} crest={crest} theme={theme} /> : <CardFrontImage card={card} photo={photo} crest={crest} theme={theme} />, {
     width: IMAGE_W,
     height: IMAGE_H,
     headers: {

@@ -442,58 +442,98 @@
   box-shadow: 0 0 0 2px #fff;
 }
 
-/* ---------- Cards: they fill with a colourful pattern as you point at them ---------- */
+/* ---------- Cards: each kind fills with its own pattern, spreading from where you point ----------
+   Not one polka dot for everything: a pattern that means something for each kind of card,
+   drawn as a small SVG tile, revealed slowly like ink spreading from the pointer (or the
+   middle, for a tap or the keyboard). components/card-motion.tsx sets --mx/--my. */
 
-:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory) {
+:root {
+  /* Number cards: rings rising from a corner. */
+  --pat-rings: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='200'%3E%3Cg fill='none' stroke-width='2'%3E%3Ccircle cx='320' cy='200' r='40' stroke='%23ffb400' stroke-opacity='.55'/%3E%3Ccircle cx='320' cy='200' r='75' stroke='%23123e7c' stroke-opacity='.25'/%3E%3Ccircle cx='320' cy='200' r='110' stroke='%23ffb400' stroke-opacity='.45'/%3E%3Ccircle cx='320' cy='200' r='145' stroke='%23123e7c' stroke-opacity='.2'/%3E%3Ccircle cx='320' cy='200' r='180' stroke='%23e0242f' stroke-opacity='.25'/%3E%3Ccircle cx='320' cy='200' r='215' stroke='%23123e7c' stroke-opacity='.15'/%3E%3C/g%3E%3C/svg%3E");
+  /* Find your batch: a chain of linked rings, classmates. */
+  --pat-chain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='26'%3E%3Cg fill='none' stroke-width='1.6'%3E%3Ccircle cx='13' cy='13' r='8' stroke='%23123e7c' stroke-opacity='.35'/%3E%3Ccircle cx='31' cy='13' r='8' stroke='%23ffb400' stroke-opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+  /* Ask a senior: speech bubbles. */
+  --pat-bubbles: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='54'%3E%3Cg fill='none' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M6 8h22a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H14l-6 5v-5H6a4 4 0 0 1-4-4v-8a4 4 0 0 1 4-4z' stroke='%230f8a8f' stroke-opacity='.55'/%3E%3Cpath d='M40 30h18a4 4 0 0 1 4 4v7a4 4 0 0 1-4 4h-2v5l-6-5H40a4 4 0 0 1-4-4v-7a4 4 0 0 1 4-4z' stroke='%23ffb400' stroke-opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+  /* Mentor a junior: a staircase going up. */
+  --pat-stairs: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M2 46h10V36h10V26h10V16h10V6h4' fill='none' stroke='%23ffb400' stroke-opacity='.75' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='44' cy='6' r='2.5' fill='%23e0242f' fill-opacity='.6'/%3E%3C/svg%3E");
+  /* HKBK board: little bar charts climbing. */
+  --pat-bars: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='44'%3E%3Cg%3E%3Crect x='6' y='26' width='8' height='14' rx='2' fill='%2316a34a' fill-opacity='.35'/%3E%3Crect x='18' y='18' width='8' height='22' rx='2' fill='%2316a34a' fill-opacity='.5'/%3E%3Crect x='30' y='8' width='8' height='32' rx='2' fill='%23ffb400' fill-opacity='.6'/%3E%3C/g%3E%3C/svg%3E");
+  /* Events: a calendar's days, a few of them marked. */
+  --pat-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='48'%3E%3Cg fill='none' stroke='%23e0242f' stroke-opacity='.25' stroke-width='1.2'%3E%3Crect x='3' y='3' width='18' height='18' rx='4'/%3E%3Crect x='27' y='3' width='18' height='18' rx='4'/%3E%3Crect x='51' y='3' width='18' height='18' rx='4'/%3E%3Crect x='3' y='27' width='18' height='18' rx='4'/%3E%3Crect x='51' y='27' width='18' height='18' rx='4'/%3E%3C/g%3E%3Crect x='27' y='27' width='18' height='18' rx='4' fill='%23ffb400' fill-opacity='.55'/%3E%3Crect x='51' y='3' width='18' height='18' rx='4' fill='%23e0242f' fill-opacity='.25'/%3E%3C/svg%3E");
+  /* Leaders: guilloche waves, like a certificate's border. */
+  --pat-guilloche: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='36'%3E%3Cg fill='none' stroke-width='1.2'%3E%3Cpath d='M0 18c15-14 45-14 60 0s45 14 60 0' stroke='%23ffb400' stroke-opacity='.65'/%3E%3Cpath d='M0 18c15 14 45 14 60 0s45-14 60 0' stroke='%23123e7c' stroke-opacity='.3'/%3E%3Cpath d='M0 8c15-8 45-8 60 0s45 8 60 0M0 28c15 8 45 8 60 0s45-8 60 0' stroke='%23e0242f' stroke-opacity='.18'/%3E%3C/g%3E%3C/svg%3E");
+  /* People: a constellation, people joined up. */
+  --pat-constellation: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cg stroke='%230f8a8f' stroke-opacity='.4' stroke-width='1.2'%3E%3Cpath d='M12 18 44 34 70 14M44 34 36 70 80 62 70 14M36 70 10 84'/%3E%3C/g%3E%3Cg fill='%230f8a8f' fill-opacity='.55'%3E%3Ccircle cx='12' cy='18' r='3'/%3E%3Ccircle cx='36' cy='70' r='3'/%3E%3Ccircle cx='80' cy='62' r='3'/%3E%3Ccircle cx='10' cy='84' r='2.5'/%3E%3C/g%3E%3Ccircle cx='44' cy='34' r='4' fill='%23ffb400' fill-opacity='.8'/%3E%3Ccircle cx='70' cy='14' r='3.5' fill='%23e0242f' fill-opacity='.5'/%3E%3C/svg%3E");
+  /* Photo memories: a film strip's holes. */
+  --pat-film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='18'%3E%3Crect x='6' y='5' width='14' height='8' rx='2' fill='%23c2185b' fill-opacity='.22'/%3E%3C/svg%3E");
+  /* Everything else: soft contour lines, a journey's map. */
+  --pat-contours: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='180'%3E%3Cg fill='none' stroke-width='1.3'%3E%3Cellipse cx='210' cy='40' rx='30' ry='18' stroke='%23ffb400' stroke-opacity='.6'/%3E%3Cellipse cx='210' cy='40' rx='60' ry='36' stroke='%23123e7c' stroke-opacity='.22'/%3E%3Cellipse cx='210' cy='40' rx='95' ry='58' stroke='%23ffb400' stroke-opacity='.4'/%3E%3Cellipse cx='210' cy='40' rx='135' ry='84' stroke='%23123e7c' stroke-opacity='.16'/%3E%3Cellipse cx='210' cy='40' rx='180' ry='112' stroke='%2316a34a' stroke-opacity='.18'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card) {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
 }
 
-/* The pattern: gold and blue dots over a soft gold-red-blue wash, faded in on hover. */
-:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory)::before {
+/* The pattern layer: hidden in a point, spreading out to fill the card. */
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card)::before {
   position: absolute;
   z-index: -1;
   inset: 0;
   content: "";
-  background:
-    radial-gradient(circle, rgba(255, 180, 0, 0.32) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
-    radial-gradient(circle, rgba(18, 62, 124, 0.18) 0 1.6px, transparent 2px) 9px 9px / 18px 18px,
-    linear-gradient(135deg, rgba(255, 180, 0, 0.16), rgba(224, 36, 47, 0.08) 50%, rgba(18, 62, 124, 0.12));
-  opacity: 0;
-  transition: opacity 260ms ease;
+  background: var(--pat, var(--pat-contours)) var(--pat-at, 0 0) / var(--pat-size, auto) var(--pat-repeat, repeat), var(--pat-wash, linear-gradient(135deg, rgba(255, 180, 0, 0.1), rgba(18, 62, 124, 0.06)));
+  clip-path: circle(0% at var(--mx, 50%) var(--my, 50%));
+  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
 }
 
-:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory):hover::before {
-  opacity: 1;
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card):is(:hover, :focus-within, :active)::before {
+  clip-path: circle(150% at var(--mx, 50%) var(--my, 50%));
 }
 
-:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader):hover {
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .person-card, .request-card):hover {
   border-color: var(--color-gold);
-  box-shadow: 0 12px 28px rgba(10, 42, 87, 0.14);
+  box-shadow: 0 14px 30px rgba(10, 42, 87, 0.14);
   transform: translateY(-3px);
 }
 
-/* Each kind of card its own colours in the pattern. */
-:root .lp-stat:nth-child(3)::before,
-:root .lp-for li:nth-child(4) .lp-card::before {
-  background:
-    radial-gradient(circle, rgba(22, 163, 74, 0.3) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
-    linear-gradient(135deg, rgba(22, 163, 74, 0.12), rgba(255, 180, 0, 0.1));
+/* Which pattern where. */
+:root .lp-stat { --pat: var(--pat-rings); --pat-at: right bottom; --pat-size: 320px 200px; --pat-repeat: no-repeat; --pat-wash: linear-gradient(135deg, rgba(255, 180, 0, 0.12), rgba(18, 62, 124, 0.05)); }
+:root .lp-for li:nth-child(1) .lp-card { --pat: var(--pat-chain); --pat-wash: linear-gradient(135deg, rgba(18, 62, 124, 0.08), rgba(255, 180, 0, 0.1)); }
+:root .lp-for li:nth-child(2) .lp-card { --pat: var(--pat-bubbles); --pat-wash: linear-gradient(135deg, rgba(15, 138, 143, 0.1), rgba(255, 180, 0, 0.08)); }
+:root .lp-for li:nth-child(3) .lp-card { --pat: var(--pat-stairs); --pat-wash: linear-gradient(135deg, rgba(255, 180, 0, 0.14), rgba(224, 36, 47, 0.05)); }
+:root .lp-for li:nth-child(4) .lp-card { --pat: var(--pat-bars); --pat-wash: linear-gradient(135deg, rgba(22, 163, 74, 0.1), rgba(255, 180, 0, 0.08)); }
+:root .event-card { --pat: var(--pat-calendar); --pat-wash: linear-gradient(135deg, rgba(224, 36, 47, 0.06), rgba(255, 180, 0, 0.1)); }
+:root .lp-leader { --pat: var(--pat-guilloche); --pat-wash: linear-gradient(135deg, rgba(255, 180, 0, 0.1), rgba(18, 62, 124, 0.06)); }
+:root :is(.focus__person, .person-card, .request-card) { --pat: var(--pat-constellation); --pat-wash: linear-gradient(135deg, rgba(15, 138, 143, 0.08), rgba(255, 180, 0, 0.08)); }
+:root .more-card--memory { --pat: var(--pat-film); --pat-wash: linear-gradient(135deg, rgba(194, 24, 91, 0.06), rgba(255, 180, 0, 0.08)); }
+
+/* The old dots and their per-card colours: replaced by the patterns above. */
+:root :is(.lp-stat:nth-child(3), .lp-stat:nth-child(4), .event-card, .lp-for li .lp-card)::before {
+  background: var(--pat, var(--pat-contours)) var(--pat-at, 0 0) / var(--pat-size, auto) var(--pat-repeat, repeat), var(--pat-wash);
 }
 
-:root .lp-stat:nth-child(4)::before,
-:root .event-card::before {
-  background:
-    radial-gradient(circle, rgba(224, 36, 47, 0.26) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
-    linear-gradient(135deg, rgba(224, 36, 47, 0.1), rgba(255, 180, 0, 0.12));
+/* ---------- Every card rises into place as it's reached (components/card-motion.tsx) ---------- */
+
+.cards-ready :is(.sheet, .wf-card, .event-card, .person-card, .request-card, .album-card, .lp-card, .lp-stat, .focus__person):not(.is-shown) {
+  opacity: 0;
+  transform: translateY(18px);
 }
 
-:root .lp-for li:nth-child(2) .lp-card::before {
-  background:
-    radial-gradient(circle, rgba(15, 138, 143, 0.3) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
-    linear-gradient(135deg, rgba(15, 138, 143, 0.12), rgba(18, 62, 124, 0.1));
+.cards-ready :is(.sheet, .wf-card, .event-card, .person-card, .request-card, .album-card, .lp-card, .lp-stat, .focus__person) {
+  transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out), box-shadow 260ms ease, border-color 260ms ease, clip-path 900ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card)::before {
+    transition: none;
+  }
+
+  :root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .person-card, .request-card):hover {
+    transform: none;
+  }
 }
 
 /* Buttons and links: a simpler lift and fill, no pattern (patterns are for cards). */
@@ -583,4 +623,11 @@
   .know-everyone__confetti {
     display: none;
   }
+}
+
+/* The spread: slow and even (about a second and a half), the pattern soft enough that the
+   card's words stay crisp over it. */
+:root :is(a.lp-card, .lp-stat, .event-card, .focus__person, .lp-leader, .more-card--memory, .person-card, .request-card, .side-box, .wf-card)::before {
+  opacity: 0.62;
+  transition: clip-path 1400ms cubic-bezier(0.45, 0.05, 0.25, 1);
 }

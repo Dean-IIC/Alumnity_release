@@ -1,5 +1,6 @@
 "use client";
 
+import { CARD_THEMES, cardTheme } from "../../lib/alumni-card";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /*
@@ -14,6 +15,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  */
 
 const CARD_URL = "/me/card";
+const THEME_KEY = "alumnity:card-theme";
 const SHARE_TEXT = "My HKBK College of Engineering alumni card, on Alumnity.";
 
 export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front: ReactNode; back: ReactNode; memberNo: string; profileUrl: string }) {
@@ -22,8 +24,35 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
   const [flipped, setFlipped] = useState(false);
   const [canShare, setCanShare] = useState(false);
   const [note, setNote] = useState("");
+  // Their chosen design, remembered in this browser.
+  const [theme, setTheme] = useState<string>(CARD_THEMES[0].key);
 
   useEffect(() => setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function"), []);
+  useEffect(() => {
+    try {
+      setTheme(cardTheme(localStorage.getItem(THEME_KEY)).key);
+    } catch {
+      // Storage off: the college's navy.
+    }
+  }, []);
+
+  function choose(key: string) {
+    setTheme(key);
+    image.current = null; // the shared image follows the new design
+    try {
+      localStorage.setItem(THEME_KEY, key);
+    } catch {
+      // Storage off: it's chosen for this visit.
+    }
+    prepare(key);
+  }
+
+  /** The card as a PNG, made ready for Share (in the chosen design). */
+  function prepare(key: string) {
+    image.current ??= fetch(`${CARD_URL}?theme=${key}`, { credentials: "same-origin" })
+      .then(async (r) => (r.ok ? new File([await r.blob()], file, { type: "image/png" }) : null))
+      .catch(() => null);
+  }
 
   const file = `alumnity-card-${memberNo.toLowerCase()}.png`;
 
@@ -31,10 +60,8 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
     setFlipped(false);
     setNote("");
     dialog.current?.showModal();
-    // Ready for Share (once per page; it's their own card, and it doesn't change while they look).
-    image.current ??= fetch(CARD_URL, { credentials: "same-origin" })
-      .then(async (r) => (r.ok ? new File([await r.blob()], file, { type: "image/png" }) : null))
-      .catch(() => null);
+    // Ready for Share (once per design; it's their own card, and it doesn't change while they look).
+    prepare(theme);
   }
 
   async function share() {
@@ -58,7 +85,7 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
 
   return (
     <>
-      <button type="button" className="acard-promo__mini" onClick={open} tabIndex={-1} aria-hidden="true">
+      <button type="button" className="acard-promo__mini" onClick={open} tabIndex={-1} aria-hidden="true" data-card-theme={theme}>
         <span className="acard-size">{front}</span>
       </button>
       <div className="acard-promo__text">
@@ -91,7 +118,7 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
           </div>
 
           {/* A tap anywhere on the card turns it over; the button below does the same for keyboards. */}
-          <div className="acard-size acard-flip" onClick={() => setFlipped((f) => !f)}>
+          <div className="acard-size acard-flip" data-card-theme={theme} onClick={() => setFlipped((f) => !f)}>
             <div className={`acard-flip__inner${flipped ? " is-flipped" : ""}`}>
               <div className="acard-flip__face" inert={flipped} aria-hidden={flipped}>
                 {front}
@@ -112,8 +139,25 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
             </span>
           </p>
 
+          {/* The card's design: one tap each, remembered for next time. */}
+          <div className="acard-themes" role="radiogroup" aria-label="Card design">
+            {CARD_THEMES.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                role="radio"
+                aria-checked={theme === t.key}
+                aria-label={t.label}
+                title={t.label}
+                className="acard-themes__swatch"
+                style={{ background: `linear-gradient(135deg, ${t.dark}, ${t.light})` }}
+                onClick={() => choose(t.key)}
+              />
+            ))}
+          </div>
+
           <div className="acard-dialog__actions">
-            <a className="button button--primary" href={`${CARD_URL}?download=1`} download={file}>
+            <a className="button button--primary" href={`${CARD_URL}?download=1&theme=${theme}`} download={file}>
               Download
             </a>
             {canShare && (
@@ -121,7 +165,7 @@ export function AlumniCardViewer({ front, back, memberNo, profileUrl }: { front:
                 Share
               </button>
             )}
-            <a className="acard-dialog__more" href={`${CARD_URL}?side=back&download=1`} download={file.replace(".png", "-back.png")}>
+            <a className="acard-dialog__more" href={`${CARD_URL}?side=back&download=1&theme=${theme}`} download={file.replace(".png", "-back.png")}>
               Download the back
             </a>
           </div>

@@ -635,3 +635,37 @@
     inset 0 -3px 0 #ffb400,
     0 0 0 1px rgba(255, 180, 0, 0.3);
 }
+
+/* ---------- The card's designs (CARD_THEMES in lib/alumni-card.ts) ---------- */
+
+[data-card-theme="crimson"] .acard { --acard-navy: #5c0f12; --acard-blue: #b91c1c; }
+[data-card-theme="emerald"] .acard { --acard-navy: #053d2c; --acard-blue: #15803d; }
+[data-card-theme="royal"] .acard { --acard-navy: #2e0b5c; --acard-blue: #6d28d9; }
+[data-card-theme="midnight"] .acard { --acard-navy: #05070d; --acard-blue: #1f2937; }
+[data-card-theme="sunset"] .acard { --acard-navy: #7c2d12; --acard-blue: #d97706; }
+
+.acard-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.acard-themes__swatch {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--color-border);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.acard-themes__swatch:hover {
+  transform: scale(1.1);
+}
+
+.acard-themes__swatch[aria-checked="true"] {
+  box-shadow: 0 0 0 3px var(--color-gold);
+}
