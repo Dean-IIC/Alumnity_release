@@ -2,7 +2,7 @@ import Link from "next/link";
 import { commentAction, removeCommentAction, removePostAction, verifyPostAction } from "../../lib/actions/content";
 import { referralAction } from "../../lib/actions/social";
 import { batchLabel, timeAgo } from "../../lib/format";
-import { mediaUrl } from "../../lib/media-url";
+import { plainText } from "../../lib/mentions";
 import type { User } from "../../lib/server/auth";
 import type { Post as PostData } from "../../lib/server/posts";
 import { isModerator } from "../../lib/server/roles";
@@ -13,8 +13,11 @@ import { Avatar } from "./avatar";
 import { Icon } from "./icons";
 import { MentionInput } from "./mention-input";
 import { NameMark } from "./name-mark";
+import { PostMedia } from "./post-media";
 import { ReactionBar } from "./reaction-bar";
+import { RepostCard } from "./repost-card";
 import { RichText } from "./rich-text";
+import "../../app/styles/posts-plus.css";
 
 const AUDIENCE = { everyone: ["everyone", "Everyone"], batch: ["batch", "Batch"], connections: ["connections", "Connections"], group: ["people", "the group"] } as const;
 
@@ -24,28 +27,38 @@ type Props = {
   photos: Map<number, string>;
   /** On the post's own page: every comment, not just the newest. */
   full?: boolean;
-  /** The viewer, for the comment box (and, for the college desk, the check mark). */
-  me: Pick<User, "id" | "name" | "role">;
+  /** The viewer, for the comment box (and, for the college desk, the check mark; and whether a repost can go to their batch). */
+  me: Pick<User, "id" | "name" | "role"> & Partial<Pick<User, "branch" | "joined">>;
 };
 
-/** One post in the feed: who and when, their words and photos, reactions, and the newest comments. */
+/**
+ * One post in the feed: who and when, their words and photos, reactions, and the newest
+ * comments. A repost carries its original as a compact card; a plain repost (no words of
+ * its own) is headed "X reposted" instead.
+ */
 export function Post({ post, photos, full = false, me }: Props) {
   const [audienceIcon, audienceLabel] = AUDIENCE[post.audience];
   const href = `/notes/${post.id}`;
   const desk = isModerator(me);
   const work = !post.mine && post.tags.some((t) => WORK_TAGS.includes(t));
+  const plainRepost = post.repostOf !== null && !post.body && post.media.length === 0;
+  // What Repost and Share say about it: a plain repost passes on its original.
+  const shown = plainRepost && post.repostOf?.post ? post.repostOf.post : post;
+  const excerpt = plainText(shown.body).replace(/\s+/g, " ").slice(0, 140);
   return (
-    <article className="post" id={`post-${post.id}`} aria-labelledby={`post-${post.id}-by`}>
+    <article className={`post ${plainRepost ? "post--repost" : ""}`} id={`post-${post.id}`} aria-labelledby={`post-${post.id}-by`}>
       <header className="post__head">
         <Link href={`/people/${post.author.id}`} tabIndex={-1} aria-hidden="true">
-          <Avatar name={post.author.name} photoId={photos.get(post.author.id)} size={44} />
+          <Avatar name={post.author.name} photoId={photos.get(post.author.id)} size={plainRepost ? 32 : 44} />
         </Link>
         <div className="post__who">
           <span className="name-line">
+            {plainRepost && <Icon name="repost" size={16} className="post__repost-mark" />}
             <Link className="post__name" id={`post-${post.id}-by`} href={`/people/${post.author.id}`}>
               {post.author.name}
             </Link>
             <NameMark who={post.author} />
+            {plainRepost && <span className="post__reposted">reposted</span>}
           </span>
           {post.archive && (
             <span className="post__archive" title="Brought over from the old HKBK alumni website, with its date">
@@ -111,18 +124,9 @@ export function Post({ post, photos, full = false, me }: Props) {
         </p>
       )}
 
-      {post.media.length > 0 && (
-        <div className={`post__media post__media--${Math.min(post.media.length, 4)}`}>
-          {post.media.map((m, i) =>
-            m.kind === "video" ? (
-              <video key={m.id} src={mediaUrl(m.id)} controls playsInline preload="metadata" className="post__print" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={m.id} src={mediaUrl(m.id, full ? 640 : post.media.length > 1 ? 320 : 640)} alt={`Photo ${i + 1} of ${post.media.length} posted by ${post.author.name}`} loading="lazy" decoding="async" className="post__print" />
-            )
-          )}
-        </div>
-      )}
+      {post.media.length > 0 && <PostMedia media={post.media} author={post.author.name} full={full} />}
+
+      {post.repostOf && <RepostCard repost={post.repostOf} />}
 
       {work && (
         <details className="post__refer">
@@ -143,7 +147,21 @@ export function Post({ post, photos, full = false, me }: Props) {
         </details>
       )}
 
-      <ReactionBar postId={post.id} mine={post.myReaction} counts={post.reactions} commentCount={post.commentCount} commentsHref={full ? "#comment-box" : `${href}#comments`} shareUrl={href} />
+      <ReactionBar
+        postId={post.id}
+        mine={post.myReaction}
+        counts={post.reactions}
+        commentCount={post.commentCount}
+        commentsHref={full ? "#comment-box" : `${href}#comments`}
+        shareUrl={href}
+        audience={post.audience}
+        author={shown.author.name}
+        excerpt={excerpt}
+        // A group's posts stay in the group; and a repost of a post the viewer can't see has nothing to pass on.
+        canRepost={post.group === null && post.audience !== "group" && !(plainRepost && !post.repostOf?.post)}
+        repostCount={post.repostCount}
+        hasBatch={Boolean(me.branch && me.joined)}
+      />
 
       {(post.comments.length > 0 || full) && (
         <section className="post__comments" id={full ? "comments" : undefined} aria-label="Comments">

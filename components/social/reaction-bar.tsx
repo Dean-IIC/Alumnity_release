@@ -4,24 +4,44 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { reactNow } from "../../lib/actions/content";
 import type { Reaction } from "../../lib/server/posts";
 import { Icon } from "./icons";
-import { REACTION_LABEL, Stamp } from "./stamps";
+import { RepostMenu } from "./repost-menu";
+import { SendSheet } from "./send-sheet";
+import { ShareSheet } from "./share-sheet";
+import { REACTION_LABEL, REACTION_ORDER as KINDS, Stamp } from "./stamps";
 
-const KINDS: Reaction[] = ["cheer", "proud", "congrats", "insightful", "support"];
-
-type Props = { postId: number; mine: Reaction | null; counts: Partial<Record<Reaction, number>>; commentCount: number; commentsHref: string; shareUrl: string };
+type Props = {
+  postId: number;
+  mine: Reaction | null;
+  counts: Partial<Record<Reaction, number>>;
+  commentCount: number;
+  commentsHref: string;
+  /** The post's own page (/notes/12). */
+  shareUrl: string;
+  /** Who the post is for: only a post for everyone is offered to other apps. */
+  audience: string;
+  /** Who wrote it, and its first words, for the share line and the repost preview. */
+  author: string;
+  excerpt: string;
+  /** A group's posts stay in the group: no Repost. */
+  canRepost: boolean;
+  repostCount: number;
+  /** Whether the viewer's batch is known (a repost can go to it). */
+  hasBatch: boolean;
+};
 
 /**
- * Under a post: who reacted (the stamps used most, and how many), then React · Comment ·
- * Share. A tap is a quick Cheer; holding it (or hovering, or the small arrow) offers all
- * five stamps. The bar changes at once and asks the server to agree; if it doesn't, it
- * goes back and says why.
+ * Under a post: who reacted (the three reactions used most, overlapping, and how many),
+ * then Like · Comment · Repost · Send · Share, as on LinkedIn. A tap is a quick Like;
+ * holding it (or hovering, or the small arrow) offers all five. The bar changes at once
+ * and asks the server to agree; if it doesn't, it goes back and says why.
  */
-export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, commentCount, commentsHref, shareUrl }: Props) {
+export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, commentCount, commentsHref, shareUrl, audience, author, excerpt, canRepost, repostCount, hasBatch }: Props) {
   const [mine, setMine] = useState<Reaction | null>(initialMine);
   const [counts, setCounts] = useState(initialCounts);
   const [open, setOpen] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<"share" | "send" | null>(null);
   const [, startTransition] = useTransition();
   const hold = useRef<number>(0);
   const held = useRef(false);
@@ -81,34 +101,44 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
     .sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0))
     .slice(0, 3);
 
-  const share = async () => {
-    const url = new URL(shareUrl, window.location.origin).toString();
-    if (navigator.share && matchMedia("(pointer: coarse)").matches) {
-      await navigator.share({ url }).catch(() => undefined);
-      return;
-    }
-    await navigator.clipboard?.writeText(url).catch(() => undefined);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+  // After a repost: say so. (The action refreshes the page's data, so it shows in the feed.)
+  const reposted = (message: string, ok: boolean) => {
+    setProblem(ok ? null : message);
+    setNotice(ok ? message : null);
+    if (ok) window.setTimeout(() => setNotice(null), 4000);
   };
+
+  const summary = top.map((k) => `${REACTION_LABEL[k]} ${counts[k]}`).join(" · ");
 
   return (
     <div className="post__social" ref={wrap}>
-      {(total > 0 || commentCount > 0) && (
+      {(total > 0 || commentCount > 0 || repostCount > 0) && (
         <div className="post__tally">
-          {total > 0 && (
-            <span className="post__stamps" title={top.map((k) => `${REACTION_LABEL[k]} ${counts[k]}`).join(" · ")}>
+          {total > 0 ? (
+            <span className="post__stamps" title={summary}>
               {top.map((k) => (
-                <Stamp key={k} kind={k} size={24} className="post__stamp" />
+                <Stamp key={k} kind={k} size={20} className="post__stamp" />
               ))}
-              <span>{total}</span>
+              <span>
+                {total}
+                <span className="sr-only"> reactions: {summary}</span>
+              </span>
             </span>
+          ) : (
+            <span />
           )}
-          {commentCount > 0 && (
-            <a className="post__tally-link" href={commentsHref}>
-              {commentCount} comment{commentCount === 1 ? "" : "s"}
-            </a>
-          )}
+          <span className="post__tally-right">
+            {commentCount > 0 && (
+              <a className="post__tally-link" href={commentsHref}>
+                {commentCount} comment{commentCount === 1 ? "" : "s"}
+              </a>
+            )}
+            {repostCount > 0 && (
+              <span>
+                {repostCount} repost{repostCount === 1 ? "" : "s"}
+              </span>
+            )}
+          </span>
         </div>
       )}
       <div className="post__actions">
@@ -140,8 +170,8 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
               choose(mine ?? "cheer");
             }}
           >
-            {mine ? <Stamp kind={mine} size={26} /> : <Stamp kind="cheer" size={26} className="stamp--blank" />}
-            <span>{mine ? REACTION_LABEL[mine] : "Cheer"}</span>
+            {mine ? <Stamp kind={mine} size={22} /> : <Stamp kind="cheer" size={24} className="stamp--blank" />}
+            <span>{mine ? REACTION_LABEL[mine] : "Like"}</span>
           </button>
           <button
             ref={arrow}
@@ -188,14 +218,26 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
           <Icon name="comment" size={21} />
           <span>Comment</span>
         </a>
-        <button type="button" className="post__action" onClick={share}>
+        {canRepost && <RepostMenu postId={postId} preview={{ author, text: excerpt }} audience={audience} hasBatch={hasBatch} onDone={reposted} />}
+        <button type="button" className="post__action" aria-haspopup="dialog" onClick={() => setSheet("send")}>
+          <Icon name="send" size={21} />
+          <span>Send</span>
+        </button>
+        <button type="button" className="post__action" aria-haspopup="dialog" onClick={() => setSheet("share")}>
           <Icon name="share" size={21} />
-          <span>{copied ? "Link copied" : "Share"}</span>
+          <span>Share</span>
         </button>
       </div>
+      <ShareSheet open={sheet === "share"} onClose={() => setSheet(null)} path={shareUrl} author={author} forEveryone={audience === "everyone"} />
+      <SendSheet open={sheet === "send"} onClose={() => setSheet(null)} postId={postId} />
       {problem && (
         <p className="wf-note wf-note--error" role="alert">
           {problem}
+        </p>
+      )}
+      {notice && (
+        <p className="wf-note" role="status">
+          {notice}
         </p>
       )}
     </div>

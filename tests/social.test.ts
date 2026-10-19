@@ -612,7 +612,7 @@ describe("the admin ladder", () => {
 });
 
 describe("posts with photos, reactions and mentions", () => {
-  it("a post can carry up to four of your own photos, each used once", async () => {
+  it("a post can carry up to ten of your own photos, each used once", async () => {
     const a = await member("Ana Photos");
     const b = await member("Bo Other");
     const mine = [await upload(a), await upload(a, "video")];
@@ -622,7 +622,7 @@ describe("posts with photos, reactions and mentions", () => {
     expect((await m.posts.createPost(a, "again", "everyone", [mine[0]])).ok).toBe(false); // already posted
     expect((await m.posts.createPost(a, "theirs", "everyone", [await upload(b)])).ok).toBe(false); // not yours
     expect((await m.posts.createPost(a, "html", "everyone", [await upload(a, "html")])).ok).toBe(false);
-    expect((await m.posts.createPost(a, "five", "everyone", await Promise.all([1, 2, 3, 4, 5].map(() => upload(a))))).ok).toBe(false);
+    expect((await m.posts.createPost(a, "eleven", "everyone", await Promise.all(Array.from({ length: 11 }, () => upload(a))))).ok).toBe(false);
     expect((await m.posts.createPost(a, "", "everyone")).ok).toBe(false); // nothing at all
   });
 

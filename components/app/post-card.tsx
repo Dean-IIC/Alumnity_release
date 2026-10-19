@@ -25,7 +25,7 @@ export function PostCard({ post, full = false }: { post: Post; full?: boolean })
         <ActionForm action={cheerAction} showDone={false}>
           <input type="hidden" name="id" value={post.id} />
           <button className="button button--secondary wf-small" type="submit" aria-pressed={post.cheered}>
-            {post.cheered ? "Cheered" : "Cheer"} · {post.cheers}
+            {post.cheered ? "Liked" : "Like"} · {post.cheers}
           </button>
         </ActionForm>
         {post.mine ? (

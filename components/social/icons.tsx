@@ -120,6 +120,18 @@ const ICONS = {
       <circle cx="12" cy="12" r="3.5" />
       <path d="M15.5 12v1.3a2.2 2.2 0 0 0 4.4 0V12a8 8 0 1 0-3.2 6.4" />
     </>
+  ),
+  // Two arrows chasing each other round: a repost.
+  repost: <path d="M7 7.5h9.5a2 2 0 0 1 2 2V12M15.5 4.5l3 3-3 3M17 16.5H7.5a2 2 0 0 1-2-2V12M8.5 19.5l-3-3 3-3" />,
+  // A paper plane, sent: passing a post on privately.
+  send: <path d="M20 4 3.8 10.6l6.6 2.9 2.9 6.6zM20 4l-9.6 9.5" />,
+  pen: <path d="M14.5 5.5l4 4L9 19H5v-4zM12.5 7.5l4 4" />,
+  // A person with a small plus: tagging people in a post.
+  "tag-people": (
+    <>
+      <circle cx="10" cy="8.5" r="3.3" />
+      <path d="M3.8 19c.7-3.4 3.2-5.3 6.2-5.3 1.4 0 2.6.4 3.6 1.1M18 13.5v6M15 16.5h6" />
+    </>
   )
 } as const;
 

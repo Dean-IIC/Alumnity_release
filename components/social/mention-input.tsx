@@ -18,13 +18,18 @@ type Props = {
   autoFocus?: boolean;
   id?: string;
   label: string;
+  /**
+   * People to add as @mentions from outside the box (the composer's "Tag people"): each
+   * time `key` changes, those not already mentioned are added at the end.
+   */
+  insert?: { key: number; people: Person[] };
 };
 
 /**
  * A text box that suggests people as you type @ and a name. The box shows "@Asha Rao";
  * what's sent says which Asha it is, so the server can check and link it.
  */
-export function MentionInput({ name, placeholder, rows = 3, maxLength, required, className = "", resetKey, onTextChange, autoFocus, id, label }: Props) {
+export function MentionInput({ name, placeholder, rows = 3, maxLength, required, className = "", resetKey, onTextChange, autoFocus, id, label, insert }: Props) {
   const [text, setText] = useState("");
   const [chosen, setChosen] = useState<Person[]>([]);
   const [query, setQuery] = useState<string | null>(null);
@@ -59,6 +64,27 @@ export function MentionInput({ name, placeholder, rows = 3, maxLength, required,
       controller.abort();
     };
   }, [query]);
+
+  // Tagged from outside (the composer's "Tag people"): added at the end, each once.
+  const inserted = useRef(0);
+  useEffect(() => {
+    if (!insert || insert.key === inserted.current) return;
+    inserted.current = insert.key;
+    const fresh = insert.people.filter((p) => !chosen.some((c) => c.id === p.id) || !text.includes(`@${p.name}`));
+    if (!fresh.length) return;
+    const next = `${text}${text && !/\s$/.test(text) ? " " : ""}${fresh.map((p) => `@${p.name}`).join(" ")} `.slice(0, maxLength);
+    setText(next);
+    onTextChange?.(next);
+    setChosen((c) => [...c, ...fresh.filter((p) => !c.some((x) => x.id === p.id))]);
+    requestAnimationFrame(() => {
+      const el = box.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(next.length, next.length);
+    });
+    // Only a new `insert` adds anything; the text and chosen are read as they are then.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [insert]);
 
   /** The text as sent: each chosen "@Name" becomes "@[Name](id)". */
   const sent = chosen.reduce((t, p) => t.split(`@${p.name}`).join(`@[${p.name}](${p.id})`), text);

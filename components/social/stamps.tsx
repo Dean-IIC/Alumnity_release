@@ -1,74 +1,87 @@
 import type { Reaction } from "../../lib/server/posts";
 
 /*
- * Reactions as bright, filled icons, not emoji: each in its own colours, bold enough to
- * read at a glance. "Not reacted yet" keeps a pencil outline (the cheer star, unfilled).
+ * Reactions as LinkedIn draws them: each a small filled circle in its own colour with a
+ * white glyph, so they read at a glance and stack neatly in the counts row. The stored
+ * names are older than the labels (no data was moved): cheer is Like, congrats is
+ * Celebrate, proud is Love. "Not reacted yet" is the thumbs-up in pencil.
  */
 
 export const REACTION_LABEL: Record<Reaction, string> = {
-  cheer: "Cheer",
-  proud: "Proud",
-  congrats: "Congrats",
-  insightful: "Insightful",
-  support: "Support"
+  cheer: "Like",
+  congrats: "Celebrate",
+  support: "Support",
+  proud: "Love",
+  insightful: "Insightful"
 };
 
-const ART: Record<Reaction, React.ReactNode> = {
-  // A gold star bursting, two red sparks.
+/** The order they're offered in, as on LinkedIn. */
+export const REACTION_ORDER: Reaction[] = ["cheer", "congrats", "support", "proud", "insightful"];
+
+/** Each badge's colour (its label in the bar takes a deeper shade of it, in posts-plus.css). */
+export const REACTION_COLOUR: Record<Reaction, string> = {
+  cheer: "#0a66c2",
+  congrats: "#16a34a",
+  support: "#7c3aed",
+  proud: "#e0242f",
+  insightful: "#e8a200"
+};
+
+/** The clapping hands' outline: the badge's green a shade deeper, so the two hands read as two. */
+const CLAP_EDGE = "#15803d";
+
+const THUMB = "M9.8 10.9l2.7-4.5c.35-.6 1.1-.75 1.65-.35.5.37.65 1.02.42 1.6l-.78 2.15h3.15c.95 0 1.62.9 1.38 1.82l-1.13 4.6c-.2.75-.86 1.28-1.63 1.28H9.8z";
+
+const GLYPH: Record<Reaction, React.ReactNode> = {
+  // A thumbs-up.
   cheer: (
     <>
-      <path fill="#ffb400" stroke="#d97706" strokeWidth="0.8" strokeLinejoin="round" d="M12 2.6l2.3 5.2 5.6.5-4.3 3.7 1.3 5.5L12 14.6l-4.9 2.9 1.3-5.5-4.3-3.7 5.6-.5z" />
-      <circle cx="20" cy="18.5" r="1.4" fill="#e0242f" />
-      <circle cx="4.2" cy="18.6" r="1.1" fill="#e0242f" />
-      <path stroke="#e0242f" strokeWidth="1.4" strokeLinecap="round" d="M12 19.2v2.3" />
+      <rect x="6.2" y="10.8" width="2.7" height="7.4" rx="0.7" fill="#fff" />
+      <path fill="#fff" d={THUMB} />
     </>
   ),
-  // A gold medal on a red and blue ribbon.
-  proud: (
-    <>
-      <path fill="#e0242f" d="M6.5 2.2h4.2l2.2 6.4H8.7z" />
-      <path fill="#1d63c9" d="M13.3 2.2h4.2l-2.4 6.4h-4.2z" />
-      <circle cx="12" cy="15" r="5.6" fill="#ffb400" stroke="#c86400" strokeWidth="1" />
-      <path fill="#fff7d6" d="M12 11.6l1 2.1 2.3.3-1.7 1.6.4 2.3-2-1.1-2 1.1.4-2.3-1.7-1.6 2.3-.3z" />
-    </>
-  ),
-  // A violet party popper and its confetti.
+  // Two hands clapping, with a little burst above.
   congrats: (
     <>
-      <path fill="#7c3aed" d="M3 21l5.2-12.6 7.4 7.4z" />
-      <path fill="#ffb400" d="M5.1 15.9l1.5-3.6 2.2 2.2.1 2.4zM3.9 18.8l.8-1.8 1.9 1.9-1.9.8z" />
-      <circle cx="16.5" cy="4.5" r="1.5" fill="#e0242f" />
-      <circle cx="20.2" cy="9.3" r="1.3" fill="#16a34a" />
-      <circle cx="13.2" cy="6.6" r="1" fill="#1d63c9" />
-      <path stroke="#ffb400" strokeWidth="1.6" strokeLinecap="round" fill="none" d="M18.6 3.2l.6 1.6M21 6l-1.6.4M13.6 2.6c.8 1.4.4 2.6-.6 3.2" />
+      <rect x="6.9" y="8" width="4.8" height="9.2" rx="2.4" transform="rotate(-22 9.3 12.6)" fill="#fff" />
+      <rect x="11.2" y="8.6" width="4.8" height="9.2" rx="2.4" transform="rotate(14 13.6 13.2)" fill="#fff" stroke={CLAP_EDGE} strokeWidth="0.9" />
+      <path stroke="#fff" strokeWidth="1.2" strokeLinecap="round" fill="none" d="M12.6 4.2v1.5M15.9 5.1l-.8 1.2M9.5 5.1l.8 1.2" />
     </>
   ),
-  // A glowing yellow bulb: that taught me something.
-  insightful: (
-    <>
-      <path stroke="#ffb400" strokeWidth="1.5" strokeLinecap="round" d="M12 1.6v1.8M4.4 4.7l1.3 1.3M19.6 4.7l-1.3 1.3M2.5 11h1.8M19.7 11h1.8" />
-      <path fill="#ffd23f" stroke="#d97706" strokeWidth="1" d="M12 5.2a5.6 5.6 0 0 0-3.3 10.1c.5.4.8 1 .8 1.6v.6h5v-.6c0-.6.3-1.2.8-1.6A5.6 5.6 0 0 0 12 5.2z" />
-      <rect x="9.5" y="18.4" width="5" height="2.2" rx="0.8" fill="#475569" />
-      <path fill="#fff" fillOpacity="0.7" d="M10 8.4a3 3 0 0 1 2.2-1.2c.4 0 .5.6.1.7a2 2 0 0 0-1.5.9c-.3.4-.9 0-.8-.4z" />
-    </>
-  ),
-  // A red heart.
+  // A hand holding up a pink heart.
   support: (
     <>
-      <path fill="#e0245e" d="M12 20.6s-8.2-4.9-8.2-10.7A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 8.2 2.7c0 5.8-8.2 10.7-8.2 10.7z" />
-      <path fill="#fff" fillOpacity="0.55" d="M7.3 8.5a2.6 2.6 0 0 1 2.4-1c.5.1.4.8-.1.8a1.8 1.8 0 0 0-1.6.8c-.3.4-.9 0-.7-.6z" />
+      <path fill="#f9a8d4" stroke="#fff" strokeWidth="0.8" d="M12 12.2s-3.3-2-3.3-4.3a1.8 1.8 0 0 1 3.3-1 1.8 1.8 0 0 1 3.3 1c0 2.3-3.3 4.3-3.3 4.3z" />
+      <path fill="#fff" d="M5.4 14.3h2.3l2.4 1.4h3.4a1 1 0 0 1 0 2h-2.7v.2h3.3l3-2.1a1.05 1.05 0 0 1 1.3 1.6l-3.4 2.9H9.1l-3.7-1.5z" />
+    </>
+  ),
+  // A heart.
+  proud: <path fill="#fff" d="M12 18.4s-5.7-3.4-5.7-7.4a3.05 3.05 0 0 1 5.7-1.6 3.05 3.05 0 0 1 5.7 1.6c0 4-5.7 7.4-5.7 7.4z" />,
+  // A lightbulb.
+  insightful: (
+    <>
+      <path fill="#fff" d="M12 5a4.7 4.7 0 0 0-2.8 8.5c.45.35.75.85.75 1.4v.7h4.1v-.7c0-.55.3-1.05.75-1.4A4.7 4.7 0 0 0 12 5z" />
+      <rect x="9.95" y="16.3" width="4.1" height="1.3" rx="0.65" fill="#fff" />
+      <rect x="10.6" y="18.1" width="2.8" height="1.2" rx="0.6" fill="#fff" />
     </>
   )
 };
 
-/** Not reacted yet: the cheer star in pencil. */
-const BLANK = <path d="M12 2.6l2.3 5.2 5.6.5-4.3 3.7 1.3 5.5L12 14.6l-4.9 2.9 1.3-5.5-4.3-3.7 5.6-.5z" />;
+/** Not reacted yet: the thumbs-up in pencil. */
+const BLANK = <path d="M7.2 11h2.4v7.6H7.2zM9.6 11l2.9-4.9c.4-.6 1.2-.8 1.8-.4.6.4.8 1.1.5 1.8L14 10h3.4c1 0 1.7.9 1.5 1.9l-1.2 5.2c-.2.8-.9 1.4-1.7 1.4H9.6" />;
 
 export function Stamp({ kind, size = 24, className = "" }: { kind: Reaction; size?: number; className?: string }) {
   const blank = className.includes("stamp--blank");
   return (
     <svg className={`stamp stamp--${kind} ${className}`} width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      {blank ? <g className="stamp__ink">{BLANK}</g> : <g className="stamp__art">{ART[kind]}</g>}
+      {blank ? (
+        <g className="stamp__ink">{BLANK}</g>
+      ) : (
+        <g className="stamp__art">
+          <circle cx="12" cy="12" r="12" fill={REACTION_COLOUR[kind]} />
+          {GLYPH[kind]}
+        </g>
+      )}
     </svg>
   );
 }
