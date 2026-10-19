@@ -88,6 +88,22 @@
   background: var(--color-paper);
 }
 
+/* A photo its owner has framed (lib/photo-crop.ts): a round window, the photo moved and grown inside it. */
+.avatar--framed {
+  display: inline-block;
+  overflow: hidden;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  line-height: 0;
+}
+
+.avatar--framed > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .avatar--seal .avatar__edge {
   fill: var(--color-paper-raised);
   stroke: var(--color-blue);
@@ -1068,6 +1084,7 @@
 }
 
 .story-face__ring > img,
+.story-face__ring > .avatar--framed,
 .story-face__ring > .story-face__initials {
   width: 62px;
   height: 62px;
@@ -1187,6 +1204,7 @@ html.story-open {
 }
 
 .story-viewer__face img,
+.story-viewer__face .avatar--framed,
 .story-viewer__face .story-face__initials {
   display: grid;
   width: 36px;

@@ -34,7 +34,7 @@ export type AlumniCard = {
   batch: string | null;
   /** The year they joined Alumnity. */
   since: number | null;
-  /** Their profile photo's upload id, if they've added one. */
+  /** Their profile photo, if they've added one: a photo key (its upload id, and how they framed it: lib/photo-crop.ts). */
   photoId: string | null;
   /** Their page, in full, for the QR code: anyone who scans it lands on (and logs in to see) it. */
   link: string;

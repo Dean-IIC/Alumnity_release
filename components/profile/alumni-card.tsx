@@ -1,6 +1,7 @@
 import { alumniCard, CARD_H, CARD_W, guilloche, type AlumniCard, type CardPerson } from "../../lib/alumni-card";
 import { COLLEGE } from "../../lib/college";
 import { mediaUrl } from "../../lib/media-url";
+import { cropStyle, readPhotoKey, sharper } from "../../lib/photo-crop";
 import { qrModules, qrPath } from "../../lib/qr";
 import { AlumniCardViewer } from "./alumni-card-viewer";
 
@@ -49,6 +50,7 @@ function Wordmark() {
 
 export function AlumniCardFront({ card }: { card: AlumniCard }) {
   const long = card.name.length > 26 ? "acard__name--longer" : card.name.length > 20 ? "acard__name--long" : "";
+  const crop = card.photoId ? readPhotoKey(card.photoId).crop : undefined;
   return (
     <div className="acard acard--front">
       <Pattern />
@@ -68,7 +70,7 @@ export function AlumniCardFront({ card }: { card: AlumniCard }) {
         <span className="acard__photo">
           {card.photoId ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={mediaUrl(card.photoId, 160)} alt="" />
+            <img src={mediaUrl(card.photoId, 160 * sharper(crop))} alt="" style={cropStyle(crop)} />
           ) : (
             <span className="acard__initials" aria-hidden="true">
               {card.initials}

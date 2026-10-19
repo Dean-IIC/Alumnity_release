@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useCallback, useEffect, useRef, useState } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { removeStoryAction, seenStoryAction, storyAction } from "../../lib/actions/content";
 import { storyReplyNow } from "../../lib/actions/messages";
 import { uploadFile } from "../../lib/client/upload";
 import { mediaUrl } from "../../lib/media-url";
+import { cropStyle, readPhotoKey, sharper } from "../../lib/photo-crop";
 import { Icon } from "./icons";
 import "../../app/styles/messages-plus.css";
 
@@ -26,10 +27,18 @@ const IMAGE_TIME = 5000;
 
 /** A face in the stories row: their photo or initials, ringed in red pen while there's something new. */
 function Face({ reel, size = 64 }: { reel: Pick<ReelData, "author">; size?: number }) {
-  return reel.author.photoId ? (
+  if (reel.author.photoId) {
+    // A photo key (lib/photo-crop.ts): framed, it sits in a round window, as an Avatar does.
+    const { id, crop } = readPhotoKey(reel.author.photoId);
     // eslint-disable-next-line @next/next/no-img-element
-    <img className="story-face__img" src={mediaUrl(reel.author.photoId, size)} alt="" width={size} height={size} />
-  ) : (
+    const img = <img className={crop ? undefined : "story-face__img"} src={mediaUrl(id, size * sharper(crop))} alt="" width={size} height={size} style={cropStyle(crop)} />;
+    return crop ? (
+      <span className="story-face__img avatar--framed" style={{ "--avatar-size": `${size}px`, borderRadius: "50%" } as CSSProperties}>
+        {img}
+      </span>
+    ) : img;
+  }
+  return (
     <span className="story-face__initials" style={{ width: size, height: size }}>
       {reel.author.initials}
     </span>

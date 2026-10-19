@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { post } from "../../lib/client/post";
 import type { Field, Profile, Visibility } from "../../lib/server/profile";
+import type { DefaultCover } from "./cover";
 import { MediaPicker } from "./media-picker";
 import { SectionsEditor } from "./sections-editor";
 
@@ -40,8 +41,11 @@ function Part({ id, title, field, visibility, onVisibility, children }: { id?: s
   );
 }
 
-/** `role`: a student is asked what they're looking for; everyone else, what they're happy to do. */
-export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile; role?: string }) {
+/**
+ * `role`: a student is asked what they're looking for; everyone else, what they're happy to do.
+ * `campus`: the campus drawing their cover shows until they add their own (`seed` shapes its ink, as on their page).
+ */
+export function ProfileEditor({ initial, role = "alumnus", name, campus, seed }: { initial: Profile; role?: string; name: string; campus: DefaultCover; seed: number }) {
   const [profile, setProfile] = useState(initial);
   const [skillsText, setSkillsText] = useState(initial.skills.join(", "));
   const [problem, setProblem] = useState<string | null>(null);
@@ -66,8 +70,14 @@ export function ProfileEditor({ initial, role = "alumnus" }: { initial: Profile;
         <legend>Photo and cover</legend>
         <p className="join__fine">Everyone on Alumnity sees these.</p>
         <div className="editor__media">
-          <MediaPicker use="photo" value={profile.photo} onChange={(ref) => set("photo", ref)} />
-          <MediaPicker use="cover" value={profile.cover} onChange={(ref) => set("cover", ref)} />
+          <MediaPicker use="photo" value={profile.photo} onChange={(ref) => set("photo", ref)} name={name} />
+          <MediaPicker
+            use="cover"
+            value={profile.cover}
+            onChange={(ref) => set("cover", ref)}
+            name={name}
+            campus={{ fallback: campus, seed, crop: profile.campusCrop, onChange: (crop) => set("campusCrop", crop) }}
+          />
         </div>
       </fieldset>
 

@@ -3,7 +3,8 @@ import { batchYears, ROLE_LABEL } from "../../lib/format";
 import { mediaUrl } from "../../lib/media-url";
 import { ERAS } from "../../lib/eras";
 import type { Profile, Visibility } from "../../lib/server/profile";
-import { Cover } from "./cover";
+import { cropStyle, sharper } from "../../lib/photo-crop";
+import { Cover, type DefaultCover } from "./cover";
 import { InkSeal } from "./ink-seal";
 import { Journey, type Stop } from "./journey";
 import type { Badge } from "../../lib/server/badges";
@@ -100,6 +101,26 @@ const WISHES = [
 
 const STAFF = new Set(["faculty", "coordinator", "admin", "superadmin"]);
 
+/**
+ * The campus on their cover until they add their own (the editor shows it too, to frame it):
+ * as it was when they joined (the latest era at or before that year); staff, who didn't
+ * join as students, get the campus as it is now.
+ */
+export function campusCover(person: { role: string; joined: number | null }): DefaultCover {
+  const staff = STAFF.has(person.role) && !person.joined;
+  const era = staff ? ERAS[ERAS.length - 1] : ([...ERAS].reverse().find((e) => person.joined && e.year <= person.joined) ?? ERAS[0]);
+  // Today's campus stands in for 1998 and 2016: say so, and keep a batch's own line ("The
+  // biggest batch") for that batch. A 2023 student was shown 2016's.
+  const today = era.photo.source === "Today's campus";
+  return {
+    src: era.photo.photo,
+    sketch: era.photo.sketch,
+    year: era.year,
+    title: today && person.joined !== era.year ? "The campus you know" : era.title,
+    kicker: today ? "HKBK today" : undefined
+  };
+}
+
 const linkLabel = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 
 /** `underTop`: something only the owner sees, just under the top of the page (their profile strength, on /me). */
@@ -110,21 +131,8 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
   const ring = `${branch} · ${person.joined ?? ""} · HKBK CE · ${branch} · ${person.joined ?? ""} ·`;
   const now = [profile.title, profile.company && `at ${profile.company}`].filter(Boolean).join(" ");
   const v = isOwner ? profile.visibility : undefined;
-
-  // The campus as it was when they joined (the latest era at or before that year); staff, who
-  // didn't join as students, get the campus as it is now.
   const staff = STAFF.has(person.role) && !person.joined;
-  const era = staff ? ERAS[ERAS.length - 1] : ([...ERAS].reverse().find((e) => person.joined && e.year <= person.joined) ?? ERAS[0]);
-  // Today's campus stands in for 1998 and 2016: say so, and keep a batch's own line ("The
-  // biggest batch") for that batch. A 2023 student was shown 2016's.
-  const today = era.photo.source === "Today's campus";
-  const coverFallback = {
-    src: era.photo.photo,
-    sketch: era.photo.sketch,
-    year: era.year,
-    title: today && person.joined !== era.year ? "The campus you know" : era.title,
-    kicker: today ? "HKBK today" : undefined
-  };
+  const coverFallback = campusCover(person);
 
   // The journey is optional: it appears once they've added a stop of their own.
   const stops: Stop[] = profile.journey.length
@@ -146,12 +154,12 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
     <article className="profile">
       {/* The top: their cover, their photo (or their seal) over its edge, then who they are. */}
       <header className="profile__top">
-        <Cover cover={profile.cover} fallback={coverFallback} name={person.name} seed={person.id} />
+        <Cover cover={profile.cover} fallback={coverFallback} name={person.name} seed={person.id} campusCrop={profile.campusCrop} />
         <div className="profile__intro">
           <div className="profile__avatar">
             {profile.photo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={mediaUrl(profile.photo.id, 200)} alt={person.name} />
+              <img src={mediaUrl(profile.photo.id, 200 * sharper(profile.photo.crop))} alt={person.name} style={cropStyle(profile.photo.crop)} />
             ) : (
               <InkSeal name={person.name} ring={ring} seed={person.id} size={148} />
             )}
