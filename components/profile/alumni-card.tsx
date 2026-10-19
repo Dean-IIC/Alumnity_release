@@ -62,7 +62,7 @@ export function AlumniCardFront({ card }: { card: AlumniCard }) {
         </span>
         <span className="acard__college">
           <strong>{COLLEGE.name}</strong>
-          <span>Alumni Network</span>
+          <span>Alumnity card</span>
         </span>
         <Wordmark />
       </div>
@@ -121,7 +121,7 @@ export function AlumniCardBack({ card }: { card: AlumniCard }) {
         <div className="acard__verify-text">
           <p className="acard__label">Scan to verify</p>
           <p className="acard__statement">
-            {card.name} is a member of {COLLEGE.name}&rsquo;s alumni network on Alumnity.
+            {card.name} is a member of {COLLEGE.name} on Alumnity.
           </p>
           <p className="acard__link">{card.shortLink}</p>
           <p className="acard__number">{card.memberNo}</p>
@@ -177,7 +177,7 @@ export function AlumniCardBadge({ person }: { person: CardPerson }) {
         </svg>
       </span>
       <span>
-        <strong>Verified alumni card</strong>
+        <strong>Verified Alumnity card</strong>
         <span className="acard-badge__meta">
           {card.role} · {card.memberNo}
         </span>

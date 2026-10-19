@@ -186,7 +186,7 @@ export function CropTool({ open, subject, initial, name, onSave, onClose }: Prop
     <Sheet open={open} onClose={onClose} title={subject.kind === "photo" ? "Adjust your photo" : campus ? "Adjust the campus drawing" : "Adjust your cover"} className="crop-sheet" focusField={false}>
       <p className="sheet__note">
         {subject.kind === "photo"
-          ? "Drag the photo to move it inside the circle. Zoom in to make it bigger. Your alumni card shows the full square, including the corners."
+          ? "Drag the photo to move it inside the circle. Zoom in to make it bigger. Your Alumnity card shows the full square, including the corners."
           : campus
             ? "Until you add your own cover, your page shows a picture of the campus from your year. Drag it to move it, and zoom in to make it bigger."
             : "Drag to choose which part of your cover shows. Zoom in to make it bigger. The cover is wider on a computer than on a phone, so check how it looks on both."}
