@@ -78,7 +78,7 @@ type Shape =
 type Wave = Swell & { side: "bottom" | "top"; fill: string; drift: number; reach: number };
 
 /** A picture: waves and drawings, in the order they're laid down (first is furthest back). */
-type Layer = { wave: Wave } | { art: Shape[] };
+type Layer = { wave: Wave } | { art: Shape[]; fade?: number };
 /** `lift` raises the drawings (not the waves) by that much: a tablet's scene sits higher. */
 type Version = { w: number; h: number; layers: Layer[]; lift?: number };
 type Scene = { phone: Version; tablet: Version; computer: Version };
@@ -87,6 +87,8 @@ const wave = (at: number, amp: number, length: number, shift: number, side: Wave
   wave: { at, amp, length, shift, side, fill, drift, reach }
 });
 const art = (...shapes: (Shape | Shape[])[]): Layer => ({ art: shapes.flat() });
+/** Drawings laid down see-through, so they sit back behind the page. */
+const faded = (fade: number, ...shapes: (Shape | Shape[])[]): Layer => ({ art: shapes.flat(), fade });
 
 /** A smooth swell across a picture `width` wide and `height` tall. */
 function swell({ at, amp, length, shift }: Swell, width: number, height: number): string {
@@ -258,12 +260,12 @@ function puzzle(x: number, y: number, s: number): Shape[] {
   ];
 }
 
-/** A round table seen from above, people seated around it, one in gold. */
-function roundTable(x: number, y: number, s: number, seats = 7, goldToward = 180): Shape[] {
+/** A round table seen from above, people seated around it, three of them in gold. */
+function roundTable(x: number, y: number, s: number, seats = 7, goldToward = 180, golds = 3): Shape[] {
   // The seat nearest the given direction (degrees: 0 right, 90 down, 180 left) is the gold one.
   const angleOf = (i: number) => (((i / seats) * 360 - 90) % 360 + 360) % 360;
   const gap = (i: number) => Math.min(Math.abs(angleOf(i) - goldToward), 360 - Math.abs(angleOf(i) - goldToward));
-  const gold = Array.from({ length: seats }, (_, i) => i).sort((a, b) => gap(a) - gap(b))[0];
+  const gold = new Set(Array.from({ length: seats }, (_, i) => i).sort((a, b) => gap(a) - gap(b)).slice(0, golds));
   const out: Shape[] = [
     { kind: "circle", x, y, r: 120 * s, fill: B[1] },
     { kind: "ring", x, y, r: 120 * s, width: 3 * s, fade: 0.8 },
@@ -275,7 +277,7 @@ function roundTable(x: number, y: number, s: number, seats = 7, goldToward = 180
     const a = (i / seats) * Math.PI * 2 - Math.PI / 2;
     const cx = x + Math.cos(a) * 158 * s;
     const cy = y + Math.sin(a) * 158 * s;
-    const fill = i === gold ? GOLD.core : B[0];
+    const fill = gold.has(i) ? GOLD.core : B[0];
     out.push({ kind: "block", x: x + Math.cos(a) * 176 * s, y: y + Math.sin(a) * 176 * s, w: 62 * s, h: 30 * s, round: 15 * s, fill, turn: (a * 180) / Math.PI + 90 });
     out.push({ kind: "circle", x: cx, y: cy, r: 17 * s, fill });
   }
@@ -654,7 +656,7 @@ const SCENES: Record<SceneName, Scene> = {
   // blue so it sits back, a gear turning behind it, its switches lifting off it. On a
   // phone, the window's corner and its switches at the top right, the gear behind.
   steady: {
-    computer: { ...C, layers: [art(settingsWindow(1110, 470, 1.8, "#d9e7fb")), wave(0.88, 16, 1200, 0.2, "bottom", B[4], 34), wave(0.95, 12, 900, 0.1, "bottom", B[2], 26)] },
+    computer: { ...C, layers: [faded(0.45, settingsWindow(800, 500, 1.45, "#d9e7fb")), wave(0.88, 16, 1200, 0.2, "bottom", B[4], 34), wave(0.95, 12, 900, 0.1, "bottom", B[2], 26)] },
     tablet: { ...T, layers: [horizon(0.254), art(settingsWindow(700, 300, 1.05, "#d9e7fb"))] },
     phone: { ...P, layers: [horizon(0.36), art(settingsWindow(380, 190, 0.58, "#d9e7fb"))] }
   }
@@ -885,7 +887,7 @@ function VersionArt({ version, id, size }: { version: Version; id: string; size:
             <path d={wavePath(layer.wave, w, h)} fill={layer.wave.fill} />
           </Svg>
         ) : (
-          <Svg key={i} className="scene__shapes" width={w} height={h}>
+          <Svg key={i} className="scene__shapes" width={w} height={h} style={layer.fade ? { opacity: layer.fade } : undefined}>
             <defs>
               {/* The suns' soft light: brighter at the heart, a deeper gold at the rim. */}
               <radialGradient id={`${id}-${i}`} cx="38%" cy="34%" r="70%">
