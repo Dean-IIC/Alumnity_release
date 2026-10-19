@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { alumniCard, type AlumniCard } from "../alumni-card";
+import { readPhotoKey, sharper, squareCut } from "../photo-crop";
 import type { User } from "./auth";
 import { db } from "./db";
 import { mediaById, pickSize, readMedia, withSizes } from "./media";
@@ -36,18 +37,27 @@ export function originFrom(headers: Headers): string {
 /**
  * The member's photo as a small square JPEG data URL, for the PNG: only an image upload
  * that is theirs (the photo id comes from their own profile, but it's checked again here),
- * cut to a square and made small, so the card renders quickly.
+ * cut to the square they framed (lib/photo-crop.ts; the middle when they haven't) and made
+ * small, so the card renders quickly. Cut here, when it's asked for: the upload stays whole.
  */
-export async function cardPhoto(photoId: string | null, ownerId: number): Promise<string | null> {
-  if (!photoId) return null;
+export async function cardPhoto(photoKey: string | null, ownerId: number): Promise<string | null> {
+  if (!photoKey) return null;
+  const { id, crop } = readPhotoKey(photoKey);
   try {
-    const media = await mediaById(photoId);
+    const media = await mediaById(id);
     if (!media || media.userId !== ownerId || media.kind !== "image") return null;
-    const file = pickSize(await withSizes(media), 160);
+    const file = pickSize(await withSizes(media), 160 * sharper(crop));
     const bytes = await readMedia(media, file.path);
     if (!bytes) return null;
     const sharp = (await import("sharp")).default;
-    const jpeg = await sharp(bytes, { failOn: "error", limitInputPixels: 50_000_000 }).rotate().resize(320, 320, { fit: "cover" }).jpeg({ quality: 86 }).toBuffer();
+    const options = { failOn: "error", limitInputPixels: 50_000_000 } as const;
+    let square = sharp(bytes, options).rotate();
+    if (crop) {
+      // Turned upright first, so the cut is measured on the photo as it's seen.
+      const upright = await square.toBuffer({ resolveWithObject: true });
+      square = sharp(upright.data, options).extract(squareCut(upright.info.width, upright.info.height, crop));
+    }
+    const jpeg = await square.resize(320, 320, { fit: "cover" }).jpeg({ quality: 86 }).toBuffer();
     return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
   } catch (error) {
     // A photo that won't decode: the card shows their initials instead.
