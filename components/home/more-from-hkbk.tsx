@@ -9,6 +9,7 @@ import { ActionForm } from "../app/action-form";
 import { Avatar } from "../social/avatar";
 import { Icon } from "../social/icons";
 import { KnowEveryone } from "./know-everyone";
+import { BusyLabel } from "../app/busy-label";
 
 /*
  * What Home carries on with once the posts run out, so it never just stops (as LinkedIn's
@@ -65,7 +66,7 @@ export function PeopleCard({ people, photos }: { people: User[]; photos: Map<num
             <ActionForm action={connectAction} showDone={false}>
               <input type="hidden" name="id" value={u.id} />
               <button className="pill-button" type="submit">
-                <Icon name="plus" size={14} /> Connect
+                <BusyLabel idle={<><Icon name="plus" size={14} /> Connect</>} busy="Requested" />
               </button>
             </ActionForm>
           </li>

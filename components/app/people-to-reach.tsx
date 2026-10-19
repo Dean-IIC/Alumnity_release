@@ -7,6 +7,7 @@ import { photoIdsOf } from "../../lib/server/profile";
 import { connectionsOf } from "../../lib/server/social";
 import { Avatar } from "../social/avatar";
 import { ActionForm } from "./action-form";
+import { BusyLabel } from "./busy-label";
 
 /*
  * For an empty page (no messages, nothing new): people to reach instead of a dead end.
@@ -38,7 +39,7 @@ export async function PeopleToReach({ me, mode }: { me: User; mode: "write" | "c
               <ActionForm action={connectAction} showDone={false}>
                 <input type="hidden" name="id" value={u.id} />
                 <button className="pill-button" type="submit">
-                  Connect
+                  <BusyLabel idle="Connect" busy="Requested" />
                 </button>
               </ActionForm>
             )}

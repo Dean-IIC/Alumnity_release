@@ -9,6 +9,7 @@ import { ActionForm } from "../app/action-form";
 import { Invite } from "../app/invite";
 import { Avatar } from "../social/avatar";
 import { NameMark } from "../social/name-mark";
+import { BusyLabel } from "../app/busy-label";
 
 /*
  * People's cards: a big round face, the name, the batch, what they do, and the one thing
@@ -68,7 +69,7 @@ function RelationAction({ member, relation }: { member: Member; relation: Relati
       <ActionForm action={connectAction} showDone={false}>
         <Id id={member.id} />
         <button className="people-btn people-btn--primary" type="submit">
-          Connect
+          <BusyLabel idle="Connect" busy="Requested" />
         </button>
       </ActionForm>
     );
