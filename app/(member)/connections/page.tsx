@@ -129,7 +129,7 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
         </h2>
         {following.length === 0 ? (
           <p className="wf-empty">
-            You don&apos;t follow anyone yet. Follow someone from <Link href="/people">People</Link> to see their posts in your Following feed.
+            You don&apos;t follow anyone yet. Follow someone from <Link href="/people">Network</Link> to see their posts in your Following feed.
           </p>
         ) : (
           <ul className="wf-list">

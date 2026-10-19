@@ -21,7 +21,7 @@ export type Counts = { connections: number; messages: number; notifications: num
 
 const MAIN: { key: string; href: string; label: string; icon: IconName; count?: keyof Counts; match?: string[] }[] = [
   { key: "home", href: "/home", label: "Home", icon: "home", match: ["/home", "/notes"] },
-  { key: "people", href: "/people", label: "People", icon: "people", count: "connections" },
+  { key: "people", href: "/people", label: "Network", icon: "people", count: "connections" },
   { key: "groups", href: "/groups", label: "Groups", icon: "group" },
   { key: "messages", href: "/messages", label: "Messages", icon: "message", count: "messages" },
   { key: "notifications", href: "/notifications", label: "Notifications", icon: "bell", count: "notifications" }
@@ -188,7 +188,7 @@ export function TabBar({ counts }: { counts: Counts }) {
       </NavLink>
       <NavLink href="/people">
         <Icon name="people" size={24} />
-        People
+        Network
         <Badge n={counts.connections} of="connections" />
       </NavLink>
       {/* Named, like the rest: a bare + was never tried by the blind test, looking to post. */}

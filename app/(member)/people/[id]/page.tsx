@@ -132,7 +132,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
     );
 
   return (
-    <AppPage user={me} current="people" back={{ href: "/people", label: "People" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections · ${counts.followers} ${counts.followers === 1 ? "follower" : "followers"}${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
+    <AppPage user={me} current="people" back={{ href: "/people", label: "Network" }} title={owner.name} intro={`${await connectionCount(owner.id)} connections · ${counts.followers} ${counts.followers === 1 ? "follower" : "followers"}${record.count ? ` · answered ${record.count} Ask${record.count === 1 ? "" : "s"}` : ""}`}>
       <StickyName name={owner.name}>
         {relation === "connected" && (
           <Link className="button button--primary wf-small" href={`/messages/${owner.id}`}>

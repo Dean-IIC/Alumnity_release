@@ -13,7 +13,7 @@ import { batchCount, browseRegister, REGISTER_PAGES, REGISTER_SEARCHES, register
 import { requireUser } from "../../../lib/server/session";
 import "../../styles/people-plus.css";
 
-export const metadata: Metadata = { title: "People · Alumnity", robots: { index: false } };
+export const metadata: Metadata = { title: "Network · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 type Params = { q?: string; branch?: string; year?: string; help?: string; page?: string };
@@ -67,7 +67,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   const registerShown = results.cards.length - memberCards;
 
   return (
-    <AppPage user={me} current="people" title="People" intro="Classmates, seniors and mentors from HKBK. You only see what each person chose to show.">
+    <AppPage user={me} current="people" title="Network" intro="Classmates, seniors and mentors from HKBK. You only see what each person chose to show.">
       <PeopleSearch query={query} branches={BRANCHES} myBatch={myBatch} />
 
       {/* Requests first, as on Instagram: someone asked to connect, so answer them here. */}

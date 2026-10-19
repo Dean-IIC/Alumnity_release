@@ -51,7 +51,7 @@ const SHORTCUTS = [
   { href: "/events", label: "Events", icon: "event" },
   { href: "/causes", label: "Causes", icon: "heart" },
   { href: "/connections", label: "Connections", icon: "connections" },
-  { href: "/people", label: "People", icon: "people" }
+  { href: "/people", label: "Network", icon: "people" }
 ] as const;
 
 /** Where to begin, when the feed is quiet. */
