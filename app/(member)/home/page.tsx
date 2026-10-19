@@ -97,7 +97,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     author: { id: r.author.id, name: r.author.name, first: first(r.author.name), photoId: photos.get(r.author.id) ?? null, initials: initialsOf(r.author.name) },
     stories: r.stories.map((s) => ({ id: s.id, mediaId: s.mediaId, kind: s.kind, caption: s.caption, ago: timeAgo(s.createdAt) })),
     allSeen: r.allSeen,
-    mine: r.mine
+    mine: r.mine,
+    // Replies and reactions are messages, so only between connections.
+    canReply: !r.mine && relationTo(r.author.id) === "connected"
   }));
   const meFace = { id: me.id, name: me.name, first: first(me.name), photoId: photos.get(me.id) ?? null, initials: initialsOf(me.name) };
   const now = [profile.title, profile.company && `at ${profile.company}`].filter(Boolean).join(" ");

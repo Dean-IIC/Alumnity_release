@@ -1,6 +1,6 @@
 import { firstName } from "../format";
 import { queuePush } from "./alerts";
-import { db } from "./db";
+import { db, type Row } from "./db";
 import type { User } from "./auth";
 import { toUser } from "./auth";
 import { blockedEitherWay, blockIds, memberById, membersByIds, relation } from "./people";
@@ -185,50 +185,129 @@ export async function blockedBy(userId: number): Promise<User[]> {
 
 export const MESSAGE_LIMIT = 2000;
 
-export type Message = { id: number; mine: boolean; body: string; createdAt: number };
+/**
+ * A message that answered a story (a reply, or a quick reaction): which story, and its
+ * photo or video while the reader may still see it (null once it has gone, or for the
+ * one who replied once the day is up; the story's author can always see their own).
+ */
+export type StoryRef = { id: number | null; mediaId: string | null; kind: "image" | "video" | null; reaction: string | null };
 
-export async function sendMessage(from: User, toId: number, body: string): Promise<Result> {
+export type Message = { id: number; mine: boolean; body: string; createdAt: number; readAt: number | null; story: StoryRef | null };
+
+export async function sendMessage(from: User, toId: number, body: string, story?: { id: number; reaction: string | null }): Promise<Result> {
   if (!(await settings()).features.messages) return no(PAUSED);
   const text = body.trim().slice(0, MESSAGE_LIMIT);
   if (!text) return no("Write something first.");
   if (!(await memberById(toId))) return no("That member isn't here any more.");
   if ((await relation(from.id, toId)) !== "connected") return no("You can message your connections. Connect first, or use Ask a senior.");
   if (!(await withinLimit(`message:${from.id}`, 120, 60 * 60_000))) return no("That’s a lot of messages in an hour. Take a breather and try again.");
-  // One notification per conversation until it's read, not one per message.
-  const unread = await db().one("select 1 from messages where sender = ? and recipient = ? and read_at is null", from.id, toId);
-  await db().run("insert into messages (sender, recipient, body, created_at) values (?, ?, ?, ?)", from.id, toId, text, Date.now());
-  if (!unread) await notify(toId, { actor: from.id, kind: "message", text: `New message from ${firstName(from.name)}.`, link: `/messages/${from.id}` });
+  // One notification per conversation until it's read, not one per message: none while
+  // earlier messages wait unread, nor while the last "new message" notification does (a
+  // thread read some other way used to leave that one behind, and each new burst added another).
+  const [unread, told] = await Promise.all([
+    db().one("select 1 from messages where sender = ? and recipient = ? and read_at is null", from.id, toId),
+    db().one("select 1 from notifications where user_id = ? and actor = ? and kind = 'message' and read_at is null", toId, from.id)
+  ]);
+  await db().run(
+    "insert into messages (sender, recipient, body, created_at, story_id, reaction) values (?, ?, ?, ?, ?, ?)",
+    from.id,
+    toId,
+    text,
+    Date.now(),
+    story?.id ?? null,
+    story?.reaction ?? null
+  );
+  if (!unread && !told) {
+    const first = firstName(from.name);
+    const said = !story ? `New message from ${first}.` : story.reaction ? `${first} reacted ${story.reaction} to your story.` : `${first} replied to your story.`;
+    await notify(toId, { actor: from.id, kind: "message", text: said, link: `/messages/${from.id}` });
+  }
   return { ok: true };
 }
 
-export async function thread(me: User, otherId: number, limit = 200): Promise<Message[]> {
-  await db().run("update messages set read_at = ? where sender = ? and recipient = ? and read_at is null", Date.now(), otherId, me.id);
-  return (
-    await db().all(
-      "select * from (select * from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?) order by created_at desc, id desc limit ?) as recent order by created_at, id",
-      me.id,
-      otherId,
-      otherId,
-      me.id,
-      limit
-    )
-  ).map((r) => ({ id: Number(r.id), mine: Number(r.sender) === me.id, body: String(r.body), createdAt: Number(r.created_at) }));
+/**
+ * Reading a conversation: their messages to you, and the "new message" notifications they
+ * brought. Those notifications used to stay unread after the thread was read, so the bell
+ * (and the tab's title, which adds the two) kept counting a message already seen.
+ */
+export async function markThreadRead(me: User, otherId: number): Promise<void> {
+  const now = Date.now();
+  await db().run("update messages set read_at = ? where sender = ? and recipient = ? and read_at is null", now, otherId, me.id);
+  await db().run("update notifications set read_at = ? where user_id = ? and actor = ? and kind = 'message' and read_at is null", now, me.id, otherId);
 }
 
-export type Conversation = { with: User; last: string; lastAt: number; mine: boolean; unread: number };
+/** A message row's story, as `viewerId` may see it (see StoryRef). */
+function storyRefOf(r: Row, viewerId: number, now: number): StoryRef | null {
+  if (r.story_id == null && r.reaction == null) return null;
+  const live = r.story_removed == null && r.story_media != null && (Number(r.story_author) === viewerId || Number(r.story_expires) > now);
+  const kind = r.story_kind === "image" || r.story_kind === "video" ? r.story_kind : null;
+  return {
+    id: r.story_id == null ? null : Number(r.story_id),
+    mediaId: live && kind ? String(r.story_media) : null,
+    kind: live ? kind : null,
+    reaction: r.reaction == null ? null : String(r.reaction)
+  };
+}
+
+/** One conversation, oldest first (the newest `limit`). Opening it reads it. */
+export async function thread(me: User, otherId: number, limit = 200): Promise<Message[]> {
+  await markThreadRead(me, otherId);
+  const now = Date.now();
+  const rows = await db().all(
+    `select recent.*, stories.author as story_author, stories.media_id as story_media, stories.expires_at as story_expires,
+            stories.removed_at as story_removed, media.kind as story_kind
+     from (select * from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?) order by created_at desc, id desc limit ?) as recent
+     left join stories on stories.id = recent.story_id
+     left join media on media.id = stories.media_id
+     order by recent.created_at, recent.id`,
+    me.id,
+    otherId,
+    otherId,
+    me.id,
+    limit
+  );
+  return rows.map((r) => ({
+    id: Number(r.id),
+    mine: Number(r.sender) === me.id,
+    body: String(r.body),
+    createdAt: Number(r.created_at),
+    readAt: r.read_at == null ? null : Number(r.read_at),
+    story: storyRefOf(r, me.id, now)
+  }));
+}
+
+export type Conversation = {
+  with: User;
+  last: string;
+  lastAt: number;
+  mine: boolean;
+  unread: number;
+  /** The last message answered a story: "reply", or "reaction" (then `last` is the emoji). */
+  story: "reply" | "reaction" | null;
+};
+
+/**
+ * Messages that count as unread: not from anyone blocked either way, nor from a suspended
+ * member. Neither has a conversation that can be opened, so their messages could never be
+ * read, and the Messages badge never cleared.
+ */
+const UNREAD_FROM_REACHABLE = `messages.recipient = ? and messages.read_at is null
+  and exists (select 1 from users where users.id = messages.sender and users.suspended_at is null)
+  and not exists (select 1 from blocks where (blocks.blocker = messages.recipient and blocks.blocked = messages.sender)
+                                          or (blocks.blocker = messages.sender and blocks.blocked = messages.recipient))`;
 
 export async function conversations(me: User): Promise<Conversation[]> {
   const [rows, unreadRows, blocked] = await Promise.all([
-    db().all<{ other: number; body: string; created_at: number; sender: number }>(
+    db().all<{ other: number; body: string; created_at: number; sender: number; story_id: number | null; reaction: string | null }>(
       `select * from (
-         select recipient as other, body, created_at, sender, id from messages where sender = ?
+         select recipient as other, body, created_at, sender, id, story_id, reaction from messages where sender = ?
          union all
-         select sender as other, body, created_at, sender, id from messages where recipient = ?
+         select sender as other, body, created_at, sender, id, story_id, reaction from messages where recipient = ?
        ) as m order by created_at desc, id desc limit 2000`,
       me.id,
       me.id
     ),
-    db().all<{ sender: number; n: number }>("select sender, count(*) as n from messages where recipient = ? and read_at is null group by sender", me.id),
+    db().all<{ sender: number; n: number }>(`select sender, count(*) as n from messages where ${UNREAD_FROM_REACHABLE} group by sender`, me.id),
     blockIds(me.id)
   ]);
   const unread = new Map(unreadRows.map((r) => [r.sender, r.n]));
@@ -239,10 +318,38 @@ export async function conversations(me: User): Promise<Conversation[]> {
   for (const [other, r] of latest) {
     const member = members.get(other);
     if (!member) continue;
-    list.push({ with: member, last: r.body, lastAt: r.created_at, mine: r.sender === me.id, unread: unread.get(other) ?? 0 });
+    const story = r.reaction != null ? "reaction" : r.story_id != null ? "reply" : null;
+    list.push({ with: member, last: r.body, lastAt: r.created_at, mine: r.sender === me.id, unread: unread.get(other) ?? 0, story });
     if (list.length >= 100) break;
   }
   return list;
 }
 
-export const unreadMessages = (userId: number) => count("select count(*) as n from messages where recipient = ? and read_at is null", userId);
+export const unreadMessages = (userId: number) => count(`select count(*) as n from messages where ${UNREAD_FROM_REACHABLE}`, userId);
+
+/**
+ * What an open page watches (components/app/pulse.tsx, through /api/pulse): unread
+ * notifications, unread messages and requests waiting, for the bar; and in an open
+ * conversation its newest message (`t`) and the newest of yours they've read (`s`), so a
+ * new message and "Seen" both show without a reload.
+ */
+export async function pulseFor(userId: number, threadWith?: number): Promise<{ n: number; m: number; r: number; t: number; s: number }> {
+  const other = threadWith !== undefined && Number.isSafeInteger(threadWith) && threadWith > 0 ? threadWith : null;
+  const [n, m, r, latest] = await Promise.all([
+    unreadNotifications(userId),
+    unreadMessages(userId),
+    waitingRequests(userId),
+    other
+      ? db().one<{ t: number | null; s: number | null }>(
+          `select max(id) as t, max(case when sender = ? and read_at is not null then id end) as s
+           from messages where (sender = ? and recipient = ?) or (sender = ? and recipient = ?)`,
+          userId,
+          userId,
+          other,
+          other,
+          userId
+        )
+      : Promise.resolve(undefined)
+  ]);
+  return { n, m, r, t: latest?.t ?? 0, s: latest?.s ?? 0 };
+}

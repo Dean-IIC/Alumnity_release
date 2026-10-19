@@ -696,7 +696,8 @@ describe("stories", () => {
     const author = await member("Oz Story");
     const friend = await member("Pa Friend");
     const fan = await member("Qi Fan");
-    const stranger = await member("Ro Stranger");
+    // Another year: batchmates see each other's stories too (tests/messages.test.ts).
+    const stranger = await member("Ro Stranger", { joined: 2019 });
     await connect(author, friend);
     await m.follows.follow(fan, author.id);
     const photo = await upload(author);

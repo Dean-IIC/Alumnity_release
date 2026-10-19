@@ -35,8 +35,8 @@ export function AppPage({
   intro?: ReactNode;
   children: ReactNode;
   bare?: boolean;
-  /** An open conversation, kept up to date more often. */
-  thread?: { with: number; latest: number };
+  /** An open conversation, kept up to date more often: its newest message, and the newest of yours they've read. */
+  thread?: { with: number; latest: number; seen?: number };
   /** A page inside a section: the way back to it (or to wherever you came from). */
   back?: { href: string; label: string };
 }) {

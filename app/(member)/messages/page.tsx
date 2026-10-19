@@ -1,44 +1,23 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { AppPage } from "../../../components/app/app-page";
 import { PeopleToReach } from "../../../components/app/people-to-reach";
-import { timeAgo } from "../../../lib/format";
-import { conversations } from "../../../lib/server/social";
+import { Messenger } from "../../../components/messages/messenger";
+import { inboxFor } from "../../../lib/server/inbox";
 import { requireUser } from "../../../lib/server/session";
 
 export const metadata: Metadata = { title: "Messages · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-/** Your conversations, newest first. */
+/**
+ * Your conversations, newest first. On a laptop the right-hand side waits for one to be
+ * opened; on a phone the list is the whole page. Messages are only between connections.
+ */
 export default async function MessagesPage() {
   const me = await requireUser("/messages");
-  const list = await conversations(me);
+  const { conversations, contacts } = await inboxFor(me);
   return (
-    <AppPage user={me} current="messages" title="Messages" intro="Messages are only between connections. To message someone new, connect with them first, or use Ask a senior.">
-      {list.length === 0 ? (
-        <>
-          <p className="wf-empty">No messages yet.</p>
-          <PeopleToReach me={me} mode="write" />
-        </>
-      ) : (
-        <ul className="wf-list">
-          {list.slice(0, 50).map((c) => (
-            <li key={c.with.id} className="wf-member">
-              <div className="wf-member__who">
-                <Link className="wf-member__name" href={`/messages/${c.with.id}`}>
-                  {c.with.name}
-                  {c.unread > 0 && <span className="wf-count" style={{ marginLeft: 8 }}>{c.unread}</span>}
-                </Link>
-                <span className="wf-muted" style={{ overflowWrap: "anywhere" }}>
-                  {c.mine ? "You: " : ""}
-                  {c.last.length > 90 ? `${c.last.slice(0, 90)}…` : c.last}
-                </span>
-              </div>
-              <span className="wf-muted">{timeAgo(c.lastAt)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+    <AppPage user={me} current="messages" bare>
+      <Messenger conversations={conversations} contacts={contacts} empty={<PeopleToReach me={me} mode={contacts.length ? "write" : "connect"} />} />
     </AppPage>
   );
 }
