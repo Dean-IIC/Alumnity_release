@@ -1,16 +1,17 @@
 import Link from "next/link";
-import { commentAction, removeCommentAction, removePostAction, verifyPostAction } from "../../lib/actions/content";
+import { commentAction, verifyPostAction } from "../../lib/actions/content";
 import { referralAction } from "../../lib/actions/social";
 import { tagHref } from "../../lib/feed-filters";
-import { batchLabel, timeAgo } from "../../lib/format";
+import { batchLabel, timeAgo, when } from "../../lib/format";
 import { plainText } from "../../lib/mentions";
 import type { User } from "../../lib/server/auth";
-import type { Post as PostData } from "../../lib/server/posts";
+import { COMMENT_LIMIT, POST_LIMIT, type Post as PostData } from "../../lib/server/posts";
 import { isModerator } from "../../lib/server/roles";
 import { WORK_TAGS } from "../../lib/tags";
 import { ActionForm } from "../app/action-form";
 import { ReportButton } from "../app/report-button";
 import { Avatar } from "./avatar";
+import { CommentEditDelete, PostEditDelete } from "./edit-delete";
 import { Icon } from "./icons";
 import { MentionInput } from "./mention-input";
 import { NameMark } from "./name-mark";
@@ -30,6 +31,8 @@ type Props = {
   full?: boolean;
   /** The viewer, for the comment box (and, for the college desk, the check mark; and whether a repost can go to their batch). */
   me: Pick<User, "id" | "name" | "role"> & Partial<Pick<User, "branch" | "joined">>;
+  /** The viewer runs the post's group (its owner or an admin): they may delete anyone's post in it. */
+  groupAdmin?: boolean;
 };
 
 /**
@@ -37,7 +40,7 @@ type Props = {
  * comments. A repost carries its original as a compact card; a plain repost (no words of
  * its own) is headed "X reposted" instead.
  */
-export function Post({ post, photos, full = false, me }: Props) {
+export function Post({ post, photos, full = false, me, groupAdmin = false }: Props) {
   const [audienceIcon, audienceLabel] = AUDIENCE[post.audience];
   const href = `/notes/${post.id}`;
   const desk = isModerator(me);
@@ -71,6 +74,12 @@ export function Post({ post, photos, full = false, me }: Props) {
             <a href={href}>
               <time dateTime={new Date(post.createdAt).toISOString()}>{timeAgo(post.createdAt)}</time>
             </a>
+            {post.editedAt && (
+              <span className="post__edited" title={`Edited ${when(post.editedAt)}`}>
+                Edited{full && <> <time dateTime={new Date(post.editedAt).toISOString()}>{timeAgo(post.editedAt)}</time></>}
+                {!full && <span className="sr-only"> {timeAgo(post.editedAt)}</span>}
+              </span>
+            )}
             {post.group && !full && <Link href={`/groups/${post.group.id}`}>{post.group.name}</Link>}
             <span className="post__audience" title={`Shown to: ${audienceLabel}`}>
               <Icon name={audienceIcon} size={13} />
@@ -88,14 +97,18 @@ export function Post({ post, photos, full = false, me }: Props) {
             <Icon name="more" size={22} />
           </summary>
           <div className="post__menu-list">
-            {post.mine ? (
-              <ActionForm action={removePostAction} confirm="Delete this post? It can't be brought back.">
-                <input type="hidden" name="id" value={post.id} />
-                <button type="submit">Delete post</button>
-              </ActionForm>
-            ) : (
-              <ReportButton kind="post" id={post.id} back={full ? href : `/home#post-${post.id}`} label="Report post" />
+            {(post.mine || (groupAdmin && post.group !== null)) && (
+              <PostEditDelete
+                id={post.id}
+                body={post.body}
+                mine={post.mine}
+                verified={post.verifiedAt !== null}
+                limit={POST_LIMIT}
+                // Deleted from its own page: back to where it lived (the page itself is gone).
+                after={full ? (post.group ? `/groups/${post.group.id}` : "/home") : undefined}
+              />
             )}
+            {!post.mine && <ReportButton kind="post" id={post.id} back={full ? href : `/home#post-${post.id}`} label="Report post" />}
             {desk && (post.verifiedAt || post.audience === "everyone") && (
               <ActionForm action={verifyPostAction} showDone={false}>
                 <input type="hidden" name="id" value={post.id} />
@@ -186,11 +199,13 @@ export function Post({ post, photos, full = false, me }: Props) {
                 </p>
                 <span className="comment__meta">
                   {timeAgo(c.createdAt)}
+                  {c.editedAt && (
+                    <span className="comment__edited" title={`Edited ${when(c.editedAt)}`}>
+                      edited
+                    </span>
+                  )}
                   {c.mine ? (
-                    <ActionForm action={removeCommentAction} className="comment__inline">
-                      <input type="hidden" name="id" value={c.id} />
-                      <button type="submit">Delete</button>
-                    </ActionForm>
+                    <CommentEditDelete id={c.id} body={c.body} limit={COMMENT_LIMIT} />
                   ) : (
                     <ReportButton kind="comment" id={c.id} back={full ? href : `/home#post-${post.id}`} />
                   )}

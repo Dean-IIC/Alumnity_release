@@ -4,7 +4,7 @@ import { MENTION, mentionedIds } from "../mentions";
 import { cleanQuery, MAX_FILTER_AUTHORS, MAX_FILTER_TAGS, QUERY_WORDS, ROLE_FILTERS, type RoleFilter } from "../feed-filters";
 import { cleanTag, tagsIn, WORK_TAGS } from "../tags";
 import { followingIds } from "./follows";
-import { canPostInGroup, canReadGroup, groupNames, memberGroupIds } from "./groups";
+import { canPostInGroup, canReadGroup, groupNames, managesGroup, memberGroupIds } from "./groups";
 import { mediaByIds, type MediaKind } from "./media";
 import { blockIds, connectionIds, memberById, membersByIds, relation } from "./people";
 import { isModerator } from "./roles";
@@ -38,7 +38,7 @@ const marks = (n: number) => Array.from({ length: n }, () => "?").join(",");
 export const REACTIONS = ["cheer", "proud", "congrats", "insightful", "support"] as const;
 export type Reaction = (typeof REACTIONS)[number];
 
-export type Comment = { id: number; author: User; body: string; createdAt: number; mine: boolean };
+export type Comment = { id: number; author: User; body: string; createdAt: number; mine: boolean; editedAt: number | null };
 export type PostMedia = { id: string; kind: MediaKind };
 /** The post a repost carries, in short: enough for a compact card. */
 export type EmbeddedPost = {
@@ -85,6 +85,8 @@ export type Post = {
   repostOf: { id: number; post: EmbeddedPost | null } | null;
   /** How many times it has been reposted. */
   repostCount: number;
+  /** When its writer last edited it, or null. */
+  editedAt: number | null;
 };
 
 /** Comments shown under a post in the feed; the rest are on the post's own page. */
@@ -119,6 +121,7 @@ type PostRow = {
   verified_at?: number | null;
   /** The post it reposts, if it's a repost. */
   repost_of?: number | null;
+  edited_at?: number | null;
 };
 
 export async function visiblePost(viewer: User, id: number): Promise<{ row: PostRow; author: User } | null> {
@@ -284,6 +287,69 @@ export async function removeOwnPost(me: User, id: number): Promise<Result> {
   return { ok: true };
 }
 
+/**
+ * Deletes a post: its writer's own, or any post in a group, by that group's owner or one
+ * of its admins (keeping their group in order). The college desk removes anything from
+ * the desk (lib/server/desk.ts), with its audit trail.
+ */
+export async function removePost(me: User, id: number): Promise<Result> {
+  const row = Number.isSafeInteger(id) ? await db().one<{ author: number; group_id: number | null }>("select author, group_id from posts where id = ? and removed_at is null", id) : undefined;
+  if (!row) return { ok: true }; // already gone
+  if (row.author !== me.id) {
+    if (row.group_id === null || !(await managesGroup(me, row.group_id))) return no("Only the one who wrote a post can delete it.");
+  }
+  await db().run("update posts set removed_at = ? where id = ? and removed_at is null", Date.now(), id);
+  return { ok: true };
+}
+
+/** Members told of a mention in a post or comment already (at `link`): nobody is told twice. */
+async function toldOfMention(ids: number[], link: string): Promise<Set<number>> {
+  if (!ids.length) return new Set();
+  const rows = await db().all<{ user_id: number }>(`select user_id from notifications where kind = 'mention' and link = ? and user_id in (${marks(ids.length)})`, link, ...ids);
+  return new Set(rows.map((r) => Number(r.user_id)));
+}
+
+/**
+ * Its writer rewrites a post's words. Who it's for, its group, photos and the post it
+ * reposts all stay. Its #tags are worked out again from the new words, as when it was
+ * written (tags picked in the composer stay); anyone newly @mentioned who may see it is
+ * told, and nobody already told is told again. A post on the HKBK board comes off it, as
+ * the college verified the words it had then.
+ */
+export async function editPost(me: User, id: number, body: string): Promise<Result> {
+  if (!(await settings()).features.notes) return no(PAUSED);
+  const row = Number.isSafeInteger(id) ? await db().one<PostRow>("select * from posts where id = ? and removed_at is null", id) : undefined;
+  if (!row) return no("That post isn't here any more.");
+  if (row.author !== me.id) return no("Only the one who wrote a post can edit it.");
+  const { text, ids } = await checkMentions(me, body.trim().slice(0, POST_LIMIT));
+  if (text === row.body) return { ok: true };
+  if (!text && !row.repost_of && !(await db().one("select 1 from post_media where post_id = ?", id))) return no("Write something, or delete the post instead.");
+  if (!(await withinLimit(`post-edit:${me.id}`, 60, HOUR))) return no("That's a lot of editing in an hour. Try again a little later.");
+  const typed = new Set(tagsIn(row.body));
+  const picked = (await db().all<{ tag: string }>("select tag from post_tags where post_id = ?", id)).map((t) => t.tag).filter((t) => !typed.has(t));
+  const tags = [...new Set([...tagsIn(text), ...picked])].slice(0, 5);
+  await db().tx(async (t) => {
+    await t.run(
+      `update posts set body = ?, edited_at = ?${row.verified_at ? ", verified_at = null, verified_by = null" : ""} where id = ? and author = ? and removed_at is null`,
+      text,
+      Date.now(),
+      id,
+      me.id
+    );
+    await t.run("delete from post_tags where post_id = ?", id);
+    for (const tag of tags) await t.run("insert into post_tags (post_id, tag) values (?, ?) on conflict do nothing", id, tag);
+  });
+  const link = `/notes/${id}`;
+  const before = new Set(mentionedIds(row.body));
+  const fresh = ids.filter((mid) => !before.has(mid));
+  const told = await toldOfMention(fresh, link);
+  const mentioned = await membersByIds(fresh.filter((mid) => !told.has(mid)));
+  for (const member of mentioned.values()) {
+    if (await canSeePost(member, me, row.audience, row.group_id)) await notify(member.id, { actor: me.id, kind: "mention", text: `${me.name} mentioned you in a post.`, link });
+  }
+  return { ok: true };
+}
+
 /** React to a post; the same reaction again takes it back, another one replaces it. */
 export async function react(me: User, id: number, kind: string): Promise<Result> {
   if (!REACTIONS.includes(kind as Reaction)) return no("That isn't a reaction.");
@@ -325,7 +391,38 @@ export async function addComment(me: User, id: number, body: string): Promise<Re
 }
 
 export async function removeOwnComment(me: User, id: number): Promise<Result> {
-  await db().run("update post_comments set removed_at = ? where id = ? and author = ? and removed_at is null", Date.now(), id, me.id);
+  const changed = await db().run("update post_comments set removed_at = ? where id = ? and author = ? and removed_at is null", Date.now(), id, me.id);
+  if (!changed && (await db().one("select 1 from post_comments where id = ? and removed_at is null", id))) return no("Only the one who wrote a comment can delete it.");
+  return { ok: true };
+}
+
+/**
+ * Its writer rewrites a comment (it then shows "edited"). Anyone newly @mentioned in it
+ * who may see the post is told, as when a comment is written; nobody is told twice.
+ */
+export async function editComment(me: User, id: number, body: string): Promise<Result> {
+  if (!(await settings()).features.notes) return no(PAUSED);
+  const c = Number.isSafeInteger(id) ? await db().one<{ post_id: number; author: number; body: string }>("select post_id, author, body from post_comments where id = ? and removed_at is null", id) : undefined;
+  if (!c) return no("That comment isn't here any more.");
+  if (c.author !== me.id) return no("Only the one who wrote a comment can edit it.");
+  const post = await visiblePost(me, c.post_id);
+  if (!post) return no("That post isn't here any more.");
+  const { text, ids } = await checkMentions(me, body.trim().slice(0, COMMENT_LIMIT));
+  if (!text) return no("Write something, or delete the comment instead.");
+  if (text === c.body) return { ok: true };
+  if (!(await withinLimit(`comment-edit:${me.id}`, 60, HOUR))) return no("That's a lot of editing in an hour. Try again a little later.");
+  await db().run("update post_comments set body = ?, edited_at = ? where id = ? and author = ? and removed_at is null", text, Date.now(), id, me.id);
+  const link = `/notes/${c.post_id}`;
+  const before = new Set(mentionedIds(c.body));
+  // The post's writer hears of every comment already, as addComment leaves them out too.
+  const fresh = ids.filter((mid) => !before.has(mid) && mid !== post.author.id);
+  const told = await toldOfMention(fresh, link);
+  const mentioned = await membersByIds(fresh.filter((mid) => !told.has(mid)));
+  for (const member of mentioned.values()) {
+    if (await canSeePost(member, post.author, post.row.audience, post.row.group_id)) {
+      await notify(member.id, { actor: me.id, kind: "mention", text: `${me.name} mentioned you in a comment.`, link });
+    }
+  }
   return { ok: true };
 }
 
@@ -373,8 +470,8 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
       `select post_media.post_id, post_media.media_id as id, media.kind from post_media join media on media.id = post_media.media_id where post_media.post_id in (${q}) order by post_media.position`,
       ...ids
     ),
-    db().all<{ id: number; post_id: number; author: number; body: string; created_at: number }>(
-      `select id, post_id, author, body, created_at from (
+    db().all<{ id: number; post_id: number; author: number; body: string; created_at: number; edited_at: number | null }>(
+      `select id, post_id, author, body, created_at, edited_at from (
          select post_comments.*, row_number() over (partition by post_id order by created_at desc, id desc) as newest
          from post_comments where removed_at is null and post_id in (${q})
        ) as c where newest <= ? order by created_at, id`,
@@ -410,14 +507,15 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
       cheered: myReaction !== null,
       comments: commentRows.flatMap((c) => {
         const by = c.post_id === row.id ? authors.get(c.author) : undefined;
-        return by ? [{ id: c.id, author: by, body: c.body, createdAt: c.created_at, mine: by.id === viewer.id }] : [];
+        return by ? [{ id: c.id, author: by, body: c.body, createdAt: c.created_at, mine: by.id === viewer.id, editedAt: c.edited_at ?? null }] : [];
       }),
       commentCount: commentCounts.find((c) => c.post_id === row.id)?.n ?? 0,
       mine: author.id === viewer.id,
       tags: tags.filter((t) => t.post_id === row.id).map((t) => t.tag),
       verifiedAt: row.verified_at ?? null,
       repostOf: row.repost_of ? { id: Number(row.repost_of), post: embedded.get(Number(row.repost_of)) ?? null } : null,
-      repostCount: reposts.find((r) => Number(r.repost_of) === row.id)?.n ?? 0
+      repostCount: reposts.find((r) => Number(r.repost_of) === row.id)?.n ?? 0,
+      editedAt: row.edited_at ?? null
     };
   });
 }

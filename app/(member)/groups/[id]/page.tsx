@@ -117,7 +117,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
           {posts.length === 0 ? (
             <p className="wf-empty">{before ? "That's everything." : member ? "Nothing here yet. Write the first post." : "Nothing here yet."}</p>
           ) : (
-            posts.map((p) => <Post key={p.id} post={p} photos={photos} me={me} />)
+            posts.map((p) => <Post key={p.id} post={p} photos={photos} me={me} groupAdmin={manager} />)
           )}
           {posts.length === PAGE && (
             <p>

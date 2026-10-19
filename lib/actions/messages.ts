@@ -2,13 +2,14 @@
 
 import type { ActionState } from "../action-state";
 import { replyToStory, STORY_REPLY_LIMIT } from "../server/stories";
-import { MESSAGE_LIMIT, sendMessage } from "../server/social";
+import { deleteChat, deleteMessageForEveryone, deleteMessageForMe, editMessage, MESSAGE_LIMIT, sendMessage } from "../server/social";
 import { actor, answer, SIGNED_OUT } from "./common";
 
 /*
  * Messages sent from the chat's composer and from the story viewer. Both are called
  * directly (not as a form's action), so the composer can keep what was typed when sending
  * fails: a form action clears its fields whatever the answer, and a refused message was lost.
+ * Editing and deleting are called the same way, from a message's menu.
  */
 
 const validId = (id: unknown) => typeof id === "number" && Number.isSafeInteger(id) && id > 0;
@@ -19,6 +20,32 @@ export async function sendMessageNow(toId: number, body: string): Promise<Action
   if (!me) return SIGNED_OUT;
   if (!validId(toId)) return { ok: false, error: "That member isn't here any more." };
   return answer(await sendMessage(me, toId, String(body ?? "").slice(0, MESSAGE_LIMIT)));
+}
+
+const GONE: ActionState = { ok: false, error: "That message isn't here any more." };
+
+/** Your own message, rewritten (within 15 minutes of sending it). */
+export async function editMessageNow(id: number, body: string): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!validId(id)) return GONE;
+  return answer(await editMessage(me, id, String(body ?? "").slice(0, MESSAGE_LIMIT)));
+}
+
+/** A message deleted: `everyone` (your own: its words are cleared for both), or for you only. */
+export async function deleteMessageNow(id: number, everyone: boolean): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!validId(id)) return GONE;
+  return answer(await (everyone === true ? deleteMessageForEveryone(me, id) : deleteMessageForMe(me, id)));
+}
+
+/** A whole conversation deleted for you (the other still has it). */
+export async function deleteChatNow(otherId: number): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!validId(otherId)) return { ok: false, error: "That conversation isn't here." };
+  return answer(await deleteChat(me, otherId));
 }
 
 /**

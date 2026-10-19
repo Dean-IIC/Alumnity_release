@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { pieces } from "../../lib/mentions";
 
 type Person = { id: number; name: string; batch: string };
 
@@ -23,24 +24,42 @@ type Props = {
    * time `key` changes, those not already mentioned are added at the end.
    */
   insert?: { key: number; people: Person[] };
+  /** Words already written, as stored (editing a post or a comment): its mentions stay mentions. */
+  initial?: string;
 };
+
+/** Stored text (`@[Name](id)`) as the box shows it ("@Name"), and the people it mentions. */
+function startFrom(initial: string): { text: string; chosen: Person[] } {
+  const chosen: Person[] = [];
+  const text = pieces(initial)
+    .map((p) => {
+      if ("text" in p) return p.text;
+      if (!chosen.some((c) => c.id === p.mention.id)) chosen.push({ id: p.mention.id, name: p.mention.name, batch: "" });
+      return `@${p.mention.name}`;
+    })
+    .join("");
+  return { text, chosen };
+}
 
 /**
  * A text box that suggests people as you type @ and a name. The box shows "@Asha Rao";
  * what's sent says which Asha it is, so the server can check and link it.
  */
-export function MentionInput({ name, placeholder, rows = 3, maxLength, required, className = "", resetKey, onTextChange, autoFocus, id, label, insert }: Props) {
-  const [text, setText] = useState("");
-  const [chosen, setChosen] = useState<Person[]>([]);
+export function MentionInput({ name, placeholder, rows = 3, maxLength, required, className = "", resetKey, onTextChange, autoFocus, id, label, insert, initial = "" }: Props) {
+  const [text, setText] = useState(() => startFrom(initial).text);
+  const [chosen, setChosen] = useState<Person[]>(() => startFrom(initial).chosen);
   const [query, setQuery] = useState<string | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [active, setActive] = useState(0);
   const box = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setText("");
-    setChosen([]);
+    const start = startFrom(initial);
+    setText(start.text);
+    setChosen(start.chosen);
     setQuery(null);
+    // Only a new resetKey starts the box again (the words it started with are read then).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetKey]);
 
   // Ask for names a moment after typing stops.

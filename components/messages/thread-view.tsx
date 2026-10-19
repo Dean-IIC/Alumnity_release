@@ -1,21 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useLayoutEffect, useOptimistic, useRef, useState, useTransition, type KeyboardEvent, type ReactNode } from "react";
+import {
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+  type KeyboardEvent,
+  type ReactNode,
+  type TouchEvent
+} from "react";
 import { sendMessageNow } from "../../lib/actions/messages";
 import { mediaUrl } from "../../lib/media-url";
 import type { StoryRef } from "../../lib/server/social";
 import { PulseNow } from "../app/pulse";
 import { ReportButton } from "../app/report-button";
 import { Avatar } from "../social/avatar";
+import { Icon } from "../social/icons";
+import { MessageActions, type Acting } from "./message-actions";
 
 /*
  * One conversation, as a chat app draws it: their messages on the left in grey, yours on
  * the right in navy; a run of messages from one person in a few minutes kept together;
  * a line between days; "Seen" under your last message once they've read it; the newest
  * always in view; and the box to write in fixed at the bottom (Enter sends on a keyboard,
- * Shift+Enter starts a new line).
+ * Shift+Enter starts a new line). A long press on a message (or its ⋯ button) offers
+ * copy, edit, and delete for everyone or for you; the header's ⋯ deletes the chat.
  */
+
+/** How long a finger rests on a message before its menu opens (as WhatsApp's long press). */
+const LONG_PRESS = 450;
 
 export type ChatPerson = { id: number; name: string; first: string; photoId: string | null; detail: string };
 export type ChatMessage = {
@@ -31,6 +48,12 @@ export type ChatMessage = {
   story: StoryRef | null;
   /** Shown at once while it's on its way. */
   sending?: boolean;
+  /** Its sender changed it after sending ("edited", for both). */
+  edited?: boolean;
+  /** Deleted for everyone: "This message was deleted", for both. */
+  deleted?: boolean;
+  /** Yours: until when it can still be edited (null: it can't be). */
+  editableUntil?: number | null;
 };
 
 /** Messages from one person this close together share a group (one face, one time). */
@@ -112,6 +135,34 @@ export function ThreadView({
   const box = useRef<HTMLTextAreaElement>(null);
   const nearBottom = useRef(true);
   const latest = messages.at(-1)?.id ?? 0;
+  const [acting, setActing] = useState<Acting | null>(null);
+  const press = useRef<{ timer: number; x: number; y: number } | null>(null);
+
+  // A message's choices: from its ⋯ button, or a long press on it (a phone has no hover).
+  const optionsFor = (m: ChatMessage) =>
+    setActing({ kind: "message", message: { id: m.id, mine: m.mine, body: m.body, deleted: Boolean(m.deleted), editableUntil: m.editableUntil ?? null } });
+  const pressEnd = () => {
+    if (press.current) window.clearTimeout(press.current.timer);
+    press.current = null;
+  };
+  const pressStart = (m: ChatMessage, e: TouchEvent) => {
+    pressEnd();
+    const t = e.touches[0];
+    if (m.id <= 0 || e.touches.length !== 1 || !t) return;
+    const timer = window.setTimeout(() => {
+      press.current = null;
+      navigator.vibrate?.(8);
+      optionsFor(m);
+    }, LONG_PRESS);
+    press.current = { timer, x: t.clientX, y: t.clientY };
+  };
+  // Scrolling isn't pressing: a finger that moves lets go.
+  const pressMove = (e: TouchEvent) => {
+    const p = press.current;
+    const t = e.touches[0];
+    if (p && t && Math.hypot(t.clientX - p.x, t.clientY - p.y) > 10) pressEnd();
+  };
+  useEffect(() => pressEnd, []);
 
   // The newest in view: at once when the conversation opens, and as messages arrive (if
   // you were already at the bottom, or it's yours), without yanking you from older ones.
@@ -177,7 +228,7 @@ export function ThreadView({
         </li>
       );
     }
-    const big = Boolean(m.story?.reaction) || onlyEmoji(m.body);
+    const big = !m.deleted && (Boolean(m.story?.reaction) || onlyEmoji(m.body));
     rows.push(
       <li
         key={m.id}
@@ -186,9 +237,20 @@ export function ThreadView({
         {!m.mine && <span className="dm-msg__face">{!joinsNext && <Avatar name={other.name} photoId={other.photoId} size={28} />}</span>}
         <div className="dm-msg__body">
           {m.story && <StoryCard m={m} />}
-          <div className={`dm-bubble ${big ? "dm-bubble--emoji" : ""}`} tabIndex={m.mine ? undefined : 0} title={`${m.day}, ${m.time}`}>
+          <div
+            className={`dm-bubble ${big ? "dm-bubble--emoji" : ""} ${m.deleted ? "dm-bubble--deleted" : ""}`}
+            tabIndex={m.mine ? undefined : 0}
+            title={`${m.day}, ${m.time}`}
+            onTouchStart={(e) => pressStart(m, e)}
+            onTouchMove={pressMove}
+            onTouchEnd={pressEnd}
+            onTouchCancel={pressEnd}
+            // The long press opens our menu; the phone's own (select, copy) would cover it.
+            onContextMenu={(e) => window.matchMedia("(hover: none)").matches && m.id > 0 && e.preventDefault()}
+          >
             <span className="sr-only">{m.mine ? "You: " : `${other.first}: `}</span>
-            <Linked text={m.body} />
+            {m.deleted ? "This message was deleted" : <Linked text={m.body} />}
+            {m.edited && !m.deleted && <span className="dm-bubble__edited">edited</span>}
           </div>
           {!joinsNext && (
             <span className="dm-msg__meta">
@@ -209,6 +271,17 @@ export function ThreadView({
             </span>
           )}
         </div>
+        {m.id > 0 && (
+          <button
+            type="button"
+            className="dm-msg__more"
+            aria-label={m.mine ? "Options for your message" : `Options for ${other.first}'s message`}
+            aria-haspopup="dialog"
+            onClick={() => optionsFor(m)}
+          >
+            <Icon name="more" size={18} />
+          </button>
+        )}
       </li>
     );
   });
@@ -231,6 +304,11 @@ export function ThreadView({
         <Link href={`/people/${other.id}`} className="pill-button dm-thread__profile">
           View profile
         </Link>
+        {shown.some((m) => m.id > 0) && (
+          <button type="button" className="dm-icon-button dm-thread__more" aria-label="Chat options" aria-haspopup="dialog" title="Chat options" onClick={() => setActing({ kind: "chat" })}>
+            <Icon name="more" size={22} />
+          </button>
+        )}
       </header>
 
       <div
@@ -297,6 +375,7 @@ export function ThreadView({
         <div className="dm-composer dm-composer--closed">{closed}</div>
       )}
       <PulseNow on={latest} />
+      <MessageActions acting={acting} other={other} onClose={() => setActing(null)} />
     </section>
   );
 }

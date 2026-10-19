@@ -4,7 +4,23 @@ import { redirect } from "next/navigation";
 import type { ActionState } from "../action-state";
 import { ASK_LIMITS, closeAsk, createAsk, markAnswered, replyToAsk, takeAsk } from "../server/asks";
 import { cancelEvent, createEvent, toggleRsvp } from "../server/events";
-import { addComment, COMMENT_LIMIT, createPost, MEDIA_LIMIT, POST_LIMIT, react, removeOwnComment, removeOwnPost, repost, sendPost, SEND_LIMIT, toggleCheer, verifyPost } from "../server/posts";
+import {
+  addComment,
+  COMMENT_LIMIT,
+  createPost,
+  editComment,
+  editPost,
+  MEDIA_LIMIT,
+  POST_LIMIT,
+  react,
+  removeOwnComment,
+  removePost,
+  repost,
+  sendPost,
+  SEND_LIMIT,
+  toggleCheer,
+  verifyPost
+} from "../server/posts";
 import { ownPost, profileOf, saveProfile } from "../server/profile";
 import { CAPTION_LIMIT, createStory, markSeen, removeStory } from "../server/stories";
 import { actor, answer, idFrom, SIGNED_OUT, textFrom } from "./common";
@@ -26,7 +42,51 @@ export async function postAction(_: ActionState, form: FormData): Promise<Action
 export async function removePostAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
-  return answer(await removeOwnPost(me, idFrom(form)), "Removed.");
+  return answer(await removePost(me, idFrom(form)), "Removed.");
+}
+
+const validId = (id: unknown) => typeof id === "number" && Number.isSafeInteger(id) && id > 0;
+
+/*
+ * Editing and deleting from a post's menu or a comment's: called directly (not as a form's
+ * action) by the small dialogs that ask first, so what was typed stays if it's refused.
+ */
+
+/** A post's new words (its writer's). */
+export async function editPostNow(id: number, body: string): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!validId(id)) return { ok: false, error: "That post isn't here any more." };
+  return answer(await editPost(me, id, String(body ?? "").slice(0, POST_LIMIT)), "Saved.");
+}
+
+/**
+ * A post deleted: your own, or any in a group you run. Deleted from its own page, which is
+ * gone with it, it goes `back` to Home or its group.
+ */
+export async function removePostNow(id: number, back?: string): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!validId(id)) return { ok: false, error: "That post isn't here any more." };
+  const result = answer(await removePost(me, id), "Deleted.");
+  if (result?.ok && typeof back === "string" && /^\/(home|groups\/\d{1,12})$/.test(back)) redirect(back);
+  return result;
+}
+
+/** A comment's new words (its writer's). */
+export async function editCommentNow(id: number, body: string): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!validId(id)) return { ok: false, error: "That comment isn't here any more." };
+  return answer(await editComment(me, id, String(body ?? "").slice(0, COMMENT_LIMIT)), "Saved.");
+}
+
+/** Your own comment, deleted. */
+export async function removeCommentNow(id: number): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!validId(id)) return { ok: false, error: "That comment isn't here any more." };
+  return answer(await removeOwnComment(me, id), "Deleted.");
 }
 
 /** The college desk's check mark on a post (it goes on the HKBK board), or taking it back. */
