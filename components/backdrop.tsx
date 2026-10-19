@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { memo, type ReactNode } from "react";
+import "../app/styles/member-navy.css";
 
 /*
  * Each part of the site has its own background: a drawn motif in one of the college's
@@ -49,10 +50,10 @@ const ROUTES: [prefix: string, motif: Motif, tone: Tone][] = [
   ["/admin", "blueprint", "blue"]
 ];
 
-function pick(path: string): [Motif, Tone] | null {
+function pick(path: string): [Motif, Tone, navy: boolean] | null {
   if (path === "/") return null; // the landing has its own hero
-  for (const [prefix, motif, tone] of ROUTES) if (path === prefix || path.startsWith(`${prefix}/`)) return [motif, tone];
-  return ["blueprint", "blue"];
+  for (const [prefix, motif, tone] of ROUTES) if (path === prefix || path.startsWith(`${prefix}/`)) return [motif, tone, true];
+  return ["blueprint", "blue", false];
 }
 
 /** A small seeded random: the same drawing on every visit. */
@@ -197,9 +198,11 @@ const Drawing = memo(function Drawing({ motif }: { motif: Motif }) {
 export function Backdrop() {
   const chosen = pick(usePathname() ?? "/");
   if (!chosen) return null;
-  const [motif, tone] = chosen;
+  const [motif, tone, navy] = chosen;
+  // Inside the site, a bright blue all the way down, the page's drawing on it in yellow
+  // (app/styles/member-navy.css), so signing in doesn't feel like another site.
   return (
-    <div className={`backdrop backdrop--${tone}`} data-motif={motif} aria-hidden="true">
+    <div className={`backdrop backdrop--${tone} ${navy ? "backdrop--navy" : ""}`} data-motif={motif} aria-hidden="true">
       <Drawing motif={motif} />
     </div>
   );

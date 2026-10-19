@@ -1,0 +1,220 @@
+/*
+ * Inside the site, the landing's colours made brighter: a clear blue for the bar and the
+ * page, the page's drawing on it in yellow, with red and green in it (components/backdrop.tsx),
+ * and the cards white on it, as the landing's cards sit on its navy. Signing in no longer
+ * feels like another site.
+ *
+ * Words straight on the navy (a page's title, its line under it, a section's heading) turn
+ * white; everything inside a card, a field or a pill keeps the paper's colours. Dark mode
+ * is already dark: it keeps its own look.
+ */
+
+/* ---------- The bar: one solid blue ---------- */
+
+:root:not([data-theme="dark"]) .app-bar {
+  border-bottom: 3px solid var(--color-gold);
+  background: #1f63d1;
+  backdrop-filter: none;
+  color: #fff;
+}
+
+:root:not([data-theme="dark"]) .app-bar .brand__name {
+  color: #fff;
+}
+
+:root:not([data-theme="dark"]) .app-bar .brand__sub {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* The crest on a white disc, as the college shows it on its own navy. */
+:root:not([data-theme="dark"]) .app-bar .brand__logo {
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+:root:not([data-theme="dark"]) .app-bar__search {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:root:not([data-theme="dark"]) .app-bar__search input {
+  color: #fff;
+}
+
+:root:not([data-theme="dark"]) .app-bar__search input::placeholder {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root:not([data-theme="dark"]) .app-bar__search:focus-within {
+  border-color: var(--color-gold);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+:root:not([data-theme="dark"]) .app-bar__tab,
+:root:not([data-theme="dark"]) .app-bar .app-menu > summary {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+:root:not([data-theme="dark"]) .app-bar__tab:hover,
+:root:not([data-theme="dark"]) .app-bar .app-menu > summary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* The page you're on: a gold tile with navy in it. */
+:root:not([data-theme="dark"]) .app-bar__tab[aria-current="page"],
+:root:not([data-theme="dark"]) .app-bar .app-menu[open] > summary {
+  background: var(--color-gold);
+  color: #0a2a57;
+}
+
+/* Each icon's colour, lifted to read on navy (app/styles/colour.css has the paper's). */
+:root:not([data-theme="dark"]) .app-bar .icon.icon--home,
+:root:not([data-theme="dark"]) .app-bar .icon.icon--grid,
+:root:not([data-theme="dark"]) .app-bar .icon.icon--more { color: #ffffff; }
+:root:not([data-theme="dark"]) .app-bar .icon.icon--people { color: #5eead4; }
+:root:not([data-theme="dark"]) .app-bar .icon.icon--group { color: #c4b5fd; }
+:root:not([data-theme="dark"]) .app-bar .icon.icon--message { color: #93c5fd; }
+:root:not([data-theme="dark"]) .app-bar .icon.icon--bell { color: #ffc94d; }
+:root:not([data-theme="dark"]) .app-bar .icon.icon--search { color: rgba(255, 255, 255, 0.85); }
+
+:root:not([data-theme="dark"]) .app-bar__tab[aria-current="page"] .icon,
+:root:not([data-theme="dark"]) .app-bar .app-menu[open] > summary .icon {
+  color: #0a2a57;
+}
+
+/* The gold rule under the current tab would vanish into its gold tile: gone. */
+:root:not([data-theme="dark"]) .app-bar__tab[aria-current="page"]::after {
+  display: none;
+}
+
+/* The count on a tab: bright red with a navy ring, so it stands off the bar. */
+:root:not([data-theme="dark"]) .app-bar__badge {
+  box-shadow: 0 0 0 2px #1f63d1;
+}
+
+/* ---------- The page: blue, with its drawing in yellow, red and green ---------- */
+
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) {
+  background: #2a6fd9;
+}
+
+:root:not([data-theme="dark"]) .backdrop.backdrop--navy {
+  --bd-ink: #ffd23f;
+  --bd-accent: #ff4d55;
+  background:
+    radial-gradient(ellipse 55% 45% at 100% 0%, rgba(255, 200, 40, 0.28), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 0% 100%, rgba(224, 36, 47, 0.18), transparent 70%),
+    radial-gradient(ellipse 35% 30% at 0% 30%, rgba(52, 211, 153, 0.1), transparent 70%),
+    linear-gradient(165deg, #1f63d1 0%, #2f78e0 50%, #3b82e6 100%);
+}
+
+:root:not([data-theme="dark"]) .backdrop--navy .backdrop__art {
+  opacity: 1;
+  /* Bold in the margins, quieter under the column of cards. */
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 18%, rgba(0, 0, 0, 0.45) 34%, rgba(0, 0, 0, 0.45) 66%, #000 82%, #000 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 18%, rgba(0, 0, 0, 0.45) 34%, rgba(0, 0, 0, 0.45) 66%, #000 82%, #000 100%);
+}
+
+:root:not([data-theme="dark"]) .backdrop--navy .bd-ink {
+  fill: #ffd23f;
+  fill-opacity: 0.85;
+}
+
+:root:not([data-theme="dark"]) .backdrop--navy .bd-line {
+  stroke: #ffd23f;
+  stroke-opacity: 0.8;
+  stroke-width: 1.6;
+}
+
+:root:not([data-theme="dark"]) .backdrop--navy .bd-grid {
+  stroke: #34d399;
+  stroke-opacity: 0.12;
+}
+
+/* Green, the fourth of the college's colours, in the drawing's fills. */
+:root:not([data-theme="dark"]) .backdrop--navy .bd-fill-strong {
+  fill: #34d399;
+  fill-opacity: 0.22;
+}
+
+:root:not([data-theme="dark"]) .backdrop--navy .bd-fill {
+  fill-opacity: 0.12;
+  stroke-opacity: 0.4;
+}
+
+:root:not([data-theme="dark"]) .backdrop--navy .bd-accent,
+:root:not([data-theme="dark"]) .backdrop--navy .bd-accent-line {
+  fill-opacity: 0.7;
+  stroke-opacity: 0.7;
+}
+
+/*
+ * Words straight on the navy: white. Everything else keeps the paper's colours, because it
+ * sits on something white: a card, a field, a pill. Forms, lists and quiet notes that used
+ * to sit on the bare page get a white surface of their own instead (below), so nothing dark
+ * is ever left on the navy.
+ */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(h1, h2, .wf-head p, p.wf-muted, .page-head__text, .people-section__note, .h-count, .more-heading span):not(:is(.sheet, .pcard, .wf-card, .wf-fold, .wf-empty, .wf-list, .wf-members, .wf-tabs, .wf-search, .register-pages, .people-empty, .people-register-note, .profile__intro, .settings__section, .editor__part, .person-card, .request-card, .event-card, .album-card, .side-box, .dm-pane, .dm-list, .acard-promo, .board__tags, .feed-tabs, .strength, form, dialog) *) {
+  color: #ffffff;
+}
+
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-head p, p.wf-muted, .page-head__text, .people-section__note):not(:is(.sheet, .pcard, .wf-card, .wf-fold, .wf-empty, .wf-list, .wf-members, .wf-tabs, .wf-search, .register-pages, .people-empty, .people-register-note, .profile__intro, .settings__section, .editor__part, .person-card, .request-card, .event-card, .album-card, .side-box, .dm-pane, .dm-list, .acard-promo, .board__tags, .feed-tabs, .strength, form, dialog) *) {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* A search or filter form straight on the page: on white too. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main > form,
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main > section > form {
+  padding: var(--space-4);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--color-ink);
+  box-shadow: 0 10px 28px rgba(4, 18, 43, 0.2);
+}
+
+/* The line either side of "More from HKBK", in gold on the navy. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main .more-heading::before,
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main .more-heading::after {
+  background: rgba(255, 180, 0, 0.55);
+}
+
+/* A page's title: white, with the landing's gold-and-red rule under it. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) .wf-head h1::after {
+  background: linear-gradient(to right, var(--color-gold) 0 70%, #ff4d55 70% 100%);
+}
+
+/* Forms, lists, tabs, pagers and notes that sat on the bare page: on white, like the rest. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-fold, .wf-empty, .people-empty, .people-register-note, .wf-list, .wf-members, .register-pages, .dm-list, .board__tags, .wf-search) {
+  padding: var(--space-4);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--color-ink);
+  box-shadow: 0 10px 28px rgba(4, 18, 43, 0.28);
+}
+
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-tabs, .feed-tabs) {
+  padding: 4px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(4, 18, 43, 0.25);
+}
+
+/* People found or suggested, as a list on a phone: each a white card. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main .person-card {
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+/* Cards everywhere lift off the navy a little more than they did off the paper. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.sheet, .wf-card, .pcard, .event-card, .person-card, .request-card, .album-card) {
+  box-shadow: 0 12px 30px rgba(4, 18, 43, 0.3);
+}
+
+@media (prefers-contrast: more) {
+  :root:not([data-theme="dark"]) body:has(.backdrop--navy) {
+    background: #1a56b8;
+  }
+}
