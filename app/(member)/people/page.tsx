@@ -6,7 +6,7 @@ import { MemberLine } from "../../../components/app/member-line";
 import { BRANCHES, isBranch } from "../../../lib/branches";
 import { Invite } from "../../../components/app/invite";
 import { batchmates, memberCount, searchMembers, whereAlumniWork, type SearchQuery } from "../../../lib/server/people";
-import { batchCount, REGISTER_SEARCHES, registerFacts, searchRegister } from "../../../lib/server/register";
+import { batchCount, browseRegister, REGISTER_PAGES, REGISTER_SEARCHES, registerFacts, searchRegister, type NotYetJoined } from "../../../lib/server/register";
 import { Avatar } from "../../../components/social/avatar";
 import { batchLabel } from "../../../lib/format";
 import { requireUser } from "../../../lib/server/session";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 const RELATION_LABEL: Record<string, string> = { connected: "Connected", sent: "Request sent", received: "Wants to connect" };
 
-type Params = { q?: string; branch?: string; year?: string; help?: string };
+type Params = { q?: string; branch?: string; year?: string; help?: string; page?: string };
 
 /** Find people: by name, what they do, where, what they know; branch, year, and what they're happy to do. */
 export default async function PeoplePage({ searchParams }: { searchParams: Promise<Params> }) {
@@ -31,11 +31,14 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   };
   const searched = Boolean(query.q || query.branch || query.year || query.help);
   // Members, and (for a name or USN typed) people on the college register who haven't joined yet.
-  const [found, register, companies, college] = await Promise.all([
+  const page = Number(params.page) || 1;
+  const [found, register, companies, college, browse] = await Promise.all([
     searchMembers(me, query),
     query.q ? searchRegister(me, { q: query.q, branch: query.branch, year: query.year }) : Promise.resolve({ people: [], limited: false }),
     searched ? Promise.resolve([]) : whereAlumniWork(me),
-    query.q ? Promise.resolve(null) : registerFacts()
+    query.q ? Promise.resolve(null) : registerFacts(),
+    // No name typed: the register to look through, a page at a time (by branch and year if chosen).
+    query.q ? Promise.resolve(null) : browseRegister(me, { branch: query.branch, year: query.year, page })
   ]);
   const photos = await photoIdsOf(found.slice(0, 60).map((f) => f.member.id));
   // A young network: who's here so far, and how many from your batch aren't yet.
@@ -84,8 +87,8 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
           so the page looked empty of real people: "is the data missing?" It says it's here. */}
       {college && (
         <p className="people-register-note">
-          <strong>{college.count.toLocaleString("en-IN")} people</strong> from HKBK&apos;s register, {college.from}–{college.to}, can be found here: type a name or USN above.
-          Below are those who have joined Alumnity so far.
+          <strong>{college.count.toLocaleString("en-IN")} people</strong> from HKBK&apos;s register, {college.from}–{college.to}, are here: those who have joined Alumnity first,
+          then <a href="#register-all">everyone on the register</a>. Type a name or USN above to find someone.
         </p>
       )}
 
@@ -144,25 +147,32 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
         <section className="register-found" aria-labelledby="register-found">
           <h2 id="register-found">On the college register, not on Alumnity yet</h2>
           <p className="wf-muted">From HKBK's own register of students. Know them? Send them the link. They can join by finding their name in the register.</p>
-          <ul className="wf-list">
-            {register.people.map((p, i) => (
-              <li key={`${p.name}-${p.joined}-${i}`} className="wf-member wf-member--face">
-                <span className="wf-member__face" aria-hidden="true">
-                  <Avatar name={p.name} size={44} />
-                </span>
-                <div className="wf-member__who">
-                  <strong className="wf-member__name wf-member__name--plain">{p.name}</strong>
-                  <span className="wf-muted">
-                    {batchLabel({ branch: p.branch, joined: p.joined, programme: p.programme })}
-                    {p.programme !== "B.Tech" ? ` · ${p.programme}` : ""}
-                  </span>
-                </div>
-                <div className="wf-actions">
-                  <span className="wf-tag wf-tag--waiting">Not on Alumnity yet</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <RegisterList people={register.people} />
+          <Invite text="I found your name on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />
+        </section>
+      )}
+      {browse && (
+        <section className="register-found" id="register-all" aria-labelledby="register-all-title">
+          <h2 id="register-all-title">
+            Everyone on HKBK&apos;s register <span className="h-count">· {browse.total.toLocaleString("en-IN")} not on Alumnity yet</span>
+          </h2>
+          <p className="wf-muted">
+            From the college&apos;s own register of students{query.branch || query.year ? ", with the branch and year chosen above" : ""}. Choose a branch or year above to look through one batch. Know someone? Send them the link: they join by finding their name.
+          </p>
+          {browse.limited ? (
+            <p className="wf-note">That&apos;s {REGISTER_PAGES} pages of the register this hour, the most at a time. It comes back within the hour.</p>
+          ) : (
+            <RegisterList people={browse.people} />
+          )}
+          {browse.pages > 1 && (
+            <nav className="register-pages" aria-label="Pages of the register">
+              {browse.page > 1 ? <Link href={pageHref(query, browse.page - 1)}>← Previous</Link> : <span />}
+              <span>
+                Page {browse.page} of {browse.pages}
+              </span>
+              {browse.page < browse.pages ? <Link href={pageHref(query, browse.page + 1)}>Next →</Link> : <span />}
+            </nav>
+          )}
           <Invite text="I found your name on Alumnity, HKBK College of Engineering's alumni network. Find your name in the register and join:" />
         </section>
       )}
@@ -173,4 +183,38 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
       )}
     </AppPage>
   );
+}
+
+/** A page of the register: name, batch, and that they haven't joined. Never a USN. */
+function RegisterList({ people }: { people: NotYetJoined[] }) {
+  return (
+    <ul className="wf-list">
+      {people.map((p, i) => (
+        <li key={`${p.name}-${p.joined}-${i}`} className="wf-member wf-member--face">
+          <span className="wf-member__face" aria-hidden="true">
+            <Avatar name={p.name} size={44} />
+          </span>
+          <div className="wf-member__who">
+            <strong className="wf-member__name wf-member__name--plain">{p.name}</strong>
+            <span className="wf-muted">
+              {batchLabel({ branch: p.branch, joined: p.joined, programme: p.programme })}
+              {p.programme !== "B.Tech" ? ` · ${p.programme}` : ""}
+            </span>
+          </div>
+          <div className="wf-actions">
+            <span className="wf-tag wf-tag--waiting">Not on Alumnity yet</span>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The same choices of branch and year, another page of the register. */
+function pageHref(query: { branch?: string; year?: number }, page: number) {
+  const p = new URLSearchParams();
+  if (query.branch) p.set("branch", query.branch);
+  if (query.year) p.set("year", String(query.year));
+  p.set("page", String(page));
+  return `/people?${p}#register-all`;
 }

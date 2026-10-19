@@ -885,3 +885,18 @@
 .people-register-note strong {
   color: var(--color-blue);
 }
+
+/* People: the register, a page at a time. */
+.register-pages {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  margin: var(--space-4) 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.register-pages a:last-child {
+  justify-self: end;
+}

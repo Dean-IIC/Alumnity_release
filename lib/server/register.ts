@@ -111,3 +111,43 @@ export async function searchRegister(
   const rows = await db().all<Row>(`select * from register where ${where.join(" and ")} order by register.year desc, register.name limit ?`, ...params, limit);
   return { people: rows.map((r) => ({ name: nameCase(r.name), branch: r.branch, branchName: r.branch_name, programme: r.programme, joined: r.year })), limited: false };
 }
+
+/** Pages of the register a member may turn in an hour: enough to look through a batch or a
+ *  year at leisure, too few to copy the whole register out in one sitting. */
+export const REGISTER_PAGES = 120;
+export const REGISTER_PAGE_SIZE = 50;
+
+/**
+ * The register to browse, for a member (Rumaan's call: everyone from HKBK should be visible,
+ * not only found by name). Name, branch and year only: never a USN in a list, because USNs
+ * run in order and a list of them is the whole register by roll number. Those who have
+ * joined are left out (they're listed as members). Newest year first, then by name.
+ */
+export async function browseRegister(
+  viewer: User,
+  query: { branch?: string; year?: number; page?: number }
+): Promise<{ people: NotYetJoined[]; total: number; page: number; pages: number; limited: boolean }> {
+  const where: string[] = ["register.usn not in (select usn from users where usn is not null)"];
+  const params: unknown[] = [];
+  if (query.branch) {
+    where.push("register.branch = ?");
+    params.push(query.branch);
+  }
+  if (query.year) {
+    where.push("register.year = ?");
+    params.push(query.year);
+  }
+  const counted = await db().one<{ n: number }>(`select count(*) as n from register where ${where.join(" and ")}`, ...params);
+  const total = Number(counted?.n ?? 0);
+  const pages = Math.max(1, Math.ceil(total / REGISTER_PAGE_SIZE));
+  const page = Math.min(Math.max(1, Math.floor(query.page ?? 1)), pages);
+  if (!total) return { people: [], total, page, pages, limited: false };
+  if (!(await withinLimit(`register-browse:${viewer.id}`, REGISTER_PAGES, HOUR))) return { people: [], total, page, pages, limited: true };
+  const rows = await db().all<Row>(
+    `select * from register where ${where.join(" and ")} order by register.year desc, register.name limit ? offset ?`,
+    ...params,
+    REGISTER_PAGE_SIZE,
+    (page - 1) * REGISTER_PAGE_SIZE
+  );
+  return { people: rows.map((r) => ({ name: nameCase(r.name), branch: r.branch, branchName: r.branch_name, programme: r.programme, joined: r.year })), total, page, pages, limited: false };
+}
