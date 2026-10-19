@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { commentAction, removeCommentAction, removePostAction, verifyPostAction } from "../../lib/actions/content";
 import { referralAction } from "../../lib/actions/social";
+import { tagHref } from "../../lib/feed-filters";
 import { batchLabel, timeAgo } from "../../lib/format";
 import { plainText } from "../../lib/mentions";
 import type { User } from "../../lib/server/auth";
@@ -117,7 +118,7 @@ export function Post({ post, photos, full = false, me }: Props) {
           {post.tags
             .filter((t) => !post.body.toLowerCase().includes(`#${t}`))
             .map((t) => (
-              <Link key={t} className="hashtag" href={`/board?tag=${t}`}>
+              <Link key={t} className="hashtag" href={tagHref(t)}>
                 #{t}
               </Link>
             ))}

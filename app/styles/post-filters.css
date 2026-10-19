@@ -1,0 +1,521 @@
+/*
+ * Home's filter bar: a search box for words and #tags, and chips for topics, for who wrote
+ * a post, and for named people. The chips are People's pills (people-plus.css) in the
+ * colour layer's dress: a chosen one is gold with navy words, as the board's tags and the
+ * feed's tabs are. It folds to one slim bar (the search box, and a Filters button or the
+ * chosen filters as chips) and opens to the whole panel; which, is the component's
+ * data-open (or, before its scripts run, these rules: open on a wide screen with nothing
+ * chosen, folded otherwise). Always on its own white card, so it reads on any page colour.
+ * Imported by components/home/feed-filters.tsx. Tokens from tokens.css.
+ */
+
+.post-filters {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-card);
+  /* A #tag's link opens here (…#feed): clear of the bar at the top. */
+  scroll-margin-top: 84px;
+}
+
+.post-filters__top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* ---------- The search box ---------- */
+
+.post-filters__search {
+  position: relative;
+  display: flex;
+  flex: 1 1 180px;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 6px 0 var(--space-3);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  transition:
+    border-color var(--duration-instant) ease,
+    box-shadow var(--duration-instant) ease;
+}
+
+.post-filters__search:focus-within {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px var(--color-wash-blue);
+}
+
+.post-filters__icon {
+  flex: none;
+  color: var(--color-ink-muted);
+}
+
+.post-filters__search:focus-within .post-filters__icon {
+  color: var(--color-blue);
+}
+
+.post-filters__input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--color-ink);
+  font: var(--weight-regular) 1rem / 1.2 var(--font-ui);
+}
+
+.post-filters__input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+.post-filters__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.post-filters__clear-q {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-paper-raised);
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.post-filters__clear-q:hover {
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+}
+
+/* Fetching: a thin gold line runs along the bottom of the box until the posts arrive. */
+.post-filters[data-pending] .post-filters__search::after {
+  content: "";
+  position: absolute;
+  right: 22px;
+  bottom: -1px;
+  left: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: post-filters-busy 0.9s linear infinite;
+}
+
+@keyframes post-filters-busy {
+  from {
+    background-position: -40% 0;
+  }
+  to {
+    background-position: 140% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-filters[data-pending] .post-filters__search::after {
+    animation: none;
+    background: var(--color-gold);
+    opacity: 0.6;
+  }
+}
+
+/* ---------- The toggle: Filters, or the chosen filters, or Hide filters ---------- */
+
+.post-filters__toggle {
+  display: inline-flex;
+  flex: none;
+  gap: 6px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.post-filters__toggle:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+.post-filters__toggle[aria-expanded="true"] {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+.post-filters__chevron {
+  flex: none;
+  transition: transform var(--duration-instant) ease;
+}
+
+[aria-expanded="true"] > .post-filters__chevron {
+  transform: rotate(180deg);
+}
+
+/* Folded with filters on: the chips themselves are the button (no outline of its own). */
+.post-filters__toggle--chosen {
+  flex: 0 1 auto;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 4px;
+  border-color: transparent;
+  overflow: hidden;
+}
+
+.post-filters__toggle--chosen .post-chip {
+  flex: none;
+  max-width: 10em;
+  padding: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-filters__toggle--chosen:hover .post-chip.is-on {
+  box-shadow: 0 0 0 2px var(--color-wash-gold);
+}
+
+/* "+2": more chosen than the bar shows. */
+.post-chip--more {
+  border-color: var(--color-blue);
+  background: var(--color-paper-raised);
+  color: var(--color-blue);
+  font-weight: var(--weight-bold);
+}
+
+/* "Clear", beside the folded chips. */
+.post-filters__reset--quick {
+  padding: 0 var(--space-2);
+}
+
+.post-filters__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-gold);
+  color: #0a2a57;
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+}
+
+/* ---------- The panel, and its chips ---------- */
+
+/* Folded unless the component says open; before its scripts run, open on a wide screen with nothing chosen. */
+.post-filters__panel {
+  display: none;
+  gap: var(--space-2);
+}
+
+.post-filters[data-open="true"] .post-filters__panel {
+  display: grid;
+}
+
+@media (min-width: 641px) {
+  .post-filters:not([data-open]):not([data-active]) .post-filters__panel {
+    display: grid;
+  }
+}
+
+/* The panel's foot: clearing, and folding it again. */
+.post-filters__end {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-line);
+}
+
+.post-filters__end .post-filters__reset {
+  margin-right: auto;
+}
+
+.post-filters__done {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  border: 0;
+  background: none;
+  color: var(--color-blue);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.post-filters__done:hover {
+  text-decoration: underline;
+}
+
+.post-filters__group {
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+  min-width: 0;
+}
+
+.post-filters__label {
+  flex: none;
+  width: 92px;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.post-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.post-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: var(--weight-medium) var(--text-small) / 1 var(--font-ui);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--duration-instant) ease,
+    border-color var(--duration-instant) ease;
+}
+
+.post-chip:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+.post-chip:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Chosen: gold, navy words (the colour layer's mark for a chosen filter). */
+.post-chip.is-on,
+.post-chip.is-on:hover {
+  border-color: var(--color-gold);
+  background: var(--color-gold);
+  color: #0a2a57;
+  font-weight: var(--weight-semibold);
+}
+
+.post-chip span {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+/* A person chosen: navy, with their × to take them off. */
+.post-chip--person {
+  border-color: transparent;
+  background: var(--color-wash-blue);
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---------- The people picker ---------- */
+
+.post-picker {
+  position: relative;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+}
+
+.post-picker:focus-within {
+  border-style: solid;
+  border-color: var(--color-blue);
+}
+
+.post-picker__icon {
+  flex: none;
+  color: var(--color-ink-muted);
+}
+
+.post-picker__input {
+  width: 170px;
+  min-width: 0;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--color-ink);
+  font: var(--weight-regular) var(--text-small) / 1.2 var(--font-ui);
+}
+
+.post-picker__input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+.post-picker__list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(300px, calc(100vw - 2 * var(--gutter)));
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-pop);
+  list-style: none;
+}
+
+.post-picker__list button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.post-picker__list button span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.post-picker__list [aria-selected="true"] button,
+.post-picker__list button:hover {
+  background: var(--color-wash-blue);
+}
+
+/* ---------- Clearing them ---------- */
+
+.post-filters__reset {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--color-bright-red);
+  font-weight: var(--weight-semibold);
+}
+
+/* No posts match: said plainly, with the way out. */
+.post-filters-empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  padding: var(--space-5);
+}
+
+.post-filters-empty h2 {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.post-filters-empty p {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+/* ---------- A phone: folded to start with; edge to edge, as the feed's cards are ---------- */
+
+@media (max-width: 640px) {
+  .post-filters {
+    padding: var(--space-3) var(--gutter);
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  /* Filters on: the box has the first line, the chosen chips and "Clear" the second. */
+  .post-filters[data-chosen] .post-filters__search {
+    flex-basis: 100%;
+  }
+
+  .post-filters__panel {
+    gap: var(--space-3);
+  }
+
+  .post-filters__done {
+    min-height: 44px;
+  }
+
+  /* The search's ×: a thumb's size, its extra taken back by the margin so the box stays slim. */
+  .post-filters__clear-q {
+    width: 44px;
+    height: 44px;
+    margin: -4px -6px -4px 0;
+  }
+
+  .post-filters__group {
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  .post-filters__label {
+    width: auto;
+  }
+
+  /* Big enough for a thumb. */
+  .post-chip,
+  .post-picker {
+    min-height: 44px;
+  }
+
+  .post-picker {
+    flex: 1 1 100%;
+  }
+
+  .post-picker__input {
+    flex: 1;
+    width: auto;
+    height: 40px;
+    font-size: 1rem; /* 16 px or more: phones don't zoom in on it */
+  }
+
+  .post-filters__reset {
+    min-height: 44px;
+  }
+}
+
+/* In the dark, gold keeps its navy words; the wash goes deep. */
+:root[data-theme="dark"] .post-chip.is-on,
+:root[data-theme="dark"] .post-filters__count {
+  color: #0a2a57;
+}

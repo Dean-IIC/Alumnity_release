@@ -1,6 +1,7 @@
 import { db } from "./db";
 import type { User } from "./auth";
 import { MENTION, mentionedIds } from "../mentions";
+import { cleanQuery, MAX_FILTER_AUTHORS, MAX_FILTER_TAGS, QUERY_WORDS, ROLE_FILTERS, type RoleFilter } from "../feed-filters";
 import { cleanTag, tagsIn, WORK_TAGS } from "../tags";
 import { followingIds } from "./follows";
 import { canPostInGroup, canReadGroup, groupNames, memberGroupIds } from "./groups";
@@ -471,8 +472,47 @@ export async function postFor(viewer: User, id: number): Promise<Post | null> {
 export type FeedScope = "all" | "following";
 
 /**
+ * The words of a search, as SQL: each word must be in the post's text or its #tags ("#job"
+ * means the tag job, or "#job" written in the text). Mentions are stored as "@[Name](id)",
+ * so a name finds the posts that mention its owner too.
+ */
+function searchClauses(q: string): { sql: string; params: string[] } {
+  const parts: string[] = [];
+  const params: string[] = [];
+  for (const word of cleanQuery(q).toLowerCase().split(" ").slice(0, QUERY_WORDS)) {
+    const asTag = word.startsWith("#") ? cleanTag(word.slice(1)) : null;
+    if (asTag) {
+      parts.push("(id in (select post_id from post_tags where tag = ?) or lower(body) like ?)");
+      params.push(asTag, `%#${asTag}%`);
+      continue;
+    }
+    // LIKE's own wildcards are taken out, so a search is only ever its words.
+    const plain = word.replace(/^#/, "").replace(/[%_\\]/g, "");
+    if (!plain) continue;
+    parts.push("(lower(body) like ? or id in (select post_id from post_tags where tag like ?))");
+    params.push(`%${plain}%`, `${plain}%`);
+  }
+  return { sql: parts.map((p) => `and ${p}`).join(" "), params };
+}
+
+/**
+ * Who wrote it, as SQL. Alumni, students and faculty are people with that role; the
+ * college is its coordinators and administrators, and its own account (users.college_account),
+ * which is never counted among the alumni.
+ */
+function roleClause(roles: RoleFilter[]): { sql: string; params: string[] } {
+  if (!roles.length) return { sql: "", params: [] };
+  const people = roles.filter((r) => r !== "college");
+  const parts = [...people.map(() => "(role = ? and college_account = 0)"), ...(roles.includes("college") ? ["role in ('coordinator', 'admin', 'superadmin') or college_account = 1"] : [])];
+  return { sql: `and author in (select id from users where ${parts.join(" or ")})`, params: people };
+}
+
+/**
  * The newest posts `viewer` may see. `scope: "following"`: only from people they're
  * connected to or follow (and themselves). Only by `authorIds`, if given (a member's page, a batch).
+ * Home's filters narrow it further, each kind with "any of": `tags`, `roles`, `authors` (named
+ * people), and `q` (words in the text or the tags, all of them). Filters only ever narrow:
+ * every post still passes the same visibility check as the unfiltered feed.
  */
 export async function feedFor(
   viewer: User,
@@ -484,6 +524,10 @@ export async function feedFor(
     before,
     scope = "all",
     tag,
+    tags: tagList,
+    roles: roleList,
+    authors: authorList,
+    q,
     verified = false
   }: {
     authorId?: number;
@@ -494,28 +538,48 @@ export async function feedFor(
     scope?: FeedScope;
     /** Only posts with this #tag (or any of these). */
     tag?: string | string[];
+    /** The same, from Home's filters: any of these #tags (five at most). */
+    tags?: string[];
+    /** Only posts by people with one of these roles ("college": the college's own accounts and its desk). */
+    roles?: RoleFilter[];
+    /** Only posts by one of these members (ten at most). */
+    authors?: number[];
+    /** Only posts with these words in their text or #tags. */
+    q?: string;
     /** Only posts the college has verified (the HKBK board), newest verified first. */
     verified?: boolean;
   } = {}
 ): Promise<Post[]> {
   if (groupId !== undefined && !(await canReadGroup(viewer, groupId))) return [];
-  const tags = (tag === undefined ? [] : Array.isArray(tag) ? tag : [tag]).slice(0, 10);
+  // Everything from outside is cleaned and capped here too, whoever called.
+  const tags = [...new Set([...(tag === undefined ? [] : Array.isArray(tag) ? tag : [tag]), ...(tagList ?? [])].flatMap((t) => cleanTag(t) ?? []))].slice(0, MAX_FILTER_TAGS);
+  const roles = [...new Set(roleList ?? [])].filter((r) => ROLE_FILTERS.some(([v]) => v === r));
+  const named = [...new Set(authorList ?? [])].filter((n) => Number.isSafeInteger(n) && n > 0).slice(0, MAX_FILTER_AUTHORS);
+  if (authorList?.length && !named.length) return [];
+  const search = searchClauses(q ?? "");
+  const byRole = roleClause(roles);
   const circle = await circleOf(viewer);
   let ids = (authorId ? [authorId] : authorIds ?? []).slice(0, 500);
   if (authorIds && ids.length === 0) return [];
   if (scope === "following" && !authorId && !authorIds) {
     ids = [viewer.id, ...circle.connections, ...circle.following].slice(0, 2000);
   }
-  // Scans a bounded number of the newest posts: enough to fill a page after visibility.
+  // One query finds the page's posts, filters and all. It reads a bounded number of the newest
+  // (enough to fill a page after visibility), walking the created_at index; each filter is an
+  // indexed lookup (post_tags by tag, users by role, posts by author) or a check on the row.
   const rows = await db().all<PostRow>(
     `select * from posts where removed_at is null and ${groupId !== undefined ? "group_id = ?" : "group_id is null"}
      ${before ? "and created_at < ?" : ""} ${ids.length ? `and author in (${marks(ids.length)})` : ""}
-     ${tags.length ? `and id in (select post_id from post_tags where tag in (${marks(tags.length)}))` : ""} ${verified ? "and verified_at is not null" : ""}
+     ${named.length ? `and author in (${marks(named.length)})` : ""} ${byRole.sql}
+     ${tags.length ? `and id in (select post_id from post_tags where tag in (${marks(tags.length)}))` : ""} ${search.sql} ${verified ? "and verified_at is not null" : ""}
      order by ${verified ? "verified_at desc," : ""} created_at desc, id desc limit ?`,
     ...(groupId !== undefined ? [groupId] : []),
     ...(before ? [before] : []),
     ...ids,
+    ...named,
+    ...byRole.params,
     ...tags,
+    ...search.params,
     limit * 5
   );
   const authors = await membersByIds(rows.map((r) => r.author));
@@ -527,6 +591,31 @@ export async function feedFor(
     if (items.length >= limit) break;
   }
   return toPosts(viewer, circle, items);
+}
+
+/**
+ * The #tags most used lately in posts `viewer` may see (Home's posts, so no group's), most
+ * used first: the filter bar's topic chips. Reads at most the newest 2,000 tags of the last
+ * `days`, so it stays cheap however busy the site gets.
+ */
+export async function popularTags(viewer: User, { days = 30, limit = 8 }: { days?: number; limit?: number } = {}): Promise<string[]> {
+  const rows = await db().all<{ tag: string; author: number; audience: Audience }>(
+    `select post_tags.tag, posts.author, posts.audience from post_tags join posts on posts.id = post_tags.post_id
+     where posts.removed_at is null and posts.group_id is null and posts.created_at > ?
+     order by posts.created_at desc limit 2000`,
+    Date.now() - days * 24 * HOUR
+  );
+  if (!rows.length) return [];
+  const [circle, authors] = await Promise.all([circleOf(viewer), membersByIds(rows.map((r) => r.author))]);
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    const author = authors.get(r.author);
+    if (author && seesPost(viewer, circle, author, r.audience)) counts.set(r.tag, (counts.get(r.tag) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([tag]) => tag);
 }
 
 export { mentionedIds };
