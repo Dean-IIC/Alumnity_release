@@ -325,6 +325,44 @@
   display: none;
 }
 
+/* The header's small links, and the footer's: a slim gold rule between each, so they read
+   as separate links rather than one long line. */
+:root .site-nav nav {
+  --nav-gap: clamp(10px, 1.6vw, 22px);
+  gap: var(--nav-gap);
+  align-items: center;
+}
+
+:root .site-nav nav a + a::before,
+:root .site-footer__legal-links > * + *::before {
+  position: absolute;
+  top: 50%;
+  width: 1.5px;
+  height: 1.1em;
+  content: "";
+  border-radius: 1px;
+  background: var(--color-gold);
+  opacity: 0.7;
+  pointer-events: none;
+  translate: 0 -50%;
+}
+
+:root .site-nav nav a + a::before {
+  left: calc(var(--nav-gap) / -2 - 0.75px);
+}
+
+:root .site-footer__legal-links {
+  gap: var(--space-5);
+}
+
+:root .site-footer__legal-links > * {
+  position: relative;
+}
+
+:root .site-footer__legal-links > * + *::before {
+  left: calc(var(--space-5) / -2 - 0.75px);
+}
+
 /* The app bar: the current place as a tinted tile, its gold rule kept under it. */
 :root .app-bar__tab {
   border-radius: 12px;

@@ -361,7 +361,15 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         // Where the wordmark starts, measured once as the float begins. Its destination is
         // re-read every frame, so it lands exactly even if the nav is still settling.
         let floatFrom: DOMRect | null = null;
+        let floatOrigin: DOMRect | null = null;
         const targetName = brandTarget?.querySelector<HTMLElement>(".brand__name") ?? brandTarget;
+        // The letters themselves, not the boxes around them: the two wordmarks have different
+        // line heights, and matching boxes left the flying one a little high, then a jump.
+        const letters = (el: HTMLElement) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          return range.getBoundingClientRect();
+        };
 
         // Dev aid: ?t=2900 freezes the intro at 2.9 s so a single frame can be inspected.
         const frozenParam = new URLSearchParams(window.location.search).get("t");
@@ -559,17 +567,36 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
             revealRoot.classList.add("landing-ui--revealing");
             // Match the wordmarks themselves: the bylines differ in width, the wordmark doesn't.
             // It sits at the lockup's top-left, which is also the transform's origin.
-            floatFrom = (name ?? lockup).getBoundingClientRect();
+            floatFrom = letters(name ?? lockup);
+            floatOrigin = lockup.getBoundingClientRect();
           }
-          if (floatFrom && targetName) {
-            const to = targetName.getBoundingClientRect();
+          if (floatFrom && floatOrigin && targetName) {
+            const to = letters(targetName);
             const e = easeInOutCubic(floatP);
-            const scale = to.width / floatFrom.width;
-            lockup.style.transform = `translate(-50%, -50%) translate(${(to.left - floatFrom.left) * e}px, ${(to.top - floatFrom.top) * e}px) scale(${1 + (scale - 1) * e})`;
+            const scale = 1 + (to.width / floatFrom.width - 1) * e;
+            // The lockup scales from its own top-left corner, so the letters (a little inside
+            // it) are placed by solving for where that corner must go.
+            const x = floatFrom.left + (to.left - floatFrom.left) * e - floatOrigin.left - scale * (floatFrom.left - floatOrigin.left);
+            const y = floatFrom.top + (to.top - floatFrom.top) * e - floatOrigin.top - scale * (floatFrom.top - floatOrigin.top);
+            lockup.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`;
+            // White over the intro's navy, the header's navy once the opening page is under it:
+            // the colour follows the widening hole as it passes the letters, not a timer.
+            if (name) {
+              const cx = floatFrom.left + (to.left - floatFrom.left) * e + (floatFrom.width * scale) / 2;
+              const cy = floatFrom.top + (to.top - floatFrom.top) * e + (floatFrom.height * scale) / 2;
+              const reveal = easeInOutCubic(windowProgress(t, ...FINALE.reveal));
+              const feather = Math.min(view.width, view.height) * 0.22;
+              const radius = reveal * (Math.hypot(view.width, view.height) / 2 + feather * 1.2);
+              const distance = Math.hypot(cx - view.width / 2, cy - view.height / 2);
+              const open = Math.min(1, Math.max(0, (radius - distance) / feather));
+              name.style.color = `color-mix(in srgb, #123e7c ${Math.round(open * 100)}%, #ffffff)`;
+            }
             // The full college name gives way to "HKBK CE" as the lockup shrinks into the nav.
             const swap = easeInOutCubic(windowProgress(floatP, 0.42, 0.62));
             if (bylineFull) bylineFull.style.opacity = `${1 - swap}`;
             if (bylineShort) bylineShort.style.opacity = `${swap}`;
+            // As it settles into place, the header's crest and college line fade in around it.
+            if (floatP > 0.8) document.querySelector(".landing")?.classList.add("landing--brand-in");
           }
 
           const revealP = windowProgress(t, ...FINALE.reveal);

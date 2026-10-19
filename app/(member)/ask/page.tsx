@@ -78,7 +78,20 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
   const helping = senior && (
     <>
       <h2>Sent to you</h2>
-      {!mentoring && (
+      {mentoring ? (
+        <div className="wf-card ask-switch ask-switch--on">
+          <p>
+            <strong>You're mentoring.</strong> Students' questions that fit your branch and what you know come here. Busy for a while? Pause it, and turn it
+            back on here whenever you like.
+          </p>
+          <ActionForm action={mentorAction}>
+            <input type="hidden" name="mentor" value="off" />
+            <button className="button wf-small" type="submit">
+              Pause mentoring
+            </button>
+          </ActionForm>
+        </div>
+      ) : (
         <div className="wf-card ask-switch">
           <p>
             <strong>Questions only reach you once you say you're happy to mentor.</strong> Students' questions that fit your branch and what you know will come here, a

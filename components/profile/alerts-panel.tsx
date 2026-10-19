@@ -26,14 +26,30 @@ export function AlertsPanel() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const [failed, setFailed] = useState(false);
+
   useEffect(() => {
-    fetch("/api/alerts", { cache: "no-store" })
+    // Never "Loading…" for ever: no answer in 15 seconds, or a wrong one, says so.
+    const stop = new AbortController();
+    const late = setTimeout(() => stop.abort(), 15_000);
+    fetch("/api/alerts", { cache: "no-store", signal: stop.signal })
       .then((r) => r.json())
-      .then((s) => s.ok && setState(s))
-      .catch(() => undefined);
+      .then((s) => (s.ok ? setState(s) : setFailed(true)))
+      .catch(() => setFailed(true))
+      .finally(() => clearTimeout(late));
     if (supported()) navigator.serviceWorker.getRegistration("/sw.js").then((reg) => reg?.pushManager.getSubscription().then(setHere));
+    return () => {
+      clearTimeout(late);
+      stop.abort();
+    };
   }, []);
 
+  if (!state && failed)
+    return (
+      <p className="join__fine" role="alert">
+        Your alert settings didn&apos;t load. Check your connection, then reload the page.
+      </p>
+    );
   if (!state) return <p className="join__fine">Loading…</p>;
 
   const save = async (change: Partial<Pick<State, "emailDigest" | "push">>) => {

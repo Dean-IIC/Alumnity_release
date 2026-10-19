@@ -476,17 +476,8 @@ html[data-intro="skip"] .intro-rings {
     #0a2a57;
 }
 
-/* Landing on the white header: the wordmark turns to the header's navy halfway through its
-   flight (once the page has begun to open behind it), so it arrives as the header's own. */
-.intro-lockup .intro-brand .brand__name,
-.intro-lockup .intro-brand .brand__by {
-  transition: color 350ms var(--ease-out) 380ms;
-}
-
-body:has(.landing-ui--revealing) .intro-lockup {
-  --color-red: #0a2a57;
-  --color-blue: #123e7c;
-}
+/* Landing on the white header: the wordmark's colour turns to the header's navy as the
+   opening page passes under it (set as it flies, in growing-campus-intro.tsx). */
 
 /* ---------- The rings, vibrant: brighter, thicker, glowing, and pulsing ---------- */
 
@@ -592,9 +583,9 @@ body:has(.landing-ui--revealing) .intro-lockup .brand__swoosh {
 }
 
 /* …and the header's crest and college line fade in around the landed name. */
-.landing--intro-complete .site-nav__brand .brand__logo,
-.landing--intro-complete .site-nav__brand .brand__sub {
-  animation: brand-settle 450ms var(--ease-out) both;
+.landing--brand-in .site-nav__brand .brand__logo,
+.landing--brand-in .site-nav__brand .brand__sub {
+  animation: brand-settle 600ms var(--ease-out) both;
 }
 
 @keyframes brand-settle {

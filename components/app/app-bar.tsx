@@ -37,14 +37,24 @@ export const MORE: { href: string; label: string; icon: IconName; note: string }
   { href: "/gallery", label: "Gallery", icon: "photo", note: "HKBK through the years, in photos" }
 ];
 
-export function Badge({ n }: { n: number }) {
+/** What a badge counts, said in words for screen readers ("1 connection request"). */
+const BADGE_WORDS: Record<string, [string, string]> = {
+  connections: ["connection request", "connection requests"],
+  messages: ["unread message", "unread messages"],
+  notifications: ["new notification", "new notifications"]
+};
+
+export function Badge({ n, of }: { n: number; of?: keyof typeof BADGE_WORDS }) {
   if (!n) return null;
+  const words = of ? BADGE_WORDS[of][n === 1 ? 0 : 1] : "new";
   return (
     <>
       <span className="wf-count app-bar__badge" aria-hidden="true">
         {n > 99 ? "99+" : n}
       </span>
-      <span className="sr-only">, {n} new</span>
+      <span className="sr-only">
+        , {n} {words}
+      </span>
     </>
   );
 }
@@ -73,7 +83,7 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
             <NavLink key={m.key} href={m.href} match={m.match} className={`app-bar__tab app-bar__tab--${m.key}`}>
               <span className="app-bar__icon">
                 <Icon name={m.icon} size={24} />
-                {m.count && <Badge n={counts[m.count]} />}
+                {m.count && <Badge n={counts[m.count]} of={m.count} />}
               </span>
               <span className="app-bar__label">{m.label}</span>
             </NavLink>
@@ -179,7 +189,7 @@ export function TabBar({ counts }: { counts: Counts }) {
       <NavLink href="/people">
         <Icon name="people" size={24} />
         People
-        <Badge n={counts.connections} />
+        <Badge n={counts.connections} of="connections" />
       </NavLink>
       {/* Named, like the rest: a bare + was never tried by the blind test, looking to post. */}
       <a href="/home#compose">
@@ -191,7 +201,7 @@ export function TabBar({ counts }: { counts: Counts }) {
       <NavLink href="/messages">
         <Icon name="message" size={24} />
         Messages
-        <Badge n={counts.messages} />
+        <Badge n={counts.messages} of="messages" />
       </NavLink>
       <NavLink href="/me" match={["/me", "/settings"]}>
         <Icon name="you" size={24} />

@@ -108,12 +108,19 @@ export async function reportAction(_: ActionState, form: FormData): Promise<Acti
   return answer(await report(me, textFrom(form, "kind", 20), idFrom(form), textFrom(form, "reason", 500)), "Thank you. The college desk will look at it; they won't say who reported it.");
 }
 
-/** "I'm happy to mentor", in one tap (from Home or Ask a senior): questions that fit start reaching them. */
-export async function mentorAction(_: ActionState): Promise<ActionState> {
+/**
+ * "I'm happy to mentor", in one tap (from Home or Ask a senior): questions that fit start
+ * reaching them. Sent with mentor=off (Ask a senior's switch), it pauses them again.
+ */
+export async function mentorAction(_: ActionState, form?: FormData): Promise<ActionState> {
   const me = await actor();
   if (!me) return SIGNED_OUT;
+  const on = !form || textFrom(form, "mentor", 3) !== "off";
   const { profileOf, saveProfile } = await import("../server/profile");
   const profile = await profileOf(me.id);
-  await saveProfile(me.id, { ...profile, happyTo: { ...profile.happyTo, mentor: true } });
-  return answer({ ok: true }, "Done. Questions that fit what you know will reach you here.");
+  await saveProfile(me.id, { ...profile, happyTo: { ...profile.happyTo, mentor: on } });
+  return answer(
+    { ok: true },
+    on ? "Done. Questions that fit what you know will reach you here." : "Paused. New questions won't come to you until you turn this back on."
+  );
 }

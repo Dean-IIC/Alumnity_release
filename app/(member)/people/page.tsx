@@ -100,6 +100,13 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               </span>
             )}
           </div>
+          {/* Many say their batch by the year they finished: point them to the year they joined. */}
+          {query.year && query.year - 4 >= 1997 && (
+            <p className="people-section__note">
+              Years here are when people joined HKBK. Finished in {query.year}?{" "}
+              <Link href={peopleHref({ ...query, year: query.year - 4 })}>See those who joined in {query.year - 4}</Link>
+            </p>
+          )}
           {results.count === 0 ? (
             <p className="people-empty">
               Nobody matches that yet. Try fewer words or another spelling, or <Link href={peopleHref({})}>clear the search</Link>.

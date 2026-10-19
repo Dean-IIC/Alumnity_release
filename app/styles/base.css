@@ -11,6 +11,8 @@ html {
 /* No scrolling under the intro: it covers the page until it hands over. */
 html.intro-playing {
   overflow: hidden;
+  /* The scrollbar's room kept while it's hidden, so the page doesn't shift when it returns. */
+  scrollbar-gutter: stable;
 }
 
 body {
