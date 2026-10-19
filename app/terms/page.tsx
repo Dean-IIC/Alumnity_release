@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { BackLink } from "../../components/back-link";
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { LEGAL, legalReady } from "../../lib/legal";
@@ -26,6 +27,7 @@ export default function TermsPage() {
     <>
       <SiteHeader />
       <main className="wf container">
+        <BackLink fallback="/" label="Back" />
         <header className="page-head legal-head">
           <p className="kicker">Terms of use</p>
           <h1 className="page-title">

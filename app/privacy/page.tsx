@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { BackLink } from "../../components/back-link";
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { LEGAL, legalReady } from "../../lib/legal";
@@ -25,6 +26,7 @@ export default function PrivacyPage() {
     <>
       <SiteHeader />
       <main className="wf container">
+        <BackLink fallback="/" label="Back" />
         <header className="page-head legal-head">
           <p className="kicker">Privacy policy</p>
           <h1 className="page-title">
