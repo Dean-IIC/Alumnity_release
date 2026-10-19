@@ -222,6 +222,16 @@ export async function ownPost(value: unknown, ownerId: number | undefined): Prom
   return row ? id : null;
 }
 
+/**
+ * A page as stored: JSON, with every piece of text made safe for Postgres to read as JSON.
+ * A NUL character ("\u0000" in the JSON) or half of an emoji (a lone surrogate) saves as
+ * text, but every query that reads the page as jsonb then fails: seen in the security
+ * review, one member's page made Home, People and the desk fail for everyone who'd see them,
+ * and no Ask could be sent. So those are dropped (or made "�") on the way in.
+ */
+export const storedProfile = (profile: Profile) =>
+  JSON.stringify(profile, (_, value: unknown) => (typeof value === "string" ? value.replace(/\0/g, "").toWellFormed() : value));
+
 export async function saveProfile(userId: number, profile: Profile) {
   // Uploads it no longer uses are deleted, not left lying about.
   const before = await profileOf(userId);
@@ -231,7 +241,7 @@ export async function saveProfile(userId: number, profile: Profile) {
   await db().run(
     "insert into profiles (user_id, data, updated_at) values (?, ?, ?) on conflict (user_id) do update set data = excluded.data, updated_at = excluded.updated_at",
     userId,
-    JSON.stringify(profile),
+    storedProfile(profile),
     Date.now()
   );
 }

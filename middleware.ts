@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { SESSION_COOKIE } from "./lib/session-cookies";
 
 /*
  * Keeps each member's Supabase session fresh: its access token lasts an hour, and pages
@@ -15,6 +16,8 @@ export async function middleware(request: NextRequest) {
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
+    // HttpOnly and (live) HTTPS-only, as everywhere else they're set (lib/session-cookies.ts).
+    cookieOptions: SESSION_COOKIE,
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (list) => {

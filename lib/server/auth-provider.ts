@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { SESSION_COOKIE } from "../session-cookies";
 import { db } from "./db";
 
 /** What setPassword says when the password is already this one (on a join, a retry: fine). */
@@ -79,6 +80,7 @@ async function supabaseProvider(): Promise<AuthProvider> {
   const client = async () => {
     const jar = await cookies();
     return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      cookieOptions: SESSION_COOKIE,
       cookies: {
         getAll: () => jar.getAll(),
         setAll: (list) => {
@@ -226,15 +228,20 @@ export class FakeAuth implements AuthProvider {
 
 let provider: Promise<AuthProvider> | undefined;
 
+/**
+ * Whether signing in without Supabase (lib/server/local-auth.ts) may be used: asked for, and
+ * never in production. A production build on this computer may use it too, to test it as it
+ * runs on Vercel (ALUMNITY_LOCAL_PROD=1; local-auth.ts then refuses any request not from
+ * localhost), but never on Vercel itself, whatever else is set there by mistake.
+ */
+export const localAuthAllowed = (env: Record<string, string | undefined> = process.env) =>
+  env.ALUMNITY_AUTH === "local" && !env.VERCEL && (env.NODE_ENV !== "production" || env.ALUMNITY_LOCAL_PROD === "1");
+
 export function authProvider(): Promise<AuthProvider> {
   // The stand-in is for the tests only: it has one shared "browser", so on a real server
   // everyone would be the same person.
   const fake = process.env.ALUMNITY_AUTH === "fake" && process.env.NODE_ENV === "test";
-  // Working on this computer without Supabase (never in production): see lib/server/local-auth.ts.
-  // A production build on this computer may use it too, to test it as it runs on Vercel
-  // (ALUMNITY_LOCAL_PROD=1); local-auth.ts then refuses any request not from localhost.
-  const local = process.env.ALUMNITY_AUTH === "local" && (process.env.NODE_ENV !== "production" || process.env.ALUMNITY_LOCAL_PROD === "1");
-  return (provider ??= fake ? Promise.resolve(new FakeAuth()) : local ? import("./local-auth").then((m) => m.localAuth()) : supabaseProvider());
+  return (provider ??= fake ? Promise.resolve(new FakeAuth()) : localAuthAllowed() ? import("./local-auth").then((m) => m.localAuth()) : supabaseProvider());
 }
 
 /** For tests: the stand-in, to read its codes and switch browsers. */

@@ -63,7 +63,7 @@ beforeAll(async () => {
     ["YUSUF QUILLFEATHER", "1HK05CV003", "CIVIL", 2005]
   ] as const;
   for (const [name, usn, branch, year] of lines)
-    await m.db.db().run("insert into register (name, usn, branch, branch_name, programme, year) values (?, ?, ?, ?, 'B.Tech', ?)", name, usn, branch, branch, year);
+    await m.db.db().run("insert into records.register (name, usn, branch, branch_name, programme, year) values (?, ?, ?, ?, 'B.Tech', ?)", name, usn, branch, branch, year);
 });
 
 describe("connections and followers: the counts match the lists", () => {

@@ -22,6 +22,16 @@ export const CAUSE_LIMITS = { title: 100, story: 5000, message: 200, minGoal: 1_
 const DAY = 24 * 60 * 60_000;
 const no = (error: string): Result => ({ ok: false, error });
 
+/**
+ * An amount in rupees as typed ("1,500", "₹ 250.50"): digits, with paise after a point if
+ * any. Anything else ("0x10", "1e5", "-0", words) is NaN, which every limit below refuses:
+ * Number() alone read "0x10" as ₹16 and "1e5" as ₹1,00,000.
+ */
+const rupeesIn = (typed: string) => {
+  const plain = typed.replace(/[,₹\s]/g, "");
+  return /^\d{1,12}(\.\d{1,2})?$/.test(plain) ? Number(plain) : Number.NaN;
+};
+
 export type CauseStatus = "pending" | "live" | "rejected" | "closed";
 
 export type Cause = {
@@ -122,7 +132,7 @@ export async function causesFor(viewer: User): Promise<{ live: Cause[]; mine: Ca
 export async function proposeCause(me: User, input: { title: string; story: string; goal: string; cover: string; days: string }): Promise<Result & { id?: number }> {
   const title = input.title.replace(/\s+/g, " ").trim().slice(0, CAUSE_LIMITS.title);
   const story = input.story.trim().slice(0, CAUSE_LIMITS.story);
-  const goalRupees = Math.floor(Number(input.goal.replace(/[,₹\s]/g, "")));
+  const goalRupees = Math.floor(rupeesIn(input.goal));
   if (title.length < 5) return no("Give the cause a clear name (at least 5 characters).");
   if (story.length < 50) return no("Tell the story in a few lines: who it helps, what the money is for, and how you are connected to it.");
   if (!(goalRupees >= CAUSE_LIMITS.minGoal && goalRupees <= CAUSE_LIMITS.maxGoal)) return no(`Set a goal between ${rupees(CAUSE_LIMITS.minGoal * 100)} and ${rupees(CAUSE_LIMITS.maxGoal * 100)}.`);
@@ -215,7 +225,7 @@ export async function startDonation(me: User, id: number, input: { amount: strin
   if (!donationsOpen()) return { ok: false, error: "You can't give yet. The college is still setting up payments." };
   const row = await causeRow(id);
   if (!row || row.status !== "live" || (row.ends_at !== null && row.ends_at < Date.now())) return { ok: false, error: "This cause is not taking donations now." };
-  const amountRupees = Math.floor(Number(input.amount.replace(/[,₹\s]/g, "")));
+  const amountRupees = Math.floor(rupeesIn(input.amount));
   if (!(amountRupees >= CAUSE_LIMITS.minGift && amountRupees <= CAUSE_LIMITS.maxGift)) {
     return { ok: false, error: `Give between ${rupees(CAUSE_LIMITS.minGift * 100)} and ${rupees(CAUSE_LIMITS.maxGift * 100)} at a time.` };
   }
@@ -277,7 +287,7 @@ export async function recordPayout(me: User, id: number, amountInput: string, no
   if (!isAdmin(me)) return no("Only an administrator can record payouts.");
   const row = await causeRow(id);
   if (!row || row.status === "pending" || row.status === "rejected") return no("This cause has not raised any money.");
-  const amountRupees = Number(amountInput.replace(/[,₹\s]/g, ""));
+  const amountRupees = rupeesIn(amountInput);
   const what = note.trim().slice(0, 300);
   if (!(amountRupees > 0)) return no("Enter the amount paid out.");
   if (!what) return no("Say what it was for (e.g. “Semester fees, paid to the college”).");

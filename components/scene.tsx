@@ -546,7 +546,7 @@ const SCENES: Record<SceneName, Scene> = {
       ]
     },
     tablet: { ...T, layers: [horizon(0.254), art(roundTable(860, 230, 0.8, 7, 170))] },
-    phone: { ...P, layers: [horizon(0.36), art(roundTable(400, 175, 0.6, 7, 180))] }
+    phone: { ...P, layers: [horizon(0.36), art(roundTable(330, 200, 0.4, 7, 200))] }
   },
 
   // Messages: speech going back and forth.
@@ -864,8 +864,11 @@ function ShapeArt({ s, glow, width, height }: { s: Shape; glow: string; width: n
 }
 
 function Svg({ children, className, width, height, style }: { children: ReactNode; className: string; width: number; height: number; style?: CSSProperties }) {
+  // The tall pictures (tablet, phone) are held at the top, where their scene stands by the
+  // title; if the screen is shorter than the picture, the bottom is what's cropped.
+  const align = height > width ? "xMidYMin" : "xMidYMid";
   return (
-    <svg className={className} style={style} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    <svg className={className} style={style} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio={`${align} slice`} aria-hidden="true" focusable="false">
       {children}
     </svg>
   );

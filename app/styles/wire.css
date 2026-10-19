@@ -902,3 +902,88 @@
 .register-pages a:last-child {
   justify-self: end;
 }
+
+/* The desk's Showcase tab: albums and pages in a list, an album's photos one under another. */
+.showcase-albums__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.showcase-albums__item:first-child {
+  border-top: 0;
+}
+
+.showcase-albums__item img,
+.showcase-albums__empty {
+  flex: none;
+  width: 96px;
+  height: 64px;
+  border-radius: var(--radius-photo);
+  background: var(--color-border);
+  object-fit: cover;
+}
+
+.showcase-albums__words {
+  display: grid;
+  flex: 1 1 200px;
+  gap: 2px;
+}
+
+.showcase-photo {
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) 1fr;
+  gap: var(--space-4);
+  align-items: start;
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.showcase-photo:first-child {
+  border-top: 0;
+}
+
+.showcase-photo__image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-photo);
+}
+
+.showcase-photo__tools {
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 560px) {
+  .showcase-photo {
+    grid-template-columns: 1fr;
+  }
+}
+
+.showcase-editor {
+  display: grid;
+  gap: 0 var(--space-4);
+}
+
+@media (min-width: 1100px) {
+  .showcase-editor {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.showcase-preview__page {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.showcase-preview__roster {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

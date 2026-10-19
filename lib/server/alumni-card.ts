@@ -80,7 +80,9 @@ export async function crestImage(origin: string): Promise<string | null> {
     crest = `data:image/png;base64,${bytes.toString("base64")}`;
   } catch {
     try {
-      const response = await fetch(`${origin}/college/hkbk-logo.png`);
+      // The site's own address where it's set: the request's Host header is the asker's to
+      // write, and what's fetched here is kept for every card after.
+      const response = await fetch(`${process.env.SITE_URL || origin}/college/hkbk-logo.png`, { signal: AbortSignal.timeout(5000) });
       if (response.ok && response.headers.get("content-type")?.startsWith("image/png")) {
         crest = `data:image/png;base64,${Buffer.from(await response.arrayBuffer()).toString("base64")}`;
       }

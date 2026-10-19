@@ -47,7 +47,9 @@
   display: none;
 }
 
-@media (min-width: 701px) and (max-width: 1100px) {
+/* Only an upright screen gets the tall pictures: a wide, short window (a laptop zoomed in,
+   a tablet held sideways) gets the computer's, so nothing is cropped off the top. */
+@media (min-width: 701px) and (max-width: 1100px) and (orientation: portrait) {
   .scene__version--computer {
     display: none;
   }
@@ -120,7 +122,7 @@
 
 /* A phone: the picture wider, and still. The cards cover most of it, and a phone's
    graphics are better spent on scrolling smoothly than on drifting waves behind them. */
-@media (max-width: 700px) {
+@media (max-width: 700px) and (orientation: portrait) {
   .scene__version--computer {
     display: none;
   }
@@ -128,6 +130,9 @@
   .scene__version--phone {
     display: block;
   }
+}
+
+@media (max-width: 700px) {
 
   .scene .scene__wave {
     left: 0;
@@ -194,8 +199,10 @@
 }
 
 :root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-tabs, .feed-tabs) {
-  padding: 4px;
-  border-radius: 999px;
+  padding: 6px;
+  /* Soft corners rather than a full pill: when the tabs wrap onto a second row they stay
+     inside it. */
+  border-radius: 22px;
   background: #ffffff;
   box-shadow: 0 8px 22px rgba(4, 18, 43, 0.25);
 }

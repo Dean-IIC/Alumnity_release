@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppPage } from "../../../components/app/app-page";
 import { Announcements, Audit, Content, Members, Overview, Reports, SiteSettings, Team } from "../../../components/desk/sections";
+import { Showcase } from "../../../components/desk/showcase";
 import { isBranch } from "../../../lib/branches";
 import { ROLE_LABEL } from "../../../lib/format";
 import { isAdmin, isModerator } from "../../../lib/server/roles";
@@ -11,8 +12,8 @@ import { requireUser } from "../../../lib/server/session";
 export const metadata: Metadata = { title: "College desk · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-type Tab = "overview" | "reports" | "content" | "members" | "announcements" | "team" | "settings" | "audit";
-type Params = { tab?: string; q?: string; closed?: string; kind?: string; role?: string; status?: string; branch?: string };
+type Tab = "overview" | "reports" | "content" | "members" | "announcements" | "showcase" | "team" | "settings" | "audit";
+type Params = { tab?: string; q?: string; closed?: string; kind?: string; role?: string; status?: string; branch?: string; album?: string; page?: string };
 
 /** The college desk: what each role may do, in one place. Not found for everyone else. */
 export default async function DeskPage({ searchParams }: { searchParams: Promise<Params> }) {
@@ -26,6 +27,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     ["content", "Content"],
     ["members", "Members"],
     ["announcements", "Announcements"],
+    ["showcase", "Showcase"],
     ["team", "Team"],
     ["settings", "Settings"],
     ...(isAdmin(me) ? ([["audit", "Audit log"]] as [Tab, string][]) : [])
@@ -57,6 +59,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         />
       )}
       {tab === "announcements" && <Announcements me={me} />}
+      {tab === "showcase" && <Showcase me={me} album={Number(p.album) > 0 ? Math.floor(Number(p.album)) : undefined} page={p.page?.slice(0, 60)} />}
       {tab === "team" && <Team me={me} />}
       {tab === "settings" && <SiteSettings me={me} />}
       {tab === "audit" && isAdmin(me) && <Audit me={me} q={q} />}

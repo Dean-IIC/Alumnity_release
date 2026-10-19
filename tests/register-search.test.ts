@@ -33,7 +33,7 @@ beforeAll(async () => {
     ["SIMRAN SULTANA", "1HK12IS004", "ISE", 2012]
   ] as const;
   for (const [name, usn, branch, year] of lines)
-    await db.db().run("insert into register (name, usn, branch, branch_name, programme, year) values (?, ?, ?, ?, 'B.Tech', ?)", name, usn, branch, branch, year);
+    await db.db().run("insert into records.register (name, usn, branch, branch_name, programme, year) values (?, ?, ?, ?, 'B.Tech', ?)", name, usn, branch, branch, year);
 });
 
 describe("a member searching the college register", () => {

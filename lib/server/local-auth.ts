@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { AuthProvider, AuthSession } from "./auth-provider";
+import { localAuthAllowed, type AuthProvider, type AuthSession } from "./auth-provider";
 import { db } from "./db";
+import { fromThisComputer } from "./dev-only";
 import { hashPassword, randomToken, sha256, sixDigitCode, verifyPassword } from "./secrets";
 
 /*
@@ -35,12 +36,10 @@ const tables = () =>
   `));
 
 async function jar() {
-  const { cookies, headers } = await import("next/headers");
-  // In a production build (testing it on this computer), only for requests to this computer.
-  if (process.env.NODE_ENV === "production") {
-    const host = ((await headers()).get("host") ?? "").replace(/:\d+$/, "");
-    if (host !== "localhost" && host !== "127.0.0.1") throw new Error("Local sign-in answers only on this computer.");
-  }
+  const { cookies } = await import("next/headers");
+  // In a production build (testing it on this computer), only for requests from this
+  // computer: not from the network, even with "Host: localhost" written in.
+  if (process.env.NODE_ENV === "production" && !(await fromThisComputer())) throw new Error("Local sign-in answers only on this computer.");
   return cookies();
 }
 
@@ -59,7 +58,7 @@ async function currentToken() {
 }
 
 export function localAuth(): AuthProvider {
-  if (process.env.NODE_ENV === "production" && process.env.ALUMNITY_LOCAL_PROD !== "1") throw new Error("Local sign-in is for development only.");
+  if (!localAuthAllowed()) throw new Error("Local sign-in is for development only.");
   return {
     async sendCode(email, create) {
       await tables();

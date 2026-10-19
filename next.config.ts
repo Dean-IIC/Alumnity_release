@@ -21,7 +21,12 @@ const SECURITY_HEADERS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" }
-];
+].concat(
+  // The live site only ever over HTTPS: a browser that has been once never tries plain HTTP
+  // again (where someone on the same Wi-Fi could read or change the page). Not on this
+  // computer, which serves plain HTTP.
+  process.env.NODE_ENV === "production" ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }] : []
+);
 
 const nextConfig: NextConfig = {
   // Lets a production build sit beside a running dev server: NEXT_DIST_DIR=.next-prod next build
