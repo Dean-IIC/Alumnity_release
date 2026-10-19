@@ -137,7 +137,7 @@
   /* On a phone the page's words run the full width, over the drawing: it stays a soft
      texture behind them rather than competing. */
   .scene__version--phone .scene__shapes {
-    opacity: 0.5;
+    opacity: 0.7;
   }
 
   .scene__wave,
