@@ -1,0 +1,900 @@
+/*
+ * Posts, made as easy to use as LinkedIn's and Instagram's: LinkedIn's reactions, the
+ * Like · Comment · Repost · Send · Share row, the share sheet and the people pickers,
+ * reposts and their cards, the photo grid with its full-screen viewer, and the composer's
+ * Tag people. Kept apart from social.css (which draws the rest of a post) so the two can
+ * change separately. Colours come from tokens.css, except each reaction's own colour.
+ */
+
+/* ---------- Reactions: LinkedIn's round badges ---------- */
+
+/* The counts row: up to three badges, overlapping, each on a ring of the card's colour. */
+:root .post__stamp.post__stamp {
+  border: 0;
+  background: var(--color-paper-raised);
+  box-shadow: 0 0 0 2px var(--color-paper-raised);
+}
+
+.post__stamp + .post__stamp {
+  margin-left: -4px;
+}
+
+.post__tally-right {
+  display: inline-flex;
+  gap: var(--space-3);
+}
+
+/* Your reaction's label takes its badge's colour (a shade deep enough to read as text). */
+.post__action--on.post__action--cheer {
+  color: #0a66c2;
+}
+
+.post__action--on.post__action--congrats {
+  color: #15803d;
+}
+
+.post__action--on.post__action--support {
+  color: #6d28d9;
+}
+
+.post__action--on.post__action--proud {
+  color: #c21d27;
+}
+
+.post__action--on.post__action--insightful {
+  color: #b45309;
+}
+
+:root[data-theme="dark"] .post__action--on.post__action--cheer {
+  color: #70b5f9;
+}
+
+:root[data-theme="dark"] .post__action--on.post__action--congrats {
+  color: #4ade80;
+}
+
+:root[data-theme="dark"] .post__action--on.post__action--support {
+  color: #c4b5fd;
+}
+
+:root[data-theme="dark"] .post__action--on.post__action--proud {
+  color: #f87171;
+}
+
+:root[data-theme="dark"] .post__action--on.post__action--insightful {
+  color: #fbbf24;
+}
+
+/* The picker: a badge with its name under it. */
+.reaction-picker__item span {
+  margin-top: 2px;
+}
+
+/* ---------- Like · Comment · Repost · Send · Share ---------- */
+
+/* As many columns as there are actions (a group's post has no Repost). */
+.post__actions.post__actions {
+  grid-template-columns: none;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+}
+
+.post__action:focus-visible,
+.post__more-reactions:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.post__action:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* On a phone, five actions side by side: each its icon over a short word. */
+@media (max-width: 560px) {
+  .post__social .post__action {
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-1) 0;
+    font-size: 11px;
+  }
+
+  .post__more-reactions {
+    width: 24px;
+  }
+}
+
+/* The Repost menu: two choices, rising over the row as the reaction picker does. */
+.post__repost {
+  position: relative;
+  display: flex;
+}
+
+.repost-menu {
+  position: absolute;
+  z-index: 15;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-pop);
+  /* Centred with `translate`, so the rise (a transform) doesn't undo it. */
+  translate: -50% 0;
+  animation: picker-rise 180ms var(--ease-out) both;
+}
+
+.repost-menu__item {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.repost-menu__item:hover,
+.repost-menu__item:focus-visible {
+  background: var(--color-paper);
+  outline: none;
+}
+
+.repost-menu__item:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-focus);
+}
+
+.repost-menu__item span {
+  display: grid;
+  gap: 2px;
+}
+
+.repost-menu__item strong {
+  font-size: var(--text-small);
+}
+
+.repost-menu__item small {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+/* ---------- Reposts in the feed ---------- */
+
+/* A plain repost: a slim "Asha reposted" line, then the original's card. */
+.post--repost .post__head {
+  padding-bottom: var(--space-2);
+}
+
+.post__repost-mark {
+  margin-right: 2px;
+  color: var(--color-ink-muted);
+}
+
+.post__reposted {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+}
+
+.repost-card {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 var(--space-4) var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-paper-raised);
+}
+
+.repost-card__head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.repost-card__who {
+  display: grid;
+  min-width: 0;
+}
+
+.repost-card__name {
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+}
+
+.repost-card__name:hover,
+.repost-card__meta a:hover,
+.repost-card__open:hover {
+  text-decoration: underline;
+}
+
+.repost-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.repost-card__meta > * + *::before {
+  content: "·";
+  margin-right: 6px;
+}
+
+/* A few lines of the original; the rest is on its own page. */
+.repost-card__body {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+.repost-card__open {
+  justify-self: start;
+  color: var(--color-blue);
+  font-size: var(--text-fine);
+  font-weight: var(--weight-semibold);
+}
+
+.repost-card--gone {
+  gap: 2px;
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.repost-card--gone strong {
+  color: var(--color-ink);
+}
+
+/* ---------- Sheets: share, send, tag people, repost with your thoughts ---------- */
+
+.sheet {
+  width: min(480px, calc(100vw - 32px));
+  max-width: none;
+  max-height: min(680px, calc(100dvh - 48px));
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-pop);
+}
+
+.sheet::backdrop {
+  background: rgba(10, 20, 40, 0.5);
+}
+
+.sheet__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  max-height: inherit;
+  padding: var(--space-4);
+  overflow: auto;
+}
+
+.sheet__head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sheet__title {
+  margin: 0;
+  font: var(--weight-bold) 1.125rem / 1.3 var(--font-ui);
+}
+
+.sheet__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.sheet__close:hover {
+  background: var(--color-paper);
+}
+
+.sheet__close:focus-visible,
+.share-app:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.sheet__note {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  line-height: 1.5;
+}
+
+.sheet__chosen {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-small);
+}
+
+.sheet__note-box,
+.repost-form__text textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: var(--text-button) / 1.5 var(--font-ui);
+  resize: vertical;
+}
+
+.sheet__note-box:focus,
+.repost-form__text textarea:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.sheet__foot {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* On a phone the sheet rises from the bottom, as a phone's own share sheet does. */
+@media (max-width: 600px) {
+  .sheet {
+    width: 100vw;
+    max-height: 88dvh;
+    margin: auto 0 0;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .sheet[open] {
+    animation: sheet-rise 240ms var(--ease-out);
+  }
+}
+
+@keyframes sheet-rise {
+  from {
+    transform: translateY(48px);
+    opacity: 0;
+  }
+}
+
+/* ---------- The share sheet ---------- */
+
+.share-apps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.share-app {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 4px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--color-ink);
+  font: var(--weight-semibold) var(--text-fine) / 1.2 var(--font-ui);
+  text-align: center;
+  cursor: pointer;
+}
+
+.share-app:hover {
+  background: var(--color-paper);
+}
+
+.share-app__mark svg {
+  display: block;
+  width: 48px;
+  height: 48px;
+}
+
+.share-link {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.share-link input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  font: var(--text-small) / 1 var(--font-ui);
+}
+
+/* ---------- Picking connections (Send, Tag people) ---------- */
+
+.picker {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.picker__search {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+}
+
+.picker__search:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.picker__search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: var(--text-button) / 1 var(--font-ui);
+  outline: none;
+}
+
+.picker__list {
+  display: grid;
+  gap: 2px;
+  max-height: min(320px, 45dvh);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  border: 0;
+}
+
+.picker__person {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.picker__person:hover {
+  background: var(--color-paper);
+}
+
+.picker__person--on {
+  background: var(--color-wash-blue);
+}
+
+.picker__person:focus-within {
+  box-shadow: inset 0 0 0 2px var(--color-focus);
+}
+
+/* The tick box sits at the end of the row, as in a phone's contact picker. */
+.picker__person input {
+  order: 3;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-blue);
+}
+
+.picker__person:has(input:disabled) {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.picker__who {
+  display: grid;
+  min-width: 0;
+}
+
+.picker__who strong {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker__who span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+.picker__note {
+  margin: 0;
+  padding: var(--space-2) var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+/* ---------- Repost with your thoughts ---------- */
+
+.repost-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.repost-form__preview {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-blue);
+  border-radius: 0 10px 10px 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+}
+
+.repost-form__preview span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-ink-muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.repost-form__who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.repost-form__who legend {
+  margin-bottom: 6px;
+  padding: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-fine);
+}
+
+/* ---------- A post's photos: the grid ---------- */
+
+.post-media {
+  display: grid;
+  gap: 4px;
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.post-media__tile {
+  position: relative;
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--color-paper);
+}
+
+.post-media__tile img,
+.post-media__tile video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 260ms var(--ease-out);
+}
+
+.post-media__tile:hover img {
+  transform: scale(1.02);
+}
+
+.post-media__tile:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* One: the full width, whole (not cropped), up to a screenful. */
+.post-media--1 .post-media__tile {
+  border-radius: 10px;
+}
+
+.post-media--1 .post-media__tile img {
+  height: auto;
+  max-height: 560px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.post-media--1 .post-media__tile--video video {
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #000;
+}
+
+/* Two: side by side. */
+.post-media--2 {
+  grid-template-columns: 1fr 1fr;
+  aspect-ratio: 2 / 1.2;
+}
+
+/* Three: one big across the top, two small under it. */
+.post-media--3 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 2fr 1fr;
+  aspect-ratio: 1 / 1;
+}
+
+.post-media--3 .post-media__tile:first-child {
+  grid-column: span 2;
+}
+
+/* Four or more: one big across the top, three small under it; the last says "+N". */
+.post-media--4 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 2fr 1fr;
+  aspect-ratio: 1 / 1;
+}
+
+.post-media--4 .post-media__tile:first-child {
+  grid-column: span 3;
+}
+
+.post-media__more {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 14, 28, 0.58);
+  color: #fff;
+  font: var(--weight-bold) clamp(1.5rem, 5vw, 2.25rem) / 1 var(--font-ui);
+}
+
+.post-media__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding-left: 4px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 18px;
+  transform: translate(-50%, -50%);
+}
+
+/* Inside a repost's card: smaller, and edge to edge within it. */
+.post-media--compact {
+  padding: 0;
+}
+
+.post-media--compact.post-media--1 .post-media__tile img {
+  max-height: 300px;
+}
+
+.post-media--compact:not(.post-media--1) {
+  aspect-ratio: 16 / 10;
+}
+
+/* ---------- A post's photos: the full-screen viewer ---------- */
+
+/* The page behind stays where it is while the viewer is open. */
+html.viewer-open {
+  overflow: hidden;
+}
+
+.viewer {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(6, 10, 18, 0.96);
+  color: #fff;
+  overscroll-behavior: contain;
+}
+
+.viewer::backdrop {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* The figure lets taps through to the dark ground (which closes); the photo itself doesn't. */
+.viewer__figure {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 60px 72px;
+  pointer-events: none;
+}
+
+.viewer__media {
+  max-width: 100%;
+  max-height: calc(100dvh - 120px);
+  border-radius: 4px;
+  object-fit: contain;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.viewer__count {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.14);
+  font: var(--weight-semibold) var(--text-small) / 1.2 var(--font-ui);
+  transform: translateX(-50%);
+}
+
+.viewer__button {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0 0 4px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font: 32px / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.viewer__button:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.viewer__button:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.viewer__close {
+  top: 12px;
+  right: 12px;
+}
+
+.viewer__prev,
+.viewer__next {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.viewer__prev {
+  left: 12px;
+}
+
+.viewer__next {
+  right: 12px;
+}
+
+/* On a phone the photo takes the whole width; stepping is a swipe, or the buttons at the foot. */
+@media (max-width: 600px) {
+  .viewer__figure {
+    padding: 60px 0 80px;
+  }
+
+  .viewer__media {
+    max-height: calc(100dvh - 140px);
+    border-radius: 0;
+  }
+
+  .viewer__prev,
+  .viewer__next {
+    top: auto;
+    bottom: 16px;
+    transform: none;
+  }
+}
+
+/* ---------- The composer: Tag people, and up to ten photos ---------- */
+
+.composer__tool.composer__tag-people {
+  display: inline-flex;
+  gap: 6px;
+  width: auto;
+  padding: 0 10px;
+  color: var(--color-ink-muted);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+}
+
+.composer__tool:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+@media (max-width: 420px) {
+  .composer__tag-people span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+/* Five or more: small square previews, four to a row. */
+.composer__media--many {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.composer__media--many li {
+  aspect-ratio: 1;
+}
+
+@media (max-width: 480px) {
+  .composer__media--many {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------- A post sent in a message ---------- */
+
+.message-post-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+}
+
+/* ---------- Less motion, if asked ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .repost-menu,
+  .sheet[open],
+  .post-media__tile img {
+    animation: none;
+    transition: none;
+  }
+
+  .post-media__tile:hover img {
+    transform: none;
+  }
+}

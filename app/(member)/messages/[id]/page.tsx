@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ActionForm } from "../../../../components/app/action-form";
 import { AppPage } from "../../../../components/app/app-page";
 import { ReportButton } from "../../../../components/app/report-button";
+import { MessageText } from "../../../../components/social/message-text";
 import { messageAction } from "../../../../lib/actions/social";
 import { firstName, timeAgo } from "../../../../lib/format";
 import { memberById, relation } from "../../../../lib/server/people";
@@ -38,7 +39,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
         {messages.length === 0 && <p className="wf-empty">No messages yet. Say hello.</p>}
         {messages.map((m) => (
           <div key={m.id} className={`wf-bubble ${m.mine ? "wf-bubble--mine" : ""}`}>
-            {m.body}
+            <MessageText body={m.body} />
             <small>
               {timeAgo(m.createdAt)}
               {!m.mine && (

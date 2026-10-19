@@ -10,13 +10,16 @@ import { isModerator } from "./roles";
 import { acceptConnection, NOTE_LIMIT, notify, requestConnection, sendMessage, type Result } from "./social";
 import { PAUSED, settings } from "./settings";
 import { withinLimit } from "./throttle";
+import { MEDIA_LIMIT, SEND_LIMIT } from "../post-limits";
 
 /*
- * Home: posts. Words, up to four photos or videos, @mentions. Each post is for everyone
+ * Home: posts. Words, up to ten photos or videos, @mentions. Each post is for everyone
  * on Alumnity, for the author's batch, for their connections only, or for one group, and
  * only those people ever see it, its photos, its reactions or its comments. Group posts
  * stay in their group: they never show on Home. A #tag says what a post is about (#job,
  * #notice…), and the college can verify a post: it then shows on the HKBK board too.
+ * A post can be a repost of another (with or without the reposter's own words); the
+ * original keeps its own audience, so a reader who may not see it is told so instead.
  */
 
 export type Audience = "everyone" | "batch" | "connections" | "group";
@@ -24,8 +27,8 @@ export type Audience = "everyone" | "batch" | "connections" | "group";
 export const AUDIENCES: Audience[] = ["everyone", "batch", "connections"];
 export const POST_LIMIT = 2000;
 export const COMMENT_LIMIT = 500;
-/** Photos and videos one post may carry. */
-export const MEDIA_LIMIT = 4;
+/** Photos and videos one post may carry, and people one may be sent to (shared with the composer). */
+export { MEDIA_LIMIT, SEND_LIMIT } from "../post-limits";
 const HOUR = 60 * 60_000;
 const no = (error: string): Result => ({ ok: false, error });
 const marks = (n: number) => Array.from({ length: n }, () => "?").join(",");
@@ -36,6 +39,17 @@ export type Reaction = (typeof REACTIONS)[number];
 
 export type Comment = { id: number; author: User; body: string; createdAt: number; mine: boolean };
 export type PostMedia = { id: string; kind: MediaKind };
+/** The post a repost carries, in short: enough for a compact card. */
+export type EmbeddedPost = {
+  id: number;
+  author: User;
+  /** The author's profile photo, if they have one (for the card's avatar). */
+  authorPhoto: string | null;
+  body: string;
+  audience: Audience;
+  createdAt: number;
+  media: PostMedia[];
+};
 export type Post = {
   id: number;
   author: User;
@@ -63,6 +77,13 @@ export type Post = {
   tags: string[];
   /** When the college verified it (it's on the HKBK board), or null. */
   verifiedAt: number | null;
+  /**
+   * If it's a repost: the original's id, and the original itself, or null when the viewer
+   * may not see it (its audience leaves them out, a block, or it was deleted).
+   */
+  repostOf: { id: number; post: EmbeddedPost | null } | null;
+  /** How many times it has been reposted. */
+  repostCount: number;
 };
 
 /** Comments shown under a post in the feed; the rest are on the post's own page. */
@@ -86,7 +107,18 @@ export async function canSeePost(viewer: User, author: User, audience: Audience,
   return rel === "connected";
 }
 
-type PostRow = { id: number; author: number; body: string; audience: Audience; group_id: number | null; created_at: number; from_archive?: number; verified_at?: number | null };
+type PostRow = {
+  id: number;
+  author: number;
+  body: string;
+  audience: Audience;
+  group_id: number | null;
+  created_at: number;
+  from_archive?: number;
+  verified_at?: number | null;
+  /** The post it reposts, if it's a repost. */
+  repost_of?: number | null;
+};
 
 export async function visiblePost(viewer: User, id: number): Promise<{ row: PostRow; author: User } | null> {
   if (!Number.isSafeInteger(id)) return null;
@@ -123,12 +155,35 @@ export async function mediaInUse(mediaIds: string[]): Promise<boolean> {
   );
 }
 
-export async function createPost(me: User, body: string, audience: string, mediaIds: string[] = [], groupId: number | null = null, picked: string[] = []): Promise<Result & { id?: number }> {
+/**
+ * A new post. `repostOf`: the post it reposts (then words are optional: a plain repost has
+ * none). A repost carries no photos of its own, and never goes into a group.
+ */
+export async function createPost(
+  me: User,
+  body: string,
+  audience: string,
+  mediaIds: string[] = [],
+  groupId: number | null = null,
+  picked: string[] = [],
+  repostOf: number | null = null
+): Promise<Result & { id?: number }> {
   if (!(await settings()).features.notes) return no(PAUSED);
   const media = [...new Set(mediaIds)].slice(0, MEDIA_LIMIT + 1);
   if (media.length > MEDIA_LIMIT) return no(`A post can have up to ${MEDIA_LIMIT} photos or videos.`);
   const { text, ids } = await checkMentions(me, body.trim().slice(0, POST_LIMIT));
-  if (!text && media.length === 0) return no("Write something, or add a photo.");
+  let original: { row: PostRow; author: User } | null = null;
+  if (repostOf !== null) {
+    if (groupId !== null) return no("A repost goes on Home, not into a group.");
+    if (media.length) return no("A repost can't carry photos of its own.");
+    original = await repostable(me, repostOf);
+    if (!original) return no("That post isn't here any more.");
+    if (original.row.group_id !== null) return no("A group's posts stay in the group.");
+    // The same post reposted twice with nothing new to say would only repeat it.
+    if (!text && (await db().one("select 1 from posts where author = ? and repost_of = ? and body = '' and removed_at is null", me.id, original.row.id))) {
+      return no("You've already reposted this.");
+    }
+  } else if (!text && media.length === 0) return no("Write something, or add a photo.");
   if (groupId !== null) {
     if (!(await canPostInGroup(me, groupId))) return no("Join the group to post in it.");
     audience = "group";
@@ -144,12 +199,13 @@ export async function createPost(me: User, body: string, audience: string, media
   if (!(await withinLimit(`post:${me.id}`, 20, HOUR))) return no("That's a lot of posts in an hour. Try again a little later.");
   const postId = await db().tx(async (t) => {
     const row = await t.one<{ id: number }>(
-      "insert into posts (author, body, audience, group_id, created_at) values (?, ?, ?, ?, ?) returning id",
+      "insert into posts (author, body, audience, group_id, created_at, repost_of) values (?, ?, ?, ?, ?, ?) returning id",
       me.id,
       text,
       audience,
       groupId,
-      Date.now()
+      Date.now(),
+      original?.row.id ?? null
     );
     for (const [i, id] of media.entries()) await t.run("insert into post_media (post_id, media_id, position) values (?, ?, ?)", row!.id, id, i);
     // Typed in the text, or picked in the composer: five at most.
@@ -162,7 +218,64 @@ export async function createPost(me: User, body: string, audience: string, media
   for (const member of mentioned.values()) {
     if (await canSeePost(member, me, audience as Audience, groupId)) await notify(member.id, { actor: me.id, kind: "mention", text: `${me.name} mentioned you in a post.`, link: `/notes/${postId}` });
   }
+  // And the original's writer, if the repost is somewhere they can see it (and they weren't just told of a mention).
+  if (original && original.author.id !== me.id && !mentioned.has(original.author.id) && (await canSeePost(original.author, me, audience as Audience, null))) {
+    await notify(original.author.id, { actor: me.id, kind: "repost", text: `${me.name} reposted your post.`, link: `/notes/${postId}` });
+  }
   return { ok: true, id: postId };
+}
+
+/**
+ * The post to repost when `me` reposts `id`: that post, if they may see it; or, when it's
+ * itself a plain repost (no words of its own), the post inside it, so reposts don't nest.
+ */
+async function repostable(me: User, id: number): Promise<{ row: PostRow; author: User } | null> {
+  const found = await visiblePost(me, id);
+  if (!found || !found.row.repost_of || found.row.body.trim()) return found;
+  return visiblePost(me, Number(found.row.repost_of));
+}
+
+/**
+ * Reposts a post on Home, plain (no `thoughts`) or with the reposter's own words. Unless
+ * `audience` is chosen, it goes to the same people as the original (a batch post to the
+ * reposter's connections, if their batch isn't known): a plain repost then never shows
+ * the post to a crowd that would only be told it isn't available.
+ */
+export async function repost(me: User, id: number, thoughts = "", audience?: string): Promise<Result & { id?: number }> {
+  const original = await repostable(me, id);
+  if (!original) return no("That post isn't here any more.");
+  if (original.row.group_id !== null) return no("A group's posts stay in the group.");
+  const same = original.row.audience === "batch" && !(me.branch && me.joined) ? "connections" : original.row.audience;
+  return createPost(me, thoughts, audience || same, [], null, [], original.row.id);
+}
+
+/**
+ * Sends a post privately: a message to each of `toIds` with its link (and `note`, if any).
+ * Messages only go between connections, and only to people who may see the post
+ * themselves; anyone else stops the whole send before anything goes, and is named.
+ */
+export async function sendPost(me: User, postId: number, toIds: number[], note = ""): Promise<Result & { sent?: number }> {
+  const post = await visiblePost(me, postId);
+  if (!post) return no("That post isn't here any more.");
+  const ids = [...new Set(toIds.filter((id) => Number.isSafeInteger(id) && id > 0 && id !== me.id))];
+  if (!ids.length) return no("Choose who to send it to.");
+  if (ids.length > SEND_LIMIT) return no(`Send it to up to ${SEND_LIMIT} people at a time.`);
+  const members = await membersByIds(ids);
+  for (const id of ids) {
+    const to = members.get(id);
+    if (!to) return no("One of them isn't here any more.");
+    if ((await relation(me.id, id)) !== "connected") return no(`You can send posts to your connections only, and ${to.name} isn't one.`);
+    if (!(await canSeePost(to, post.author, post.row.audience, post.row.group_id))) return no(`${to.name} can't see this post, so it can't be sent to them.`);
+  }
+  const words = note.trim().slice(0, 500);
+  const body = `${words ? `${words}\n\n` : ""}A post by ${post.author.name}: /notes/${postId}`;
+  let sent = 0;
+  for (const id of ids) {
+    const done = await sendMessage(me, id, body);
+    if (!done.ok) return sent ? no(`Sent to ${sent}, then: ${done.error}`) : done;
+    sent += 1;
+  }
+  return { ok: true, sent };
 }
 
 export async function removeOwnPost(me: User, id: number): Promise<Result> {
@@ -250,7 +363,8 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
   if (!items.length) return [];
   const ids = items.map((i) => i.row.id);
   const q = marks(ids.length);
-  const [counts, mine, commentCounts, media, commentRows, tags] = await Promise.all([
+  const originalIds = [...new Set(items.flatMap((i) => (i.row.repost_of ? [Number(i.row.repost_of)] : [])))];
+  const [counts, mine, commentCounts, media, commentRows, tags, reposts, embedded] = await Promise.all([
     db().all<{ post_id: number; kind: Reaction; n: number }>(`select post_id, kind, count(*) as n from post_cheers where post_id in (${q}) group by post_id, kind`, ...ids),
     db().all<{ post_id: number; kind: Reaction }>(`select post_id, kind from post_cheers where user_id = ? and post_id in (${q})`, viewer.id, ...ids),
     db().all<{ post_id: number; n: number }>(`select post_id, count(*) as n from post_comments where removed_at is null and post_id in (${q}) group by post_id`, ...ids),
@@ -266,7 +380,9 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
       ...ids,
       comments
     ),
-    db().all<{ post_id: number; tag: string }>(`select post_id, tag from post_tags where post_id in (${q}) order by tag`, ...ids)
+    db().all<{ post_id: number; tag: string }>(`select post_id, tag from post_tags where post_id in (${q}) order by tag`, ...ids),
+    db().all<{ repost_of: number; n: number }>(`select repost_of, count(*) as n from posts where removed_at is null and repost_of in (${q}) group by repost_of`, ...ids),
+    embeddedPosts(viewer, circle, originalIds)
   ]);
   const [authors, groups] = await Promise.all([
     membersByIds(commentRows.map((c) => c.author).filter((a) => !circle.blocks.has(a))),
@@ -298,9 +414,52 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
       commentCount: commentCounts.find((c) => c.post_id === row.id)?.n ?? 0,
       mine: author.id === viewer.id,
       tags: tags.filter((t) => t.post_id === row.id).map((t) => t.tag),
-      verifiedAt: row.verified_at ?? null
+      verifiedAt: row.verified_at ?? null,
+      repostOf: row.repost_of ? { id: Number(row.repost_of), post: embedded.get(Number(row.repost_of)) ?? null } : null,
+      repostCount: reposts.find((r) => Number(r.repost_of) === row.id)?.n ?? 0
     };
   });
+}
+
+/**
+ * The originals inside a page's reposts, each only if `viewer` may see it (the original's
+ * own audience, blocks, not deleted): those they may not are simply missing from the map.
+ */
+async function embeddedPosts(viewer: User, circle: Circle, ids: number[]): Promise<Map<number, EmbeddedPost>> {
+  const out = new Map<number, EmbeddedPost>();
+  if (!ids.length) return out;
+  const q = marks(ids.length);
+  const [rows, media] = await Promise.all([
+    db().all<PostRow>(`select * from posts where removed_at is null and id in (${q})`, ...ids),
+    db().all<{ post_id: number; id: string; kind: MediaKind }>(
+      `select post_media.post_id, post_media.media_id as id, media.kind from post_media join media on media.id = post_media.media_id where post_media.post_id in (${q}) order by post_media.position`,
+      ...ids
+    )
+  ]);
+  const authors = await membersByIds(rows.map((r) => r.author));
+  const seen: { row: PostRow; author: User }[] = [];
+  for (const row of rows) {
+    const author = authors.get(row.author);
+    if (!author) continue;
+    // A group's post gets the full check (they can't be reposted, but older data might differ).
+    const may = row.group_id !== null ? await canSeePost(viewer, author, row.audience, row.group_id) : seesPost(viewer, circle, author, row.audience);
+    if (may) seen.push({ row, author });
+  }
+  // Read here, not imported above: profile.ts reads posts too.
+  const { photoIdsOf } = await import("./profile");
+  const photos = seen.length ? await photoIdsOf(seen.map((s) => s.author.id)) : new Map<number, string>();
+  for (const { row, author } of seen) {
+    out.set(row.id, {
+      id: row.id,
+      author,
+      authorPhoto: photos.get(author.id) ?? null,
+      body: row.body,
+      audience: row.audience,
+      createdAt: row.created_at,
+      media: media.filter((m) => m.post_id === row.id).map(({ id, kind }) => ({ id, kind }))
+    });
+  }
+  return out;
 }
 
 /** One post with all its comments (up to 500), if `viewer` may see it. */

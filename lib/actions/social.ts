@@ -5,9 +5,27 @@ import { report } from "../server/desk";
 import { follow, unfollow } from "../server/follows";
 import { acceptConnection, block, declineConnection, markNotificationsRead, removeConnection, requestConnection, sendMessage, unblock, withdrawRequest, NOTE_LIMIT, MESSAGE_LIMIT } from "../server/social";
 import { askForReferral } from "../server/posts";
+import { connectionsOf } from "../server/social";
+import { photoIdsOf } from "../server/profile";
+import { batchLabel } from "../format";
+import type { PickPerson } from "../people-pick";
 import { actor, answer, idFrom, SIGNED_OUT, textFrom } from "./common";
 
 /* Connections, blocks, messages, notifications and reports: one action per button. */
+
+/**
+ * The viewer's connections, for the pickers that need them (Send a post, Tag people): a
+ * name, a batch and a photo each, nothing more. Read when a picker opens, not with every post.
+ */
+export async function myConnectionsAction(): Promise<PickPerson[]> {
+  const me = await actor();
+  if (!me) return [];
+  const people = await connectionsOf(me.id);
+  const photos = await photoIdsOf(people.map((p) => p.id));
+  return people
+    .map((p) => ({ id: p.id, name: p.name, batch: batchLabel(p) ?? "", photo: photos.get(p.id) ?? null }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
 
 export async function connectAction(_: ActionState, form: FormData): Promise<ActionState> {
   const me = await actor();

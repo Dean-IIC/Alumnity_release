@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import type { ActionState } from "../action-state";
 import { ASK_LIMITS, closeAsk, createAsk, markAnswered, replyToAsk, takeAsk } from "../server/asks";
 import { cancelEvent, createEvent, toggleRsvp } from "../server/events";
-import { addComment, COMMENT_LIMIT, createPost, MEDIA_LIMIT, POST_LIMIT, react, removeOwnComment, removeOwnPost, toggleCheer, verifyPost } from "../server/posts";
+import { addComment, COMMENT_LIMIT, createPost, MEDIA_LIMIT, POST_LIMIT, react, removeOwnComment, removeOwnPost, repost, sendPost, SEND_LIMIT, toggleCheer, verifyPost } from "../server/posts";
 import { ownPost, profileOf, saveProfile } from "../server/profile";
 import { CAPTION_LIMIT, createStory, markSeen, removeStory } from "../server/stories";
 import { actor, answer, idFrom, SIGNED_OUT, textFrom } from "./common";
@@ -67,6 +67,32 @@ export async function reactNow(postId: number, kind: string): Promise<ActionStat
   if (!Number.isSafeInteger(postId) || postId <= 0) return { ok: false, error: "That post isn't here any more." };
   const result = await react(me, postId, String(kind).slice(0, 20));
   return result.ok ? { ok: true } : { ok: false, error: result.error };
+}
+
+/** A plain repost from a post's Repost menu (no words): it goes to the same people as the original. */
+export async function repostNow(postId: number): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!Number.isSafeInteger(postId) || postId <= 0) return { ok: false, error: "That post isn't here any more." };
+  return answer(await repost(me, postId), "Reposted.");
+}
+
+/** "Repost with your thoughts": the reposter's words above the original, for whom they choose. */
+export async function repostAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  return answer(await repost(me, idFrom(form), textFrom(form, "body", POST_LIMIT), textFrom(form, "audience", 20)), "Reposted.");
+}
+
+/** "Send": a post's link (and a note) to some of your connections, as messages. */
+export async function sendPostAction(postId: number, toIds: number[], note: string): Promise<ActionState> {
+  const me = await actor();
+  if (!me) return SIGNED_OUT;
+  if (!Number.isSafeInteger(postId) || postId <= 0 || !Array.isArray(toIds)) return { ok: false, error: "That post isn't here any more." };
+  const ids = toIds.slice(0, SEND_LIMIT + 1).map(Number);
+  const sent = await sendPost(me, postId, ids, String(note ?? "").slice(0, 500));
+  // Nothing on the page changes for the sender, so (unlike answer()) no page is refreshed.
+  return sent.ok ? { ok: true, message: `Sent to ${sent.sent === 1 ? "1 person" : `${sent.sent} people`} in Messages.` } : { ok: false, error: sent.error };
 }
 
 export async function storyAction(_: ActionState, form: FormData): Promise<ActionState> {
