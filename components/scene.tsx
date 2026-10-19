@@ -546,7 +546,7 @@ const SCENES: Record<SceneName, Scene> = {
       ]
     },
     tablet: { ...T, layers: [horizon(0.254), art(roundTable(860, 230, 0.8, 7, 170))] },
-    phone: { ...P, layers: [horizon(0.36), art(roundTable(400, 175, 0.6, 7, 180))] }
+    phone: { ...P, layers: [horizon(0.36), art(roundTable(330, 200, 0.4, 7, 200))] }
   },
 
   // Messages: speech going back and forth.
