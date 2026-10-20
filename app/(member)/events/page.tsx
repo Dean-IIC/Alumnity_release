@@ -58,17 +58,46 @@ function EventLine({ event, past = false }: { event: Event; past?: boolean }) {
   );
 }
 
-/** What's coming up, what's been, and (for organisers) a form to put one up. */
-export default async function EventsPage({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
-  const opening = (await searchParams).new === "1";
+/**
+ * What's coming up, what's been (its own tab: a tester couldn't find past events at the
+ * foot of the page), and (for organisers) a form to put one up.
+ */
+export default async function EventsPage({ searchParams }: { searchParams: Promise<{ new?: string; show?: string }> }) {
+  const query = await searchParams;
+  const opening = query.new === "1";
+  const showPast = query.show === "past";
   const me = await requireUser("/events");
   const { upcoming, past } = await eventsFor(me);
   return (
     <AppPage user={me} current="events" title="Events" intro="Reunions, talks and college days.">
-      <h2>Coming up</h2>
-      {upcoming.length === 0 ? <p className="wf-empty">No events planned yet.</p> : <ul className="event-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>}
+      <nav className="wf-tabs" aria-label="Which events">
+        <Link href="/events" aria-current={showPast ? undefined : "page"}>
+          Coming up{upcoming.length ? ` (${upcoming.length})` : ""}
+        </Link>
+        <Link href="/events?show=past" aria-current={showPast ? "page" : undefined}>
+          Past events{past.length ? ` (${past.length})` : ""}
+        </Link>
+      </nav>
 
-      {canOrganise(me) && (await settings()).features.events && (
+      {showPast ? (
+        past.length === 0 ? (
+          <p className="wf-empty">No past events yet.</p>
+        ) : (
+          <ul className="event-list">
+            {past.map((e) => (
+              <EventLine key={e.id} event={e} past />
+            ))}
+          </ul>
+        )
+      ) : upcoming.length === 0 ? (
+        <p className="wf-empty">
+          No events planned yet. {past.length > 0 && <Link href="/events?show=past">See past events</Link>}
+        </p>
+      ) : (
+        <ul className="event-list">{upcoming.map((e) => <EventLine key={e.id} event={e} />)}</ul>
+      )}
+
+      {!showPast && canOrganise(me) && (await settings()).features.events && (
         <details className="wf-fold" id="new-event" open={opening}>
           <summary>Add an event</summary>
           <ActionForm action={eventAction} className="wf-stack">
@@ -111,16 +140,6 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
         </details>
       )}
 
-      {past.length > 0 && (
-        <>
-          <h2>Past events</h2>
-          <ul className="event-list">
-            {past.map((e) => (
-              <EventLine key={e.id} event={e} past />
-            ))}
-          </ul>
-        </>
-      )}
     </AppPage>
   );
 }
