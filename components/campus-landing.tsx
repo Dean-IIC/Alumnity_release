@@ -197,6 +197,7 @@ export async function CampusLanding({ then }: { then?: string } = {}) {
                       <span className="lp-date" aria-hidden="true">
                         <small>{d.toLocaleString("en-IN", { month: "short", timeZone: "Asia/Kolkata" })}</small>
                         <strong>{d.toLocaleString("en-IN", { day: "numeric", timeZone: "Asia/Kolkata" })}</strong>
+                        <em className="lp-date__year">{d.toLocaleString("en-IN", { year: "numeric", timeZone: "Asia/Kolkata" })}</em>
                       </span>
                       <span>
                         <strong>{e.title}</strong>

@@ -385,6 +385,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                       <span className="side-event__date" aria-hidden="true">
                         <span>{d.toLocaleDateString("en-IN", { month: "short", timeZone: "Asia/Kolkata" })}</span>
                         <strong>{d.toLocaleDateString("en-IN", { day: "numeric", timeZone: "Asia/Kolkata" })}</strong>
+                        <em className="side-event__year">{d.toLocaleDateString("en-IN", { year: "numeric", timeZone: "Asia/Kolkata" })}</em>
                       </span>
                       <div>
                         <Link href={`/events/${e.id}`}>{e.title}</Link>

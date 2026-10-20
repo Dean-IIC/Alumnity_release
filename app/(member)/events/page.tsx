@@ -21,7 +21,9 @@ function EventLine({ event, past = false }: { event: Event; past?: boolean }) {
       <span className="event-card__date" aria-hidden="true">
         <small>{part({ month: "short" })}</small>
         <strong>{part({ day: "numeric" })}</strong>
-        <span>{part({ weekday: "short" })}</span>
+        <span>
+          {part({ weekday: "short" })} {part({ year: "numeric" })}
+        </span>
       </span>
       <div className="event-card__body">
         <Link className="event-card__title" href={`/events/${event.id}`}>

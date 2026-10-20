@@ -1554,8 +1554,16 @@ html.story-open {
 }
 
 .side-event__date strong {
-  padding: 2px 0 4px;
+  padding: 2px 0 1px;
   font: var(--weight-bold) 1.25rem / 1 var(--font-voice);
+}
+
+/* The year, small under the day. */
+.side-event__year {
+  padding-bottom: 3px;
+  color: var(--color-ink-muted);
+  font: 9px / 1.2 var(--font-ui);
+  font-style: normal;
 }
 
 .side-event a {

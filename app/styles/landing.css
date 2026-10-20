@@ -493,9 +493,17 @@ a.lp-card:hover {
 }
 
 .lp-date strong {
-  padding: 4px 0;
+  padding: 4px 0 0;
   color: var(--color-navy);
   font-size: 1.35rem;
+}
+
+/* The year, small under the day. */
+.lp-date__year {
+  padding-bottom: 3px;
+  color: var(--color-ink-muted);
+  font-size: 10px;
+  font-style: normal;
 }
 
 /* ---------- Leadership ---------- */
