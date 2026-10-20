@@ -57,6 +57,33 @@ describe("groups", () => {
     expect((await posts.postFor(stranger, made.id!))?.group?.name).toBe("Robotics alumni");
   });
 
+  it("the desk sees inside a private group only while it, or a post in it, is reported", async () => {
+    const owner = await member("Gia Owner");
+    const insider = await member("Ian Insider");
+    const desk = await member("Dev Desk", { role: "coordinator" });
+    const outsider = await member("Oli Outsider");
+    const { id } = await groups.createGroup(owner, { name: "Quiet circle", about: "", kind: "private" });
+    expect((await groups.joinGroup(insider, id!)).ok).toBe(true);
+    expect((await groups.answerRequest(owner, id!, insider.id, true)).ok).toBe(true);
+    const made = await posts.createPost(owner, "Something only for the circle", "everyone", [], id!);
+    const inside = async (u: U) => (await posts.feedFor(u, { groupId: id! })).map((p) => p.body);
+    // No report: the desk sees nothing inside, like anyone else outside.
+    expect(await inside(desk)).toEqual([]);
+    expect(await groups.reportedToDesk(desk, id!)).toBe(false);
+    // A member reports a post: the desk can read the group (only the desk).
+    const desk_ = await import("../lib/server/desk");
+    expect((await desk_.report(insider, "post", made.id!, "This looks like a scam")).ok).toBe(true);
+    expect(await inside(desk)).toEqual(["Something only for the circle"]);
+    expect(await inside(outsider)).toEqual([]);
+    // Reading isn't joining: the desk still can't post there.
+    expect((await posts.createPost(desk, "Hello from the desk", "everyone", [], id!)).ok).toBe(false);
+    // The report closed: the group is shut to the desk again.
+    const open = (await desk_.reports(desk)).find((r) => r.kind === "post" && r.subjectId === made.id);
+    expect(open).toBeTruthy();
+    expect((await desk_.resolveReport(desk, open!.id, "dismiss")).ok).toBe(true);
+    expect(await inside(desk)).toEqual([]);
+  });
+
   it("private groups: you ask, an admin lets you in; until then you see nothing inside", async () => {
     const owner = await member("Pia Owner");
     const asker = await member("Abe Asker");

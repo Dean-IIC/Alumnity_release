@@ -87,6 +87,8 @@ export type Post = {
   repostCount: number;
   /** When its writer last edited it, or null. */
   editedAt: number | null;
+  /** How many people have seen it: for its writer only (null for everyone else). Never who. */
+  views: number | null;
 };
 
 /** Comments shown under a post in the feed; the rest are on the post's own page. */
@@ -129,6 +131,28 @@ export async function visiblePost(viewer: User, id: number): Promise<{ row: Post
   const row = await db().one<PostRow>("select * from posts where id = ? and removed_at is null", id);
   const author = row && (await memberById(row.author));
   return row && author && (await canSeePost(viewer, author, row.audience, row.group_id)) ? { row, author } : null;
+}
+
+/** One person who reacted to a post, and how. */
+export type Reactor = { id: number; name: string; branch: string | null; joined: number | null; programme: string | null; role: string; kind: Reaction };
+
+/**
+ * Who reacted to a post, for anyone who may see the post (as LinkedIn shows it): their
+ * reaction each, leaving out anyone the viewer has blocked or been blocked by. Null if the
+ * post isn't there or isn't the viewer's to see (the same answer either way).
+ */
+export async function reactorsOf(viewer: User, postId: number, limit = 500): Promise<Reactor[] | null> {
+  const found = await visiblePost(viewer, postId);
+  if (!found) return null;
+  const [rows, blocked] = await Promise.all([
+    db().all<{ user_id: number; kind: Reaction }>("select user_id, kind from post_cheers where post_id = ? limit ?", postId, limit),
+    blockIds(viewer.id)
+  ]);
+  const people = await membersByIds(rows.map((r) => r.user_id).filter((id) => !blocked.has(id)));
+  return rows.flatMap((r) => {
+    const u = people.get(r.user_id);
+    return u ? [{ id: u.id, name: u.name, branch: u.branch, joined: u.joined, programme: u.programme ?? null, role: u.role, kind: r.kind }] : [];
+  });
 }
 
 /**
@@ -462,7 +486,10 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
   const ids = items.map((i) => i.row.id);
   const q = marks(ids.length);
   const originalIds = [...new Set(items.flatMap((i) => (i.row.repost_of ? [Number(i.row.repost_of)] : [])))];
-  const [counts, mine, commentCounts, media, commentRows, tags, reposts, embedded] = await Promise.all([
+  // Seeing a post counts once per person (not your own); its writer sees how many.
+  const own = items.filter((i) => i.author.id === viewer.id).map((i) => i.row.id);
+  const others = items.filter((i) => i.author.id !== viewer.id).map((i) => i.row.id);
+  const [counts, mine, commentCounts, media, commentRows, tags, reposts, embedded, views] = await Promise.all([
     db().all<{ post_id: number; kind: Reaction; n: number }>(`select post_id, kind, count(*) as n from post_cheers where post_id in (${q}) group by post_id, kind`, ...ids),
     db().all<{ post_id: number; kind: Reaction }>(`select post_id, kind from post_cheers where user_id = ? and post_id in (${q})`, viewer.id, ...ids),
     db().all<{ post_id: number; n: number }>(`select post_id, count(*) as n from post_comments where removed_at is null and post_id in (${q}) group by post_id`, ...ids),
@@ -480,7 +507,16 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
     ),
     db().all<{ post_id: number; tag: string }>(`select post_id, tag from post_tags where post_id in (${q}) order by tag`, ...ids),
     db().all<{ repost_of: number; n: number }>(`select repost_of, count(*) as n from posts where removed_at is null and repost_of in (${q}) group by repost_of`, ...ids),
-    embeddedPosts(viewer, circle, originalIds)
+    embeddedPosts(viewer, circle, originalIds),
+    own.length
+      ? db().all<{ post_id: number; n: number }>(`select post_id, count(*) as n from post_views where post_id in (${marks(own.length)}) group by post_id`, ...own)
+      : Promise.resolve([]),
+    others.length
+      ? db().run(
+          `insert into post_views (post_id, user_id, first_at) values ${others.map(() => "(?, ?, ?)").join(", ")} on conflict do nothing`,
+          ...others.flatMap((id) => [id, viewer.id, Date.now()])
+        )
+      : Promise.resolve()
   ]);
   const [authors, groups] = await Promise.all([
     membersByIds(commentRows.map((c) => c.author).filter((a) => !circle.blocks.has(a))),
@@ -515,7 +551,8 @@ async function toPosts(viewer: User, circle: Circle, items: { row: PostRow; auth
       verifiedAt: row.verified_at ?? null,
       repostOf: row.repost_of ? { id: Number(row.repost_of), post: embedded.get(Number(row.repost_of)) ?? null } : null,
       repostCount: reposts.find((r) => Number(r.repost_of) === row.id)?.n ?? 0,
-      editedAt: row.edited_at ?? null
+      editedAt: row.edited_at ?? null,
+      views: author.id === viewer.id ? Number(views.find((v) => v.post_id === row.id)?.n ?? 0) : null
     };
   });
 }
@@ -567,7 +604,13 @@ export async function postFor(viewer: User, id: number): Promise<Post | null> {
   return found ? (await toPosts(viewer, await circleOf(viewer), [found], 500))[0] : null;
 }
 
-export type FeedScope = "all" | "following";
+/**
+ * Which posts Home shows: everyone's, those of people you follow or are connected to, only
+ * the college's own ("From HKBK": its desk and college accounts), or only members' (no college).
+ */
+export type FeedScope = "all" | "following" | "college" | "members";
+export const FEED_SCOPES: FeedScope[] = ["all", "following", "college", "members"];
+export const feedScope = (v: unknown): FeedScope => (FEED_SCOPES.includes(v as FeedScope) ? (v as FeedScope) : "all");
 
 /**
  * The words of a search, as SQL: each word must be in the post's text or its #tags ("#job"
@@ -656,6 +699,15 @@ export async function feedFor(
   if (authorList?.length && !named.length) return [];
   const search = searchClauses(q ?? "");
   const byRole = roleClause(roles);
+  // "From HKBK" is the college filter; "From members" leaves the college's own accounts out.
+  const byScope =
+    authorId || authorIds
+      ? ""
+      : scope === "college"
+        ? "and author in (select id from users where role in ('coordinator', 'admin', 'superadmin') or college_account = 1)"
+        : scope === "members"
+          ? "and author in (select id from users where role not in ('coordinator', 'admin', 'superadmin') and college_account = 0)"
+          : "";
   const circle = await circleOf(viewer);
   let ids = (authorId ? [authorId] : authorIds ?? []).slice(0, 500);
   if (authorIds && ids.length === 0) return [];
@@ -668,7 +720,7 @@ export async function feedFor(
   const rows = await db().all<PostRow>(
     `select * from posts where removed_at is null and ${groupId !== undefined ? "group_id = ?" : "group_id is null"}
      ${before ? "and created_at < ?" : ""} ${ids.length ? `and author in (${marks(ids.length)})` : ""}
-     ${named.length ? `and author in (${marks(named.length)})` : ""} ${byRole.sql}
+     ${named.length ? `and author in (${marks(named.length)})` : ""} ${byRole.sql} ${byScope}
      ${tags.length ? `and id in (select post_id from post_tags where tag in (${marks(tags.length)}))` : ""} ${search.sql} ${verified ? "and verified_at is not null" : ""}
      order by ${verified ? "verified_at desc," : ""} created_at desc, id desc limit ?`,
     ...(groupId !== undefined ? [groupId] : []),

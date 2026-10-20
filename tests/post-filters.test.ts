@@ -144,6 +144,49 @@ describe("filtering Home's feed", () => {
     expect(await shown({ roles: ["superadmin" as never] })).toHaveLength(8);
   });
 
+  it("From HKBK and From members: the college's own posts, or everyone else's", async () => {
+    expect(await shown({ scope: "college" })).toEqual(["college-meet", "desk-notice"]);
+    const members = await shown({ scope: "members" });
+    neverSecret(members);
+    expect(members).toEqual(["alumna-job", "batchmate-batch", "friend-connections", "reader-own", "student-internship", "teacher-notice"].sort());
+    // They narrow along with the filters.
+    expect(await shown({ scope: "college", tags: ["notice"] })).toEqual(["desk-notice"]);
+    expect(await shown({ scope: "members", tags: ["notice"] })).toEqual(["teacher-notice"]);
+    // In the address, and nonsense is the whole feed.
+    expect(filters.feedHref(filters.readFeedFilters(new URLSearchParams()), { view: "college" })).toBe("/home?view=college");
+    expect(posts.feedScope("college")).toBe("college");
+    expect(posts.feedScope("everything; drop table")).toBe("all");
+  });
+
+  it("who reacted: for a post the reader may see only, leaving out the blocked", async () => {
+    const job = ids.get("alumna-job")!;
+    expect((await posts.react(who.get("friend")!, job, "congrats")).ok).toBe(true);
+    expect((await posts.react(who.get("student")!, job, "cheer")).ok).toBe(true);
+    const list = await posts.reactorsOf(reader, job);
+    expect(list!.map((p) => [p.name, p.kind]).sort()).toEqual([["Nadia Friend", "congrats"], ["Sana Student", "cheer"]]);
+    // Nothing of a post the reader can't see: not even that it exists.
+    expect(await posts.reactorsOf(reader, ids.get("stranger-connections")!)).toBeNull();
+    // A group the reader is in: theirs to see (nobody has reacted yet).
+    expect(await posts.reactorsOf(reader, ids.get("group-job")!)).toEqual([]);
+    expect(await posts.reactorsOf(reader, 999999)).toBeNull();
+  });
+
+  it("views: each person once, never your own, and only the writer gets the number", async () => {
+    const job = ids.get("alumna-job")!;
+    const alumna = who.get("alumna")!;
+    const before = (await posts.feedFor(alumna, { authorId: alumna.id })).find((p) => p.id === job)!.views!;
+    // The reader (counted already, in the tests above) sees it twice more, the student
+    // for the first time: one more view.
+    await posts.feedFor(reader);
+    await posts.feedFor(reader);
+    await posts.feedFor(who.get("student")!, { limit: 50 });
+    const mine = (await posts.feedFor(alumna, { authorId: alumna.id })).find((p) => p.id === job)!;
+    expect(before).toBeGreaterThan(0);
+    expect(mine.views).toBe(before + 1);
+    // Her own look didn't count, and nobody else is given the number.
+    expect((await posts.feedFor(reader, { limit: 50 })).find((p) => p.id === job)!.views).toBeNull();
+  });
+
   it("by named people, ten at most", async () => {
     expect(await shown({ authors: [who.get("alumna")!.id, who.get("student")!.id] })).toEqual(["alumna-job", "student-internship"]);
     expect(await shown({ authors: [who.get("teacher")!.id], tags: ["notice"] })).toEqual(["teacher-notice"]);

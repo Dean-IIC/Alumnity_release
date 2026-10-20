@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ActionForm } from "../../../components/app/action-form";
+import { AskHelper } from "../../../components/ai/ask-helper";
+import { aiReady } from "../../../lib/server/ai";
 import { AppPage } from "../../../components/app/app-page";
 import { mentorAction } from "../../../lib/actions/social";
 import { askAction } from "../../../lib/actions/content";
@@ -63,6 +65,7 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
         <input name="topics" maxLength={200} placeholder="e.g. Placements, Java, Higher studies" />
         <span className="field__hint">Topics help the right seniors find your question.</span>
       </label>
+      {aiReady() && <AskHelper />}
       {/* Held in sight on a phone: below the first screen, a blind test never saw it, and
           tapped the tab bar's Post instead (which leaves the page, question and all). */}
       <div className="ask-send">

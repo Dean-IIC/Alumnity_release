@@ -76,7 +76,30 @@ export async function canReadGroup(viewer: User, groupId: number): Promise<boole
   const g = await groupRow(groupId);
   if (!g) return false;
   if (g.kind === "open") return true;
-  return (await membership(groupId, viewer.id))?.status === "member";
+  if ((await membership(groupId, viewer.id))?.status === "member") return true;
+  return reportedToDesk(viewer, groupId);
+}
+
+/**
+ * The college desk may look inside a private group only while someone has reported it, or
+ * a post in it, and the report is still open: to judge the report, and no longer. (Rumaan:
+ * admins don't see inside groups, except when a group is reported.) Read only: posting,
+ * joining and managing still need membership.
+ */
+export async function reportedToDesk(viewer: User, groupId: number): Promise<boolean> {
+  if (!isModerator(viewer)) return false;
+  return Boolean(
+    await db().one(
+      `select 1 from reports where status = 'open' and (
+         (subject_kind = 'group' and subject_id = ?)
+         or (subject_kind = 'post' and subject_id in (select id from posts where group_id = ?))
+         or (subject_kind = 'comment' and subject_id in (select id from post_comments where post_id in (select id from posts where group_id = ?)))
+       ) limit 1`,
+      groupId,
+      groupId,
+      groupId
+    )
+  );
 }
 
 /** The groups `userId` is in (for the feed's visibility checks): one query. */

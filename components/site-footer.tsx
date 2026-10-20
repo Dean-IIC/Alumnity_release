@@ -73,6 +73,8 @@ export function SiteFooter({ app = false }: { app?: boolean }) {
             {COLLEGE.affiliation} · {COLLEGE.approval}
           </span>
           <span className="site-footer__legal-links">
+            {/* A plain link (not Link): the intro sets itself up on a fresh page load. */}
+            <a href="/?intro=1">Play the intro</a>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
             <a href={`${COLLEGE.site}/contact`} target="_blank" rel="noopener noreferrer">

@@ -76,6 +76,14 @@ export async function CampusLanding({ then }: { then?: string } = {}) {
                 Log in
               </Link>
             </div>
+            {/* The main pages, on the page itself: on a phone they were only in the ☰ menu, and
+                a blind test (a model that only sees the screen) scrolled past them all. */}
+            <nav className="lp-hero__links" aria-label="About Alumnity">
+              <Link href="/how-it-works">How it works</Link>
+              <Link href="/gallery">Gallery</Link>
+              <Link href="/committee">Committee</Link>
+              <Link href="/about">About</Link>
+            </nav>
             <p className="lp-hero__motto">&ldquo;{COLLEGE.motto}&rdquo;</p>
           </div>
         </section>
@@ -197,6 +205,7 @@ export async function CampusLanding({ then }: { then?: string } = {}) {
                       <span className="lp-date" aria-hidden="true">
                         <small>{d.toLocaleString("en-IN", { month: "short", timeZone: "Asia/Kolkata" })}</small>
                         <strong>{d.toLocaleString("en-IN", { day: "numeric", timeZone: "Asia/Kolkata" })}</strong>
+                        <em className="lp-date__year">{d.toLocaleString("en-IN", { year: "numeric", timeZone: "Asia/Kolkata" })}</em>
                       </span>
                       <span>
                         <strong>{e.title}</strong>

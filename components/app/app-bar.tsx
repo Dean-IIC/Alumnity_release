@@ -115,6 +115,24 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
                     <strong>Edit your page</strong>
                   </span>
                 </NavLink>
+                {/* On a phone these were nowhere (they're in the laptop's You menu and Home's
+                    left column, neither shown on a phone): a blind test couldn't find them. */}
+                <NavLink href="/me/activity" className="app-menu__item">
+                  <Icon name="bell" size={22} />
+                  <span>
+                    <strong>Your activity</strong>
+                    <small>Views, reactions and comments on your posts</small>
+                  </span>
+                </NavLink>
+                {isModerator(user) && (
+                  <NavLink href="/desk" className="app-menu__item">
+                    <Icon name="shield" size={22} />
+                    <span>
+                      <strong>College desk</strong>
+                      <small>Reports, members and the college's pages</small>
+                    </span>
+                  </NavLink>
+                )}
                 <NavLink href="/settings" className="app-menu__item">
                   <Icon name="settings" size={22} />
                   <span>
@@ -155,6 +173,10 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
               <NavLink href="/me/edit" className="app-menu__item">
                 <Icon name="you" size={22} />
                 <span>Edit your page</span>
+              </NavLink>
+              <NavLink href="/me/activity" className="app-menu__item">
+                <Icon name="bell" size={22} />
+                <span>Your activity</span>
               </NavLink>
               <NavLink href="/settings" className="app-menu__item">
                 <Icon name="settings" size={22} />

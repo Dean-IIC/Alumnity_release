@@ -21,7 +21,7 @@ const count = async (sql: string, ...params: unknown[]) => (await db().one<{ n: 
 
 // ---------- Notifications ----------
 
-export type Notification = { id: number; kind: string; text: string; link: string; read: boolean; createdAt: number; actor: number | null };
+export type Notification = { id: number; kind: string; text: string; link: string; read: boolean; seen: boolean; createdAt: number; actor: number | null };
 
 export async function notify(userId: number, n: { actor?: number; kind: string; text: string; link: string }) {
   if (n.actor && (await blockedEitherWay(userId, n.actor))) return;
@@ -47,17 +47,40 @@ export async function notificationsFor(userId: number, limit = 50): Promise<Noti
     text: String(r.text),
     link: String(r.link),
     read: r.read_at != null,
+    seen: r.seen_at != null,
     createdAt: Number(r.created_at),
     actor: r.actor == null ? null : Number(r.actor)
   }));
 }
 
+/** The bell's number: notifications not yet seen (opening the notifications page sees them all). */
 export async function unreadNotifications(userId: number): Promise<number> {
   const nb = await notBlocked(userId);
-  return count(`select count(*) as n from notifications where user_id = ? and read_at is null ${nb.sql}`, userId, ...nb.args);
+  return count(`select count(*) as n from notifications where user_id = ? and seen_at is null and read_at is null ${nb.sql}`, userId, ...nb.args);
 }
 
-export const markNotificationsRead = (userId: number) => db().run("update notifications set read_at = ? where user_id = ? and read_at is null", Date.now(), userId);
+/** Opening the notifications page: the bell's number clears, but each stays highlighted until it's clicked. */
+export const markNotificationsSeen = (userId: number) => db().run("update notifications set seen_at = ? where user_id = ? and seen_at is null", Date.now(), userId);
+
+/** "Mark all as read". */
+export const markNotificationsRead = (userId: number) => {
+  const now = Date.now();
+  return db().run("update notifications set read_at = coalesce(read_at, ?), seen_at = coalesce(seen_at, ?) where user_id = ? and (read_at is null or seen_at is null)", now, now, userId);
+};
+
+/** One notification clicked: read, and where it leads (only `userId`'s own; null if it isn't theirs). */
+export async function openNotification(userId: number, id: number): Promise<string | null> {
+  if (!Number.isSafeInteger(id) || id <= 0) return null;
+  const now = Date.now();
+  const row = await db().one<{ link: string }>(
+    "update notifications set read_at = coalesce(read_at, ?), seen_at = coalesce(seen_at, ?) where id = ? and user_id = ? returning link",
+    now,
+    now,
+    id,
+    userId
+  );
+  return row ? String(row.link) : null;
+}
 
 // ---------- Connections ----------
 
@@ -261,7 +284,7 @@ export async function sendMessage(from: User, toId: number, body: string, story?
 export async function markThreadRead(me: User, otherId: number): Promise<void> {
   const now = Date.now();
   await db().run("update messages set read_at = ? where sender = ? and recipient = ? and read_at is null", now, otherId, me.id);
-  await db().run("update notifications set read_at = ? where user_id = ? and actor = ? and kind = 'message' and read_at is null", now, me.id, otherId);
+  await db().run("update notifications set read_at = ?, seen_at = coalesce(seen_at, ?) where user_id = ? and actor = ? and kind = 'message' and read_at is null", now, now, me.id, otherId);
 }
 
 /** A message row's story, as `viewerId` may see it (see StoryRef). */

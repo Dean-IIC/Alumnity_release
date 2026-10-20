@@ -939,3 +939,96 @@ html.viewer-open {
     transform: none;
   }
 }
+
+/* ---------- Who reacted (components/social/who-reacted.tsx) ---------- */
+
+/* The reactions under a post open the list: a button that looks as it did. */
+button.post__stamps {
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.post__stamps:hover span {
+  color: var(--color-blue);
+  text-decoration: underline;
+}
+
+.who-reacted__tabs {
+  display: flex;
+  gap: 6px;
+  padding-bottom: var(--space-3);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.who-reacted__tabs button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  font: var(--weight-semibold) var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+}
+
+.who-reacted__tabs button[aria-selected="true"] {
+  border-color: var(--color-navy);
+  background: var(--color-navy);
+  color: #fff;
+}
+
+.who-reacted__list {
+  display: grid;
+  max-height: min(60vh, 480px);
+  margin: 0;
+  padding: var(--space-2) 0 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.who-reacted__person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px 4px;
+  border-radius: 10px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.who-reacted__person:hover {
+  background: var(--color-band, rgba(18, 62, 124, 0.06));
+}
+
+.who-reacted__person strong,
+.who-reacted__person small {
+  display: block;
+}
+
+.who-reacted__person small {
+  color: var(--color-ink-muted);
+}
+
+/* Their reaction, on the corner of their face. */
+.who-reacted__face {
+  position: relative;
+  flex: none;
+}
+
+.who-reacted__stamp {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  background: var(--color-paper-raised);
+}

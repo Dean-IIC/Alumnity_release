@@ -8,7 +8,7 @@ import { asksFor } from "../server/asks";
 import { groupsFor } from "../server/groups";
 import { peopleToMeet } from "../server/people";
 import { isSenior } from "../server/roles";
-import { feedFor, type FeedScope } from "../server/posts";
+import { feedFor, feedScope, type FeedScope } from "../server/posts";
 import { readFeedFilters } from "../feed-filters";
 import { photoIdsOf } from "../server/profile";
 import { actor } from "./common";
@@ -27,7 +27,7 @@ export async function olderPostsAction(scope: FeedScope, before: number, filters
   const me = await actor();
   if (!me || !Number.isSafeInteger(before) || before <= 0) return { posts: null, next: null };
   const only = readFeedFilters(new URLSearchParams(typeof filters === "string" ? filters.slice(0, 1000) : ""));
-  const posts = await feedFor(me, { limit: PAGE, before, scope: scope === "following" ? "following" : "all", ...only });
+  const posts = await feedFor(me, { limit: PAGE, before, scope: feedScope(scope), ...only });
   const photos = await photoIdsOf([me.id, ...posts.flatMap((p) => [p.author.id, ...p.comments.map((c) => c.author.id)])]);
   return {
     posts: posts.map((p) => <Post key={p.id} post={p} photos={photos} me={me} />),

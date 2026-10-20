@@ -175,6 +175,7 @@ export function Post({ post, photos, full = false, me, groupAdmin = false }: Pro
         canRepost={post.group === null && post.audience !== "group" && !(plainRepost && !post.repostOf?.post)}
         repostCount={post.repostCount}
         hasBatch={Boolean(me.branch && me.joined)}
+        views={post.views}
       />
 
       {(post.comments.length > 0 || full) && (

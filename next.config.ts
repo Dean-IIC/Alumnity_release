@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
   // Lets a production build sit beside a running dev server: NEXT_DIST_DIR=.next-prod next build
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
+  // No Next.js "N" button in the corner while developing: blind tests (a model that only
+  // sees the screen) kept tapping it. It never shows on the live site either way.
+  devIndicators: false,
   experimental: {
     // A page you were on a moment ago comes back at once (Back, or a tab you just left),
     // instead of asking the server again: on a phone, that wait was most of the lag. Up to

@@ -30,12 +30,15 @@ import { feedHref, filterCount, filterQuery, NO_FILTERS, readFeedFilters } from 
 import { WORK_TAGS } from "../../../lib/tags";
 import type { User } from "../../../lib/server/auth";
 import { batchmates, blockIds, membersByIds, peopleToMeet, relationsOf } from "../../../lib/server/people";
-import { feedFor, popularTags, type FeedScope } from "../../../lib/server/posts";
+import { feedFor, feedScope, popularTags, type FeedScope } from "../../../lib/server/posts";
 import { photoIdsOf, profileOf } from "../../../lib/server/profile";
 import { requireUser } from "../../../lib/server/session";
 import { PAUSED, settings } from "../../../lib/server/settings";
 import { connectionCount } from "../../../lib/server/social";
 import { storyBar } from "../../../lib/server/stories";
+import { mediaUrl } from "../../../lib/media-url";
+import { cropStyle, sharper } from "../../../lib/photo-crop";
+import { aiReady } from "../../../lib/server/ai";
 
 export const metadata: Metadata = { title: "Home · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -51,6 +54,7 @@ const SHORTCUTS = [
   { href: "/events", label: "Events", icon: "event" },
   { href: "/causes", label: "Causes", icon: "heart" },
   { href: "/connections", label: "Connections", icon: "connections" },
+  { href: "/me/activity", label: "Your activity", icon: "bell" },
   { href: "/people", label: "Network", icon: "people" }
 ] as const;
 
@@ -79,7 +83,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const params = await searchParams;
   const beforeParam = Number(params.before);
   const before = Number.isSafeInteger(beforeParam) && beforeParam > 0 ? beforeParam : undefined;
-  const scope: FeedScope = params.view === "following" ? "following" : "all";
+  const scope: FeedScope = feedScope(params.view);
   // The feed's filters (?tag=job&role=alumnus&from=12,34&q=…), cleaned and capped.
   const filters = readFeedFilters(params);
   const filtered = filterCount(filters) > 0;
@@ -172,7 +176,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {/* ----- You ----- */}
         <aside className="feed-layout__side feed-layout__side--left" aria-label="You">
           <section className="sheet me-card">
-            <div className="me-card__band" />
+            {/* Their own banner, as they framed it; without one (or with an HTML one), the ribbon. */}
+            <div className={`me-card__band ${profile.cover && profile.cover.kind !== "html" ? "me-card__band--own" : ""}`}>
+              {profile.cover?.kind === "image" && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={mediaUrl(profile.cover.id, 640 * sharper(profile.cover.crop))} alt="" style={cropStyle(profile.cover.crop)} />
+              )}
+              {profile.cover?.kind === "video" && <video src={mediaUrl(profile.cover.id)} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" style={cropStyle(profile.cover.crop)} />}
+            </div>
             <Link href="/me" className="me-card__face" aria-hidden="true" tabIndex={-1}>
               <Avatar name={me.name} photoId={photos.get(me.id)} size={64} />
             </Link>
@@ -248,7 +259,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {/* Writing a post, first, as LinkedIn has it: below the greeting and "Getting started" it
               was under a laptop's first screen, and a blind test took "Add a story" for it. */}
           {notesOn ? (
-            <Composer firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
+            <Composer ai={aiReady()} firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
           ) : (
             <p className="sheet side-box">{PAUSED}</p>
           )}
@@ -298,6 +309,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </Link>
             <Link href={feedHref(filters, { view: "following" })} aria-current={scope === "following" ? "page" : undefined}>
               Following
+            </Link>
+            <Link href={feedHref(filters, { view: "college" })} aria-current={scope === "college" ? "page" : undefined}>
+              From HKBK
+            </Link>
+            <Link href={feedHref(filters, { view: "members" })} aria-current={scope === "members" ? "page" : undefined}>
+              From members
             </Link>
           </nav>
 
@@ -370,6 +387,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                       <span className="side-event__date" aria-hidden="true">
                         <span>{d.toLocaleDateString("en-IN", { month: "short", timeZone: "Asia/Kolkata" })}</span>
                         <strong>{d.toLocaleDateString("en-IN", { day: "numeric", timeZone: "Asia/Kolkata" })}</strong>
+                        <em className="side-event__year">{d.toLocaleDateString("en-IN", { year: "numeric", timeZone: "Asia/Kolkata" })}</em>
                       </span>
                       <div>
                         <Link href={`/events/${e.id}`}>{e.title}</Link>
@@ -458,6 +476,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   <Link href={href}>{label}</Link>
                 </li>
               ))}
+              <li>
+                {/* A plain link: the intro sets itself up on a fresh page load, then brings you back Home. */}
+                <a href="/?intro=1">Play the intro</a>
+              </li>
             </ul>
             <p>Alumnity · for students and alumni of HKBK College of Engineering</p>
           </nav>
