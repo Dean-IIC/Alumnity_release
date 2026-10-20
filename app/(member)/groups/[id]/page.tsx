@@ -10,7 +10,7 @@ import { Avatar } from "../../../../components/social/avatar";
 import { Composer } from "../../../../components/social/composer";
 import { Post } from "../../../../components/social/post";
 import { answerGroupRequestAction, groupRoleAction, joinGroupAction, leaveGroupAction, removeGroupAction, updateGroupAction } from "../../../../lib/actions/groups";
-import { GROUP_LIMITS, groupFor, groupMembers } from "../../../../lib/server/groups";
+import { GROUP_LIMITS, groupFor, groupMembers, reportedToDesk } from "../../../../lib/server/groups";
 import { feedFor } from "../../../../lib/server/posts";
 import { photoIdsOf } from "../../../../lib/server/profile";
 import { isModerator } from "../../../../lib/server/roles";
@@ -37,7 +37,9 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
 
   const member = group.my?.status === "member";
   const manager = member && (group.my?.role === "owner" || group.my?.role === "admin");
-  const readable = group.kind === "open" || member;
+  // The desk, inside a private group only because it's been reported (read only).
+  const reviewing = group.kind !== "open" && !member && (await reportedToDesk(me, group.id));
+  const readable = group.kind === "open" || member || reviewing;
   const [posts, people, site] = await Promise.all([
     tab === "posts" && readable ? feedFor(me, { groupId: group.id, limit: PAGE, before }) : Promise.resolve([]),
     tab === "members" && readable ? groupMembers(me, group.id) : Promise.resolve({ members: [], pending: [] }),
@@ -60,6 +62,11 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
       intro={`${group.kind === "open" ? "Open group" : "Private group"} · ${group.members} ${group.members === 1 ? "member" : "members"}`}
     >
       {group.about && <p className="wf-card">{group.about}</p>}
+      {reviewing && (
+        <p className="wf-note" role="note">
+          You can see inside this private group because it has been reported. When the report is closed on the desk, you won't see inside it any more.
+        </p>
+      )}
 
       <div className="wf-actions">
         {!group.my ? (
