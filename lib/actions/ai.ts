@@ -68,7 +68,7 @@ const AskShape = z.object({ title: z.string(), details: z.string(), topics: z.ar
 
 const ASK_TASK = `Help a student ask a senior (an HKBK alumnus) a clear, polite question.
 - title: the question in one line, at most 120 characters, ending with a question mark.
-- details: 2 to 5 short sentences a senior needs to help: what the student is aiming for, what they've tried, where they're stuck. Use only what the student wrote. Where something useful is missing, leave a short gap in square brackets for the student to fill, such as [your branch and year] or [what you have tried so far]. Never make up facts about the student.
+- details: 2 to 5 short sentences a senior needs to help: what the student is aiming for, what they've tried, where they're stuck. Use ONLY facts the student actually wrote. Never say the student has done, read, tried or wants anything they didn't write. For everything useful that is missing, write the sentence with a gap in square brackets for the student to fill, for example "I am in [your branch and year]." and "So far I have tried [what you have tried so far]." and "I am stuck on [where you are stuck]."
 - topics: 1 to 4 short topic words, e.g. Placements, Java, Higher studies.
 Keep the student's own meaning. Don't answer the question.`;
 
