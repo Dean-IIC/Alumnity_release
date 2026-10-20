@@ -23,12 +23,13 @@ const clip = (s: unknown, n: number) => (typeof s === "string" ? s.slice(0, n) :
 
 const CODES = BRANCHES.map(([code]) => code) as [string, ...string[]];
 
+// Forgiving: a field the AI left out or got wrong just means "any".
 const SearchShape = z.object({
-  words: z.array(z.string()),
-  branch: z.enum([...CODES, "any"]),
-  joinedYear: z.number().int(),
-  help: z.enum(["mentor", "refer", "talk", "any"]),
-  summary: z.string()
+  words: z.array(z.string()).catch([]),
+  branch: z.enum([...CODES, "any"]).catch("any"),
+  joinedYear: z.coerce.number().int().catch(0),
+  help: z.enum(["mentor", "refer", "talk", "any"]).catch("any"),
+  summary: z.string().catch("")
 });
 
 const SEARCH_TASK = `Turn a member's search for people into Alumnity's Network filters.
@@ -58,12 +59,12 @@ export async function aiPeopleSearchAction(sentence: string): Promise<Answer<{ h
     year,
     help: a.help !== "any" ? a.help : undefined
   });
-  return { ok: true, href, summary: clip(a.summary, 160) };
+  return { ok: true, href, summary: clip(a.summary, 160) || "your search" };
 }
 
 // ---------- 2. Ask a senior: a clearer question ----------
 
-const AskShape = z.object({ title: z.string(), details: z.string(), topics: z.array(z.string()) });
+const AskShape = z.object({ title: z.string(), details: z.string(), topics: z.array(z.string()).catch([]) });
 
 const ASK_TASK = `Help a student ask a senior (an HKBK alumnus) a clear, polite question.
 - title: the question in one line, at most 120 characters, ending with a question mark.
@@ -99,7 +100,7 @@ export async function aiAskHelpAction(input: { title: string; details: string; t
 
 // ---------- 3. Posts: a polished draft ----------
 
-const PostShape = z.object({ text: z.string(), hashtags: z.array(z.string()) });
+const PostShape = z.object({ text: z.string(), hashtags: z.array(z.string()).catch([]) });
 
 const POST_TASK = `Polish a member's draft post for their alumni network feed.
 - text: fix spelling and grammar and make it clear and friendly, in the member's own voice. Keep its meaning, its facts and roughly its length. Don't add facts, numbers, names, links or emojis that aren't there. Keep every word that starts with @ exactly as written (those are people being mentioned), and keep existing #tags.
