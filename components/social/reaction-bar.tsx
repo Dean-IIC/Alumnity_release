@@ -8,6 +8,7 @@ import { RepostMenu } from "./repost-menu";
 import { SendSheet } from "./send-sheet";
 import { ShareSheet } from "./share-sheet";
 import { REACTION_LABEL, REACTION_ORDER as KINDS, Stamp } from "./stamps";
+import { WhoReacted } from "./who-reacted";
 
 type Props = {
   postId: number;
@@ -42,6 +43,7 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
   const [problem, setProblem] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"share" | "send" | null>(null);
+  const [whoOpen, setWhoOpen] = useState(false);
   const [, startTransition] = useTransition();
   const hold = useRef<number>(0);
   const held = useRef(false);
@@ -115,15 +117,16 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
       {(total > 0 || commentCount > 0 || repostCount > 0) && (
         <div className="post__tally">
           {total > 0 ? (
-            <span className="post__stamps" title={summary}>
+            // Opens who reacted, and how.
+            <button type="button" className="post__stamps" title={`${summary}. See who reacted`} onClick={() => setWhoOpen(true)}>
               {top.map((k) => (
                 <Stamp key={k} kind={k} size={20} className="post__stamp" />
               ))}
               <span>
                 {total}
-                <span className="sr-only"> reactions: {summary}</span>
+                <span className="sr-only"> reactions: {summary}. See who reacted</span>
               </span>
-            </span>
+            </button>
           ) : (
             <span />
           )}
@@ -240,6 +243,7 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
           {notice}
         </p>
       )}
+      <WhoReacted postId={postId} open={whoOpen} onClose={() => setWhoOpen(false)} />
     </div>
   );
 }

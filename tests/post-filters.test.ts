@@ -158,6 +158,19 @@ describe("filtering Home's feed", () => {
     expect(posts.feedScope("everything; drop table")).toBe("all");
   });
 
+  it("who reacted: for a post the reader may see only, leaving out the blocked", async () => {
+    const job = ids.get("alumna-job")!;
+    expect((await posts.react(who.get("friend")!, job, "congrats")).ok).toBe(true);
+    expect((await posts.react(who.get("student")!, job, "cheer")).ok).toBe(true);
+    const list = await posts.reactorsOf(reader, job);
+    expect(list!.map((p) => [p.name, p.kind]).sort()).toEqual([["Nadia Friend", "congrats"], ["Sana Student", "cheer"]]);
+    // Nothing of a post the reader can't see: not even that it exists.
+    expect(await posts.reactorsOf(reader, ids.get("stranger-connections")!)).toBeNull();
+    // A group the reader is in: theirs to see (nobody has reacted yet).
+    expect(await posts.reactorsOf(reader, ids.get("group-job")!)).toEqual([]);
+    expect(await posts.reactorsOf(reader, 999999)).toBeNull();
+  });
+
   it("by named people, ten at most", async () => {
     expect(await shown({ authors: [who.get("alumna")!.id, who.get("student")!.id] })).toEqual(["alumna-job", "student-internship"]);
     expect(await shown({ authors: [who.get("teacher")!.id], tags: ["notice"] })).toEqual(["teacher-notice"]);

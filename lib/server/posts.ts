@@ -131,6 +131,28 @@ export async function visiblePost(viewer: User, id: number): Promise<{ row: Post
   return row && author && (await canSeePost(viewer, author, row.audience, row.group_id)) ? { row, author } : null;
 }
 
+/** One person who reacted to a post, and how. */
+export type Reactor = { id: number; name: string; branch: string | null; joined: number | null; programme: string | null; role: string; kind: Reaction };
+
+/**
+ * Who reacted to a post, for anyone who may see the post (as LinkedIn shows it): their
+ * reaction each, leaving out anyone the viewer has blocked or been blocked by. Null if the
+ * post isn't there or isn't the viewer's to see (the same answer either way).
+ */
+export async function reactorsOf(viewer: User, postId: number, limit = 500): Promise<Reactor[] | null> {
+  const found = await visiblePost(viewer, postId);
+  if (!found) return null;
+  const [rows, blocked] = await Promise.all([
+    db().all<{ user_id: number; kind: Reaction }>("select user_id, kind from post_cheers where post_id = ? limit ?", postId, limit),
+    blockIds(viewer.id)
+  ]);
+  const people = await membersByIds(rows.map((r) => r.user_id).filter((id) => !blocked.has(id)));
+  return rows.flatMap((r) => {
+    const u = people.get(r.user_id);
+    return u ? [{ id: u.id, name: u.name, branch: u.branch, joined: u.joined, programme: u.programme ?? null, role: u.role, kind: r.kind }] : [];
+  });
+}
+
 /**
  * Checks every @mention in `body`: a mention of someone who isn't here, or who has blocked
  * the writer (or been blocked), becomes plain "@Name". Returns the text and who to tell.
