@@ -567,7 +567,13 @@ export async function postFor(viewer: User, id: number): Promise<Post | null> {
   return found ? (await toPosts(viewer, await circleOf(viewer), [found], 500))[0] : null;
 }
 
-export type FeedScope = "all" | "following";
+/**
+ * Which posts Home shows: everyone's, those of people you follow or are connected to, only
+ * the college's own ("From HKBK": its desk and college accounts), or only members' (no college).
+ */
+export type FeedScope = "all" | "following" | "college" | "members";
+export const FEED_SCOPES: FeedScope[] = ["all", "following", "college", "members"];
+export const feedScope = (v: unknown): FeedScope => (FEED_SCOPES.includes(v as FeedScope) ? (v as FeedScope) : "all");
 
 /**
  * The words of a search, as SQL: each word must be in the post's text or its #tags ("#job"
@@ -656,6 +662,15 @@ export async function feedFor(
   if (authorList?.length && !named.length) return [];
   const search = searchClauses(q ?? "");
   const byRole = roleClause(roles);
+  // "From HKBK" is the college filter; "From members" leaves the college's own accounts out.
+  const byScope =
+    authorId || authorIds
+      ? ""
+      : scope === "college"
+        ? "and author in (select id from users where role in ('coordinator', 'admin', 'superadmin') or college_account = 1)"
+        : scope === "members"
+          ? "and author in (select id from users where role not in ('coordinator', 'admin', 'superadmin') and college_account = 0)"
+          : "";
   const circle = await circleOf(viewer);
   let ids = (authorId ? [authorId] : authorIds ?? []).slice(0, 500);
   if (authorIds && ids.length === 0) return [];
@@ -668,7 +683,7 @@ export async function feedFor(
   const rows = await db().all<PostRow>(
     `select * from posts where removed_at is null and ${groupId !== undefined ? "group_id = ?" : "group_id is null"}
      ${before ? "and created_at < ?" : ""} ${ids.length ? `and author in (${marks(ids.length)})` : ""}
-     ${named.length ? `and author in (${marks(named.length)})` : ""} ${byRole.sql}
+     ${named.length ? `and author in (${marks(named.length)})` : ""} ${byRole.sql} ${byScope}
      ${tags.length ? `and id in (select post_id from post_tags where tag in (${marks(tags.length)}))` : ""} ${search.sql} ${verified ? "and verified_at is not null" : ""}
      order by ${verified ? "verified_at desc," : ""} created_at desc, id desc limit ?`,
     ...(groupId !== undefined ? [groupId] : []),

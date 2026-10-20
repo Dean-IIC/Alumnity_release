@@ -51,7 +51,7 @@ export function FeedFilterBar({
   people
 }: {
   filters: FeedFilters;
-  view: "all" | "following";
+  view: "all" | "following" | "college" | "members";
   /** The topic chips: the most used #tags lately, then the work ones. */
   topics: string[];
   /** The people in `filters.authors`, with their names (anyone the viewer may not see is left out). */
@@ -163,7 +163,7 @@ export function FeedFilterBar({
             </button>
           )}
           {/* The other filters, kept when the box is sent without the page's scripts. */}
-          {view === "following" && <input type="hidden" name="view" value="following" />}
+          {view !== "all" && <input type="hidden" name="view" value={view} />}
           {filters.tags.length > 0 && <input type="hidden" name="tag" value={filters.tags.join(",")} />}
           {filters.roles.length > 0 && <input type="hidden" name="role" value={filters.roles.join(",")} />}
           {filters.authors.length > 0 && <input type="hidden" name="from" value={filters.authors.join(",")} />}

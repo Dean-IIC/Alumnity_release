@@ -30,7 +30,7 @@ import { feedHref, filterCount, filterQuery, NO_FILTERS, readFeedFilters } from 
 import { WORK_TAGS } from "../../../lib/tags";
 import type { User } from "../../../lib/server/auth";
 import { batchmates, blockIds, membersByIds, peopleToMeet, relationsOf } from "../../../lib/server/people";
-import { feedFor, popularTags, type FeedScope } from "../../../lib/server/posts";
+import { feedFor, feedScope, popularTags, type FeedScope } from "../../../lib/server/posts";
 import { photoIdsOf, profileOf } from "../../../lib/server/profile";
 import { requireUser } from "../../../lib/server/session";
 import { PAUSED, settings } from "../../../lib/server/settings";
@@ -79,7 +79,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const params = await searchParams;
   const beforeParam = Number(params.before);
   const before = Number.isSafeInteger(beforeParam) && beforeParam > 0 ? beforeParam : undefined;
-  const scope: FeedScope = params.view === "following" ? "following" : "all";
+  const scope: FeedScope = feedScope(params.view);
   // The feed's filters (?tag=job&role=alumnus&from=12,34&q=…), cleaned and capped.
   const filters = readFeedFilters(params);
   const filtered = filterCount(filters) > 0;
@@ -298,6 +298,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </Link>
             <Link href={feedHref(filters, { view: "following" })} aria-current={scope === "following" ? "page" : undefined}>
               Following
+            </Link>
+            <Link href={feedHref(filters, { view: "college" })} aria-current={scope === "college" ? "page" : undefined}>
+              From HKBK
+            </Link>
+            <Link href={feedHref(filters, { view: "members" })} aria-current={scope === "members" ? "page" : undefined}>
+              From members
             </Link>
           </nav>
 

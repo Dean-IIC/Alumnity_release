@@ -121,7 +121,7 @@ export function InfiniteFeed({ scope, next: first, filters = "", empty = false }
             </button>
           )
         ) : "posts" in cursor ? (
-          <Link href={`/home?${[scope === "following" ? "view=following" : "", filters, `before=${cursor.posts}`].filter(Boolean).join("&")}`}>Older posts →</Link>
+          <Link href={`/home?${[scope !== "all" ? `view=${scope}` : "", filters, `before=${cursor.posts}`].filter(Boolean).join("&")}`}>Older posts →</Link>
         ) : null}
       </div>
     </>

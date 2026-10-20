@@ -61,9 +61,9 @@ export function filterQuery(f: FeedFilters): string {
   return p.toString().replace(/%2C/g, ",");
 }
 
-/** Home with these filters (and the Following view, and a page further down, if given). */
-export function feedHref(f: FeedFilters, { view, before }: { view?: "all" | "following"; before?: number } = {}): string {
-  const parts = [view === "following" ? "view=following" : "", filterQuery(f), before ? `before=${before}` : ""].filter(Boolean);
+/** Home with these filters (and the view: Following, From HKBK, From members; and a page further down, if given). */
+export function feedHref(f: FeedFilters, { view, before }: { view?: "all" | "following" | "college" | "members"; before?: number } = {}): string {
+  const parts = [view && view !== "all" ? `view=${view}` : "", filterQuery(f), before ? `before=${before}` : ""].filter(Boolean);
   return parts.length ? `/home?${parts.join("&")}` : "/home";
 }
 

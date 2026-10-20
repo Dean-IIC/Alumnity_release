@@ -1600,6 +1600,20 @@ html.story-open {
   padding: var(--space-3) 0;
   color: var(--color-ink-muted);
   font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+/* Four views on a phone: closer together, and sliding sideways if a narrow phone needs it. */
+@media (max-width: 480px) {
+  .feed-tabs {
+    gap: var(--space-4);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .feed-tabs a {
+    font-size: 15px;
+  }
 }
 
 .feed-tabs a[aria-current="page"] {

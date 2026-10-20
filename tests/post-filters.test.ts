@@ -144,6 +144,20 @@ describe("filtering Home's feed", () => {
     expect(await shown({ roles: ["superadmin" as never] })).toHaveLength(8);
   });
 
+  it("From HKBK and From members: the college's own posts, or everyone else's", async () => {
+    expect(await shown({ scope: "college" })).toEqual(["college-meet", "desk-notice"]);
+    const members = await shown({ scope: "members" });
+    neverSecret(members);
+    expect(members).toEqual(["alumna-job", "batchmate-batch", "friend-connections", "reader-own", "student-internship", "teacher-notice"].sort());
+    // They narrow along with the filters.
+    expect(await shown({ scope: "college", tags: ["notice"] })).toEqual(["desk-notice"]);
+    expect(await shown({ scope: "members", tags: ["notice"] })).toEqual(["teacher-notice"]);
+    // In the address, and nonsense is the whole feed.
+    expect(filters.feedHref(filters.readFeedFilters(new URLSearchParams()), { view: "college" })).toBe("/home?view=college");
+    expect(posts.feedScope("college")).toBe("college");
+    expect(posts.feedScope("everything; drop table")).toBe("all");
+  });
+
   it("by named people, ten at most", async () => {
     expect(await shown({ authors: [who.get("alumna")!.id, who.get("student")!.id] })).toEqual(["alumna-job", "student-internship"]);
     expect(await shown({ authors: [who.get("teacher")!.id], tags: ["notice"] })).toEqual(["teacher-notice"]);
