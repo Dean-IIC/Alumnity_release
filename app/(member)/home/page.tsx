@@ -458,6 +458,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   <Link href={href}>{label}</Link>
                 </li>
               ))}
+              <li>
+                {/* A plain link: the intro sets itself up on a fresh page load, then brings you back Home. */}
+                <a href="/?intro=1">Play the intro</a>
+              </li>
             </ul>
             <p>Alumnity · for students and alumni of HKBK College of Engineering</p>
           </nav>
