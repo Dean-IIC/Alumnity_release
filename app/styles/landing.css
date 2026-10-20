@@ -818,3 +818,41 @@ a.lp-card:hover {
 .reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(2) { transition-delay: 90ms; }
 .reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(3) { transition-delay: 180ms; }
 .reveal-ready [data-reveal].is-revealed :is(.lp-for > li, .lp-leaders > li, .lp-upcoming > *):nth-child(4) { transition-delay: 270ms; }
+
+/* The main pages, under the hero's buttons (every screen size). */
+.lp-hero__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 0;
+  margin-top: var(--space-4);
+}
+
+.lp-hero__links a {
+  padding: 4px 12px;
+  color: #ffffff;
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+  text-decoration-color: rgba(242, 169, 0, 0.8);
+  text-underline-offset: 4px;
+  text-shadow: 0 1px 3px rgba(8, 34, 84, 0.5);
+}
+
+.lp-hero__links a:first-child {
+  padding-left: 0;
+}
+
+.lp-hero__links a + a {
+  border-left: 2px solid var(--color-gold, #f2a900);
+}
+
+.lp-hero__links a:hover {
+  color: var(--color-gold, #f2a900);
+}
+
+@media (max-width: 420px) {
+  /* All four on one line on a phone (a wrapped one began with a stray divider). */
+  .lp-hero__links a {
+    padding: 4px 8px;
+    font-size: 15px;
+  }
+}

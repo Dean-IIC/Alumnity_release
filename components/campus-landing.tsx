@@ -76,6 +76,14 @@ export async function CampusLanding({ then }: { then?: string } = {}) {
                 Log in
               </Link>
             </div>
+            {/* The main pages, on the page itself: on a phone they were only in the ☰ menu, and
+                a blind test (a model that only sees the screen) scrolled past them all. */}
+            <nav className="lp-hero__links" aria-label="About Alumnity">
+              <Link href="/how-it-works">How it works</Link>
+              <Link href="/gallery">Gallery</Link>
+              <Link href="/committee">Committee</Link>
+              <Link href="/about">About</Link>
+            </nav>
             <p className="lp-hero__motto">&ldquo;{COLLEGE.motto}&rdquo;</p>
           </div>
         </section>

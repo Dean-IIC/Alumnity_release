@@ -73,8 +73,12 @@ export function StoriesBar({ reels, me }: { reels: ReelData[]; me: ReelData["aut
             </button>
           ) : (
             <button type="button" className="story-face" onClick={() => setAdding(true)}>
+              {/* A camera in a dashed ring, not your face: with your face it read as "your
+                  profile", and a blind test went in to write a post or edit its page. */}
               <span className="story-face__ring story-face__ring--add">
-                <Face reel={{ author: me }} />
+                <span className="story-face__new" aria-hidden="true">
+                  <Icon name="photo" size={26} />
+                </span>
                 <span className="story-face__plus" aria-hidden="true">
                   <Icon name="plus" size={14} />
                 </span>

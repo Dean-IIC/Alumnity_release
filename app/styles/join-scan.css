@@ -631,3 +631,17 @@
     justify-self: start;
   }
 }
+
+/* The status reads as a status, not a button: no filled pill, just the dot and the words
+   (a blind test tapped "Ready to search" nine times, taking it for a button). */
+.register-scan .register-scan__status,
+.register-scan--searching .register-scan__status,
+.register-scan--found .register-scan__status,
+.register-scan--not-found .register-scan__status {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0;
+  cursor: default;
+}
