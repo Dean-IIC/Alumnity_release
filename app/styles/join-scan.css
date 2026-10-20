@@ -449,17 +449,11 @@
     padding: var(--space-3) var(--space-4);
   }
 
-  /* Joining on a phone, before the search: just the register's name, so the form starts on
-     the first screen. Every other state (searching, found, not found) opens the full panel:
-     the old rule that collapsed it is now limited to idle on purpose. */
-  .register-scan--join.register-scan--idle .register-scan__columns,
-  .register-scan--join.register-scan--idle .register-scan__window {
-    display: none;
-  }
-
-  .register-scan--join.register-scan--idle .register-scan__head {
-    padding-bottom: 0;
-    border-bottom: 0;
+  /* Joining on a phone, before the search: the register shows, but only three rows of it,
+     so the form still starts near the top. (It used to be the name alone, and testers
+     thought the tablet was missing on phones.) Searching, found and not found open it fully. */
+  .register-scan--join.register-scan--idle {
+    --scan-rows: 3;
   }
 
   /* Logging in or resetting a password on a phone: the form comes first, the panel after it,
