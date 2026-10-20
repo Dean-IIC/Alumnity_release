@@ -71,7 +71,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   return (
     <AppPage user={me} current="people" title="Network" intro="Classmates, seniors and mentors from HKBK. You only see what each person chose to show.">
       <PeopleSearch query={query} branches={BRANCHES} myBatch={myBatch} />
-      {aiReady() && <AiPeopleSearch />}
+      {aiReady() && <AiPeopleSearch typed={query.q} />}
 
       {/* Requests first, as on Instagram: someone asked to connect, so answer them here. */}
       {waiting.total > 0 && (

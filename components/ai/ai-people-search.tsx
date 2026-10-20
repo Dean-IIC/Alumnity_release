@@ -10,9 +10,12 @@ import { Icon } from "../social/icons";
  * branch, batch, happy to mentor / refer / talk), and the page shows that search. The AI
  * only reads the sentence; the search itself is the ordinary one, with every privacy rule.
  */
-export function AiPeopleSearch() {
+export function AiPeopleSearch({ typed = "" }: { typed?: string }) {
   const router = useRouter();
   const [text, setText] = useState("");
+  // Empty here, it uses what's in Network's main search: a blind test typed its sentence
+  // there and pressed "Find with AI" nine times, the button greyed out.
+  const words = text.trim() || typed.trim();
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, start] = useTransition();
   return (
@@ -22,7 +25,7 @@ export function AiPeopleSearch() {
         e.preventDefault();
         setNote(null);
         start(async () => {
-          const answer = await aiPeopleSearchAction(text);
+          const answer = await aiPeopleSearchAction(words);
           if (!answer.ok) return setNote({ ok: false, text: answer.error });
           setNote({ ok: true, text: `Searching for: ${answer.summary}` });
           router.push(answer.href);
@@ -38,10 +41,10 @@ export function AiPeopleSearch() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={300}
-          placeholder="e.g. alumni in Bengaluru working in data who can mentor"
+          placeholder={typed.trim() ? `Or press Find with AI to search "${typed.trim().slice(0, 40)}"` : "e.g. alumni in Bengaluru working in data who can mentor"}
           aria-describedby="ai-search-note"
         />
-        <button type="submit" className="button button--primary" disabled={busy || text.trim().length < 3}>
+        <button type="submit" className="button button--primary" disabled={busy || words.length < 3}>
           {busy ? "Finding…" : "Find with AI"}
         </button>
       </div>
