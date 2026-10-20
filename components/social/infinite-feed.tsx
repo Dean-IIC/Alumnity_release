@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { moreFromHkbkAction, olderPostsAction } from "../../lib/actions/feed";
 import type { FeedScope } from "../../lib/server/posts";
 
@@ -35,7 +35,13 @@ export function PostSkeleton() {
  * narrowed to is done; "More from HKBK" would only be in the way). Give it a `key` that
  * changes with the filters, so a new set starts afresh. `empty`: the first page had no posts
  * (the page says so itself, so the end needn't).
+ *
+ * "More from HKBK" loads by itself for a few pages, then waits for a tap ("Show more"): it
+ * can run to hundreds of cards (every album's photos), and a phone that kept them all
+ * ran out of memory at the end of the feed. Each added page is fenced off, so one that
+ * fails to draw shows "Try again" in its place rather than taking Home down with it.
  */
+const AUTO_MORE = 4;
 export function InfiniteFeed({ scope, next: first, filters = "", empty = false }: { scope: FeedScope; next: number | null; filters?: string; empty?: boolean }) {
   const filtered = filters !== "";
   const [pages, setPages] = useState<ReactNode[]>([]);
@@ -54,11 +60,11 @@ export function InfiniteFeed({ scope, next: first, filters = "", empty = false }
     try {
       if ("posts" in cursor) {
         const result = await olderPostsAction(scope, cursor.posts, filters);
-        setPages((list) => [...list, result.posts]);
+        setPages((list) => [...list, <Fenced key={`p${list.length}`}>{result.posts}</Fenced>]);
         setCursor(result.next !== null ? { posts: result.next } : filtered ? null : { more: 0 });
       } else {
         const result = await moreFromHkbkAction(cursor.more);
-        setPages((list) => [...list, ...(cursor.more === 0 ? [<MoreHeading key="more" />] : []), result.cards]);
+        setPages((list) => [...list, ...(cursor.more === 0 ? [<MoreHeading key="more" />] : []), <Fenced key={`m${list.length}`}>{result.cards}</Fenced>]);
         setCursor(result.next === null ? null : { more: result.next });
       }
     } catch {
@@ -72,6 +78,8 @@ export function InfiniteFeed({ scope, next: first, filters = "", empty = false }
   useEffect(() => {
     const target = end.current;
     if (!target || cursor === null || failed) return;
+    // Past the first few "More from HKBK" pages, only a tap loads more.
+    if ("more" in cursor && cursor.more >= AUTO_MORE) return;
     // Start fetching a screen before the end, so it's there when the reader is.
     const watch = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && loadMore(), { rootMargin: "900px 0px" });
     watch.observe(target);
@@ -106,6 +114,12 @@ export function InfiniteFeed({ scope, next: first, filters = "", empty = false }
           ) : (
             <p className="feed-more__end">You've seen everything on Alumnity for now. Come back later for new posts.</p>
           )
+        ) : "more" in cursor && cursor.more >= AUTO_MORE ? (
+          loading ? null : (
+            <button type="button" className="button button--secondary wf-small" onClick={loadMore}>
+              Show more from HKBK
+            </button>
+          )
         ) : "posts" in cursor ? (
           <Link href={`/home?${[scope === "following" ? "view=following" : "", filters, `before=${cursor.posts}`].filter(Boolean).join("&")}`}>Older posts →</Link>
         ) : null}
@@ -120,4 +134,15 @@ function MoreHeading() {
       <span>More from HKBK</span>
     </div>
   );
+}
+
+/** One added page, kept apart: if it can't be drawn, it says so (and the rest of Home stays). */
+class Fenced extends Component<{ children: ReactNode }, { broken: boolean }> {
+  state = { broken: false };
+  static getDerivedStateFromError() {
+    return { broken: true };
+  }
+  render() {
+    return this.state.broken ? <p className="feed-more__end">Some posts here couldn't be shown. Reload the page to try again.</p> : this.props.children;
+  }
 }

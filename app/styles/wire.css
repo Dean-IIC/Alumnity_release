@@ -987,3 +987,13 @@
   padding: 0;
   list-style: none;
 }
+
+/* A button's words while its form sends (components/app/busy-label.tsx). */
+.busy-label__busy,
+form[aria-busy="true"] .busy-label__idle {
+  display: none;
+}
+
+form[aria-busy="true"] .busy-label__busy {
+  display: inline;
+}

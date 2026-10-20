@@ -22,6 +22,23 @@
   top: calc(64px + var(--space-4));
   display: grid;
   gap: var(--space-4);
+  /* Each side column scrolls on its own (as LinkedIn's do): taller than the window, it
+     gets its own thin scrollbar, and reaching its end doesn't scroll the feed. */
+  max-height: calc(100dvh - 64px - 2 * var(--space-4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(18, 62, 124, 0.35) transparent;
+  /* Room for the cards' shadows and their lift on hover, inside the scrolling box. */
+  padding: 4px 6px var(--space-4);
+  margin: -4px -6px 0;
+}
+
+/* "More from HKBK" cards far off screen aren't drawn until they're near (their space is
+   kept): a long feed stays light to scroll. Not posts: it would clip their menus. */
+.feed-layout__main .more-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 520px;
 }
 
 .feed-layout__main {
