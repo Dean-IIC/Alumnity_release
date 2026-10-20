@@ -6,3 +6,5 @@ create table if not exists post_views (
   first_at bigint not null,
   primary key (post_id, user_id)
 );
+-- As every table: nothing through Supabase's public API (the server reads it directly).
+alter table post_views enable row level security;

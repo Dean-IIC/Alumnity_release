@@ -47,10 +47,10 @@ describe("the register's scanning panel", () => {
     expect(renderToStaticMarkup(<RegisterBook state="found" tone="login" />)).toContain("Welcome back");
   });
 
-  it("folds away on a phone only while idle", () => {
+  it("on a phone, waiting, shows three rows of the register (not its name alone); it never folds away while busy", () => {
     const css = readFileSync("app/styles/join-scan.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    const folds = [...css.matchAll(/([^{}]+)\{\s*display:\s*none;?\s*\}/g)].map((m) => m[1]);
-    expect(folds.length).toBeGreaterThan(0);
+    expect(css).toMatch(/\.register-scan--join\.register-scan--idle\s*\{\s*--scan-rows:\s*3;?\s*\}/);
+    const folds = [...css.matchAll(/([^{}]+)\{\s*display:\s*none;?\s*\}/g)].map((m) => m[1]).filter((s) => s.includes("register-scan__") && /__(columns|window)/.test(s));
     for (const selectors of folds) {
       for (const selector of selectors.split(",")) expect(selector, selector).toContain("--idle");
     }
