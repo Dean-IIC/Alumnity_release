@@ -38,6 +38,7 @@ import { connectionCount } from "../../../lib/server/social";
 import { storyBar } from "../../../lib/server/stories";
 import { mediaUrl } from "../../../lib/media-url";
 import { cropStyle, sharper } from "../../../lib/photo-crop";
+import { aiReady } from "../../../lib/server/ai";
 
 export const metadata: Metadata = { title: "Home · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -258,7 +259,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {/* Writing a post, first, as LinkedIn has it: below the greeting and "Getting started" it
               was under a laptop's first screen, and a blind test took "Add a story" for it. */}
           {notesOn ? (
-            <Composer firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
+            <Composer ai={aiReady()} firstName={first(me.name)} hasBatch={Boolean(me.branch && me.joined)} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
           ) : (
             <p className="sheet side-box">{PAUSED}</p>
           )}

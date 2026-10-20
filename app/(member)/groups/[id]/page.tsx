@@ -16,6 +16,7 @@ import { photoIdsOf } from "../../../../lib/server/profile";
 import { isModerator } from "../../../../lib/server/roles";
 import { requireUser } from "../../../../lib/server/session";
 import { PAUSED, settings } from "../../../../lib/server/settings";
+import { aiReady } from "../../../../lib/server/ai";
 
 export const metadata: Metadata = { title: "A group · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -120,7 +121,7 @@ export default async function GroupPage({ params, searchParams }: { params: Prom
         <>
           {member &&
             (site.features.notes ? (
-              <Composer firstName={firstName(me.name)} hasBatch={false} group={{ id: group.id, name: group.name }} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
+              <Composer ai={aiReady()} firstName={firstName(me.name)} hasBatch={false} group={{ id: group.id, name: group.name }} avatar={<Avatar name={me.name} photoId={photos.get(me.id)} size={44} />} />
             ) : (
               <p className="wf-empty">{PAUSED}</p>
             ))}

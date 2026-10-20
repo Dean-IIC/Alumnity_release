@@ -6,6 +6,8 @@ import { BRANCHES, isBranch } from "../../../lib/branches";
 import { Invite } from "../../../components/app/invite";
 import { MemberCard, RegisterCard, RequestCard } from "../../../components/people/person-card";
 import { PeopleSearch } from "../../../components/people/people-search";
+import { AiPeopleSearch } from "../../../components/ai/ai-people-search";
+import { aiReady } from "../../../lib/server/ai";
 import { peopleHref, type PeopleQuery } from "../../../lib/people-href";
 import { batchmates, memberCount, whereAlumniWork } from "../../../lib/server/people";
 import { findPeople, suggestPeople, waitingForYou, type PersonCard } from "../../../lib/server/people-search";
@@ -69,6 +71,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   return (
     <AppPage user={me} current="people" title="Network" intro="Classmates, seniors and mentors from HKBK. You only see what each person chose to show.">
       <PeopleSearch query={query} branches={BRANCHES} myBatch={myBatch} />
+      {aiReady() && <AiPeopleSearch />}
 
       {/* Requests first, as on Instagram: someone asked to connect, so answer them here. */}
       {waiting.total > 0 && (

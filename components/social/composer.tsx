@@ -2,7 +2,8 @@
 
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { aiPostHelpAction } from "../../lib/actions/ai";
 import type { ActionState } from "../../lib/action-state";
 import { postAction } from "../../lib/actions/content";
 import { uploadFile } from "../../lib/client/upload";
@@ -37,8 +38,11 @@ export function Composer({
   avatar,
   hasBatch,
   startOpen = false,
-  group
+  group,
+  ai = false
 }: {
+  /** The AI helper ("Help me write") is on for this site. */
+  ai?: boolean;
   firstName: string;
   avatar: React.ReactNode;
   hasBatch: boolean;
@@ -54,6 +58,10 @@ export function Composer({
   const [tagging, setTagging] = useState(false);
   const [tagged, setTagged] = useState<PickPerson[]>([]);
   const [insert, setInsert] = useState<{ key: number; people: PickPerson[] } | undefined>(undefined);
+  const [replace, setReplace] = useState<{ key: number; text: string } | undefined>(undefined);
+  const [polish, setPolish] = useState<{ text: string; hashtags: string[] } | null>(null);
+  const [polishError, setPolishError] = useState<string | null>(null);
+  const [polishing, startPolish] = useTransition();
   const [state, run, pending] = useActionState(async (prev: ActionState, form: FormData) => {
     const answer = await postAction(prev, form);
     if (answer?.ok) {
@@ -156,9 +164,59 @@ export function Composer({
         resetKey={sentCount}
         onTextChange={setText}
         insert={insert}
+        replace={replace}
         autoFocus
         className="composer__text"
       />
+      {ai && (
+        <div className="ai-help ai-help--post">
+          <button
+            type="button"
+            className="button button--secondary wf-small"
+            disabled={polishing || text.trim().length < 10}
+            title={text.trim().length < 10 ? "Write a little first, then ask for help" : undefined}
+            onClick={() => {
+              setPolishError(null);
+              startPolish(async () => {
+                const answer = await aiPostHelpAction(text);
+                if (!answer.ok) return setPolishError(answer.error);
+                setPolish({ text: answer.text, hashtags: answer.hashtags });
+              });
+            }}
+          >
+            {polishing ? "Thinking…" : "✦ Help me write"}
+          </button>
+          {polishError && (
+            <p className="ai-note ai-note--error" role="alert">
+              {polishError}
+            </p>
+          )}
+          {polish && (
+            <section className="ai-suggestion" aria-label="Suggested post">
+              <p className="ai-suggestion__label">A polished version</p>
+              <p className="ai-suggestion__text">{polish.text}</p>
+              {polish.hashtags.length > 0 && <p className="ai-suggestion__topics">{polish.hashtags.map((h) => `#${h}`).join(" ")}</p>}
+              <div className="ai-suggestion__actions">
+                <button
+                  type="button"
+                  className="button button--primary wf-small"
+                  onClick={() => {
+                    const tags = polish.hashtags.map((h) => `#${h}`).join(" ");
+                    setReplace((r) => ({ key: (r?.key ?? 0) + 1, text: tags ? `${polish.text}\n\n${tags}` : polish.text }));
+                    setPolish(null);
+                  }}
+                >
+                  Use this
+                </button>
+                <button type="button" className="button button--secondary wf-small" onClick={() => setPolish(null)}>
+                  Keep mine
+                </button>
+              </div>
+              <p className="ai-note">Written by AI from your words. Check it before you post.</p>
+            </section>
+          )}
+        </div>
+      )}
       <fieldset className="composer__tags">
         <legend>Add a tag (optional)</legend>
         {SUGGESTED_TAGS.map(([tag, label]) => (

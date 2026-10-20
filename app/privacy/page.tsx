@@ -157,6 +157,11 @@ export default function PrivacyPage() {
             <li>Razorpay: payments</li>
             <li>Our email service: the daily email</li>
             <li>Your browser maker’s notification service, if you turn notifications on.</li>
+            <li>
+              Anthropic (Claude), only when you press an AI helper: “Find with AI” on Network, “Help me ask” on Ask a senior, or “Help me write” on a post. It gets
+              only the words you typed into that box, never your page, your messages or the college register. It only suggests; nothing is posted or sent
+              unless you do it yourself.
+            </li>
           </ul>
           <p>Some of them may keep data outside India. They must protect it.</p>
         </Section>

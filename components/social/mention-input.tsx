@@ -26,6 +26,11 @@ type Props = {
   insert?: { key: number; people: Person[] };
   /** Words already written, as stored (editing a post or a comment): its mentions stay mentions. */
   initial?: string;
+  /**
+   * New words for the box from outside ("Help me write"), each time `key` changes. Anyone
+   * mentioned whose "@Name" is still there stays mentioned.
+   */
+  replace?: { key: number; text: string };
 };
 
 /** Stored text (`@[Name](id)`) as the box shows it ("@Name"), and the people it mentions. */
@@ -45,7 +50,7 @@ function startFrom(initial: string): { text: string; chosen: Person[] } {
  * A text box that suggests people as you type @ and a name. The box shows "@Asha Rao";
  * what's sent says which Asha it is, so the server can check and link it.
  */
-export function MentionInput({ name, placeholder, rows = 3, maxLength, required, className = "", resetKey, onTextChange, autoFocus, id, label, insert, initial = "" }: Props) {
+export function MentionInput({ name, placeholder, rows = 3, maxLength, required, className = "", resetKey, onTextChange, autoFocus, id, label, insert, initial = "", replace }: Props) {
   const [text, setText] = useState(() => startFrom(initial).text);
   const [chosen, setChosen] = useState<Person[]>(() => startFrom(initial).chosen);
   const [query, setQuery] = useState<string | null>(null);
@@ -118,6 +123,21 @@ export function MentionInput({ name, placeholder, rows = 3, maxLength, required,
     // Only a new `insert` adds anything; the text and chosen are read as they are then.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [insert]);
+
+  // Replaced from outside: the new words, keeping those mentioned whose "@Name" survives.
+  const replaced = useRef(0);
+  useEffect(() => {
+    if (!replace || replace.key === replaced.current) return;
+    replaced.current = replace.key;
+    const next = replace.text.slice(0, maxLength);
+    setText(next);
+    onTextChange?.(next);
+    setChosen((c) => c.filter((p) => next.includes(`@${p.name}`)));
+    setQuery(null);
+    requestAnimationFrame(() => box.current?.focus());
+    // Only a new `replace` changes anything.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [replace]);
 
   /** The text as sent: each chosen "@Name" becomes "@[Name](id)". */
   const sent = chosen.reduce((t, p) => t.split(`@${p.name}`).join(`@[${p.name}](${p.id})`), text);
