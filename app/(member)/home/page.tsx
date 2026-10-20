@@ -36,6 +36,8 @@ import { requireUser } from "../../../lib/server/session";
 import { PAUSED, settings } from "../../../lib/server/settings";
 import { connectionCount } from "../../../lib/server/social";
 import { storyBar } from "../../../lib/server/stories";
+import { mediaUrl } from "../../../lib/media-url";
+import { cropStyle, sharper } from "../../../lib/photo-crop";
 
 export const metadata: Metadata = { title: "Home · Alumnity", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -172,7 +174,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {/* ----- You ----- */}
         <aside className="feed-layout__side feed-layout__side--left" aria-label="You">
           <section className="sheet me-card">
-            <div className="me-card__band" />
+            {/* Their own banner, as they framed it; without one (or with an HTML one), the ribbon. */}
+            <div className={`me-card__band ${profile.cover && profile.cover.kind !== "html" ? "me-card__band--own" : ""}`}>
+              {profile.cover?.kind === "image" && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={mediaUrl(profile.cover.id, 640 * sharper(profile.cover.crop))} alt="" style={cropStyle(profile.cover.crop)} />
+              )}
+              {profile.cover?.kind === "video" && <video src={mediaUrl(profile.cover.id)} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" style={cropStyle(profile.cover.crop)} />}
+            </div>
             <Link href="/me" className="me-card__face" aria-hidden="true" tabIndex={-1}>
               <Avatar name={me.name} photoId={photos.get(me.id)} size={64} />
             </Link>

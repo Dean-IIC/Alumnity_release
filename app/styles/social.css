@@ -1359,6 +1359,25 @@ html.story-open {
 }
 
 /* A strip of the red pen across the top of your card. */
+.me-card__band--own {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-band);
+}
+
+/* The face sits over the banner's lower edge, in front of it. */
+.me-card__band--own + .me-card__face {
+  position: relative;
+  z-index: 1;
+}
+
+.me-card__band--own :is(img, video) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .me-card__band {
   height: 56px;
   background:
