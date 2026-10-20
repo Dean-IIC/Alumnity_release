@@ -156,6 +156,10 @@ export function AppBar({ user, counts, photoId }: { user: User; counts: Counts; 
                 <Icon name="you" size={22} />
                 <span>Edit your page</span>
               </NavLink>
+              <NavLink href="/me/activity" className="app-menu__item">
+                <Icon name="bell" size={22} />
+                <span>Your activity</span>
+              </NavLink>
               <NavLink href="/settings" className="app-menu__item">
                 <Icon name="settings" size={22} />
                 <span>Settings and notifications</span>

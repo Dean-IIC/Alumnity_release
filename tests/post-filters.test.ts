@@ -171,6 +171,22 @@ describe("filtering Home's feed", () => {
     expect(await posts.reactorsOf(reader, 999999)).toBeNull();
   });
 
+  it("views: each person once, never your own, and only the writer gets the number", async () => {
+    const job = ids.get("alumna-job")!;
+    const alumna = who.get("alumna")!;
+    const before = (await posts.feedFor(alumna, { authorId: alumna.id })).find((p) => p.id === job)!.views!;
+    // The reader (counted already, in the tests above) sees it twice more, the student
+    // for the first time: one more view.
+    await posts.feedFor(reader);
+    await posts.feedFor(reader);
+    await posts.feedFor(who.get("student")!, { limit: 50 });
+    const mine = (await posts.feedFor(alumna, { authorId: alumna.id })).find((p) => p.id === job)!;
+    expect(before).toBeGreaterThan(0);
+    expect(mine.views).toBe(before + 1);
+    // Her own look didn't count, and nobody else is given the number.
+    expect((await posts.feedFor(reader, { limit: 50 })).find((p) => p.id === job)!.views).toBeNull();
+  });
+
   it("by named people, ten at most", async () => {
     expect(await shown({ authors: [who.get("alumna")!.id, who.get("student")!.id] })).toEqual(["alumna-job", "student-internship"]);
     expect(await shown({ authors: [who.get("teacher")!.id], tags: ["notice"] })).toEqual(["teacher-notice"]);

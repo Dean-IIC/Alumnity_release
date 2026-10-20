@@ -1,0 +1,98 @@
+/* Your activity (app/(member)/me/activity/page.tsx): totals, then each post's numbers. */
+
+.activity-totals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.activity-totals li {
+  display: grid;
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.activity-totals strong {
+  color: var(--color-navy);
+  font: var(--weight-bold) 1.8rem / 1.1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+.activity-totals span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.activity-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity-post {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+}
+
+.activity-post__text {
+  grid-column: 1 / -1;
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.activity-post__text:hover {
+  text-decoration: underline;
+}
+
+.activity-post__when {
+  grid-column: 1 / -1;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.activity-post__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--space-4);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.activity-post__stats a {
+  color: inherit;
+}
+
+.activity-post__stats strong {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.activity-empty {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-5);
+}
+
+.activity-note {
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .activity-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .activity-post {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

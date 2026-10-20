@@ -28,6 +28,8 @@ type Props = {
   repostCount: number;
   /** Whether the viewer's batch is known (a repost can go to it). */
   hasBatch: boolean;
+  /** How many people have seen it: given to its writer only. */
+  views?: number | null;
 };
 
 /**
@@ -36,7 +38,7 @@ type Props = {
  * holding it (or hovering, or the small arrow) offers all five. The bar changes at once
  * and asks the server to agree; if it doesn't, it goes back and says why.
  */
-export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, commentCount, commentsHref, shareUrl, audience, author, excerpt, canRepost, repostCount, hasBatch }: Props) {
+export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, commentCount, commentsHref, shareUrl, audience, author, excerpt, canRepost, repostCount, hasBatch, views = null }: Props) {
   const [mine, setMine] = useState<Reaction | null>(initialMine);
   const [counts, setCounts] = useState(initialCounts);
   const [open, setOpen] = useState(false);
@@ -114,7 +116,7 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
 
   return (
     <div className="post__social" ref={wrap}>
-      {(total > 0 || commentCount > 0 || repostCount > 0) && (
+      {(total > 0 || commentCount > 0 || repostCount > 0 || Boolean(views)) && (
         <div className="post__tally">
           {total > 0 ? (
             // Opens who reacted, and how.
@@ -139,6 +141,11 @@ export function ReactionBar({ postId, mine: initialMine, counts: initialCounts, 
             {repostCount > 0 && (
               <span>
                 {repostCount} repost{repostCount === 1 ? "" : "s"}
+              </span>
+            )}
+            {Boolean(views) && (
+              <span title="How many people have seen your post. Only you see this.">
+                {views} view{views === 1 ? "" : "s"}
               </span>
             )}
           </span>
