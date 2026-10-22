@@ -28,6 +28,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      # Without the Git history, the deploy carries no commit author: on the Hobby plan, once
+      # someone links a repo to the project, deploys whose commit author isn't on the
+      # college's Vercel team are blocked. This way the college's own token is all it sees.
+      - name: Drop the Git details
+        run: rm -rf .git
       # Built on Vercel, as any Vercel deploy is; the code is uploaded from this checkout.
       - name: Deploy (production)
         run: npx --yes vercel@latest deploy --prod --yes --token="${{ secrets.COLLEGE_VERCEL_TOKEN }}"
