@@ -48,7 +48,7 @@ export async function CampusLanding({ then }: { then?: string } = {}) {
 
   return (
     <div className="landing force-light">
-      <LandingIntro then={then} />
+      <LandingIntro then={then} students={facts?.count} />
       {/* The intro opens over this from the centre, and floats its wordmark into the header. */}
       <div className="landing-ui" data-reveal-root>
       <SiteHeader landing />

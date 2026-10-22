@@ -126,9 +126,14 @@ function introVideoFor(view: { width: number; height: number }): string | null {
 
 type GrowingCampusIntroProps = {
   onComplete: () => void;
+  /**
+   * How many are on the register (the same count the rest of the site shows). Without it,
+   * the old typed-in total (lib/eras.ts), which was an earlier, smaller list (8,838 vs 10k).
+   */
+  students?: number;
 };
 
-export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
+export function GrowingCampusIntro({ onComplete, students = STUDENTS_SINCE_1998 }: GrowingCampusIntroProps) {
   const [isSettled, setIsSettled] = useState(false);
   const [layout, setLayout] = useState<WorldLayout | null>(null);
   const [skipNextTime, setSkipNextTime] = useState(false);
@@ -692,7 +697,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
             </>
           )}
           <p className="journey-total" ref={totalRef} aria-hidden="true">
-            {STUDENTS_SINCE_1998.toLocaleString("en-IN")} engineering students since 1998.
+            {students.toLocaleString("en-IN")} engineering students since 1998.
           </p>
           </div>
         )}
@@ -702,7 +707,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         <p className="sr-only">
           HKBK College of Engineering through the years:{" "}
           {ERAS.map((era) => `${era.year}, ${era.title.toLowerCase()} — ${era.detail}`).join("; ")}.{" "}
-          {STUDENTS_SINCE_1998.toLocaleString("en-IN")} engineering students since 1998.
+          {students.toLocaleString("en-IN")} engineering students since 1998.
         </p>
       </section>
 
