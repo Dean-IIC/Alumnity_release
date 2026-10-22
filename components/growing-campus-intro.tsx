@@ -276,7 +276,8 @@ export function GrowingCampusIntro({ onComplete, students = STUDENTS_SINCE_1998 
           world.style.display = "none";
           lineCanvas.style.display = "none";
           if (backdropRef.current) backdropRef.current.style.display = "none";
-          if (totalRef.current) totalRef.current.style.display = "none";
+          // The count isn't in the video (it's recorded without it): it's live text over it,
+          // so it's always the register's own number, year after year, with no new recording.
           video.addEventListener("error", settle, { once: true });
           // Its last frame can hold the last photo's final speck: the live paper takes over cleanly.
           video.addEventListener("ended", () => (video.style.visibility = "hidden"), { once: true });
@@ -542,7 +543,7 @@ export function GrowingCampusIntro({ onComplete, students = STUDENTS_SINCE_1998 
           const shrink = windowProgress(t, ...FINALE.shrink);
           lineCanvas.style.opacity = `${1 - shrink}`;
           const total = totalRef.current;
-          if (total && !video) {
+          if (total && !capture) {
             const p = windowProgress(t, ...FINALE.total);
             total.style.opacity = `${p * (1 - shrink)}`;
             total.style.transform = `translate(-50%, ${(1 - easeOutCubic(p)) * 14}px)`;
@@ -696,7 +697,7 @@ export function GrowingCampusIntro({ onComplete, students = STUDENTS_SINCE_1998 
               </div>
             </>
           )}
-          <p className="journey-total" ref={totalRef} aria-hidden="true">
+          <p className={`journey-total ${videoSrc ? "journey-total--over-video" : ""}`} ref={totalRef} aria-hidden="true">
             {students.toLocaleString("en-IN")} engineering students since 1998.
           </p>
           </div>
