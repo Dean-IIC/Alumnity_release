@@ -61,7 +61,7 @@ type PhotoRow = {
   caption: string | null;
   sort: number;
 };
-type VideoRow = { album_id: number; part_key: string; url: string; title: string; poster_src: string | null; poster_width: number | null; poster_height: number | null };
+export type VideoRow = { album_id: number; part_key: string; url: string; title: string; poster_src: string | null; poster_width: number | null; poster_height: number | null };
 
 /** A file's address: one in the repo as it is, one in the bucket by its public address. */
 export const fileUrl = (src: string) => (src.startsWith("/") ? src : siteFileUrl(src));
@@ -77,7 +77,7 @@ const toPhoto = (p: PhotoRow): GalleryPhoto => ({
   ...(p.caption ? { caption: p.caption } : {})
 });
 
-function toVideo(v: VideoRow): GalleryVideo | null {
+export function toVideo(v: VideoRow): GalleryVideo | null {
   try {
     return {
       ...parseVideoLink(v.url),

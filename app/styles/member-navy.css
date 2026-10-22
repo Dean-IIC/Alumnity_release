@@ -158,13 +158,13 @@
  * to sit on the bare page get a white surface of their own instead (below), so nothing dark
  * is ever left on the navy.
  */
-:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(h1, h2, .wf-head p, p.wf-muted, .page-head__text, .people-section__note, .h-count, .more-heading span):not(:is(.sheet, .pcard, .wf-card, .wf-fold, .wf-empty, .wf-list, .wf-members, .wf-tabs, .wf-search, .register-pages, .people-empty, .people-register-note, .profile__intro, .settings__section, .editor__part, .person-card, .request-card, .event-card, .album-card, .side-box, .dm-pane, .dm-list, .acard-promo, .board__tags, .feed-tabs, .strength, .people-requests, .know-everyone, form, dialog) *) {
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(h1, h2, .wf-head p, p.wf-muted, .page-head__text, .people-section__note, .h-count, .more-heading span):not(:is(.sheet, .pcard, .wf-card, .wf-fold, .wf-empty, .wf-list, .wf-members, .wf-tabs, .wf-search, .register-pages, .people-empty, .people-register-note, .profile__intro, .settings__section, .editor__part, .person-card, .request-card, .event-card, .album-card, .side-box, .dm-pane, .dm-list, .acard-promo, .board__tags, .feed-tabs, .strength, .people-requests, .know-everyone, .news-story, .news-card, form, dialog) *) {
   color: #ffffff;
   /* Crisp over every blue in the picture, the lighter waves too. */
   text-shadow: 0 1px 3px rgba(8, 34, 84, 0.45);
 }
 
-:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-head p, p.wf-muted, .page-head__text, .people-section__note):not(:is(.sheet, .pcard, .wf-card, .wf-fold, .wf-empty, .wf-list, .wf-members, .wf-tabs, .wf-search, .register-pages, .people-empty, .people-register-note, .profile__intro, .settings__section, .editor__part, .person-card, .request-card, .event-card, .album-card, .side-box, .dm-pane, .dm-list, .acard-promo, .board__tags, .feed-tabs, .strength, .people-requests, .know-everyone, form, dialog) *) {
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main :is(.wf-head p, p.wf-muted, .page-head__text, .people-section__note):not(:is(.sheet, .pcard, .wf-card, .wf-fold, .wf-empty, .wf-list, .wf-members, .wf-tabs, .wf-search, .register-pages, .people-empty, .people-register-note, .profile__intro, .settings__section, .editor__part, .person-card, .request-card, .event-card, .album-card, .side-box, .dm-pane, .dm-list, .acard-promo, .board__tags, .feed-tabs, .strength, .people-requests, .know-everyone, .news-story, .news-card, form, dialog) *) {
   color: rgba(255, 255, 255, 0.9);
 }
 

@@ -34,7 +34,8 @@ export const MORE: { href: string; label: string; icon: IconName; note: string }
   { href: "/causes", label: "Causes", icon: "heart", note: "Give to scholarships and people in need" },
   { href: "/batch", label: "Your batch", icon: "batch", note: "Everyone from your year" },
   { href: "/connections", label: "Connections", icon: "connections", note: "Your connections and connection requests" },
-  { href: "/gallery", label: "Gallery", icon: "photo", note: "Photos of HKBK over the years" }
+  { href: "/gallery", label: "Gallery", icon: "photo", note: "Photos of HKBK over the years" },
+  { href: "/news", label: "News & videos", icon: "event", note: "College news, alumni stories and videos" }
 ];
 
 /** What a badge counts, said in words for screen readers ("1 connection request"). */

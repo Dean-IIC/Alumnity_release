@@ -66,7 +66,8 @@ describe("gallery", () => {
     const around = ALBUMS.find((album) => album.slug === "around-campus-2024-25");
     const films = around?.parts.find((part) => part.title === "Films about the college");
     expect(films?.photos).toHaveLength(0);
-    expect(films?.videos.map((v) => v.provider)).toEqual(["youtube", "youtube"]);
+    // The college's two films, and its five YouTube films from the old alumni site (news_and_videos).
+    expect(films?.videos.map((v) => v.provider)).toEqual(Array(7).fill("youtube"));
     // YouTube stills are saved with the site, so the page asks YouTube for nothing before play.
     for (const v of films?.videos ?? []) {
       expect(v.poster?.src).toMatch(/^\/assets\/gallery\//);

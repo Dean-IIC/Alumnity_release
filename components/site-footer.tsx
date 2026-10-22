@@ -9,6 +9,7 @@ const NETWORK_LINKS = [
   ["How it works", "/how-it-works"],
   ["Alumni community", "/community"],
   ["Gallery", "/gallery"],
+  ["News & videos", "/news"],
   ["Committee", "/committee"],
   ["About the network", "/about"],
   ["Developers", "/developers"]

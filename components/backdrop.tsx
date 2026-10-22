@@ -45,6 +45,7 @@ const ROUTES: [prefix: string, motif: Motif, tone: Tone][] = [
   ["/ask", "rays", "teal"],
   ["/me", "contours", "blue"],
   ["/gallery", "frames", "rose"],
+  ["/news", "frames", "rose"],
   ["/causes", "petals", "rose"],
   ["/settings", "blueprint", "blue"],
   ["/desk", "blueprint", "blue"],
@@ -212,6 +213,7 @@ const SCENE_FOR: [prefix: string, scene: SceneName][] = [
   ["/ask", "ask"],
   ["/me", "profile"],
   ["/gallery", "gallery"],
+  ["/news", "gallery"],
   ["/causes", "causes"]
 ];
 

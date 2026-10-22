@@ -5,7 +5,9 @@ import { COLLEGE, LEADERS } from "../lib/college";
 import { upcomingForEveryone } from "../lib/server/events";
 import { memberCount } from "../lib/server/people";
 import { registerByYear, registerFacts } from "../lib/server/register";
+import { STORY_KIND_LABEL, stories as newsStories, storyDate, videos as newsVideos } from "../lib/server/news";
 import { galleryAlbums } from "../lib/server/showcase";
+import "../app/styles/news.css";
 import { LandingIntro } from "./landing-intro";
 import { CountUp, InView, RevealOnScroll } from "./landing/in-view";
 import { Icon, type IconName } from "./social/icons";
@@ -31,7 +33,15 @@ const branchName = (code: string) => BRANCHES.find(([c]) => c === code)?.[1] ?? 
 
 /** `then`: where a signed-in member goes once the intro is over (they came for the intro, not the landing). */
 export async function CampusLanding({ then }: { then?: string } = {}) {
-  const [facts, years, members, events, albums] = await Promise.all([registerFacts(), registerByYear(), memberCount(), upcomingForEveryone(3), galleryAlbums()]);
+  const [facts, years, members, events, albums, latestVideos, latestStories] = await Promise.all([
+    registerFacts(),
+    registerByYear(),
+    memberCount(),
+    upcomingForEveryone(3),
+    galleryAlbums(),
+    newsVideos(3),
+    newsStories(3)
+  ]);
   // From the college's gallery (lib/server/showcase.ts): the graduation album's cover, and the alumni meets.
   const HERO = albums.find((a) => a.slug.startsWith("graduation")) ?? albums[0];
   const MEETS = albums.find((a) => a.slug === "alumni-meets");
@@ -231,6 +241,53 @@ export async function CampusLanding({ then }: { then?: string } = {}) {
             </div>
           </div>
         </section>
+
+        {/* ---------- The newest from News & videos ---------- */}
+        {(latestVideos.length > 0 || latestStories.length > 0) && (
+          <section data-reveal className="lp-section container lp-news" aria-labelledby="lp-news">
+            <p className="lp-kicker">News &amp; videos</p>
+            <h2 id="lp-news">Latest from HKBK</h2>
+            {latestVideos.length > 0 && (
+              <ul className="lp-news__grid">
+                {latestVideos.map((v) => (
+                  <li key={v.url}>
+                    <Link className="lp-news__video" href="/news#videos">
+                      {v.poster && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={v.poster.src} alt="" loading="lazy" />
+                      )}
+                      <i className="lp-news__play" aria-hidden="true">
+                        ▶
+                      </i>
+                      <span>{v.title}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {latestStories.length > 0 && (
+              <ul className="news-list lp-news__stories">
+                {latestStories.map((s) => (
+                  <li key={s.slug}>
+                    <Link href={`/news/${s.slug}`} className="news-card news-card--plain">
+                      <span className="news-card__body">
+                        <span className="news-card__meta">
+                          <span className={`news-card__kind news-card__kind--${s.kind}`}>{STORY_KIND_LABEL[s.kind]}</span>
+                          {s.date && <span>{storyDate(s.date)}</span>}
+                        </span>
+                        <strong className="news-card__title">{s.title}</strong>
+                        {s.summary && <span className="news-card__summary">{s.summary}</span>}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link className="lp-link" href="/news">
+              All news and videos <span aria-hidden="true">→</span>
+            </Link>
+          </section>
+        )}
 
         {/* ---------- Leadership ---------- */}
         <section data-reveal className="lp-section lp-section--tint" aria-labelledby="lp-leaders">
