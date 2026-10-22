@@ -2609,6 +2609,62 @@ html.story-open {
   color: var(--color-gold-small);
 }
 
+.badge__icon {
+  flex: none;
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Line icons (the sprout and the calendar) are drawn, not filled. */
+:is(.badge--mentor, .badge--host) .badge__icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The founders' badge: gold leaf on navy, with a slow shine across it. */
+.badge--founding {
+  position: relative;
+  overflow: hidden;
+  padding: 5px 14px 5px 10px;
+  border: 1px solid #f2a900;
+  background: linear-gradient(135deg, #0a2a57, #123e7c 60%, #0a2a57);
+  color: #ffd56b;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 2px rgba(242, 169, 0, 0.18), 0 4px 12px rgba(10, 42, 87, 0.25);
+}
+
+.badge--founding .badge__icon {
+  filter: drop-shadow(0 0 3px rgba(255, 213, 107, 0.7));
+}
+
+.badge--founding::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 236, 170, 0.45) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: founding-shine 4.5s ease-in-out 1s infinite;
+  content: "";
+}
+
+@keyframes founding-shine {
+  0%,
+  70% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge--founding::after {
+    animation: none;
+  }
+}
+
 /* A post brought over from the old alumni portal: labelled, so nobody takes it for new. */
 .post__archive {
   justify-self: start;
