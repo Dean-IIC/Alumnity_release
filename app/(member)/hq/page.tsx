@@ -8,7 +8,12 @@ import { isSuperAdmin } from "../../../lib/server/roles";
 import { currentUser } from "../../../lib/server/session";
 import "../../styles/hq.css";
 
-export const metadata: Metadata = { title: "HQ · Alumnity", robots: { index: false, follow: false } };
+// Named only for a super administrator: anyone else sees a page that isn't here.
+export async function generateMetadata(): Promise<Metadata> {
+  const me = await currentUser();
+  if (!me || !isSuperAdmin(me)) notFound();
+  return { title: "HQ · Alumnity", robots: { index: false, follow: false } };
+}
 export const dynamic = "force-dynamic";
 // A batch of emails takes a while.
 export const maxDuration = 60;
