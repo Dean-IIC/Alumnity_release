@@ -200,8 +200,8 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
             {badges.length > 0 && (
               <ul className="badges" aria-label="Badges">
                 {badges.map((b) => (
-                  <li key={b.key} className={`badge badge--${b.tone}`} title={b.detail}>
-                    <span className="badge__dot" aria-hidden="true" />
+                  <li key={b.key} className={`badge badge--${b.tone} badge--${b.key}`} title={b.detail}>
+                    <BadgeIcon kind={b.key} />
                     {b.label}
                     <span className="sr-only">: {b.detail}</span>
                   </li>
@@ -356,5 +356,22 @@ export function ProfileSheet({ person, profile, isOwner, batchSize, actions, bad
         </section>
       )}
     </article>
+  );
+}
+
+/** Each badge's small mark: a crest-star for the founders, a sprout, a heart, a calendar. */
+function BadgeIcon({ kind }: { kind: string }) {
+  const paths: Record<string, string> = {
+    founding: "M8 1.2l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11l-3.8 2 .7-4.3-3.1-3 4.3-.6Z",
+    mentor: "M8 14V7M8 9c0-3 2-5 5.5-5C13.5 7.5 11 9 8 9Zm0 0C8 6.5 6.3 4.8 2.5 4.8 2.5 7.8 4.8 9 8 9Z",
+    helped: "M8 13.5S2.2 10 2.2 6.2A2.9 2.9 0 0 1 8 4.4a2.9 2.9 0 0 1 5.8 1.8C13.8 10 8 13.5 8 13.5Z",
+    host: "M3 4.5h10v8.5H3zM3 7h10M5.5 3v3M10.5 3v3"
+  };
+  const d = paths[kind];
+  if (!d) return <span className="badge__dot" aria-hidden="true" />;
+  return (
+    <svg className="badge__icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path d={d} />
+    </svg>
   );
 }

@@ -126,9 +126,14 @@ function introVideoFor(view: { width: number; height: number }): string | null {
 
 type GrowingCampusIntroProps = {
   onComplete: () => void;
+  /**
+   * How many are on the register (the same count the rest of the site shows). Without it,
+   * the old typed-in total (lib/eras.ts), which was an earlier, smaller list (8,838 vs 10k).
+   */
+  students?: number;
 };
 
-export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
+export function GrowingCampusIntro({ onComplete, students = STUDENTS_SINCE_1998 }: GrowingCampusIntroProps) {
   const [isSettled, setIsSettled] = useState(false);
   const [layout, setLayout] = useState<WorldLayout | null>(null);
   const [skipNextTime, setSkipNextTime] = useState(false);
@@ -271,7 +276,8 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           world.style.display = "none";
           lineCanvas.style.display = "none";
           if (backdropRef.current) backdropRef.current.style.display = "none";
-          if (totalRef.current) totalRef.current.style.display = "none";
+          // The count isn't in the video (it's recorded without it): it's live text over it,
+          // so it's always the register's own number, year after year, with no new recording.
           video.addEventListener("error", settle, { once: true });
           // Its last frame can hold the last photo's final speck: the live paper takes over cleanly.
           video.addEventListener("ended", () => (video.style.visibility = "hidden"), { once: true });
@@ -537,7 +543,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
           const shrink = windowProgress(t, ...FINALE.shrink);
           lineCanvas.style.opacity = `${1 - shrink}`;
           const total = totalRef.current;
-          if (total && !video) {
+          if (total && !capture) {
             const p = windowProgress(t, ...FINALE.total);
             total.style.opacity = `${p * (1 - shrink)}`;
             total.style.transform = `translate(-50%, ${(1 - easeOutCubic(p)) * 14}px)`;
@@ -691,8 +697,8 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
               </div>
             </>
           )}
-          <p className="journey-total" ref={totalRef} aria-hidden="true">
-            {STUDENTS_SINCE_1998.toLocaleString("en-IN")} engineering students since 1998.
+          <p className={`journey-total ${videoSrc ? "journey-total--over-video" : ""}`} ref={totalRef} aria-hidden="true">
+            {students.toLocaleString("en-IN")} engineering students since 1998.
           </p>
           </div>
         )}
@@ -702,7 +708,7 @@ export function GrowingCampusIntro({ onComplete }: GrowingCampusIntroProps) {
         <p className="sr-only">
           HKBK College of Engineering through the years:{" "}
           {ERAS.map((era) => `${era.year}, ${era.title.toLowerCase()} — ${era.detail}`).join("; ")}.{" "}
-          {STUDENTS_SINCE_1998.toLocaleString("en-IN")} engineering students since 1998.
+          {students.toLocaleString("en-IN")} engineering students since 1998.
         </p>
       </section>
 

@@ -261,14 +261,38 @@ describe("landing copy", () => {
       addEventListener: (_type: string, fn: (event: unknown) => void) => listeners.push(fn)
     };
     // Run the <head> script as the browser would: the intro is set to play (?intro=1).
-    new Function("document", "location", "matchMedia", "localStorage", INTRO_PREFERENCE_SCRIPT)(
+    new Function("document", "location", "matchMedia", "localStorage", "window", "performance", "sessionStorage", INTRO_PREFERENCE_SCRIPT)(
       doc,
-      { search: "?intro=1" },
+      { search: "?intro=1", pathname: "/" },
       () => ({ matches: false }),
+      { getItem: () => null },
+      {},
+      { getEntriesByType: () => [{ type: "navigate" }] },
       { getItem: () => null }
     );
     expect(doc.documentElement.dataset.intro).toBeUndefined();
     listeners[0]({ target: { closest: (selector: string) => (selector === ".ink-intro__skip" ? {} : null) } });
     expect(doc.documentElement.dataset.intro).toBe("skip");
+  });
+
+  it("plays on a first visit or a refresh of Home, not when coming back to it", () => {
+    /** What the <head> script decides for one page load. */
+    const run = (nav: string, playedInThisTab: boolean) => {
+      const doc = { documentElement: { dataset: {} as Record<string, string> }, addEventListener: () => undefined };
+      new Function("document", "location", "matchMedia", "localStorage", "window", "performance", "sessionStorage", INTRO_PREFERENCE_SCRIPT)(
+        doc,
+        { search: "", pathname: "/" },
+        () => ({ matches: false }),
+        { getItem: () => null },
+        {},
+        { getEntriesByType: () => [{ type: nav }] },
+        { getItem: () => (playedInThisTab ? "1" : null) }
+      );
+      return doc.documentElement.dataset.intro === "skip" ? "skips" : "plays";
+    };
+    expect(run("navigate", false)).toBe("plays"); // first visit in this tab
+    expect(run("reload", true)).toBe("plays"); // refresh on Home
+    expect(run("back_forward", false)).toBe("skips"); // the Back button
+    expect(run("navigate", true)).toBe("skips"); // opened again in the same tab
   });
 });

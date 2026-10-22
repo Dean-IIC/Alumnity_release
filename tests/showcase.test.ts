@@ -93,7 +93,7 @@ describe("the migrations, run again and again (as PGlite does on every start)", 
     const pg = await fresh();
     expect(await count(pg, "site.albums")).toBe(11);
     expect(await count(pg, "site.photos")).toBe(72);
-    expect(await count(pg, "site.videos")).toBe(3);
+    expect(await count(pg, "site.videos")).toBe(8); // 3 + the college's 5 YouTube films (news_and_videos)
     expect(await count(pg, "site.pages")).toBe(6);
     await pg.query("delete from site.albums where slug = 'uninor-cup'");
     await db.runMigrations(pg);

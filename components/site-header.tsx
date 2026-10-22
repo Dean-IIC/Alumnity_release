@@ -12,7 +12,7 @@ type SiteHeaderProps = {
   /** The landing page: the header lies over the hero, and the intro lands its lockup on this one. */
   landing?: boolean;
   /** The section this page belongs to, marked in the nav. */
-  current?: "gallery" | "how-it-works" | "about" | "community" | "committee" | "developers";
+  current?: "gallery" | "news" | "how-it-works" | "about" | "community" | "committee" | "developers";
   /** Who's signed in, when the server already knows (members' pages): no "Log in" flash. */
   member?: { firstName: string };
 };
@@ -20,6 +20,7 @@ type SiteHeaderProps = {
 /** For visitors: what Alumnity is, the college's photos, and who's behind it. */
 const LINKS = [
   { href: "/gallery", label: "Gallery", section: "gallery" },
+  { href: "/news", label: "News & videos", section: "news" },
   { href: "/how-it-works", label: "How it works", section: "how-it-works" },
   { href: "/about", label: "About", section: "about" },
   { href: "/community", label: "Alumni community", section: "community" },

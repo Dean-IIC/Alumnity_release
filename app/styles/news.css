@@ -1,0 +1,201 @@
+/* News & videos (app/news): the gallery's page (gallery.css) with a list of stories. */
+
+.news__section {
+  margin-top: var(--space-7, 40px);
+}
+
+.news__h2 {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink);
+  font: var(--weight-bold) 26px / 1.2 var(--font-voice);
+}
+
+.news__empty {
+  color: var(--color-ink-muted);
+}
+
+.news-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.news-card {
+  display: grid;
+  overflow: hidden;
+  height: 100%;
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  background: var(--color-paper-raised, #ffffff);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.news-card:hover {
+  box-shadow: 0 12px 28px rgba(10, 42, 87, 0.16);
+  transform: translateY(-2px);
+}
+
+.news-card__cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.news-card__body {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: var(--space-4);
+}
+
+.news-card--plain .news-card__body {
+  border-top: 4px solid var(--color-gold, #f2a900);
+}
+
+.news-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+}
+
+.news-card__kind {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--color-wash-blue, #e8eff9);
+  color: var(--color-blue);
+  font-weight: var(--weight-semibold);
+}
+
+.news-card__kind--story {
+  background: var(--color-wash-gold, #fff4d6);
+  color: #8a5300;
+}
+
+.news-card__kind--notice {
+  background: var(--color-wash-red, #fde2e3);
+  color: #b4141e;
+}
+
+.news-card__pin {
+  color: #8a5300;
+  font-weight: var(--weight-semibold);
+}
+
+.news-card__title {
+  font: var(--weight-bold) 19px / 1.3 var(--font-voice);
+}
+
+.news-card__summary {
+  color: var(--color-ink-muted);
+  line-height: 1.5;
+}
+
+/* One story. */
+.news-story {
+  max-width: 760px;
+  margin: var(--space-4) auto var(--space-8, 56px);
+  padding: var(--space-6);
+  border-radius: 16px;
+  background: var(--color-paper-raised, #ffffff);
+  box-shadow: 0 10px 30px rgba(10, 42, 87, 0.12);
+}
+
+.news-story__title {
+  margin: var(--space-3) 0;
+}
+
+.news-story__lead {
+  color: var(--color-ink-muted);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.news-story__cover {
+  display: block;
+  width: 100%;
+  margin: var(--space-4) 0;
+  border-radius: 12px;
+}
+
+.news-story__body p {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink);
+  line-height: 1.7;
+}
+
+/* ---------- On the welcome page: the newest few (components/campus-landing.tsx) ---------- */
+
+.lp-news__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-news__video {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 14px;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.lp-news__video img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.lp-news__video span {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 26px 12px 10px;
+  background: linear-gradient(transparent, rgba(8, 30, 66, 0.9));
+  font-weight: var(--weight-semibold);
+}
+
+.lp-news__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(242, 169, 0, 0.92);
+  color: #0a2a57;
+  font-size: 20px;
+  transform: translate(-50%, -50%);
+}
+
+.lp-news__stories {
+  margin-top: var(--space-4);
+}
+
+.lp-news .lp-link {
+  display: inline-block;
+  margin-top: var(--space-4);
+}
+
+/* Three across the welcome page's full width (not a fourth, empty column). */
+.lp-news .lp-news__grid,
+.lp-news .news-list {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}

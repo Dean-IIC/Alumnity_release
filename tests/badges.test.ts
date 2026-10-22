@@ -33,13 +33,14 @@ beforeAll(async () => {
 });
 
 describe("badges on someone's page", () => {
-  it("founding member for the first hundred real members, not after (samples don't count)", async () => {
+  it("founding member only for the students who built Alumnity (the Developers page), not the first to join", async () => {
     const first = await member();
-    expect(await keys(first)).toContain("Founding member");
-    for (let i = 0; i < 5; i++) await member("alumnus", 1);
-    expect(await keys(await member())).toContain("Founding member");
-    for (let i = 0; i < 100; i++) await member();
-    expect(await keys(await member())).not.toContain("Founding member");
+    expect(await keys(first)).not.toContain("Founding member");
+    const { DEVELOPERS } = await import("../lib/about-content");
+    const builder = await member();
+    await db.db().run("update users set usn = ? where id = ?", DEVELOPERS.team[0].usn.toLowerCase(), builder.id);
+    const asBuilder = (await import("../lib/server/people")).memberById;
+    expect(await keys((await asBuilder(builder.id))!)).toContain("Founding member");
   });
 
   it("helping juniors, in tiers of one, five and ten answered questions", async () => {

@@ -693,3 +693,64 @@
 .letter__more[open] > summary {
   color: var(--color-ink-muted);
 }
+
+/* ---------- The developers, with their photos and the founders' badge ---------- */
+
+.people-card__photo {
+  width: 160px;
+  height: 160px;
+  margin-bottom: var(--space-3);
+  border: 4px solid #ffffff;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px #f2a900, 0 10px 24px rgba(10, 42, 87, 0.25);
+}
+
+/* The founders' badge (the same as on their pages: app/styles/social.css), here too. */
+.people-card--dev .badge--founding {
+  position: relative;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  overflow: hidden;
+  margin-top: var(--space-2);
+  padding: 5px 14px 5px 10px;
+  border: 1px solid #f2a900;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0a2a57, #123e7c 60%, #0a2a57);
+  color: #ffd56b;
+  font-size: var(--text-small);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 2px rgba(242, 169, 0, 0.18), 0 4px 12px rgba(10, 42, 87, 0.25);
+}
+
+.people-card--dev .badge__icon {
+  fill: currentColor;
+  filter: drop-shadow(0 0 3px rgba(255, 213, 107, 0.7));
+}
+
+.people-card--dev .badge--founding::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 236, 170, 0.45) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: dev-founding-shine 4.5s ease-in-out 1s infinite;
+  content: "";
+}
+
+@keyframes dev-founding-shine {
+  0%,
+  70% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .people-card--dev .badge--founding::after {
+    animation: none;
+  }
+}

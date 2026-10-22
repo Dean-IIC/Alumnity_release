@@ -173,6 +173,22 @@
   transform: translate(-50%, 14px);
 }
 
+/* Over the recorded intro (phones, tablets, laptops): live text, so it's always the
+   register's own count. A little higher than the video's own captions, on a soft pill so
+   it reads clearly over any frame. */
+.journey-total--over-video {
+  z-index: 2;
+  bottom: 16svh;
+  padding: 0.35em 0.9em;
+  border: 1px solid rgba(242, 169, 0, 0.55);
+  border-radius: 999px;
+  background: rgba(8, 30, 66, 0.72);
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+}
+
 /* ---------- The lockup that floats into the nav ---------- */
 
 .intro-lockup {
@@ -634,4 +650,12 @@ body:has(.landing-ui--revealing) .intro-lockup .brand__swoosh {
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(10, 42, 87, 0.92);
   color: #ffffff;
+}
+
+/* Wide screens: the pulled-back world sits higher, so the count goes a little lower, clear of the captions. */
+@media (min-aspect-ratio: 4/3) {
+  .journey-total--over-video {
+    bottom: 7svh;
+    font-size: clamp(22px, 2.4vw, 34px);
+  }
 }

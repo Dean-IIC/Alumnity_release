@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       // The join page and the share card too: link previews (WhatsApp, LinkedIn) read them.
-      allow: ["/$", "/about", "/how-it-works", "/community", "/committee", "/developers", "/privacy", "/terms", "/join$", "/og.jpg"],
+      allow: ["/$", "/about", "/how-it-works", "/community", "/committee", "/developers", "/news", "/privacy", "/terms", "/join$", "/og.jpg"],
       disallow: "/"
     }
   };
