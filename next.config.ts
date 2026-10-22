@@ -40,7 +40,9 @@ const nextConfig: NextConfig = {
     // instead of asking the server again: on a phone, that wait was most of the lag. Up to
     // 30 seconds old; anything you do (post, reply, connect) refreshes it straight away
     // (the actions call revalidatePath).
-    staleTimes: { dynamic: 30, static: 300 }
+    staleTimes: { dynamic: 30, static: 300 },
+    // HQ's register import sends the whole register's CSV (about 700 KB) to a server action.
+    serverActions: { bodySizeLimit: "3mb" }
   },
   // Loaded by Node as they are, not bundled: PGlite (the local database) reads its own
   // WebAssembly files; the database driver and image tools are native or Node-only.
