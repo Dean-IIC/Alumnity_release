@@ -9,11 +9,16 @@ import { PasswordField } from "../join/fields";
  * Shown in place of every page until someone the college added sets their own password.
  * They were given a password that several people know, so the first thing they do is
  * replace it. The server clears the flag, then the page reloads into the app.
+ *
+ * Their sign-in address is usually one the college made up, which cannot receive mail, so
+ * the screen says that plainly and says that no code will arrive: the address and the
+ * password they choose here are all they need to get back in.
  */
 export function SetYourPassword({ email }: { email: string }) {
   const ready = useHydrated();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const madeUp = email.toLowerCase().endsWith("@alumnity.test");
 
   return (
     <div className="profile-page">
@@ -59,6 +64,27 @@ export function SetYourPassword({ email }: { email: string }) {
           {busy ? "Saving…" : "Save my password"}
         </button>
       </form>
+
+      <section className="settings__section">
+        <h2>Your email address</h2>
+        <p className="settings__value">{email}</p>
+        {madeUp ? (
+          <p className="join__problem" role="alert">
+            This address was made up for you by the college, so nobody reads it and mail sent to it
+            is lost. It is only for logging in. If you would rather use your own email, ask the
+            Alumni Cell to change it — and until they do, keep a note of this one.
+          </p>
+        ) : (
+          <p className="join__fine">
+            Check that this is the address you actually use. If it is not, ask the Alumni Cell to
+            change it.
+          </p>
+        )}
+        <p className="join__fine">
+          You will not be sent a code to log in. Your email address and the password you set here
+          are all you need.
+        </p>
+      </section>
     </div>
   );
 }
