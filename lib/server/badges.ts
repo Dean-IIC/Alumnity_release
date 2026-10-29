@@ -5,13 +5,13 @@ import type { Profile } from "./profile";
 
 /*
  * What someone has earned on Alumnity, shown on their page: helping juniors (questions
- * they answered), hosting events, mentoring, and (for the students who built it) founding
+ * they answered), hosting events, mentoring, and (for the students who built it) building
  * it. Counts only, worked out in one query; nothing here is shown that their page doesn't already.
  */
 
 export type Badge = { key: string; label: string; detail: string; tone: "blue" | "red" | "green" | "gold" };
 
-/** The founding members: the students who built Alumnity (the Developers page), by USN. */
+/** The developers: the students who built Alumnity (the Developers page), by USN. */
 const FOUNDERS = new Set<string>(DEVELOPERS.team.map((d) => d.usn.toUpperCase()));
 
 export async function badgesOf(person: User, profile: Profile): Promise<Badge[]> {
@@ -23,8 +23,8 @@ export async function badgesOf(person: User, profile: Profile): Promise<Badge[]>
   );
   const helped = Number(row?.helped ?? 0);
   const badges: Badge[] = [];
-  // First: it's the rarest. Only the students who built Alumnity (it went to the first 100 to join).
-  if (person.usn && FOUNDERS.has(person.usn.toUpperCase())) badges.push({ key: "founding", label: "Founding member", detail: "One of the students who built Alumnity", tone: "gold" });
+  // First: it's the rarest. Only the students who built Alumnity.
+  if (person.usn && FOUNDERS.has(person.usn.toUpperCase())) badges.push({ key: "founding", label: "Developer", detail: "One of the students who built Alumnity", tone: "gold" });
   if (profile.happyTo.mentor) badges.push({ key: "mentor", label: "Mentor", detail: "Happy to mentor juniors", tone: "green" });
   if (helped >= 1) {
     const tier = helped >= 10 ? 10 : helped >= 5 ? 5 : 1;
