@@ -33,14 +33,14 @@ beforeAll(async () => {
 });
 
 describe("badges on someone's page", () => {
-  it("founding member only for the students who built Alumnity (the Developers page), not the first to join", async () => {
+  it("the Developer badge only for the students who built Alumnity (the Developers page), not the first to join", async () => {
     const first = await member();
-    expect(await keys(first)).not.toContain("Founding member");
+    expect(await keys(first)).not.toContain("Developer");
     const { DEVELOPERS } = await import("../lib/about-content");
     const builder = await member();
     await db.db().run("update users set usn = ? where id = ?", DEVELOPERS.team[0].usn.toLowerCase(), builder.id);
     const asBuilder = (await import("../lib/server/people")).memberById;
-    expect(await keys((await asBuilder(builder.id))!)).toContain("Founding member");
+    expect(await keys((await asBuilder(builder.id))!)).toContain("Developer");
   });
 
   it("helping juniors, in tiers of one, five and ten answered questions", async () => {

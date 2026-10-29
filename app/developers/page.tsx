@@ -28,7 +28,7 @@ export default function DevelopersPage() {
                 <svg className="badge__icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
                   <path d="M8 1.2l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11l-3.8 2 .7-4.3-3.1-3 4.3-.6Z" />
                 </svg>
-                Founding member
+                Developer
               </span>
             </li>
           ))}
