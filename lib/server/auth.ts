@@ -329,6 +329,8 @@ export async function changePassword(me: User, current: string, next: string): P
   const refused = await auth.setPassword(next);
   if (refused) return { ok: false, error: refused };
   await auth.signOut("others");
+  // They now know a password of their own: stop asking.
+  await db().run("update users set must_change_password = 0 where id = ?", me.id);
   return { ok: true };
 }
 
