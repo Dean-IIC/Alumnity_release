@@ -168,6 +168,12 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* A page that didn't load (app/error.tsx): its words sit straight on the navy too. */
+:root:not([data-theme="dark"]) body:has(.backdrop--navy) main.page-error p {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(8, 34, 84, 0.45);
+}
+
 /* A search or filter form straight on the page: on white too. */
 :root:not([data-theme="dark"]) body:has(.backdrop--navy) main > form,
 :root:not([data-theme="dark"]) body:has(.backdrop--navy) main > section > form {
